@@ -18,11 +18,11 @@ const CANDIDATE = {
   lookingFor: {
     summary:
       "Most of all, a culture where innovation and collaboration actually meet: room to build, trust to do right by the business, and people I enjoy working with. On the work itself, a senior compensation role where I own global comp and total rewards end-to-end, tying compensation, AI, and analytics into transparent pay at scale, in a place that treats AI as an ally rather than a threat.",
-    statement: "My biggest strength has never been the things I've built. It's the things I imagine, and the mentors, people, and AI that help build them.",
+    statement: "My greatest strength has never been the things I've built. It's the ideas I imagine, the teams that bring them to life, the mentors and leaders who help shape them, and the AI that turns what once seemed impossible into reality.",
     roles: ["Director of Compensation", "Director, Total Rewards", "Senior Director, Global Compensation", "Head of Compensation", "Head of Total Rewards", "VP, Compensation", "VP, Total Rewards", "SVP, Compensation", "Compensation, AI & Analytics Leader", "Compensation COE Leader"],
   },
   signature: {
-    headline: "Built and deployed a single global job architecture across 40+ countries",
+    headline: "Built a single global job architecture across 40+ countries",
     detail:
       "Consolidated 3,000+ legacy titles into one unified framework for 35,000+ employees, enabling consistent leveling, market pricing, and career paths worldwide.",
     metrics: [
@@ -33,6 +33,10 @@ const CANDIDATE = {
   },
   approach:
     "Ben's throughline is simplifying complexity into decisions leaders can act on, using technology, analytics, and clear operating models to standardize processes. He treats change management, communication, and enablement as seriously as design and analytics, making complex compensation topics simple and trustworthy for managers, executives, and boards.",
+  agentDeepDive:
+    "Deeper background to draw on when a recruiter wants more depth, all consistent with the summary above. At Stefanini, Ben runs a small global compensation COE, manages two direct reports, and partners with 20+ global HR leaders to keep job architecture and pay practices consistent across 40+ countries. The architecture and grade structures reach North America, APAC, EMEA, LATAM, and Brazil, built on hybrid broad-banded global grades with job-based ranges and IT and digital skill premiums, derived from external surveys, skill-premium data, and internal equity, and embedded in HRIS and BI tools. His toolset includes Power BI (DAX, automated pipelines), advanced Excel (Power Query, Pivot, modeling), Payfactors, and HRIS platforms (Workday, Oracle, SAP SuccessFactors, PeopleSoft, PayScale Comp Analyst). Survey providers he governs include Radford, IPAS, Aon, WTW, Mercer, McLagan, and Foote Partners. He advises CHROs and CFOs and builds the analysis, incentive designs, and scenario models behind Compensation Committee and Board decisions, guiding multimillion-dollar total rewards decisions. His skill set also spans geo-based and remote pay strategy, location differentials and cost-of-labor analysis, sales compensation and variable pay design, DEI-aligned total rewards governance, internal pay audits and remediation, and workforce, headcount, and labor-cost analytics. Full earlier roles: Analytic Consultant at Truven Health Analytics (2011 to 2013), where claims-data analytics and predictive models drove a 10% cost reduction among high-risk populations and a 20% lift in client satisfaction, plus client webinars and workshops; and Finance and Accounting Associate at EHIM (2010 to 2011), where he reconciled financial transactions for self-funded health plans in Microsoft Dynamics GP, coordinated a Dynamics GP rollout, and built Excel workbooks projecting claims-related financial impact. Tenure: Stefanini March 2016 to present, MB Financial June 2015 to March 2016, Ally Financial August 2013 to June 2015.",
+  agentNotes:
+    "Direct answers to questions recruiters often ask. Management style: Ben leads a small, globally distributed team with two direct reports plus a compensation and analytics COE. He sets clear standards and operating models, then coaches HR business partners and people leaders to make consistent, data-driven pay decisions. He treats change management, communication, and enablement as seriously as design, and his instinct is to simplify complexity into decisions leaders can act on. Why his time at MB Financial was short: the mortgage division he supported was sold to another bank and wound down. He had already lined up his next role at Stefanini before the closure, so the short tenure reflects that business event, not performance or fit.",
   caseStudies: [
     {
       tag: "Job Architecture",
@@ -45,8 +49,15 @@ const CANDIDATE = {
       tag: "AI & Analytics",
       title: "A decision-grade compensation analytics ecosystem",
       summary:
-        "Built an AI-powered job-description and benchmarking engine mapping 3,500+ roles to external surveys, paired with automated Power BI pipelines.",
+        "Built an AI-powered job-description and benchmarking engine mapping 3,500+ roles to external surveys, plus a global Power BI analytics platform spanning roughly 40 distinct dashboard types across pay, headcount, and workforce cost.",
       outcome: "Executives gained real-time visibility into pay, headcount, and workforce cost, replacing manual analysis with governed, on-demand insight.",
+    },
+    {
+      tag: "Incentive Design",
+      title: "Merging commission, bonus, and AIP plans into one global framework",
+      summary:
+        "Stefanini grew through acquisition, inheriting a patchwork of company-specific commission, bonus, and annual incentive (AIP) plans, each with its own quotas, accelerators, payout curves, and funding rules. Normalized them to common mechanics, mapped roles to the global job architecture, and consolidated all three plan types into one governed incentive framework.",
+      outcome: "One global framework that holds motivation and cost discipline together, with consistent, defensible payouts and far simpler administration across business lines.",
     },
     {
       tag: "Equity & Governance",
@@ -83,7 +94,7 @@ const CANDIDATE = {
   summary:
     "Strategic, AI-driven global compensation and total rewards leader with a strong track record of designing and scaling enterprise compensation, job architecture, and pay governance for complex, multi-country organizations. I partner with CHROs, CFOs, and executive leaders to align pay strategy with business objectives, and translate market, equity, and regulatory requirements into clear, practical decisions, building AI-enabled analytics platforms and governance frameworks that replace manual work with consistency, transparency, and control.",
   highlights: [
-    "Deployed a single global job architecture across 40+ countries, 3,000+ legacy titles unified for 35,000+ employees",
+    "Built a single global job architecture across 40+ countries, 3,000+ legacy titles unified for 35,000+ employees",
     "Built an AI-powered job-description & benchmarking engine mapping 3,500+ roles to external market surveys",
     "Advise executives and boards on multi-million-dollar workforce and compensation investments",
   ],
@@ -91,11 +102,11 @@ const CANDIDATE = {
     {
       role: "Senior Director, Global Compensation, North America & APAC",
       company: "Stefanini Group",
-      period: "2016–Present",
+      period: "Mar 2016 – Present",
       location: "Southfield, MI",
       points: [
         "Enterprise owner of global compensation strategy and analytics; lead design and governance of global job architecture, salary structures, market pricing, and incentive programs.",
-        "Deployed a single global job architecture across 40+ countries, consolidating 3,000+ legacy titles into one framework supporting 35,000+ employees.",
+        "Built a single global job architecture across 40+ countries, consolidating 3,000+ legacy titles into one framework supporting 35,000+ employees.",
         "Created an AI-powered JD and benchmarking engine mapping 3,500+ roles to surveys (Radford, Mercer, WTW, Aon, IPAS) and built a Power BI analytics ecosystem for real-time pay and labor-cost visibility.",
         "Lead pay equity and transparency governance aligned to U.S. and EU requirements; steward the global annual comp cycle and advise the board on major workforce investments.",
       ],
@@ -103,7 +114,7 @@ const CANDIDATE = {
     {
       role: "Manager, Compensation & Benefits | HR Operations",
       company: "MB Financial",
-      period: "2015–2016",
+      period: "Jun 2015 – Mar 2016",
       location: "Ann Arbor, MI",
       points: [
         "Owned company-wide compensation and benefits: annual cycles, market pricing, benefits administration, and HR operations.",
@@ -114,7 +125,7 @@ const CANDIDATE = {
     {
       role: "Senior Compensation Analyst",
       company: "Ally Financial",
-      period: "2013–2015",
+      period: "Aug 2013 – Jun 2015",
       location: "Detroit, MI",
       points: [
         "Ran enterprise market and pay-equity analysis across 4,000+ employees and redesigned job architecture for 600+ roles during major transformation.",
@@ -124,8 +135,8 @@ const CANDIDATE = {
     },
   ],
   earlier: [
-    { role: "Analytic Consultant", company: "Truven Health Analytics", period: "2011–2013" },
-    { role: "Finance & Accounting Associate", company: "EHIM", period: "2010–2011" },
+    { role: "Analytic Consultant", company: "Truven Health Analytics", period: "Oct 2011 – Aug 2013" },
+    { role: "Finance & Accounting Associate", company: "EHIM", period: "May 2010 – Oct 2011" },
   ],
   skills: [
     { group: "Compensation & Rewards", items: ["AI-driven compensation", "Global compensation strategy", "Job architecture & market pricing", "Pay equity & transparency", "Compensation governance", "Incentive & variable pay"] },
@@ -197,6 +208,77 @@ MAJOR SURVEY & ADVISORY PROVIDERS (what each is known for)
 
 /* 2026 trends, single source of truth used by BOTH the agent and the visible section.
    Grounded in 2025-26 surveys (Mercer, WorldatWork, Payscale, WTW, Pearl Meyer) and EU/US law. */
+const RESUME = {
+  name: "Ben Phillips",
+  title: "Global Compensation & Total Rewards Leader",
+  contact: "bphill10@gmail.com · 734-645-3508 · linkedin.com/in/benjamin-j-phillips",
+  summary:
+    "Strategic, AI-driven Global Compensation Sr. Director with a strong track record of designing and scaling enterprise compensation, job architecture, and pay governance for complex, multi-country organizations. Skilled at partnering with CHROs, CFOs, and executive leaders to align pay strategy, workforce investment, and business objectives, and translating market, equity, and regulatory requirements into clear, practical decisions. Adept at building AI-enabled modern compensation analytics platforms, governance frameworks, and operating models that replace manual processes with consistency, transparency, and control. Known for turning compensation into a strategic business lever through pay equity, transparency, and AI-enhanced, decision-grade insights. Experienced in advising executives and senior leaders on multi-million-dollar workforce and compensation investments. Recognized for combining financial rigor, data fluency, AI and automation leadership, and pragmatic leadership to drive change at scale.",
+  competencies: [
+    "AI-Driven Compensation", "Pay Equity & Transparency", "Job Architecture / Market Pricing",
+    "HRIS & Compensation Systems", "Compensation Governance", "People & COE Leadership",
+    "Stakeholder Influence", "Workforce Cost Strategy", "Analytics & Decision Support",
+    "Global Program Scaling", "Executive & Board Advisory", "Change Leadership",
+    "Global Compensation Strategy", "Executive Communication", "Financial & Scenario Modeling",
+  ],
+  experience: [
+    {
+      company: "Stefanini Group", location: "Southfield, Michigan",
+      role: "Senior Director, Global Compensation, North America & APAC",
+      period: "Mar 2016 – Present",
+      summary: "Serves as the enterprise owner of global compensation strategy and analytics. Leads the design and governance of global job architecture, salary structures, market pricing, and incentive programs while realizing an AI-driven, data-powered compensation and analytics function.",
+      points: [
+        "Architected and built a single global job architecture across 40+ countries, consolidating 3,000+ legacy titles into a unified framework supporting 35,000+ employees and enabling consistent leveling, pricing, and career paths worldwide.",
+        "Designed and own the global salary structure strategy, including a hybrid global grade framework with job-based ranges to support U.S. and EMEA pay transparency, integrating market data, skill premiums, and internal equity to deliver competitive, defensible pay decisions.",
+        "Created and built an AI-powered job description and benchmarking engine, automatically generating company-aligned JDs and mapping 3,500+ roles to external market surveys, accelerating global job architecture and compensation workflows.",
+        "Built a modern compensation analytics ecosystem using Power BI, automated data pipelines, and advanced modeling, including a global analytics platform spanning roughly 40 distinct dashboard types, giving executives real-time, AI-driven visibility into pay, headcount, and labor cost drivers.",
+        "Established the firm's global market data and benchmarking strategy, governing survey participation (Radford, Mercer, PayScale, Aon, IPAS, etc.) and translating complex market data into clear, actionable guidance for offers, promotions, and retention decisions using AI-assisted data normalization and mapping.",
+        "Stewards the global annual compensation cycle (merit, promotions, adjustments, bonuses), including AI-enabled budget modeling, governance frameworks, executive review materials, and post-cycle effectiveness analysis across North America and APAC.",
+        "Steers pay equity and transparency governance, delivering statistical analysis, AI-enhanced bias detection, risk remediation, and manager tools aligned to U.S. and EU regulatory requirements.",
+        "Defines and governs a portfolio of incentive, commission, and variable pay programs, balancing performance motivation, cost discipline, and retention impact across diverse business lines.",
+        "Advises executives on multi-million-dollar compensation and workforce investment decisions using data-driven decision frameworks.",
+        "Constructed and lead the global compensation and analytics COE, setting strategy, standards, and operating model while managing a small, globally distributed team, coaching HR leaders and business partners to make uniform, data-driven pay decisions at scale.",
+      ],
+    },
+    {
+      company: "MB Financial", location: "Ann Arbor, Michigan",
+      role: "Manager, Compensation & Benefits | HR Operations",
+      period: "Jun 2015 – Mar 2016",
+      summary: "Owned day-to-day execution of company-wide compensation and benefits programs, with responsibility for annual compensation cycles, market pricing, benefits administration, HR reporting, and HR operations process improvement. Brought structure, automation, and analytics discipline to previously manual programs while improving governance, employee experience, and leadership decision-making.",
+      points: [
+        "Led annual merit, incentive, and equity administration for 1,500+ employees, ensuring accurate, timely, and well-governed execution across the organization.",
+        "Headed company-wide open enrollment, achieving 98% completion while reducing benefits-related support requests by 30% through improved processes and communications.",
+        "Developed and deployed HR and compensation dashboards providing leadership with real-time visibility into salary competitiveness, promotions, participation rates, and engagement metrics.",
+        "Conducted market pricing for 200+ roles, improving pay alignment and strengthening internal equity and external competitiveness.",
+        "Modernized the annual merit process by automating data collection and validation, cutting administrative workload by ~50% and materially improving accuracy and cycle speed.",
+        "Strengthened new hire onboarding and benefits education, reducing enrollment errors by 25% and boosting early employee engagement and adoption.",
+      ],
+    },
+    {
+      company: "Ally Financial", location: "Detroit, Michigan",
+      role: "Senior Compensation Analyst",
+      period: "Aug 2013 – Jun 2015",
+      summary: "Functioned as a key contributor to enterprise compensation, executive pay governance, and equity programs. Supported large-scale pay equity, market pricing, job architecture redesign, and executive compensation reporting during a period of major transformation.",
+      points: [
+        "Oversaw enterprise-wide market and pay equity analysis covering 4,000+ employees, identifying structural gaps and driving targeted salary actions to improve internal equity and market alignment.",
+        "Played a central role in redesigning job architecture for 600+ roles, strengthening role clarity, leveling consistency, and career path transparency across the organization.",
+        "Advanced the conversion of phantom equity to publicly traded shares in preparation for IPO, managing equity transition for 1,000+ employees with full compliance and zero disruption.",
+        "Drove and executed governance and audit processes for RSUs, IRSUs, and DSUs, maintaining a 100% compliance record with SEC and SOX requirements.",
+        "Managed executive compensation reporting for TARP-covered executives, ensuring audit-ready documentation and flawless submission under federal oversight.",
+        "Led validation of executive compensation disclosures for named executive officers in the company's annual proxy (10-K), ensuring accuracy, transparency, and full regulatory compliance.",
+      ],
+    },
+  ],
+  additional: [
+    { role: "Analytic Consultant", company: "Truven Health Analytics", location: "Ann Arbor, Michigan", period: "Oct 2011 – Aug 2013" },
+    { role: "Finance and Accounting Associate", company: "EHIM", location: "Southfield, Michigan", period: "May 2010 – Oct 2011" },
+  ],
+  education: [
+    { school: "University of Michigan, Dearborn, Michigan", creds: ["Master of Science in Finance (MSF), 2013", "Master of Business Administration (MBA), 2011"] },
+    { school: "Eastern Michigan University, Ypsilanti, Michigan", creds: ["Bachelor of Business Administration (BBA), 2009, Magna Cum Laude"] },
+  ],
+};
+
 const COMP_TRENDS_2026 = [
   { n: 1, title: "Budgets settled near 3.5%", detail: "After the 2021-23 spike, 2026 merit and total-increase budgets are stabilizing around 3.2-3.7% across the major surveys, a third straight year of disciplined, targeted spend rather than broad market-chasing." },
   { n: 2, title: "The return of 'peanut-butter' raises", detail: "A striking share of employers are spreading increases evenly instead of differentiating by performance. Payscale found fewer than half plan to differentiate, and Mercer reports most distribute budgets equally, trading pay-for-performance for less admin burden." },
@@ -209,6 +291,123 @@ const COMP_TRENDS_2026 = [
   { n: 9, title: "Pay diverges by role and labor supply", detail: "Averages are flat, but the spread is wide: skilled trades and frontline roles command premiums while tech and professional-services pay cools, and remote workers see smaller increases and slower advancement." },
   { n: 10, title: "Total rewards beyond cash", detail: "With cash budgets tight and benefit costs climbing, employers lean on personalized benefits, wellbeing, equity, and better pay communication to stay competitive, and transparency rules now define 'pay' to include benefits, not just base salary." },
 ];
+
+const DAD_JOKES = [
+  "Why did the scarecrow win an award? He was outstanding in his field.",
+  "I told my boss three companies were after me and I needed a raise. He asked which three. I said the gas, the electric, and the water.",
+  "I made a pun about compensation once. It didn't pay off.",
+  "Why did the spreadsheet go to therapy? Too many unresolved cells.",
+  "I'm reading a book about anti-gravity. It's impossible to put down.",
+  "What do you call a fake noodle? An impasta.",
+  "Why don't skeletons fight each other? They don't have the guts.",
+  "I used to hate facial hair, but then it grew on me.",
+  "Why did the bicycle fall over? It was two tired.",
+  "What do you call cheese that isn't yours? Nacho cheese.",
+  "I'm afraid for the calendar. Its days are numbered.",
+  "Why did the math book look sad? It had too many problems.",
+  "Did you hear about the restaurant on the moon? Great food, no atmosphere.",
+  "What did the ocean say to the beach? Nothing, it just waved.",
+  "Why don't eggs tell jokes? They'd crack each other up.",
+  "My pay bands and my dad jokes have one thing in common: both are highly competitive.",
+  "I only know 25 letters of the alphabet. I don't know y.",
+  "What do you call a belt made of watches? A waist of time.",
+  "Why did the coffee file a police report? It got mugged.",
+  "How do you organize a space party? You planet.",
+  "I would tell you a chemistry joke, but I know I wouldn't get a reaction.",
+  "What's orange and sounds like a parrot? A carrot.",
+  "Why can't you give Elsa a balloon? She will let it go.",
+  "I'm on a seafood diet. I see food and I eat it.",
+  "Why did the golfer bring two pairs of pants? In case he got a hole in one.",
+  "What do you call a dinosaur with an extensive vocabulary? A thesaurus.",
+  "Why did the cookie go to the doctor? It was feeling crummy.",
+  "How does a penguin build its house? Igloos it together.",
+  "What do you call a bear with no teeth? A gummy bear.",
+  "Why don't scientists trust atoms? They make up everything.",
+  "What did one wall say to the other wall? I'll meet you at the corner.",
+  "Why did the scarecrow become a motivational speaker? He was great at keeping people grounded.",
+  "What do you call a pile of cats? A meowtain.",
+  "I tried to catch fog yesterday. Mist.",
+  "Why are elevator jokes so good? They work on so many levels.",
+  "What do you call a fish wearing a bowtie? Sofishticated.",
+  "Why did the tomato turn red? It saw the salad dressing.",
+  "What's a vampire's favorite fruit? A blood orange.",
+  "How do you make a tissue dance? Put a little boogie in it.",
+  "Why did the picture go to jail? It was framed.",
+  "What do you call a sleeping dinosaur? A dino-snore.",
+  "Why don't oysters share their pearls? They're shellfish.",
+  "What do you call a factory that makes okay products? A satisfactory.",
+  "I used to play piano by ear, but now I use my hands.",
+  "Why was the broom late? It swept in.",
+  "What did the grape do when it got stepped on? Nothing, it just let out a little wine.",
+  "Why did the bee get married? It found its honey.",
+  "What do you call a cow with no legs? Ground beef.",
+  "Why did the banana go to the doctor? It wasn't peeling well.",
+  "What do you call a dog that does magic? A labracadabrador.",
+  "Why did the stadium get hot after the game? All the fans left.",
+  "How do you fix a broken pumpkin? With a pumpkin patch.",
+  "Why was the math lecture so long? The professor kept going off on a tangent.",
+  "What do you call a snowman with a six-pack? An abdominal snowman.",
+  "Why did the computer go to the doctor? It had a virus.",
+  "What did the buffalo say to his son when he left for college? Bison.",
+  "Why don't programmers like nature? Too many bugs.",
+  "What kind of music do planets listen to? Neptunes.",
+  "Why did the can crusher quit his job? It was soda pressing.",
+  "What did the janitor say when he jumped out of the closet? Supplies.",
+  "Why did the orange stop in the middle of the road? It ran out of juice.",
+  "What do you call an alligator in a vest? An investigator.",
+  "Why do seagulls fly over the sea? If they flew over the bay, they'd be bagels.",
+  "What's brown and sticky? A stick.",
+  "Why did the gym close down? It just didn't work out.",
+  "What do you call a boomerang that won't come back? A stick.",
+  "Why did the bread go to therapy? It had a lot on its plate.",
+  "What do you call a train carrying bubblegum? A chew-chew train.",
+  "Why did the man put his money in the freezer? He wanted cold hard cash.",
+  "What do you call cheese that's sad? Blue cheese.",
+  "Why did the melon jump into the lake? It wanted to be a watermelon.",
+  "What do you get when you cross a snowman and a vampire? Frostbite.",
+  "Why don't they play poker in the jungle? Too many cheetahs.",
+  "What do you call a lazy kangaroo? A pouch potato.",
+  "Why did the calendar feel popular? It had a lot of dates.",
+  "What do you call a duck that gets all A's? A wise quacker.",
+  "Why was the broom always tired? It had a lot to sweep up.",
+  "What do you call a cow during an earthquake? A milkshake.",
+  "Why did the student eat his homework? The teacher said it was a piece of cake.",
+  "What do you call a fish with no eyes? A fsh.",
+  "Why did the clock get in trouble at work? It kept tocking back.",
+  "What do you call a pony with a sore throat? A little hoarse.",
+  "Why did the music teacher need a ladder? To reach the high notes.",
+  "What do you call an old snowman? Water.",
+  "Why did the scientist install a knocker on his door? He wanted to win the No-bell prize.",
+  "What do you call a deer with no eyes? No idea.",
+  "Why are skeletons so calm? Nothing gets under their skin.",
+  "What did the left eye say to the right eye? Between us, something smells.",
+  "Why did the coach go to the bank? To get his quarterback.",
+  "What do you call a nervous javelin thrower? Shakespeare.",
+  "Why did the photo album get promoted? It had great development.",
+  "What do you call a manager who only hires happy people? An upbeat boss.",
+  "Why did the new hire bring a ladder to work? To climb the corporate ladder.",
+  "What did the budget say at the end of the year? I'm spent.",
+  "Why did the employee bring string to the meeting? To tie up loose ends.",
+  "Why was the report so confident? It had all its figures straight.",
+  "What did the resume say to the recruiter? Hire me, I have great references.",
+  "Why did the office plant get a raise? It kept growing on everyone.",
+  "Why did the calculator break up with the abacus? It just couldn't count on them anymore.",
+  "Why did the manager bring a pencil to the meeting? In case they needed to draw some conclusions.",
+];
+function DadJokes() {
+  const [i, setI] = useState(() => Math.floor(Math.random() * DAD_JOKES.length));
+  function another() {
+    let n = i;
+    while (n === i && DAD_JOKES.length > 1) n = Math.floor(Math.random() * DAD_JOKES.length);
+    setI(n);
+  }
+  return (
+    <div className="rz-jokes">
+      <p className="rz-joke">{DAD_JOKES[i]}</p>
+      <button className="rz-joke-btn" onClick={another}>Another one</button>
+    </div>
+  );
+}
 
 function buildSystemPrompt(c) {
   const exp = c.experience
@@ -234,10 +433,12 @@ Highlights: ${c.highlights.join("; ")}
 Biggest accomplishment: ${c.signature.headline}: ${c.signature.detail}
 Experience:
 ${exp}
-Earlier roles: ${earlier}
+Additional roles: ${earlier}
 Skills: ${skills}
 Education: ${edu}
 Approach & style: ${c.approach}
+More detail to use when a recruiter wants depth (do not contradict anything above): ${c.agentDeepDive}
+Direct answers to common recruiter questions (management style, the MB Financial tenure, etc.): ${c.agentNotes}
 Selected case studies (use these when a recruiter asks about a specific project):
 ${cases}
 
@@ -258,9 +459,11 @@ RULES
 
 const SUGGESTED = [
   "Walk me through their global comp experience.",
+  "What is their management style?",
   "How have they used AI in compensation?",
+  "Why was their time at MB Financial so short?",
+  "Tell me about their additional experience.",
   "What are the big compensation trends for 2026?",
-  "Explain compa-ratio and how market pricing works.",
   "Why should we interview them?",
 ];
 
@@ -1077,17 +1280,6 @@ function JobArchTool() {
             </div>
           </div>
         </div>
-        <button className="rz-arch-copy" onClick={copyArch}>
-          {copied ? <><Check size={14} /> Copied to clipboard</> : <><Download size={14} /> Copy architecture as text</>}
-        </button>
-      </div>
-
-      <div className="rz-arch-comp">
-        <p className="rz-arch-famhead">2026 pay-transparency checklist: {region.name}</p>
-        {compliance.map((item, i) => (
-          <p className="rz-arch-compitem" key={i}><Check size={15} /> <span>{item}</span></p>
-        ))}
-        <p className="rz-arch-compitem rz-arch-spine-item"><Compass size={15} /> <span>{ARCH_COMPLIANCE.spine}</span></p>
       </div>
 
       <p className="rz-mpt-disclaimer">Illustrative blueprint for demonstration, survey recommendations and level counts are starting points a real design would validate against current data, internal equity, and local law.</p>
@@ -1591,16 +1783,16 @@ export default function App() {
         ? `A recruiter from "${name}" is evaluating Ben for this specific open role:\n` +
           `Role: ${job.role}\n` +
           `Key requirements from their posting:\n${job.requirements}\n\n` +
-          `Using ONLY Ben's real background from the profile, map his experience to these specific requirements. Be concrete, for each major requirement area, say how Ben meets it. Where his fit is lighter, frame transferable strengths honestly without overclaiming or inventing anything.\n\n` +
+          `Using ONLY Ben's real background from the profile, map my experience to these specific requirements, written in the first person as Ben (use "I" and "my"). Be concrete: for each major requirement area, say how I meet it. Where my fit is lighter, frame transferable strengths honestly without overclaiming or inventing anything.\n\n` +
           `Respond with ONLY a JSON object, no markdown and no preamble:\n` +
-          `{"intro": "one-sentence positioning of Ben for this exact role", "points": [{"area": "requirement area", "apply": "1-2 sentences on how Ben meets it"}]}\n` +
+          `{"intro": "one-sentence first-person positioning of myself for this exact role", "points": [{"area": "requirement area", "apply": "1-2 first-person sentences on how I meet it"}]}\n` +
           `Include 3 to 5 points.`
         : `A recruiter or hiring manager from "${name}"` +
           (coRole.trim() ? ` (hiring for: ${coRole.trim()})` : "") +
-          ` wants to understand why Ben is a strong fit for their team.\n\n` +
-          `Using ONLY Ben's real background from the profile, write a tailored fit summary that maps his experience to the kind of compensation / total rewards needs a company like this likely has. Do not invent facts about Ben, and do not claim specific knowledge of the company's internal details, frame it as how his background would apply.\n\n` +
+          ` wants to understand why I'm a strong fit for their team.\n\n` +
+          `Using ONLY Ben's real background from the profile, write a tailored fit summary, in the first person as Ben (use "I" and "my"), that maps my experience to the kind of compensation / total rewards needs a company like this likely has. Do not invent facts, and do not claim specific knowledge of the company's internal details, frame it as how my background would apply.\n\n` +
           `Respond with ONLY a JSON object, no markdown and no preamble:\n` +
-          `{"intro": "one-sentence positioning of Ben for this company", "points": [{"area": "short skill/area label", "apply": "1-2 sentences on how it applies to them"}]}\n` +
+          `{"intro": "one-sentence first-person positioning of myself for this company", "points": [{"area": "short skill/area label", "apply": "1-2 first-person sentences on how it applies to them"}]}\n` +
           `Include 3 or 4 points.`;
       const res = await fetch("/api/claude", {
         method: "POST",
@@ -1661,7 +1853,7 @@ export default function App() {
             <div className="rz-cover-paper">
               <div className="rz-cover-head">
                 <p className="rz-cover-name">Ben Phillips</p>
-                <p className="rz-cover-contact">bphill10@gmail.com · 734-645-3508 · linkedin.com/in/benjamin-j-phillips</p>
+                <p className="rz-cover-contact"><a href="mailto:bphill10@gmail.com">bphill10@gmail.com</a> · <a href="tel:+17346453508">734-645-3508</a> · <a href="https://www.linkedin.com/in/benjamin-j-phillips" target="_blank" rel="noreferrer">linkedin.com/in/benjamin-j-phillips</a> · <a href="https://benphillips.pro" target="_blank" rel="noreferrer">benphillips.pro</a></p>
               </div>
               <p className="rz-cover-greet">Dear Hiring Manager,</p>
               {c.coverLetter.map((p, i) => <p className="rz-cover-p" key={i}>{p}</p>)}
@@ -1680,9 +1872,9 @@ export default function App() {
             </div>
             <div className="rz-resume-paper">
               <div className="rz-rp-head">
-                <p className="rz-rp-name">{c.name}</p>
-                <p className="rz-rp-title">{c.title}</p>
-                <p className="rz-rp-contact">{c.location} · {c.email} · {c.phone} · linkedin.com/in/benjamin-j-phillips</p>
+                <p className="rz-rp-name">{RESUME.name}</p>
+                <p className="rz-rp-title">{RESUME.title}</p>
+                <p className="rz-rp-contact"><a href="mailto:bphill10@gmail.com">bphill10@gmail.com</a> · <a href="tel:+17346453508">734-645-3508</a> · <a href="https://www.linkedin.com/in/benjamin-j-phillips" target="_blank" rel="noreferrer">linkedin.com/in/benjamin-j-phillips</a> · <a href="https://benphillips.pro" target="_blank" rel="noreferrer">benphillips.pro</a></p>
               </div>
 
               <div className="rz-rp-stats">
@@ -1700,33 +1892,27 @@ export default function App() {
               </div>
 
               <div className="rz-rp-section">
-                <p className="rz-rp-h">Professional Summary</p>
-                <p className="rz-rp-summary">{c.summary}</p>
+                <p className="rz-rp-h">Summary of Qualifications</p>
+                <p className="rz-rp-summary">{RESUME.summary}</p>
               </div>
 
               <div className="rz-rp-section">
-                <p className="rz-rp-h">Areas of Expertise</p>
-                <div className="rz-rp-exp">
-                  {c.skills.map((g) => (
-                    <div className="rz-rp-expcol" key={g.group}>
-                      <p className="rz-rp-expgroup">{g.group}</p>
-                      <ul className="rz-rp-explist">
-                        {g.items.map((it) => <li key={it}>{it}</li>)}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
+                <p className="rz-rp-h">Core Competencies</p>
+                <ul className="rz-rp-comp">
+                  {RESUME.competencies.map((it) => <li key={it}>{it}</li>)}
+                </ul>
               </div>
 
               <div className="rz-rp-section">
                 <p className="rz-rp-h">Professional Experience</p>
-                {c.experience.map((j) => (
+                {RESUME.experience.map((j) => (
                   <div className="rz-rp-job" key={j.company}>
                     <div className="rz-rp-jobhead">
                       <span className="rz-rp-role">{j.role}</span>
                       <span className="rz-rp-period">{j.period}</span>
                     </div>
                     <p className="rz-rp-co">{j.company} · {j.location}</p>
+                    <p className="rz-rp-jobsummary">{j.summary}</p>
                     <ul className="rz-rp-bullets">
                       {j.points.map((p, i) => <li key={i}>{p}</li>)}
                     </ul>
@@ -1735,19 +1921,20 @@ export default function App() {
               </div>
 
               <div className="rz-rp-section">
-                <p className="rz-rp-h">Earlier Career</p>
-                {c.earlier.map((e) => (
+                <p className="rz-rp-h">Additional Professional Experience</p>
+                {RESUME.additional.map((e) => (
                   <div className="rz-rp-earlierrow" key={e.company}>
-                    <span><b>{e.role}</b>, {e.company}</span><span className="rz-rp-period">{e.period}</span>
+                    <span><b>{e.role}</b>, {e.company} · {e.location}</span><span className="rz-rp-period">{e.period}</span>
                   </div>
                 ))}
               </div>
 
               <div className="rz-rp-section">
                 <p className="rz-rp-h">Education</p>
-                {c.education.map((ed) => (
-                  <div className="rz-rp-edurow" key={ed.school}>
-                    <span className="rz-rp-school">{ed.school}</span><span className="rz-rp-cred">{ed.credential}</span>
+                {RESUME.education.map((ed) => (
+                  <div className="rz-rp-edu" key={ed.school}>
+                    <p className="rz-rp-school">{ed.school}</p>
+                    <p className="rz-rp-cred">{ed.creds.join("  ·  ")}</p>
                   </div>
                 ))}
               </div>
@@ -1772,19 +1959,58 @@ export default function App() {
                   {l.icon === "linkedin" ? <Linkedin size={14} /> : null} {l.label} <ArrowUpRight size={13} />
                 </a>
               ))}
-              <button className="rz-download" onClick={() => setShowResume(true)}>
-                <Download size={14} /> Download résumé
-              </button>
-              <button className="rz-coverbtn" onClick={() => setShowCover(true)}>
-                <Mail size={14} /> Cover letter
-              </button>
+              <span className="rz-head-actions">
+                <button className="rz-download" onClick={() => setShowResume(true)}>
+                  <Download size={14} /> Résumé
+                </button>
+                <button className="rz-coverbtn" onClick={() => setShowCover(true)}>
+                  <Download size={14} /> Cover letter
+                </button>
+              </span>
             </div>
           </header>
 
+          <section className="rz-fit">
+            <p className="rz-fit-eyebrow"><Target size={14} /> Tailored fit</p>
+            {!fitResult ? (
+              <>
+                <h2 className="rz-fit-title">See how I fit on <span>your team</span></h2>
+                <p className="rz-fit-lead">Enter your company and I'll map my background to what you likely need.</p>
+                <div className="rz-fit-form">
+                  <input className="rz-fit-input" placeholder="Your company" value={coName}
+                    onChange={(e) => setCoName(e.target.value)} onKeyDown={onFitKey} aria-label="Your company name" />
+                  <input className="rz-fit-input" placeholder="Role you're hiring for (optional)" value={coRole}
+                    onChange={(e) => setCoRole(e.target.value)} onKeyDown={onFitKey} aria-label="Role you are hiring for, optional" />
+                  <button className="rz-fit-btn" onClick={generateFit} disabled={fitLoading || !coName.trim()}>
+                    {fitLoading ? "Thinking…" : "Show the fit"}
+                  </button>
+                </div>
+                {fitError && <p className="rz-fit-error">{fitError}</p>}
+              </>
+            ) : (
+              <>
+                <h2 className="rz-fit-title">Why I'm a fit for <span>{coName}</span></h2>
+                {fitRole && <p className="rz-fit-role">For your open role: {fitRole}</p>}
+                {fitResult.intro && <p className="rz-fit-lead">{fitResult.intro}</p>}
+                <div className="rz-fit-rows">
+                  {(fitResult.points || []).map((p, i) => (
+                    <div className="rz-fit-row" key={i}>
+                      <p className="rz-fit-area">{p.area}</p>
+                      <p className="rz-fit-apply">{p.apply}</p>
+                    </div>
+                  ))}
+                </div>
+                <button className="rz-fit-reset" onClick={() => { setFitResult(null); setFitRole(null); setCoName(""); setCoRole(""); }}>
+                  Try another company
+                </button>
+                <p className="rz-fit-disclaimer">Generated from Ben's real background and tailored to your company, verify specifics with Ben directly.</p>
+              </>
+            )}
+          </section>
+
           <section className="rz-manifesto">
             <p className="rz-manifesto-eyebrow"><Sparkles size={14} /> How I think</p>
-            <p className="rz-manifesto-quote">My biggest strength has never been the things I've built. It's the things I <span>imagine</span>, and the mentors, people, and AI that help build them.</p>
-            <p className="rz-manifesto-cite">Ben Phillips, with 22.4% credit to AI <span>(formatting only)</span></p>
+            <p className="rz-manifesto-quote">My greatest strength has never been the things I've built. It's the ideas I <span>imagine</span>, the teams that bring them to life, the mentors and leaders who help shape them, and the AI that turns what once seemed impossible into reality.</p>
           </section>
 
           <section className="rz-signature">
@@ -1809,44 +2035,6 @@ export default function App() {
             </div>
           </div>
 
-          <section className="rz-fit">
-            <p className="rz-fit-eyebrow"><Target size={14} /> Tailored fit</p>
-            {!fitResult ? (
-              <>
-                <h2 className="rz-fit-title">See how Ben Phillips fits <span>your team</span></h2>
-                <p className="rz-fit-lead">Enter your company and I'll map Ben's background to what you likely need.</p>
-                <div className="rz-fit-form">
-                  <input className="rz-fit-input" placeholder="Your company" value={coName}
-                    onChange={(e) => setCoName(e.target.value)} onKeyDown={onFitKey} aria-label="Your company name" />
-                  <input className="rz-fit-input" placeholder="Role you're hiring for (optional)" value={coRole}
-                    onChange={(e) => setCoRole(e.target.value)} onKeyDown={onFitKey} aria-label="Role you are hiring for, optional" />
-                  <button className="rz-fit-btn" onClick={generateFit} disabled={fitLoading || !coName.trim()}>
-                    {fitLoading ? "Thinking…" : "Show the fit"}
-                  </button>
-                </div>
-                {fitError && <p className="rz-fit-error">{fitError}</p>}
-              </>
-            ) : (
-              <>
-                <h2 className="rz-fit-title">Why Ben is a fit for <span>{coName}</span></h2>
-                {fitRole && <p className="rz-fit-role">For your open role: {fitRole}</p>}
-                {fitResult.intro && <p className="rz-fit-lead">{fitResult.intro}</p>}
-                <div className="rz-fit-rows">
-                  {(fitResult.points || []).map((p, i) => (
-                    <div className="rz-fit-row" key={i}>
-                      <p className="rz-fit-area">{p.area}</p>
-                      <p className="rz-fit-apply">{p.apply}</p>
-                    </div>
-                  ))}
-                </div>
-                <button className="rz-fit-reset" onClick={() => { setFitResult(null); setFitRole(null); setCoName(""); setCoRole(""); }}>
-                  Try another company
-                </button>
-                <p className="rz-fit-disclaimer">Generated from Ben's real background and tailored to your company, verify specifics with Ben directly.</p>
-              </>
-            )}
-          </section>
-
           <section className="rz-section">
             <h2 className="rz-h2">Profile</h2>
             <p className="rz-body">{c.summary}</p>
@@ -1867,10 +2055,11 @@ export default function App() {
               </article>
             ))}
             <div className="rz-earlier">
-              <p className="rz-skilllabel">Earlier</p>
+              <p className="rz-skilllabel">Additional Professional Experience</p>
               {c.earlier.map((e, i) => (
                 <p key={i} className="rz-earlier-row"><span>{e.role}, {e.company}</span><span className="rz-period">{e.period}</span></p>
               ))}
+              <p className="rz-earlier-note">Ask the agent for more detail on any of these roles.</p>
             </div>
           </section>
 
@@ -1889,10 +2078,33 @@ export default function App() {
             <p className="rz-case-note">Illustrative case studies, figures are Ben's own published metrics; no confidential data is shared.</p>
           </section>
 
+          <section className="rz-section">
+            <h2 className="rz-h2">Skills</h2>
+            <div className="rz-skills-grid">
+              {c.skills.map((s, i) => (
+                <div className="rz-skillgroup" key={i}>
+                  <p className="rz-skilllabel">{s.group}</p>
+                  <div className="rz-tags">{s.items.map((it) => <span className="rz-tag" key={it}>{it}</span>)}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+          <section className="rz-section">
+            <h2 className="rz-h2">Education</h2>
+            <div className="rz-edu-grid">
+              {c.education.map((e, i) => (
+                <div className="rz-edu" key={i}>
+                  <p className="rz-role">{e.school}</p>
+                  <p className="rz-company">{e.credential}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
           <section className="rz-section rz-demos">
-            <p className="rz-game-eyebrow"><Sparkles size={14} /> Interactive · Built by Ben</p>
-            <h2 className="rz-game-title">Everything below is a working demo of real work</h2>
-            <p className="rz-game-intro">These are sample versions of tools I've actually built and shipped in the comp function. The on-screen display may look different from the production versions, but the approach and underlying logic are the same, running here on illustrative data, with nothing confidential.</p>
+            <p className="rz-game-eyebrow"><Sparkles size={14} /> Bonus · Built by Ben</p>
+            <h2 className="rz-game-title">Bonus: interactive demos of the work</h2>
+            <p className="rz-game-intro">Everything below is extra. These are working samples of tools I've actually built and shipped in comp, running on illustrative data with nothing confidential. Play with whatever catches your eye.</p>
           </section>
 
           <section className="rz-section rz-an-section">
@@ -1903,60 +2115,47 @@ export default function App() {
           </section>
 
           <section className="rz-section rz-mm-section">
-            <p className="rz-game-eyebrow"><Trophy size={14} /> Live demo</p>
+            <p className="rz-game-eyebrow"><Trophy size={14} /> Interactive</p>
             <h2 className="rz-game-title">Build a merit matrix</h2>
             <p className="rz-game-intro">Turn a merit budget into defensible increases by performance and compa-ratio.</p>
             <MeritMatrix />
           </section>
 
           <section className="rz-section rz-game">
-            <p className="rz-game-eyebrow"><Coins size={14} /> Coffee break</p>
+            <p className="rz-game-eyebrow"><Coins size={14} /> Interactive</p>
             <h2 className="rz-game-title">Design the Sales Commission Plan</h2>
             <p className="rz-game-intro">Set the industry, revenue target, margin, OTE, headcount, and pay mix, then run the year for a P&amp;L scorecard and its EBIT.</p>
             <SalesPlanGame />
           </section>
 
           <section className="rz-section rz-aip-section">
-            <p className="rz-game-eyebrow"><Coins size={14} /> Live demo</p>
+            <p className="rz-game-eyebrow"><Coins size={14} /> Interactive</p>
             <h2 className="rz-game-title">Design the annual incentive plan</h2>
             <p className="rz-game-intro">Pick a level and structure, set company and individual performance, and watch how line-of-sight weighting and the funding gate shape the payout.</p>
             <AipTool />
           </section>
 
           <section className="rz-section rz-mpt-section">
-            <p className="rz-game-eyebrow"><Target size={14} /> Live demo</p>
+            <p className="rz-game-eyebrow"><Target size={14} /> Interactive</p>
             <h2 className="rz-game-title">Market-price a role</h2>
             <p className="rz-game-intro">Search 400+ roles, set the market, and slide the proposed base to see compa-ratio and where the pay lands across the range.</p>
             <MarketPriceTool />
           </section>
 
           <section className="rz-section rz-arch-section">
-            <p className="rz-game-eyebrow"><Compass size={14} /> Live demo</p>
+            <p className="rz-game-eyebrow"><Compass size={14} /> Interactive</p>
             <h2 className="rz-game-title">Build a job architecture</h2>
-            <p className="rz-game-intro">Pick a size, industry, and region to generate a leveling spine, the right benchmark survey, and a check against 2026 pay-transparency rules in the US and EMEA.</p>
+            <p className="rz-game-intro">Pick a size, industry, and region to generate a leveling spine across four career streams and the right survey to benchmark it.</p>
             <JobArchTool />
           </section>
 
-          <div className="rz-grid">
-            <section className="rz-section">
-              <h2 className="rz-h2">Skills</h2>
-              {c.skills.map((s, i) => (
-                <div className="rz-skillgroup" key={i}>
-                  <p className="rz-skilllabel">{s.group}</p>
-                  <div className="rz-tags">{s.items.map((it) => <span className="rz-tag" key={it}>{it}</span>)}</div>
-                </div>
-              ))}
-            </section>
-            <section className="rz-section">
-              <h2 className="rz-h2">Education</h2>
-              {c.education.map((e, i) => (
-                <div className="rz-edu" key={i}>
-                  <p className="rz-role">{e.school}</p>
-                  <p className="rz-company">{e.credential}</p>
-                </div>
-              ))}
-            </section>
-          </div>
+          <section className="rz-section rz-easter">
+            <p className="rz-game-eyebrow"><Sparkles size={14} /> You made it</p>
+            <h2 className="rz-game-title">Wait, you're still here?</h2>
+            <p className="rz-game-intro">You scrolled all the way to the bottom. That is real commitment. Here is a dad joke as a reward.</p>
+            <DadJokes />
+          </section>
+
         </main>
 
         {/* ============ AGENT / CONTACT ============ */}
@@ -2107,22 +2306,24 @@ const CSS = `
 
 .rz-eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--cool); margin:0 0 20px; display:flex; align-items:center; gap:11px;}
 .rz-eyebrow::before{content:""; width:28px; height:2px; border-radius:2px; background:linear-gradient(90deg,var(--cool),var(--warm));}
-.rz-name{font-size:clamp(44px,7.2vw,78px); font-weight:800; letter-spacing:-.035em; line-height:.95; margin:0;
+.rz-name{font-size:clamp(30px,5.4vw,48px); font-weight:800; letter-spacing:-.035em; line-height:.95; margin:0;
   background:linear-gradient(96deg,#ffffff 28%, #CBD6FF 58%, var(--cool)); -webkit-background-clip:text; background-clip:text; color:transparent;}
-.rz-title{font-size:17px; color:var(--muted); margin:16px 0 0; font-weight:500;}
-.rz-tagline{font-size:20px; color:var(--text); margin:18px 0 0; max-width:42ch; font-weight:450;}
+.rz-title{font-size:14.5px; color:var(--muted); margin:16px 0 0; font-weight:500;}
+.rz-tagline{font-size:15.5px; color:var(--text); margin:18px 0 0; max-width:42ch; font-weight:450;}
 .rz-contact{display:flex; flex-wrap:wrap; gap:10px 18px; margin-top:26px; font-size:12.5px; color:var(--muted); align-items:center;}
 .rz-contact span,.rz-contact a{display:inline-flex; align-items:center; gap:7px; color:inherit; text-decoration:none; font-family:var(--mono); letter-spacing:.02em;}
 .rz-contact a:hover{color:var(--cool);}
 .rz-contact svg{opacity:.8;}
-.rz-download{display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11.5px; letter-spacing:.05em; color:#0E1118; background:linear-gradient(90deg,var(--cool),#9DB2FF); border:none; border-radius:999px; padding:8px 16px; cursor:pointer; transition:transform .15s, box-shadow .15s;}
+.rz-head-actions{display:inline-flex; gap:10px; flex-wrap:wrap; align-items:center;}
+.rz-head-dl{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); display:inline-flex; align-items:center;}
+.rz-download{display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11.5px; letter-spacing:.05em; color:#0E1118; text-decoration:none; background:linear-gradient(90deg,var(--cool),#9DB2FF); border:none; border-radius:999px; padding:8px 16px; cursor:pointer; transition:transform .15s, box-shadow .15s;}
 .rz-download:hover{transform:translateY(-1px); box-shadow:0 10px 26px -10px rgba(124,156,255,.7);}
 .rz-download svg{opacity:1;}
 
-.rz-section{padding-top:42px; margin-top:42px; border-top:1px solid var(--line);}
+.rz-section{padding-top:32px; margin-top:30px; border-top:1px solid var(--line);}
 .rz-h2{font-family:var(--mono); font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:var(--muted); margin:0 0 22px; display:flex; align-items:center; gap:10px;}
 .rz-h2::before{content:""; width:8px; height:8px; border-radius:2px; background:linear-gradient(135deg,var(--cool),var(--warm)); box-shadow:0 0 12px rgba(124,156,255,.55);}
-.rz-body{font-size:16px; color:#C7CDDA; margin:0; max-width:64ch;}
+.rz-body{font-size:14.5px; color:#C7CDDA; margin:0; max-width:64ch;}
 .rz-highlights{list-style:none; padding:0; margin:24px 0 0; display:grid; gap:12px;}
 .rz-highlights li{display:flex; gap:14px; align-items:baseline; font-size:15px; color:#C7CDDA;}
 .rz-tick{width:14px; height:3px; flex:0 0 14px; border-radius:2px; background:linear-gradient(90deg,var(--cool),var(--warm)); transform:translateY(-2px);}
@@ -2130,7 +2331,7 @@ const CSS = `
 .rz-manifesto{position:relative; margin-top:30px; padding:40px 34px; border:1px solid var(--line); border-radius:18px; overflow:hidden; background:radial-gradient(130% 130% at 0% 0%, rgba(124,156,255,0.12), transparent 52%), radial-gradient(130% 130% at 100% 100%, rgba(255,195,107,0.09), transparent 52%), rgba(255,255,255,0.015);}
 .rz-manifesto::after{content:""; position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.022) 1px,transparent 1px); background-size:34px 34px; -webkit-mask:radial-gradient(75% 75% at 50% 50%, #000, transparent 78%); mask:radial-gradient(75% 75% at 50% 50%, #000, transparent 78%); pointer-events:none; opacity:.6;}
 .rz-manifesto-eyebrow{position:relative; font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--cool); margin:0 0 18px; display:flex; align-items:center; gap:8px;}
-.rz-manifesto-quote{position:relative; font-family:var(--sans); font-weight:650; font-size:clamp(18px,2.6vw,26px); line-height:1.3; letter-spacing:-.01em; color:var(--text); margin:0; max-width:46ch;}
+.rz-manifesto-quote{position:relative; font-family:var(--sans); font-weight:650; font-size:clamp(16px,2.2vw,21px); line-height:1.3; letter-spacing:-.01em; color:var(--text); margin:0; max-width:46ch;}
 .rz-manifesto-quote span{background:linear-gradient(120deg,var(--cool),var(--warm)); -webkit-background-clip:text; background-clip:text; color:transparent;}
 .rz-manifesto-cite{position:relative; text-align:right; font-family:var(--sans); font-style:italic; font-size:13px; color:var(--muted); margin:20px 0 0;}
 .rz-manifesto-cite span{color:var(--dim); font-style:normal;}
@@ -2145,27 +2346,34 @@ const CSS = `
 .rz-signature::before{content:""; position:absolute; inset:0; border-radius:20px; padding:1px;
   background:linear-gradient(120deg, rgba(124,156,255,.55), transparent 42%, rgba(255,195,107,.45));
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; opacity:.7;}
-.rz-sig-headline{font-size:clamp(22px,3.2vw,30px); font-weight:730; letter-spacing:-.02em; line-height:1.18; margin:10px 0 0; max-width:26ch; color:var(--text);}
+.rz-sig-headline{font-size:clamp(18px,2.6vw,24px); font-weight:730; letter-spacing:-.02em; line-height:1.18; margin:10px 0 0; max-width:26ch; color:var(--text);}
 .rz-sig-detail{font-size:15px; color:#B7BECD; margin:14px 0 0; max-width:60ch;}
 .rz-metrics{display:flex; flex-wrap:wrap; gap:26px 44px; margin-top:26px;}
 .rz-metric{display:flex; flex-direction:column;}
-.rz-metric-val{font-size:clamp(32px,5vw,46px); font-weight:800; letter-spacing:-.03em; line-height:1; background:linear-gradient(120deg,var(--cool),var(--warm)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.rz-metric-val{font-size:clamp(24px,3.8vw,33px); font-weight:800; letter-spacing:-.03em; line-height:1; background:linear-gradient(120deg,var(--cool),var(--warm)); -webkit-background-clip:text; background-clip:text; color:transparent;}
 .rz-metric-label{font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); margin-top:9px;}
 
 .rz-job{margin-bottom:28px;}
 .rz-job-head{display:flex; justify-content:space-between; gap:16px; align-items:baseline; flex-wrap:wrap;}
-.rz-role{font-size:19px; font-weight:650; margin:0; color:var(--text); letter-spacing:-.01em;}
+.rz-role{font-size:15.5px; font-weight:650; margin:0; color:var(--text); letter-spacing:-.01em;}
 .rz-company{font-size:14px; color:var(--muted); margin:4px 0 0;}
 .rz-period{font-family:var(--mono); font-size:11.5px; color:var(--cool); letter-spacing:.04em; white-space:nowrap;}
 .rz-points{margin:14px 0 0; padding-left:0; list-style:none; display:grid; gap:9px;}
-.rz-points li{position:relative; padding-left:20px; font-size:14.5px; color:#B7BECD;}
+.rz-points li{position:relative; padding-left:20px; font-size:13.5px; color:#B7BECD;}
 .rz-points li::before{content:""; position:absolute; left:0; top:9px; width:11px; height:2px; border-radius:2px; background:linear-gradient(90deg,var(--cool),var(--warm));}
 .rz-earlier{margin-top:24px; padding-top:18px; border-top:1px dashed var(--line);}
 .rz-earlier-row{display:flex; justify-content:space-between; gap:12px; font-size:14px; color:var(--muted); margin:7px 0;}
+.rz-earlier-note{font-size:12.5px; color:var(--dim); font-style:italic; margin:11px 0 0;}
+.rz-jokes{margin-top:18px; display:flex; flex-direction:column; gap:16px; align-items:flex-start;}
+.rz-joke{font-size:clamp(16px,2.4vw,21px); font-weight:600; color:var(--text); margin:0; max-width:52ch; line-height:1.4; min-height:2.5em;}
+.rz-joke-btn{font-family:var(--mono); font-size:12px; letter-spacing:.05em; color:#0E1118; background:linear-gradient(90deg,var(--mint),#8FF0CE); border:none; border-radius:999px; padding:9px 18px; cursor:pointer; transition:transform .15s, box-shadow .15s;}
+.rz-joke-btn:hover{transform:translateY(-1px); box-shadow:0 10px 26px -10px rgba(95,227,179,.6);}
 
 .rz-grid{display:grid; gap:0;}
 @media(min-width:620px){ .rz-grid{grid-template-columns:1fr 1fr; gap:44px;} .rz-grid .rz-section{border-top:1px solid var(--line);} }
-.rz-skillgroup{margin-bottom:18px;}
+.rz-skillgroup{margin-bottom:16px;}
+.rz-skills-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:6px 32px; align-items:start; margin-top:2px;}
+.rz-edu-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:16px 32px; align-items:start; margin-top:2px;}
 .rz-skilllabel{font-size:13px; font-weight:650; color:var(--text); margin:0 0 9px;}
 .rz-edu{margin-bottom:14px;}
 
@@ -2173,17 +2381,17 @@ const CSS = `
 .rz-case{padding:22px; border:1px solid var(--line); border-radius:16px; background:rgba(255,255,255,0.025); transition:border-color .18s, transform .18s, background .18s;}
 .rz-case:hover{border-color:var(--line2); transform:translateY(-2px); background:rgba(255,255,255,0.045);}
 .rz-case-tag{font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--cool); margin:0 0 10px;}
-.rz-case-title{font-size:19px; font-weight:680; margin:0; line-height:1.22; color:var(--text); letter-spacing:-.01em;}
-.rz-case-summary{font-size:14.5px; color:#B7BECD; margin:11px 0 0;}
+.rz-case-title{font-size:16px; font-weight:680; margin:0; line-height:1.22; color:var(--text); letter-spacing:-.01em;}
+.rz-case-summary{font-size:13.5px; color:#B7BECD; margin:11px 0 0;}
 .rz-case-outcome{font-size:13.5px; color:var(--text); margin:14px 0 0; display:flex; gap:10px; align-items:baseline;}
 .rz-case-outcome b{font-weight:650; color:var(--warm);}
 .rz-case-note{font-size:12px; color:var(--dim); margin:16px 0 0; font-style:italic;}
 
-.rz-fit{margin-top:30px; padding:28px; border-radius:20px; background:linear-gradient(165deg, rgba(124,156,255,0.10), rgba(255,195,107,0.05)); border:1px solid var(--line2); position:relative; overflow:hidden;}
+.rz-fit{margin-top:22px; padding:20px 22px; border-radius:18px; background:linear-gradient(165deg, rgba(124,156,255,0.10), rgba(255,195,107,0.05)); border:1px solid var(--line2); position:relative; overflow:hidden;}
 .rz-fit-eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--warm); margin:0 0 12px; display:flex; align-items:center; gap:8px;}
-.rz-fit-title{font-size:clamp(22px,3.1vw,30px); font-weight:780; letter-spacing:-.02em; margin:0 0 16px; line-height:1.15; color:#fff;}
+.rz-fit-title{font-size:clamp(17px,2.2vw,21px); font-weight:780; letter-spacing:-.01em; margin:0 0 10px; line-height:1.2; color:#fff;}
 .rz-fit-title span{background:linear-gradient(100deg,var(--cool),var(--warm)); -webkit-background-clip:text; background-clip:text; color:transparent;}
-.rz-fit-lead{font-size:14.5px; color:#C2C9D6; margin:0 0 18px; max-width:56ch; line-height:1.55;}
+.rz-fit-lead{font-size:13px; color:#C2C9D6; margin:0 0 12px; max-width:60ch; line-height:1.5;}
 .rz-fit-role{font-family:var(--mono); font-size:12px; letter-spacing:.04em; color:var(--warm); margin:-8px 0 14px;}
 .rz-fit-form{display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding-bottom:8px;}
 .rz-fit-input{flex:1 1 200px; background:rgba(8,10,16,0.6); color:var(--text); border:1px solid var(--line2); border-radius:12px; padding:12px 14px; font-family:var(--sans); font-size:14.5px; outline:none;}
@@ -2263,7 +2471,7 @@ const CSS = `
 
 .rz-game-eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--warm); margin:0 0 10px; display:flex; align-items:center; gap:8px;}
 .rz-game-title{font-size:28px; font-weight:780; letter-spacing:-.02em; margin:0 0 8px; color:var(--text);}
-.rz-game-intro{font-size:14.5px; color:#B7BECD; margin:0 0 22px; max-width:60ch;}
+.rz-game-intro{font-size:13px; color:#B7BECD; margin:0 0 22px; max-width:60ch;}
 .rz-game-inner{background:rgba(255,255,255,0.025); border:1px solid var(--line); border-radius:18px; padding:26px;}
 .rz-game-role{font-size:24px; font-weight:720; margin:14px 0 2px; color:var(--text); letter-spacing:-.01em;}
 .rz-game-blurb{font-size:14px; color:var(--muted); margin:0;}
@@ -2421,9 +2629,9 @@ const CSS = `
 .rz-cover-print:hover{box-shadow:0 10px 26px -10px rgba(124,156,255,.7);}
 .rz-cover-close{width:38px; height:38px; border-radius:10px; background:rgba(255,255,255,0.08); border:1px solid var(--line2); color:var(--text); font-size:22px; line-height:1; cursor:pointer;}
 .rz-cover-close:hover{border-color:var(--cool);}
-.rz-cover-paper{background:#fff; color:#1a1a1a; border-radius:8px; padding:56px 60px; box-shadow:0 30px 80px -20px rgba(0,0,0,.7); font-family:'Cambria','Georgia',serif; line-height:1.6;}
-.rz-cover-head{margin-bottom:26px; padding-bottom:18px; border-bottom:1px solid #e6e6e6;}
-.rz-cover-name{font-size:24px; font-weight:700; margin:0; color:#111;}
+.rz-cover-paper{background:#fff; color:#222; border-radius:8px; padding:48px 52px; box-shadow:0 30px 80px -20px rgba(0,0,0,.7); font-family:'Calibri','Segoe UI','Arial',sans-serif; line-height:1.55;}
+.rz-cover-head{margin-bottom:24px; padding-bottom:16px; border-bottom:2.5px solid #15294d;}
+.rz-cover-name{font-size:30px; font-weight:800; margin:0; color:#15294d; letter-spacing:-.01em; line-height:1;}
 .rz-cover-contact{font-size:12.5px; color:#555; margin:6px 0 0; font-family:'Calibri','Arial',sans-serif;}
 .rz-cover-greet{font-size:15px; margin:0 0 16px; color:#1a1a1a;}
 .rz-cover-p{font-size:14.5px; margin:0 0 14px; color:#222;}
@@ -2442,6 +2650,7 @@ const CSS = `
 .rz-rp-name{font-size:30px; font-weight:800; margin:0; color:#15294d; letter-spacing:-.01em; line-height:1;}
 .rz-rp-title{font-size:12.5px; font-weight:700; color:#2b5fa5; margin:8px 0 0; text-transform:uppercase; letter-spacing:.16em;}
 .rz-rp-contact{font-size:11.5px; color:#555; margin:11px 0 0; letter-spacing:.01em;}
+.rz-rp-contact a,.rz-cover-contact a{color:#2b5fa5; text-decoration:none;}
 .rz-rp-stats{display:grid; grid-template-columns:repeat(4,1fr); margin:16px 0 4px; border:1px solid #e2e7ef; border-radius:8px; overflow:hidden; background:#f7f9fc;}
 .rz-rp-stat{padding:11px 8px; text-align:center; border-right:1px solid #e2e7ef;}
 .rz-rp-stat:last-child{border-right:none;}
@@ -2465,9 +2674,16 @@ const CSS = `
 .rz-rp-bullets li::before{content:""; position:absolute; left:1px; top:6px; width:5px; height:5px; background:#2b5fa5; transform:rotate(45deg);}
 .rz-rp-earlierrow,.rz-rp-edurow{display:flex; justify-content:space-between; gap:12px; padding:5px 0; font-size:12px; color:#333; border-bottom:1px solid #eef1f6;}
 .rz-rp-earlierrow:last-child,.rz-rp-edurow:last-child{border-bottom:none;}
-.rz-rp-school{font-weight:800; color:#15294d;}
+.rz-rp-school{font-weight:800; color:#15294d; font-size:12.5px; margin:0;}
 .rz-rp-cred{color:#555;}
-@media(max-width:560px){ .rz-resume-paper{padding:30px 22px;} .rz-rp-stats{grid-template-columns:repeat(2,1fr);} .rz-rp-stat:nth-child(2n){border-right:none;} .rz-rp-exp{grid-template-columns:1fr;} .rz-rp-jobhead{flex-direction:column; gap:1px; align-items:flex-start;} }
+.rz-rp-comp{display:grid; grid-template-columns:repeat(3,1fr); gap:2px 20px; margin:0; padding:0; list-style:none;}
+.rz-rp-comp li{font-size:11.5px; color:#333; padding:2.5px 0 2.5px 13px; position:relative; line-height:1.3;}
+.rz-rp-comp li::before{content:""; position:absolute; left:1px; top:8px; width:4px; height:4px; background:#2b5fa5; transform:rotate(45deg);}
+.rz-rp-jobsummary{font-size:11.5px; color:#444; font-style:italic; margin:0 0 7px; line-height:1.5;}
+.rz-rp-edu{padding:7px 0; border-bottom:1px solid #eef1f6;}
+.rz-rp-edu:last-child{border-bottom:none;}
+.rz-rp-edu .rz-rp-cred{margin:2px 0 0; font-size:11.5px; color:#555;}
+@media(max-width:560px){ .rz-resume-paper{padding:30px 22px;} .rz-rp-stats{grid-template-columns:repeat(2,1fr);} .rz-rp-stat:nth-child(2n){border-right:none;} .rz-rp-exp{grid-template-columns:1fr;} .rz-rp-jobhead{flex-direction:column; gap:1px; align-items:flex-start;} .rz-rp-comp{grid-template-columns:repeat(2,1fr);} }
 
 .rz-gauge-needle{transition:transform .5s cubic-bezier(.2,.8,.2,1);}
 .rz-mpt-delta{display:inline-block; margin-top:9px; font-family:var(--mono); font-size:11px; font-weight:600; padding:3px 11px; border-radius:999px;}
@@ -2540,10 +2756,10 @@ const CSS = `
 /* ===== type-scale alignment + flare ===== */
 .rz-h2{font-size:11px; letter-spacing:.2em; margin:0 0 16px; gap:8px;}
 .rz-game-eyebrow,.rz-fit-eyebrow,.rz-manifesto-eyebrow{margin:0 0 14px;}
-.rz-game-title{font-size:clamp(22px,3.1vw,30px); font-weight:760; line-height:1.15; margin:0 0 10px;}
+.rz-game-title{font-size:clamp(17px,2.4vw,23px); font-weight:760; line-height:1.15; margin:0 0 10px;}
 .rz-fit-title{font-weight:760; color:var(--text);}
 .rz-sig-headline{font-weight:760;}
-.rz-game-intro{font-size:14.5px; color:#B7BECD; line-height:1.55; max-width:62ch;}
+.rz-game-intro{font-size:13px; color:#B7BECD; line-height:1.55; max-width:62ch;}
 .rz-fit-lead{color:#B7BECD; max-width:62ch;}
 .rz-sig-detail{font-size:14.5px; color:#B7BECD; line-height:1.55;}
 .rz-section{position:relative;}
@@ -2568,7 +2784,8 @@ const CSS = `
   .rz-manifesto{ margin-top:22px; padding:26px 20px; }
   .rz-signature{ margin-top:22px; padding:22px 20px; }
   .rz-looking{ margin-top:22px; }
-  .rz-fit{ margin-top:22px; padding:24px 20px; }
+  .rz-fit{ margin-top:18px; padding:18px; }
+  .rz-head-actions{ flex-basis:100%; margin-top:8px; }
 }
 
 @media print{
@@ -2587,7 +2804,7 @@ const CSS = `
   .rz--resume .rz-resume-paper{box-shadow:none; border-radius:0; padding:0; max-width:none; color:#111 !important;}
   .rz::before,.rz::after,.rz-signature::before{display:none !important;}
   .rz-wrap{grid-template-columns:1fr !important; display:block; max-width:none;}
-  .rz-agent,.rz-download,.rz-fit,.rz-game,.rz-mpt-section,.rz-trends-section,.rz-arch-section,.rz-an-section,.rz-demos,.rz-manifesto,.rz-mm-section,.rz-aip-section{display:none !important;}
+  .rz-agent,.rz-download,.rz-fit,.rz-game,.rz-mpt-section,.rz-trends-section,.rz-arch-section,.rz-an-section,.rz-demos,.rz-manifesto,.rz-mm-section,.rz-aip-section,.rz-easter{display:none !important;}
   .rz-doc{padding:0 !important;}
   .rz-doc>*{animation:none !important; opacity:1 !important; transform:none !important;}
   .rz-signature,.rz-looking{background:#fff !important; border-color:#ddd !important;}
