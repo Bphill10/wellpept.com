@@ -885,11 +885,11 @@ function percentileOf(v, p) {
   return 100;
 }
 function readMarket(compa) {
-  if (compa < 80) return { label: "Well below market", note: "A likely attraction and retention risk." };
-  if (compa < 90) return { label: "Below midpoint", note: "Lagging the market, fine for a developing hire, watch for flight risk." };
-  if (compa < 110) return { label: "Competitive", note: "Right around the market median, a defensible, market-aligned rate." };
-  if (compa < 120) return { label: "Above midpoint", note: "Leading the market, typical for strong performers or hot skills." };
-  return { label: "Premium", note: "Well above market, confirm it's justified by impact and internal equity." };
+  if (compa < 80) return { label: "Well below market", tone: "low", note: "A likely attraction and retention risk." };
+  if (compa < 90) return { label: "Below midpoint", tone: "warn", note: "Lagging the market, fine for a developing hire, watch for flight risk." };
+  if (compa < 110) return { label: "Competitive", tone: "good", note: "Right around the market median, a defensible, market-aligned rate." };
+  if (compa < 120) return { label: "Above midpoint", tone: "warn", note: "Leading the market, typical for strong performers or hot skills." };
+  return { label: "Premium", tone: "high", note: "Well above market, confirm it's justified by impact and internal equity." };
 }
 
 function Gauge({ compa }) {
@@ -1018,11 +1018,11 @@ function MarketPriceTool() {
           <span className={compa >= 100 ? "rz-mpt-delta up" : "rz-mpt-delta down"}>{compa >= 100 ? "+" : ""}{compa - 100}% vs midpoint</span>
         </div>
         <div className="rz-mpt-readout">
+          <span className={`rz-mpt-verdict v-${verdict.tone}`}><i className="rz-mpt-vdot" />{verdict.label}</span>
           <div className="rz-mpt-stat">
             <span className="rz-mpt-statval">{pctile}<em>th</em></span>
             <span className="rz-mpt-statlabel">percentile · {industry.name} · {market.name}</span>
           </div>
-          <p className="rz-mpt-verdict">{verdict.label}</p>
           <p className="rz-mpt-note">{verdict.note}</p>
         </div>
       </div>
@@ -1877,20 +1877,6 @@ export default function App() {
                 <p className="rz-rp-contact"><a href="mailto:bphill10@gmail.com">bphill10@gmail.com</a> · <a href="tel:+17346453508">734-645-3508</a> · <a href="https://www.linkedin.com/in/benjamin-j-phillips" target="_blank" rel="noreferrer">linkedin.com/in/benjamin-j-phillips</a> · <a href="https://benphillips.pro" target="_blank" rel="noreferrer">benphillips.pro</a></p>
               </div>
 
-              <div className="rz-rp-stats">
-                {[
-                  { v: "15+", l: "Years in rewards" },
-                  { v: "40+", l: "Countries" },
-                  { v: "35K+", l: "Employees" },
-                  { v: "3,500+", l: "Roles benchmarked" },
-                ].map((st) => (
-                  <div className="rz-rp-stat" key={st.l}>
-                    <span className="rz-rp-statval">{st.v}</span>
-                    <span className="rz-rp-statlabel">{st.l}</span>
-                  </div>
-                ))}
-              </div>
-
               <div className="rz-rp-section">
                 <p className="rz-rp-h">Summary of Qualifications</p>
                 <p className="rz-rp-summary">{RESUME.summary}</p>
@@ -2531,16 +2517,21 @@ const CSS = `
 .rz-mpt-gauge{position:relative; text-align:center;}
 .rz-gauge-svg{width:100%; max-width:200px; display:block; margin:0 auto;}
 .rz-gauge-end{fill:var(--dim); font-family:var(--mono); font-size:9px; letter-spacing:.05em;}
-.rz-mpt-gauge-val{font-size:34px; font-weight:800; letter-spacing:-.02em; line-height:1; margin:-30px 0 0; color:transparent; background:linear-gradient(120deg,var(--cool),var(--warm)); -webkit-background-clip:text; background-clip:text;}
-.rz-mpt-gauge-val span{font-size:18px;}
+.rz-mpt-gauge-val{font-size:25px; font-weight:800; letter-spacing:-.02em; line-height:1; margin:-22px 0 0; color:transparent; background:linear-gradient(120deg,var(--cool),var(--warm)); -webkit-background-clip:text; background-clip:text;}
+.rz-mpt-gauge-val span{font-size:13px;}
 .rz-mpt-gauge-cap{font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); margin:8px 0 0;}
-.rz-mpt-readout{display:flex; flex-direction:column; gap:4px;}
-.rz-mpt-stat{display:flex; align-items:baseline; gap:9px; flex-wrap:wrap;}
-.rz-mpt-statval{font-size:30px; font-weight:800; letter-spacing:-.02em; color:var(--text); line-height:1;}
-.rz-mpt-statval em{font-size:15px; font-weight:600; color:var(--muted); font-style:normal;}
+.rz-mpt-readout{display:flex; flex-direction:column; align-items:flex-start; gap:9px;}
+.rz-mpt-stat{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;}
+.rz-mpt-statval{font-size:21px; font-weight:800; letter-spacing:-.01em; color:var(--text); line-height:1;}
+.rz-mpt-statval em{font-size:11px; font-weight:600; color:var(--muted); font-style:normal;}
 .rz-mpt-statlabel{font-size:13px; color:var(--muted);}
-.rz-mpt-verdict{font-size:18px; font-weight:720; letter-spacing:-.01em; margin:12px 0 0; color:var(--warm);}
-.rz-mpt-note{font-size:13.5px; color:#B7BECD; margin:5px 0 0; line-height:1.5;}
+.rz-mpt-verdict{display:inline-flex; align-items:center; gap:7px; padding:4px 12px 4px 10px; border-radius:999px; font-size:12.5px; font-weight:700; letter-spacing:.02em; line-height:1; border:1px solid;}
+.rz-mpt-vdot{width:7px; height:7px; border-radius:50%; background:currentColor; box-shadow:0 0 9px currentColor; flex:none;}
+.rz-mpt-verdict.v-low{color:#E0556B; border-color:rgba(224,85,107,.38); background:rgba(224,85,107,.10);}
+.rz-mpt-verdict.v-warn{color:#FFC36B; border-color:rgba(255,195,107,.36); background:rgba(255,195,107,.10);}
+.rz-mpt-verdict.v-good{color:#5FE3B3; border-color:rgba(95,227,179,.34); background:rgba(95,227,179,.10);}
+.rz-mpt-verdict.v-high{color:#9DB2FF; border-color:rgba(124,156,255,.40); background:rgba(124,156,255,.12);}
+.rz-mpt-note{font-size:13.5px; color:#B7BECD; margin:0; line-height:1.5;}
 .rz-mpt-rolenote{font-size:12.5px; color:var(--dim); font-style:italic; margin:9px 0 0;}
 .rz-mpt-disclaimer{font-size:11.5px; color:var(--dim); margin:20px 0 0; padding-top:16px; border-top:1px solid var(--line); line-height:1.5; font-style:italic;}
 
@@ -2789,6 +2780,8 @@ const CSS = `
 }
 
 @media print{
+  html,body,.rz{overflow:visible !important; height:auto !important; min-height:0 !important;}
+  .rz--resume .rz-resume,.rz--cover .rz-cover{overflow:visible !important; height:auto !important;}
   .rz-section::before{display:none !important;}
   .rz{background:#fff !important; color:#111 !important;}
   .rz--cover .rz-wrap{display:none !important;}
