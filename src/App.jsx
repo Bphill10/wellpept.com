@@ -2788,13 +2788,13 @@ const CSS = `
   .rz--cover .rz-cover{position:static; display:block; padding:0; overflow:visible;}
   .rz--cover .rz-cover-backdrop,.rz--cover .rz-cover-actions{display:none !important;}
   .rz--cover .rz-cover-sheet{max-width:none; margin:0; animation:none;}
-  .rz--cover .rz-cover-paper{box-shadow:none; border-radius:0; padding:0; max-width:none; color:#111 !important;}
+  .rz--cover .rz-cover-paper{box-shadow:none; border-radius:0; padding:14mm 15mm !important; max-width:none; color:#111 !important;}
   .rz--cover .rz-cover-name,.rz--cover .rz-cover-greet,.rz--cover .rz-cover-p,.rz--cover .rz-cover-signoff{color:#111 !important;}
   .rz--resume .rz-wrap{display:none !important;}
   .rz--resume .rz-resume{position:static; display:block; padding:0; overflow:visible;}
   .rz--resume .rz-resume-backdrop,.rz--resume .rz-resume-actions{display:none !important;}
   .rz--resume .rz-resume-sheet{max-width:none; margin:0; animation:none;}
-  .rz--resume .rz-resume-paper{box-shadow:none; border-radius:0; padding:0; max-width:none; color:#111 !important;}
+  .rz--resume .rz-resume-paper{box-shadow:none; border-radius:0; padding:14mm 15mm !important; max-width:none; color:#111 !important;}
   .rz::before,.rz::after,.rz-signature::before{display:none !important;}
   .rz-wrap{grid-template-columns:1fr !important; display:block; max-width:none;}
   .rz-agent,.rz-download,.rz-fit,.rz-game,.rz-mpt-section,.rz-trends-section,.rz-arch-section,.rz-an-section,.rz-demos,.rz-manifesto,.rz-mm-section,.rz-aip-section,.rz-easter{display:none !important;}
@@ -2807,6 +2807,6 @@ const CSS = `
   .rz-tick,.rz-points li::before,.rz-h2::before,.rz-eyebrow::before{background:#999 !important; box-shadow:none !important;}
   .rz-section,.rz-job,.rz-looking,.rz-signature,.rz-case{break-inside:avoid; border-color:#ddd !important;}
   a{color:inherit !important; text-decoration:none;}
-  @page{margin:14mm;}
+  @page{margin:0;}
 }
 `;
