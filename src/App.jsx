@@ -17,7 +17,7 @@ const CANDIDATE = {
   openTo: "Open to senior Compensation & Total Rewards leadership roles",
   lookingFor: {
     summary:
-      "Most of all, I'm looking for a culture where innovation and collaboration actually meet: the room to build, the trust to do the right thing for the business, and people I genuinely enjoy working with. On top of that, a senior compensation role where I can own global comp and total rewards end-to-end, tying compensation, AI, and analytics together into transparent, data-driven pay at scale. I want a place where knowledge is shared openly and AI is an ally, part of the team rather than something people are afraid of.",
+      "Most of all, a culture where innovation and collaboration actually meet: room to build, trust to do right by the business, and people I enjoy working with. On the work itself, a senior compensation role where I own global comp and total rewards end-to-end, tying compensation, AI, and analytics into transparent pay at scale, in a place that treats AI as an ally rather than a threat.",
     statement: "My biggest strength has never been the things I've built. It's the things I imagine, and the mentors, people, and AI that help build them.",
     roles: ["Director of Compensation", "Director, Total Rewards", "Senior Director, Global Compensation", "Head of Compensation", "Head of Total Rewards", "VP, Compensation", "VP, Total Rewards", "SVP, Compensation", "Compensation, AI & Analytics Leader", "Compensation COE Leader"],
   },
@@ -1850,9 +1850,6 @@ export default function App() {
           <section className="rz-section">
             <h2 className="rz-h2">Profile</h2>
             <p className="rz-body">{c.summary}</p>
-            <ul className="rz-highlights">
-              {c.highlights.map((h, i) => (<li key={i}><span className="rz-tick" />{h}</li>))}
-            </ul>
           </section>
 
           <section className="rz-section">
@@ -1896,20 +1893,12 @@ export default function App() {
             <p className="rz-game-eyebrow"><Sparkles size={14} /> Interactive · Built by Ben</p>
             <h2 className="rz-game-title">Everything below is a working demo of real work</h2>
             <p className="rz-game-intro">These are sample versions of tools I've actually built and shipped in the comp function. The on-screen display may look different from the production versions, but the approach and underlying logic are the same, running here on illustrative data, with nothing confidential.</p>
-            <div className="rz-demos-grid">
-              <div className="rz-demos-item"><span className="rz-demos-k">Decision-grade dashboards</span><span className="rz-demos-v">From the Power BI analytics ecosystem I built: real-time visibility into turnover, market position, and pay equity, plus the pay-vs-turnover sweet-spot model.</span></div>
-              <div className="rz-demos-item"><span className="rz-demos-k">Build a merit matrix</span><span className="rz-demos-v">From the annual merit cycle: turning a budget into defensible increases by performance and compa-ratio.</span></div>
-              <div className="rz-demos-item"><span className="rz-demos-k">Design the sales commission plan</span><span className="rz-demos-v">From hands-on plan design: turning OTE, gross margin, and headcount into a P&amp;L leaders can defend.</span></div>
-              <div className="rz-demos-item"><span className="rz-demos-k">Design the annual incentive plan</span><span className="rz-demos-v">From AIP design: level-based weighting of company and individual goals, with payout curves and funding logic.</span></div>
-              <div className="rz-demos-item"><span className="rz-demos-k">Market-price a role</span><span className="rz-demos-v">From the AI-powered benchmarking engine that maps 3,500+ roles to Radford, Mercer, WTW, and Aon surveys.</span></div>
-              <div className="rz-demos-item"><span className="rz-demos-k">Build a job architecture</span><span className="rz-demos-v">From the single global job architecture I designed across 40+ countries, 3,000+ titles unified for 35,000+ employees.</span></div>
-            </div>
           </section>
 
           <section className="rz-section rz-an-section">
             <p className="rz-game-eyebrow"><Sparkles size={14} /> Analytics</p>
             <h2 className="rz-game-title">Decision-grade dashboards</h2>
-            <p className="rz-game-intro">A look at the analytics Ben builds the way executives see them: turnover, market position, and pay equity at a glance. Sample data, real structure.</p>
+            <p className="rz-game-intro">The comp analytics, shown the way executives see them: turnover, market position, and pay equity at a glance.</p>
             <AnalyticsDashboards />
           </section>
 
@@ -1923,28 +1912,28 @@ export default function App() {
           <section className="rz-section rz-game">
             <p className="rz-game-eyebrow"><Coins size={14} /> Coffee break</p>
             <h2 className="rz-game-title">Design the Sales Commission Plan</h2>
-            <p className="rz-game-intro">Pick an industry (mortgage, banking, or tech consulting), then set the real levers: revenue target, gross margin, OTE, headcount, and pay mix. Run the year and get a P&amp;L scorecard with the cost of the plan and its EBIT. Illustrative, but it plays by real rules.</p>
+            <p className="rz-game-intro">Set the industry, revenue target, margin, OTE, headcount, and pay mix, then run the year for a P&amp;L scorecard and its EBIT.</p>
             <SalesPlanGame />
           </section>
 
           <section className="rz-section rz-aip-section">
             <p className="rz-game-eyebrow"><Coins size={14} /> Live demo</p>
             <h2 className="rz-game-title">Design the annual incentive plan</h2>
-            <p className="rz-game-intro">Pick a level and a plan structure, then set company and individual performance. Weighting follows line of sight: more company at the top, more individual lower down. In the weighted design the funding gate hits only the corporate piece, so people still earn on what they control; in the fund-then-modify design the whole bonus is company-gated. Toggle to compare.</p>
+            <p className="rz-game-intro">Pick a level and structure, set company and individual performance, and watch how line-of-sight weighting and the funding gate shape the payout.</p>
             <AipTool />
           </section>
 
           <section className="rz-section rz-mpt-section">
             <p className="rz-game-eyebrow"><Target size={14} /> Live demo</p>
             <h2 className="rz-game-title">Market-price a role</h2>
-            <p className="rz-game-intro">Search 400+ roles, set the industry (your company's sector) and the market, then slide the proposed base. The gauge shows compa-ratio against the market median; the band shows where the pay lands across the range, the same position-to-market read I build into pricing tools.</p>
+            <p className="rz-game-intro">Search 400+ roles, set the market, and slide the proposed base to see compa-ratio and where the pay lands across the range.</p>
             <MarketPriceTool />
           </section>
 
           <section className="rz-section rz-arch-section">
             <p className="rz-game-eyebrow"><Compass size={14} /> Live demo</p>
             <h2 className="rz-game-title">Build a job architecture</h2>
-            <p className="rz-game-intro">Pick a company size, industry, and region. The builder generates a leveling spine across four career streams, recommends the right survey to benchmark it, and checks it against 2026 pay-transparency rules in the US and EMEA, the global-architecture work Ben does, in miniature.</p>
+            <p className="rz-game-intro">Pick a size, industry, and region to generate a leveling spine, the right benchmark survey, and a check against 2026 pay-transparency rules in the US and EMEA.</p>
             <JobArchTool />
           </section>
 
@@ -1968,24 +1957,6 @@ export default function App() {
               ))}
             </section>
           </div>
-
-          <section className="rz-section rz-trends-section">
-            <p className="rz-game-eyebrow"><Sparkles size={14} /> Industry outlook</p>
-            <h2 className="rz-game-title">10 compensation trends shaping 2026</h2>
-            <p className="rz-game-intro">What Ben is watching this year, synthesized from the 2025–26 surveys and reports by Mercer, WorldatWork, Payscale, WTW, and Pearl Meyer, plus the EU and US pay-transparency landscape.</p>
-            <ol className="rz-trends">
-              {COMP_TRENDS_2026.map((t) => (
-                <li className="rz-trend" key={t.n}>
-                  <span className="rz-trend-n">{String(t.n).padStart(2, "0")}</span>
-                  <div className="rz-trend-body">
-                    <p className="rz-trend-title">{t.title}</p>
-                    <p className="rz-trend-detail">{t.detail}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-            <p className="rz-mpt-disclaimer">Figures are approximate industry ranges for context, not a forecast, exact budget numbers vary by survey, industry, and geography.</p>
-          </section>
         </main>
 
         {/* ============ AGENT / CONTACT ============ */}
@@ -2589,6 +2560,15 @@ const CSS = `
 }
 @media(max-width:400px){
   .rz-doc{ padding-left:18px; padding-right:18px; }
+}
+
+@media(max-width:600px){
+  .rz-doc{ padding-top:32px; padding-bottom:48px; }
+  .rz-section{ padding-top:30px; margin-top:28px; }
+  .rz-manifesto{ margin-top:22px; padding:26px 20px; }
+  .rz-signature{ margin-top:22px; padding:22px 20px; }
+  .rz-looking{ margin-top:22px; }
+  .rz-fit{ margin-top:22px; padding:24px 20px; }
 }
 
 @media print{
