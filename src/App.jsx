@@ -2580,6 +2580,17 @@ const CSS = `
 .rz-an-card,.rz-demos-item{transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease;}
 .rz-an-card:hover,.rz-demos-item:hover,.rz-case:hover{transform:translateY(-2px); border-color:rgba(124,156,255,0.35); box-shadow:0 14px 34px -18px rgba(124,156,255,0.55);}
 
+/* mobile hardening: stop horizontal overflow on phones */
+.rz{ overflow-wrap:break-word; }
+.rz a,.rz-cover-contact,.rz-rp-contact{ overflow-wrap:anywhere; }
+@media(max-width:919px){
+  html,body,.rz{ overflow-x:hidden; }
+  .rz-wrap,.rz-doc{ max-width:100%; min-width:0; }
+}
+@media(max-width:400px){
+  .rz-doc{ padding-left:18px; padding-right:18px; }
+}
+
 @media print{
   .rz-section::before{display:none !important;}
   .rz{background:#fff !important; color:#111 !important;}
