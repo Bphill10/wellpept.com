@@ -1919,8 +1919,11 @@ function CartPage({
   chargebeeConfig = { enabled: false },
 }) {
   const paymentsReady = Boolean(
-    chargebeeConfig?.enabled ||
-      (paymentConfig?.enabled && paymentConfig?.publishableKey)
+    (paymentConfig?.enabled && paymentConfig?.publishableKey) ||
+      chargebeeConfig?.enabled
+  );
+  const useStripe = Boolean(
+    paymentConfig?.enabled && paymentConfig?.publishableKey
   );
   const subtotal = cart.reduce((sum, line) => sum + line.price * line.qty, 0);
 
@@ -2031,9 +2034,11 @@ function CartPage({
           <h1>Cart</h1>
           <p className="lede">
             US shipping only. Pay by card or Affirm
-            {chargebeeConfig?.enabled
-              ? " through Chargebee"
-              : " through Stripe"}{" "}
+            {useStripe
+              ? " through Stripe"
+              : chargebeeConfig?.enabled
+                ? " through Chargebee"
+                : ""}{" "}
             — then we auto-build the vendor drop-ship packet.
           </p>
 
@@ -2204,15 +2209,16 @@ function CartPage({
                     </div>
                     <button type="submit" className="primary-btn">
                       {paymentsReady
-                        ? chargebeeConfig?.enabled
-                          ? "Continue to Chargebee"
-                          : "Continue to card / Affirm"
+                        ? useStripe
+                          ? "Continue to card / Affirm"
+                          : "Continue to Chargebee"
                         : "Place order · auto drop-ship packet"}
                     </button>
                     {!paymentsReady && (
                       <p className="meta" style={{ marginTop: "0.65rem" }}>
-                        Payment keys not configured yet — orders queue offline.
-                        Add Chargebee or Stripe keys from <code>.env.example</code>.
+                        Stripe keys not configured yet — orders queue offline.
+                        Add <code>VITE_STRIPE_PUBLISHABLE_KEY</code> and{" "}
+                        <code>STRIPE_SECRET_KEY</code> from your Stripe sandbox.
                       </p>
                     )}
                     {packetMsg && (
@@ -2242,7 +2248,18 @@ function CartPage({
                     </div>
                   </div>
 
-                  {chargebeeConfig?.enabled ? (
+                  {useStripe ? (
+                    <CheckoutPayment
+                      publishableKey={paymentConfig.publishableKey}
+                      total={total}
+                      orderId={draftOrderId}
+                      customer={customer}
+                      onPaid={handlePaid}
+                      onError={(err) =>
+                        setPacketMsg(err?.message || "Payment error")
+                      }
+                    />
+                  ) : chargebeeConfig?.enabled ? (
                     <ChargebeeCheckout
                       config={chargebeeConfig}
                       mode="cart"
@@ -2256,18 +2273,7 @@ function CartPage({
                         setPacketMsg(err?.message || "Payment error")
                       }
                     />
-                  ) : (
-                    <CheckoutPayment
-                      publishableKey={paymentConfig.publishableKey}
-                      total={total}
-                      orderId={draftOrderId}
-                      customer={customer}
-                      onPaid={handlePaid}
-                      onError={(err) =>
-                        setPacketMsg(err?.message || "Payment error")
-                      }
-                    />
-                  )}
+                  ) : null}
 
                   <button
                     type="button"
