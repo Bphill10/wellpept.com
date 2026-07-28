@@ -137,10 +137,10 @@ export default function PeptideCalculator({ initial = null }) {
 
   const fillPct = result ? Math.min(100, Math.max(0, result.units)) : 0;
   const vialBac =
-    solution && Number(solution) > 0 ? `${formatNum(solution, 2)} mL BAC` : "";
+    solution && Number(solution) > 0 ? `${formatNum(solution, 2)} mL` : "";
   const vialConc = result ? `${formatNum(result.mgPerMl, 2)} mg/mL` : "";
   const vialDose = result
-    ? `${result.doseText} · ${formatNum(result.units, 1)} u`
+    ? `${result.doseText} (${formatNum(result.units, 1)} u)`
     : "";
   const vialCategory = guessCategory(name || "Research");
 
@@ -313,8 +313,7 @@ export default function PeptideCalculator({ initial = null }) {
                 <h2>Brand vial</h2>
               </div>
               <p className="meta">
-                Real Wellpept studio vial photo with your calc data and a
-                scannable QR.
+                Printable wrap label — black WellPept spine, calc grid, and QR.
               </p>
               <div className="calc-vial-stage">
                 <GeneratedVial

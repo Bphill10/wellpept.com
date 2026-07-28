@@ -80,7 +80,7 @@ export default function LabelTemplate({
       />
       {showDownload && (
         <button type="button" className="soft-btn vial-download" onClick={handleDownload}>
-          <Download size={14} /> Download QR label
+          <Download size={14} /> Download label
         </button>
       )}
     </div>

@@ -2437,10 +2437,12 @@ th {
 
 .label-template {
   width: 100%;
-  max-width: 420px;
+  max-width: 700px;
   height: auto;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(10, 10, 10, 0.12);
+  background: #fff;
 }
 
 @media (max-width: 900px) {
