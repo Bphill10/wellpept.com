@@ -364,10 +364,10 @@ export default function App() {
           <button className="brand" onClick={goShop} type="button">
             <img
               src="/undisclosed-brand.png"
-              alt=""
+              alt="Undisclosed"
               className="brand-logo"
-              width={48}
-              height={48}
+              width={54}
+              height={54}
             />
             <span className="brand-text">
               <span className="brand-mark">Undisclosed</span>
@@ -496,10 +496,10 @@ export default function App() {
                 <div className="hero-brand-lockup rise">
                   <img
                     src="/undisclosed-brand.png"
-                    alt=""
+                    alt="Undisclosed"
                     className="hero-brand-mark"
-                    width={104}
-                    height={104}
+                    width={136}
+                    height={136}
                   />
                   <h1 className="hero-brand">Undisclosed</h1>
                 </div>

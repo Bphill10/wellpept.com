@@ -1,6 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Download } from "lucide-react";
-import { drawGeneratedVial, downloadVialPng, resolveVialMl } from "../utils/vialArt";
+import {
+  drawGeneratedVial,
+  downloadVialPng,
+  loadBrandImage,
+  resolveVialMl,
+} from "../utils/vialArt";
 
 export default function GeneratedVial({
   name = "Peptide",
@@ -24,7 +29,18 @@ export default function GeneratedVial({
 }) {
   const canvasRef = useRef(null);
   const [png, setPng] = useState("");
+  const [brandImage, setBrandImage] = useState(null);
   const resolvedMl = resolveVialMl({ form: form || subtitle, vialMl });
+
+  useEffect(() => {
+    let alive = true;
+    loadBrandImage().then((img) => {
+      if (alive) setBrandImage(img);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -46,6 +62,7 @@ export default function GeneratedVial({
       reconstituted,
       vialMl: resolvedMl,
       form: form || subtitle,
+      brandImage,
     });
     setPng(dataUrl);
   }, [
@@ -65,6 +82,7 @@ export default function GeneratedVial({
     reconstituted,
     resolvedMl,
     form,
+    brandImage,
   ]);
 
   function handleDownload() {

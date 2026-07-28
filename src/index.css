@@ -217,11 +217,11 @@ img {
 }
 
 .brand-logo {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 8px;
+  width: 3.35rem;
+  height: 3.35rem;
+  border-radius: 10px;
   object-fit: cover;
-  border: 1px solid rgba(196, 163, 90, 0.55);
+  border: 1px solid rgba(196, 163, 90, 0.65);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
@@ -458,12 +458,12 @@ img {
   background:
     linear-gradient(
       105deg,
-      rgba(0, 0, 0, 0.92) 0%,
-      rgba(0, 0, 0, 0.72) 48%,
-      rgba(20, 16, 8, 0.45) 100%
+      rgba(0, 0, 0, 0.88) 0%,
+      rgba(0, 0, 0, 0.55) 42%,
+      rgba(0, 0, 0, 0.25) 100%
     ),
-    url("/hero.jpg") center / cover no-repeat;
-  transform: scale(1.04);
+    url("/undisclosed-brand.png") right center / cover no-repeat;
+  transform: scale(1.02);
   animation: hero-drift 18s ease-in-out infinite alternate;
 }
 
@@ -495,12 +495,12 @@ img {
 }
 
 .hero-brand-mark {
-  width: clamp(4.5rem, 12vw, 6.5rem);
-  height: clamp(4.5rem, 12vw, 6.5rem);
-  border-radius: 12px;
+  width: clamp(5.5rem, 14vw, 8.5rem);
+  height: clamp(5.5rem, 14vw, 8.5rem);
+  border-radius: 14px;
   object-fit: cover;
-  border: 1px solid rgba(196, 163, 90, 0.65);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(196, 163, 90, 0.75);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
 }
 
 .hero-brand {
