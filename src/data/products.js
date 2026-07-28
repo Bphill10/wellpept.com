@@ -299,10 +299,10 @@ export function buildCatalog(vendors, submissions) {
       reviews: 12 + index * 9,
       inStock: true,
       ships: featured
-        ? "Drop-ship via The Lobster"
+        ? "Featured vendor · allow up to 4 weeks for shipping"
         : "Drop-ships in 7–15 business days",
       badge: featured
-        ? "Featured · The Lobster"
+        ? "Featured vendor"
         : index < 3
           ? "Best price"
           : null,

@@ -14,12 +14,11 @@ export const THE_LOBSTER_VENDOR = {
   featured: true,
   minOrder: 800,
   shippingFlat: 0,
-  shippingNote:
-    "International reship pricing · EU/US/AU lanes · Reship on seizure",
+  shippingNote: "Allow up to 4 weeks for shipping",
   priceListSource:
     "Lobster International category (Wayback 2026-06-27) · cartmangear.co/product-category/lobster-international/",
   notes:
-    "Pharma-grade HGH, peptides, Turkish pharmacy. Drop-ship via Undisclosed only — do not expose vendor site to customers.",
+    "Featured vendor. Min order applies. Drop-ship via Undisclosed only — do not expose vendor site to customers.",
   createdAt: "2026-01-01T00:00:00.000Z",
 };
 

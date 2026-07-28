@@ -636,20 +636,19 @@ export default function App() {
               <div className="container">
                 <div className="featured-vendor panel">
                   <div className="featured-vendor-copy">
-                    <span className="featured-kicker">
-                      Featured drop-ship partner
-                    </span>
-                    <h2>The Lobster · International kits</h2>
+                    <span className="featured-kicker">Featured vendor</span>
+                    <h2>The Lobster</h2>
                     <p>
-                      Pharma-grade HGH and research peptides fulfilled by our
-                      featured partner — sold only through Undisclosed. Browse
-                      strengths in the catalog, add to cart, and we handle
-                      drop-ship. Min order ~{formatMoney(THE_LOBSTER_VENDOR.minOrder)}.
+                      Featured vendor on Undisclosed. Minimum order{" "}
+                      {formatMoney(THE_LOBSTER_VENDOR.minOrder)} — allow up to 4
+                      weeks for shipping. Sold only through this catalog; we
+                      handle drop-ship.
                     </p>
                     <ul className="featured-meta">
-                      <li>International reship pricing built in</li>
-                      <li>Transparent vendor cost + {Math.round(MARKUP * 100)}%</li>
-                      <li>No outbound vendor storefront for customers</li>
+                      <li>
+                        Min order {formatMoney(THE_LOBSTER_VENDOR.minOrder)}
+                      </li>
+                      <li>Allow up to 4 weeks for shipping</li>
                     </ul>
                     <div className="hero-cta" style={{ marginTop: "0.85rem" }}>
                       <button
@@ -665,13 +664,6 @@ export default function App() {
                       >
                         Shop Lobster catalog
                       </button>
-                      <button
-                        type="button"
-                        className="soft-btn"
-                        onClick={() => setView(VIEWS.vendor)}
-                      >
-                        Vendor portal
-                      </button>
                     </div>
                   </div>
                   <div className="featured-vendor-visual">
@@ -680,7 +672,7 @@ export default function App() {
                       sku="INTL"
                       mass={10}
                       category="Growth"
-                      mixText="Drop-ship only"
+                      mixText="Featured vendor"
                       size="lg"
                     />
                   </div>
