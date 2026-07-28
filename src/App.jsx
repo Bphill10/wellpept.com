@@ -1435,7 +1435,7 @@ function VendorPortal({
                   onChange={(e) =>
                     setForm((f) => ({ ...f, shippingNote: e.target.value }))
                   }
-                  placeholder="Cold-pack, 2-day, etc."
+                  placeholder="US only · cold-pack, ground, etc."
                 />
               </label>
 
