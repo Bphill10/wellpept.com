@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Calculator, FlaskConical, Syringe, RotateCcw, Link2 } from "lucide-react";
+import GeneratedVial from "./GeneratedVial";
+import { guessCategory } from "../data/products";
 
 function formatNum(v, digits = 2) {
   const n = Number(v);
@@ -163,6 +165,21 @@ export default function PeptideCalculator({ initial = null }) {
   }
 
   const fillPct = dosage ? Math.min(100, Math.max(0, dosage.units)) : 0;
+
+  const vialMixText =
+    mass && solution
+      ? `${formatNum(mass, 2)}mg / ${formatNum(solution, 2)}ml`
+      : mass
+        ? `${formatNum(mass, 2)}mg lyophilized`
+        : "";
+
+  const vialDoseRef = dosage
+    ? `${formatNum(dosage.units, 1)}u = ${dosage.doseText}`
+    : recon
+      ? `Add ${formatNum(recon.totalMl, 2)} mL BAC`
+      : "";
+
+  const vialCategory = guessCategory(name || "Research");
 
   return (
     <section className="panel-page fade">
@@ -405,6 +422,28 @@ export default function PeptideCalculator({ initial = null }) {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+
+          <div className="calc-vial-panel">
+            <div className="calc-card-head">
+              <h2>Auto-generated vial</h2>
+            </div>
+            <p className="meta">
+              Label updates as you type — unique color per peptide, Undisclosed
+              branding, download-ready PNG.
+            </p>
+            <div className="calc-vial-stage">
+              <GeneratedVial
+                name={name || "Peptide"}
+                mass={mass}
+                category={vialCategory}
+                mixText={vialMixText}
+                doseRef={vialDoseRef}
+                reconstituted={Boolean(solution && parseFloat(solution) > 0)}
+                size="lg"
+                showDownload
+              />
             </div>
           </div>
 

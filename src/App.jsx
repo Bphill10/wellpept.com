@@ -27,6 +27,7 @@ import {
 import PeptideCalculator, {
   parseCalculatorQuery,
 } from "./components/PeptideCalculator";
+import GeneratedVial from "./components/GeneratedVial";
 
 const VIEWS = {
   shop: "shop",
@@ -37,8 +38,18 @@ const VIEWS = {
   calculator: "calculator",
 };
 
-function Vial() {
-  return <div className="vial" aria-hidden="true" />;
+function VialPreview({ product, size = "md", showDownload = false }) {
+  return (
+    <GeneratedVial
+      name={product.name}
+      sku={product.sku}
+      mass={product.mg}
+      category={product.category}
+      subtitle={product.form}
+      size={size}
+      showDownload={showDownload}
+    />
+  );
 }
 
 function StatusPill({ status }) {
@@ -423,7 +434,7 @@ export default function App() {
                           {product.badge && (
                             <span className="badge">{product.badge}</span>
                           )}
-                          <Vial />
+                          <VialPreview product={product} size="md" />
                         </div>
                         <div className="product-body">
                           <div className="meta">
@@ -537,7 +548,7 @@ function ProductDetail({ product, onBack, onAdd, onCalculate }) {
         </button>
         <div className="detail-layout" style={{ marginTop: "1rem" }}>
           <div className="detail-visual">
-            <Vial />
+            <VialPreview product={product} size="lg" showDownload />
           </div>
           <div className="detail-panel panel">
             <div className="meta">
@@ -640,7 +651,7 @@ function CartPage({ cart, onBack, onUpdateQty, onRemove }) {
                 {cart.map((line) => (
                   <div className="cart-item" key={line.id}>
                     <div className="cart-thumb">
-                      <Vial />
+                      <VialPreview product={line} size="sm" />
                     </div>
                     <div>
                       <strong>{line.name}</strong>
