@@ -692,7 +692,7 @@ export default function App() {
                 {labUnlocked ? "Undisclosed" : "WellPept"}
               </span>
               <span className="brand-sub">
-                {labUnlocked ? "Research lab" : "Clinical skincare"}
+                {labUnlocked ? "Research lab" : "Fresh Mix skincare"}
               </span>
             </span>
           </button>
@@ -1602,7 +1602,7 @@ export default function App() {
             <div>
               {labUnlocked
                 ? "Undisclosed — research peptides for laboratory use"
-                : "Clinical skincare — white light, cobalt purity"}
+                : "Fresh Mix skincare — white light, cobalt signal"}
             </div>
           </div>
           <p className="disclaimer">

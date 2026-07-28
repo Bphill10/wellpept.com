@@ -317,7 +317,7 @@ export default function SkincareHome({
             <h2>WellPept skincare</h2>
             <p>
               Fresh Mix keeps topical peptides dry until you activate them into your chosen
-              base. Ready formulas handle the rest — same clinical restraint, white light,
+              base. Ready formulas handle the rest — restrained formulas, white light,
               cobalt signal.
             </p>
             <p className="meta" style={{ marginTop: "1rem" }}>
