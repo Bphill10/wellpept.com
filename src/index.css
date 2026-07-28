@@ -973,6 +973,8 @@ img {
 }
 
 .calc-vial-stage {
+  display: grid;
+  place-items: center;
   background:
     radial-gradient(ellipse at 50% 70%, rgba(255, 255, 255, 0.9), rgba(232, 238, 245, 0.6));
   border-radius: 16px;
@@ -990,12 +992,6 @@ img {
   border-radius: 16px;
   padding: 1rem 1rem 1.25rem;
   background: rgba(255, 255, 255, 0.7);
-}
-
-.calc-vial-stage {
-  display: grid;
-  place-items: center;
-  padding: 0.5rem 0;
 }
 
 .badge {
