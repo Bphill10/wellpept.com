@@ -372,7 +372,7 @@ export default function App() {
 
     setVendors((prev) => [vendor, ...prev]);
     setSubmissions((prev) => [...lines, ...prev]);
-    setFlash("Price list submitted — waiting for Undisclosed approval");
+    setFlash("Price list submitted — waiting for Wellpept approval");
     return true;
   }
 
@@ -495,7 +495,7 @@ export default function App() {
                 Peptide calculator
               </button>
               <button type="button" onClick={() => setView(VIEWS.vendor)}>
-                Sell on Undisclosed
+                Sell on Wellpept
               </button>
             </span>
           </div>
@@ -503,14 +503,14 @@ export default function App() {
         <div className="container header-inner">
           <button className="brand" onClick={goShop} type="button">
             <img
-              src="/ud-monogram.svg"
-              alt="Undisclosed UD mark"
+              src="/wp-monogram.svg"
+              alt="Wellpept WP mark"
               className="brand-logo"
               width={54}
               height={54}
             />
             <span className="brand-text">
-              <span className="brand-mark">Undisclosed</span>
+              <span className="brand-mark">Wellpept</span>
               <span className="brand-sub">Research marketplace</span>
             </span>
           </button>
@@ -635,13 +635,13 @@ export default function App() {
               <div className="container hero-content">
                 <div className="hero-brand-lockup rise">
                   <img
-                    src="/ud-monogram.svg"
-                    alt="Undisclosed UD mark — D in front of U"
+                    src="/wp-monogram.svg"
+                    alt="Wellpept WP mark — P in front of W"
                     className="hero-brand-mark"
                     width={136}
                     height={136}
                   />
-                  <h1 className="hero-brand">Undisclosed</h1>
+                  <h1 className="hero-brand">Wellpept</h1>
                 </div>
                 <div className="hero-brand-rule rise-delay" aria-hidden="true" />
                 <p className="hero-tagline rise-delay">
@@ -649,7 +649,7 @@ export default function App() {
                 </p>
                 <p className="hero-copy rise-delay">
                   Most research peptides share the same synthesis pipeline.
-                  Undisclosed sources approved manufacturers directly so labs
+                  Wellpept sources approved manufacturers directly so labs
                   pay for the molecule — not the pharmacy markup.
                 </p>
                 <div className="hero-cta rise-delay">
@@ -733,7 +733,7 @@ export default function App() {
             <section className="mission-band">
               <div className="container mission-inner">
                 <div>
-                  <p className="section-kicker">Why Undisclosed</p>
+                  <p className="section-kicker">Why Wellpept</p>
                   <h2>Research equivalent. Not retail theater.</h2>
                   <p>
                     If a compound isn’t coming straight from a branded pharmacy
@@ -742,7 +742,7 @@ export default function App() {
                     resellers and storefronts. If it{" "}
                     <em>is</em> pharma-sourced, you’re often paying a premium for
                     packaging and distribution of the same active structure.
-                    Undisclosed is the lab’s generic path: approved near-source
+                    Wellpept is the lab’s generic path: approved near-source
                     vendors, documented batches, and a catalog built for the
                     bench — not the brand story.
                   </p>
@@ -772,7 +772,7 @@ export default function App() {
                     <h2>From source plant to your US lab</h2>
                     <p>
                       Most research peptides follow the same manufacturing path.
-                      Undisclosed sits after QC — connecting approved vendors to
+                      Wellpept sits after QC — connecting approved vendors to
                       your bench without sending you to their storefront.
                     </p>
                   </div>
@@ -842,7 +842,7 @@ export default function App() {
                     <span className="supply-step-num">5</span>
                     <strong>US drop-ship</strong>
                     <p>
-                      You order on Undisclosed; the approved vendor ships to your
+                      You order on Wellpept; the approved vendor ships to your
                       US address. Vendor sites stay hidden.
                     </p>
                   </li>
@@ -874,7 +874,7 @@ export default function App() {
                     </li>
                     <li>
                       <span>Fulfill</span>
-                      Vendor drop-ships US-only via Undisclosed
+                      Vendor drop-ships US-only via Wellpept
                     </li>
                   </ol>
                   <ul className="supply-example-notes">
@@ -904,7 +904,7 @@ export default function App() {
                     <h2>Two supply stories. One molecule.</h2>
                     <p>
                       Either way, the structure on the vial is what matters for
-                      research — Undisclosed makes the source path clear.
+                      research — Wellpept makes the source path clear.
                     </p>
                   </div>
                 </div>
@@ -926,12 +926,12 @@ export default function App() {
                     <p>
                       When the active is the same sequence or small molecule,
                       the research question is purity, fill, and documentation —
-                      not the logo on the box. Undisclosed lists research-grade
+                      not the logo on the box. Wellpept lists research-grade
                       equivalents so you can judge the molecule on the bench.
                     </p>
                   </article>
                   <article className="thesis-card panel thesis-card-accent">
-                    <p className="section-kicker">Undisclosed</p>
+                    <p className="section-kicker">Wellpept</p>
                     <h3>Your generic research lane</h3>
                     <p>
                       Admin-vetted vendors. Documented kits. US drop-ship only.
@@ -950,7 +950,7 @@ export default function App() {
                     <span className="featured-kicker">Featured vendor</span>
                     <h2>The Lobster</h2>
                     <p>
-                      Featured vendor on Undisclosed. Minimum order{" "}
+                      Featured vendor on Wellpept. Minimum order{" "}
                       {formatMoney(THE_LOBSTER_VENDOR.minOrder)}. US shipping
                       only — allow up to 4 weeks. Sold only through this
                       catalog; we handle drop-ship.
@@ -1229,7 +1229,7 @@ export default function App() {
       <footer className="footer">
         <div className="container footer-inner">
           <div>
-            <strong>Undisclosed</strong>
+            <strong>Wellpept</strong>
             <div>Research equivalents — same compounds, clearer economics</div>
           </div>
           <p className="disclaimer">
@@ -1470,7 +1470,7 @@ function ProductDetail({
             </div>
             <div className="meta sold-by">
               Sold by <strong>{product.vendor}</strong> · US shipping via
-              Undisclosed marketplace
+              Wellpept marketplace
             </div>
 
             <div className="detail-compare">
@@ -2212,7 +2212,7 @@ function VendorPortal({
 
               <div>
                 <h2>Your recent submissions</h2>
-                <p className="lede">Status updates after Undisclosed review.</p>
+                <p className="lede">Status updates after Wellpept review.</p>
                 <div className="table-wrap">
                   <table>
                     <thead>

@@ -136,7 +136,7 @@ function PaymentForm({ totalLabel, customer, onPaid, onError }) {
       <PaymentElement
         options={{
           layout: "tabs",
-          business: { name: "Undisclosed" },
+          business: { name: "Wellpept" },
           fields: {
             billingDetails: {
               name: "never",

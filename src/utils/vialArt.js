@@ -1,21 +1,21 @@
 import QRCode from "qrcode";
 
-/** Undisclosed brand vial art — gold cap, black V-sleeve, UD monogram seal (D in front of U). */
+/** Wellpept brand vial art — gold cap, black V-sleeve, WP monogram seal (P in front of W). */
 
-export const BRAND_IMAGE_SRC = "/undisclosed-brand.png";
+export const BRAND_IMAGE_SRC = "/wellpept-brand.png";
 /** Real studio vial photo cropped from the brand plate. */
-export const BRAND_VIAL_SRC = "/brand-vial.png";
-/** Circular UD seal cropped from the brand plate. */
-export const UD_MARK_SRC = "/ud-mark.png";
-/** Vector UD monogram — D layered in front of U. */
-export const UD_MONOGRAM_SRC = "/ud-monogram.svg";
+export const BRAND_VIAL_SRC = "/wellpept-vial.png";
+/** Circular WP seal / monogram. */
+export const WP_MARK_SRC = "/wp-monogram.svg";
+/** Vector WP monogram — P layered in front of W. */
+export const WP_MONOGRAM_SRC = "/wp-monogram.svg";
 
 let brandImageCache = null;
 let brandImagePromise = null;
 let brandVialCache = null;
 let brandVialPromise = null;
-let udMarkCache = null;
-let udMarkPromise = null;
+let wpMarkCache = null;
+let wpMarkPromise = null;
 
 function loadImage(src) {
   if (typeof Image === "undefined") return Promise.resolve(null);
@@ -56,22 +56,24 @@ export function loadBrandVial() {
   return brandVialPromise;
 }
 
-/** Prefetch the circular UD mark (preferred seal asset). */
-export function loadUdMark() {
-  if (udMarkCache) return Promise.resolve(udMarkCache);
-  if (udMarkPromise) return udMarkPromise;
-  udMarkPromise = loadImage(UD_MONOGRAM_SRC).then(async (img) => {
+/** Prefetch the circular WP mark (preferred seal asset). */
+export function loadWpMark() {
+  if (wpMarkCache) return Promise.resolve(wpMarkCache);
+  if (wpMarkPromise) return wpMarkPromise;
+  wpMarkPromise = loadImage(WP_MONOGRAM_SRC).then(async (img) => {
     if (img) {
-      udMarkCache = img;
+      wpMarkCache = img;
       return img;
     }
-    // Fall back to photographic seal cropped from the brand plate
-    const png = await loadImage(UD_MARK_SRC);
-    udMarkCache = png;
+    const png = await loadImage(WP_MARK_SRC);
+    wpMarkCache = png;
     return png;
   });
-  return udMarkPromise;
+  return wpMarkPromise;
 }
+
+/** @deprecated use loadWpMark */
+export const loadUdMark = loadWpMark;
 
 function hashString(str) {
   let h = 2166136261;
@@ -167,10 +169,10 @@ function drawDarkStudio(ctx, w, h) {
 }
 
 /**
- * Gold circular UD monogram — letter U behind, letter D in front.
+ * Gold circular WP monogram — letter W behind, letter P in front (centered).
  * Used when the brand seal image is not yet loaded.
  */
-function drawUdMonogramSeal(ctx, cx, cy, r) {
+function drawWpMonogramSeal(ctx, cx, cy, r) {
   const gold = ctx.createRadialGradient(cx - r * 0.25, cy - r * 0.3, 1, cx, cy, r);
   gold.addColorStop(0, "#f0d78c");
   gold.addColorStop(0.35, "#d4af37");
@@ -190,39 +192,43 @@ function drawUdMonogramSeal(ctx, cx, cy, r) {
   ctx.lineWidth = Math.max(1, r * 0.03);
   ctx.stroke();
 
-  // U (behind), centered
+  // W (behind), centered
   ctx.strokeStyle = "#0a0a0a";
-  ctx.lineWidth = Math.max(2, r * 0.22);
-  ctx.lineCap = "butt";
+  ctx.lineWidth = Math.max(2, r * 0.18);
+  ctx.lineCap = "round";
   ctx.lineJoin = "round";
   ctx.beginPath();
-  ctx.moveTo(cx - r * 0.42, cy - r * 0.48);
-  ctx.lineTo(cx - r * 0.42, cy + r * 0.12);
-  ctx.arc(cx, cy + r * 0.12, r * 0.42, Math.PI, 0, true);
-  ctx.lineTo(cx + r * 0.42, cy - r * 0.48);
+  ctx.moveTo(cx - r * 0.52, cy - r * 0.42);
+  ctx.lineTo(cx - r * 0.28, cy + r * 0.48);
+  ctx.lineTo(cx, cy - r * 0.12);
+  ctx.lineTo(cx + r * 0.28, cy + r * 0.48);
+  ctx.lineTo(cx + r * 0.52, cy - r * 0.42);
   ctx.stroke();
 
-  // D (in front of U), centered on the seal
-  const dLeft = cx - r * 0.34;
-  const dTop = cy - r * 0.5;
-  const dBottom = cy + r * 0.5;
-  const dSpine = cx - r * 0.1;
-  const dRight = cx + r * 0.42;
+  // P (in front of W), centered on the seal
+  const pLeft = cx - r * 0.28;
+  const pTop = cy - r * 0.48;
+  const pBottom = cy + r * 0.48;
+  const pSpine = cx - r * 0.06;
+  const bowlBottom = cy + r * 0.08;
+  const pRight = cx + r * 0.36;
   ctx.fillStyle = "#0a0a0a";
   ctx.beginPath();
-  ctx.moveTo(dLeft, dTop);
-  ctx.lineTo(dSpine, dTop);
-  ctx.bezierCurveTo(dRight, dTop, dRight, dBottom, dSpine, dBottom);
-  ctx.lineTo(dLeft, dBottom);
+  ctx.moveTo(pLeft, pTop);
+  ctx.lineTo(pSpine, pTop);
+  ctx.bezierCurveTo(pRight, pTop, pRight, bowlBottom, pSpine, bowlBottom);
+  ctx.lineTo(pLeft + r * 0.18, bowlBottom);
+  ctx.lineTo(pLeft + r * 0.18, pBottom);
+  ctx.lineTo(pLeft, pBottom);
   ctx.closePath();
   ctx.fill();
 
-  // D counter so the letter reads clearly (also centered)
-  const cLeft = cx - r * 0.12;
-  const cTop = cy - r * 0.28;
-  const cBottom = cy + r * 0.28;
-  const cSpine = cx - r * 0.04;
-  const cRight = cx + r * 0.26;
+  // P counter
+  const cLeft = cx - r * 0.08;
+  const cTop = cy - r * 0.3;
+  const cBottom = cy - r * 0.02;
+  const cSpine = cx - r * 0.02;
+  const cRight = cx + r * 0.2;
   ctx.beginPath();
   ctx.moveTo(cLeft, cTop);
   ctx.lineTo(cSpine, cTop);
@@ -233,8 +239,8 @@ function drawUdMonogramSeal(ctx, cx, cy, r) {
   ctx.fill();
 }
 
-/** Draw the circular UD brand mark image, or fall back to the monogram. */
-function drawUdSeal(ctx, cx, cy, r, markImage) {
+/** Draw the circular WP brand mark image, or fall back to the monogram. */
+function drawWpSeal(ctx, cx, cy, r, markImage) {
   if (markImage && markImage.width) {
     ctx.save();
     ellipse(ctx, cx, cy, r, r);
@@ -247,7 +253,7 @@ function drawUdSeal(ctx, cx, cy, r, markImage) {
     ctx.stroke();
     return;
   }
-  drawUdMonogramSeal(ctx, cx, cy, r);
+  drawWpMonogramSeal(ctx, cx, cy, r);
 }
 
 function buildQrMatrix(seedStr, n = 21) {
@@ -309,7 +315,7 @@ export function drawQrCode(ctx, x, y, size, seedStr, inverted = false, payload =
   const quiet = Math.max(1, Math.floor(size * 0.08));
   const inner = size - quiet * 2;
   const matrix =
-    (payload && buildRealQrMatrix(payload)) || buildQrMatrix(seedStr || payload || "UD", 21);
+    (payload && buildRealQrMatrix(payload)) || buildQrMatrix(seedStr || payload || "WP", 21);
   const n = matrix.length;
   const mod = inner / n;
 
@@ -346,7 +352,7 @@ function qrSeedFromOptions(options) {
     doseRange = "",
     sku = "",
   } = options;
-  return `UD|${name}|${mass}${unit}|${bacWater}|${concentration}|${doseRange}|${sku}`;
+  return `WP|${name}|${mass}${unit}|${bacWater}|${concentration}|${doseRange}|${sku}`;
 }
 
 function qrPayloadFromOptions(options) {
@@ -359,7 +365,7 @@ function drawBrandWordmark(ctx, cx, y, maxW) {
   ctx.font = `600 ${Math.max(11, maxW * 0.11)}px "Cormorant Garamond", "Times New Roman", serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("UNDISCLOSED", cx, y);
+  ctx.fillText("WELLPEPT", cx, y);
 
   const lineW = maxW * 0.42;
   const grad = ctx.createLinearGradient(cx - lineW, 0, cx + lineW, 0);
@@ -379,8 +385,8 @@ function drawBrandWordmark(ctx, cx, y, maxW) {
 }
 
 /**
- * 3 mL vial matching the Undisclosed brand image:
- * brushed gold cap · clear glass · lyophilized cake · matte black V-sleeve · gold UD seal.
+ * 3 mL vial matching the Wellpept brand image:
+ * brushed gold cap · clear glass · lyophilized cake · matte black V-sleeve · gold WP seal.
  */
 function drawBrandThreeMl(ctx, dims, options) {
   const {
@@ -389,7 +395,7 @@ function drawBrandThreeMl(ctx, dims, options) {
     unit = "mg",
     sku = "",
     reconstituted = false,
-    udMark = null,
+    wpMark = null,
     bacWater = "",
     concentration = "",
     doseRange = "",
@@ -587,10 +593,10 @@ function drawBrandThreeMl(ctx, dims, options) {
   ctx.lineTo(bodyX + bodyW - 1, sleeveTop + bodyW * 0.12);
   ctx.stroke();
 
-  // Gold UD seal — D in front of U, from brand mark image
+  // Gold WP seal — P in front of W, from brand mark image
   const sealR = bodyW * 0.28;
   const sealCy = sleeveTop + sleeveH * 0.32;
-  drawUdSeal(ctx, cx, sealCy, sealR, udMark || udMarkCache);
+  drawWpSeal(ctx, cx, sealCy, sealR, wpMark || wpMarkCache);
 
   // Product name + strength + calc data + QR on sleeve
   const massNum = mass !== "" && mass != null ? mass : "";
@@ -672,7 +678,7 @@ function drawBrandTenMl(ctx, dims, options) {
     unit = "mg",
     sku = "",
     reconstituted = false,
-    udMark = null,
+    wpMark = null,
     bacWater = "",
     concentration = "",
     doseRange = "",
@@ -761,7 +767,7 @@ function drawBrandTenMl(ctx, dims, options) {
 
   const sealR = bodyW * 0.24;
   const sealCy = sleeveTop + (bodyBottom - sleeveTop) * 0.28;
-  drawUdSeal(ctx, cx, sealCy, sealR, udMark || udMarkCache);
+  drawWpSeal(ctx, cx, sealCy, sealR, wpMark || wpMarkCache);
 
   const massNum = mass !== "" && mass != null ? mass : "";
   const massLabel = massNum !== "" ? `${massNum} ${String(unit || "mg").toUpperCase()}` : "";
@@ -835,7 +841,7 @@ export function drawGeneratedVial(canvas, options = {}) {
     reconstituted = false,
     vialMl: vialMlOpt,
     form = "",
-    udMark = null,
+    wpMark = null,
     brandImage = null,
     brandVial = null,
     bacWater = "",
@@ -879,7 +885,7 @@ export function drawGeneratedVial(canvas, options = {}) {
       qrPayload,
       vialMl,
       isTen,
-      udMark: udMark || udMarkCache,
+      wpMark: wpMark || wpMarkCache,
     });
     return canvas.toDataURL("image/png");
   }
@@ -890,7 +896,7 @@ export function drawGeneratedVial(canvas, options = {}) {
     unit,
     sku,
     reconstituted,
-    udMark: udMark || udMarkCache || brandImage || brandImageCache,
+    wpMark: wpMark || wpMarkCache || brandImage || brandImageCache,
     bacWater,
     concentration,
     doseRange,
@@ -917,7 +923,7 @@ function drawPhotoVial(ctx, dims, options) {
     qrPayload = "",
     vialMl = 3,
     isTen = false,
-    udMark = null,
+    wpMark = null,
   } = options;
 
   // Match brand studio black
@@ -1000,7 +1006,7 @@ function drawPhotoVial(ctx, dims, options) {
 }
 
 /**
- * Flat printable Undisclosed label template filled with calc / vial data + QR.
+ * Flat printable Wellpept label template filled with calc / vial data + QR.
  */
 export function drawLabelTemplate(canvas, options = {}) {
   const {
@@ -1011,7 +1017,7 @@ export function drawLabelTemplate(canvas, options = {}) {
     concentration = "",
     doseRange = "",
     sku = "",
-    udMark = null,
+    wpMark = null,
     brandImage = null,
     size = "md",
     qrPayload = "",
@@ -1046,19 +1052,19 @@ export function drawLabelTemplate(canvas, options = {}) {
 
   const pad = dims.w * 0.05;
   const sealR = Math.min(dims.h * 0.16, dims.w * 0.08);
-  drawUdSeal(
+  drawWpSeal(
     ctx,
     pad + sealR,
     pad + sealR + 4,
     sealR,
-    udMark || udMarkCache || brandImage || brandImageCache
+    wpMark || wpMarkCache || brandImage || brandImageCache
   );
 
   ctx.fillStyle = "#ffffff";
   ctx.font = `600 ${Math.max(16, dims.h * 0.1)}px "Cormorant Garamond", "Times New Roman", serif`;
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
-  ctx.fillText("UNDISCLOSED", pad + sealR * 2.3, pad + sealR * 0.85);
+  ctx.fillText("WELLPEPT", pad + sealR * 2.3, pad + sealR * 0.85);
   ctx.fillStyle = "#d4af37";
   ctx.font = `700 ${Math.max(9, dims.h * 0.045)}px Outfit, "Segoe UI", sans-serif`;
   ctx.fillText("RESEARCH · REFERENCE MATERIAL", pad + sealR * 2.3, pad + sealR * 1.45);
@@ -1117,7 +1123,7 @@ export function drawLabelTemplate(canvas, options = {}) {
   return canvas.toDataURL("image/png");
 }
 
-export function downloadVialPng(dataUrl, filename = "undisclosed-vial.png") {
+export function downloadVialPng(dataUrl, filename = "wellpept-vial.png") {
   const link = document.createElement("a");
   link.href = dataUrl;
   link.download = filename;

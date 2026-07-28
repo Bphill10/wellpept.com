@@ -1,6 +1,6 @@
 /** Marketplace automation helpers — keep human gates only where required. */
 
-const SETTINGS_KEY = "undisclosed-automation-v1";
+const SETTINGS_KEY = "wellpept-automation-v1";
 
 export const DEFAULT_AUTOMATION = {
   /** Already-approved vendors: new price-list lines publish immediately. */
@@ -68,7 +68,7 @@ export function suggestedBacMl(massMg, dose, doseUnit, units = 10) {
 export function createOrderId() {
   const t = Date.now().toString(36).toUpperCase();
   const r = Math.random().toString(36).slice(2, 6).toUpperCase();
-  return `UD-${t}-${r}`;
+  return `WP-${t}-${r}`;
 }
 
 /**
@@ -128,7 +128,7 @@ export function buildOrderPacket({
     orderId,
     createdAt: new Date().toISOString(),
     status: "queued",
-    channel: "undisclosed",
+    channel: "wellpept",
     shipCountry: "US",
     customer: {
       name: customer.name,
@@ -138,13 +138,13 @@ export function buildOrderPacket({
     totals: { subtotal, shipping, total },
     shipments,
     notes:
-      "Drop-ship via Undisclosed only. Do not share vendor storefront links with the customer.",
+      "Drop-ship via Wellpept only. Do not share vendor storefront links with the customer.",
   };
 }
 
 export function formatOrderPacketText(packet) {
   const lines = [
-    `UNDISCLOSED ORDER ${packet.orderId}`,
+    `WELLPEPT ORDER ${packet.orderId}`,
     `Created ${packet.createdAt}`,
     `Customer: ${packet.customer.name} <${packet.customer.email}>`,
     `Ship: US only`,
@@ -178,7 +178,7 @@ export function formatOrderPacketText(packet) {
   return lines.join("\n");
 }
 
-const ORDERS_KEY = "undisclosed-orders-v1";
+const ORDERS_KEY = "wellpept-orders-v1";
 
 export function loadOrders() {
   try {

@@ -9,7 +9,7 @@ import { pathToFileURL } from "node:url";
  */
 function stripeLocalApiPlugin(env) {
   return {
-    name: "undisclosed-stripe-api",
+    name: "wellpept-stripe-api",
     configureServer(server) {
       attachApi(server, env);
     },

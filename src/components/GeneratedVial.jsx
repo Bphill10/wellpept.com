@@ -4,7 +4,7 @@ import {
   drawGeneratedVial,
   downloadVialPng,
   loadBrandVial,
-  loadUdMark,
+  loadWpMark,
   resolveVialMl,
 } from "../utils/vialArt";
 
@@ -32,15 +32,15 @@ export default function GeneratedVial({
   const canvasRef = useRef(null);
   const [png, setPng] = useState("");
   const [brandVial, setBrandVial] = useState(null);
-  const [udMark, setUdMark] = useState(null);
+  const [wpMark, setWpMark] = useState(null);
   const resolvedMl = resolveVialMl({ form: form || subtitle, vialMl });
 
   useEffect(() => {
     let alive = true;
-    Promise.all([loadBrandVial(), loadUdMark()]).then(([vial, mark]) => {
+    Promise.all([loadBrandVial(), loadWpMark()]).then(([vial, mark]) => {
       if (!alive) return;
       setBrandVial(vial);
-      setUdMark(mark);
+      setWpMark(mark);
     });
     return () => {
       alive = false;
@@ -69,7 +69,7 @@ export default function GeneratedVial({
         vialMl: resolvedMl,
         form: form || subtitle,
         brandVial,
-        udMark,
+        wpMark,
         qrPayload,
       });
       setPng(dataUrl);
@@ -94,14 +94,14 @@ export default function GeneratedVial({
     resolvedMl,
     form,
     brandVial,
-    udMark,
+    wpMark,
     qrPayload,
   ]);
 
   function handleDownload() {
     if (!png) return;
     const safeName = (name || "peptide").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
-    downloadVialPng(png, `undisclosed-${safeName || "vial"}.png`);
+    downloadVialPng(png, `wellpept-${safeName || "vial"}.png`);
   }
 
   return (
@@ -109,7 +109,7 @@ export default function GeneratedVial({
       <canvas
         ref={canvasRef}
         className={`generated-vial generated-vial--${size} generated-vial--${resolvedMl}ml`}
-        aria-label={`${name} Undisclosed brand vial`}
+        aria-label={`${name} Wellpept brand vial`}
       />
       {showDownload && (
         <button type="button" className="soft-btn vial-download" onClick={handleDownload}>

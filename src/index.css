@@ -463,7 +463,7 @@ img {
       rgba(0, 0, 0, 0.55) 42%,
       rgba(0, 0, 0, 0.25) 100%
     ),
-    url("/undisclosed-brand.png") right center / cover no-repeat;
+    url("/wellpept-brand.png") right center / cover no-repeat;
   transform: scale(1.02);
   animation: hero-drift 18s ease-in-out infinite alternate;
 }
@@ -1716,10 +1716,10 @@ th {
 }
 
 .spin {
-  animation: ud-spin 0.9s linear infinite;
+  animation: wp-spin 0.9s linear infinite;
 }
 
-@keyframes ud-spin {
+@keyframes wp-spin {
   to {
     transform: rotate(360deg);
   }

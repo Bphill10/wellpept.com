@@ -87,11 +87,11 @@ export default async function handler(req, res) {
       automatic_payment_methods: { enabled: true },
       receipt_email: email || undefined,
       description: orderId
-        ? `Undisclosed order ${orderId}`
-        : "Undisclosed research marketplace order",
+        ? `Wellpept order ${orderId}`
+        : "Wellpept research marketplace order",
       metadata: {
         orderId: orderId || "",
-        channel: "undisclosed",
+        channel: "wellpept",
         customerName: customerName || "",
       },
       shipping: shipping

@@ -1,5 +1,5 @@
 /**
- * Research quality notes for the Undisclosed lab bench.
+ * Research quality notes for the Wellpept lab bench.
  * Educational framing only — for laboratory research use, not medical advice.
  * Community education reference (unaffiliated): https://www.stairwaytogray.com/
  */

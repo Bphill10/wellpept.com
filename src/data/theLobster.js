@@ -17,12 +17,12 @@ export const THE_LOBSTER_VENDOR = {
   shippingNote: "US shipping only · allow up to 4 weeks",
   priceListSource: "Lobster International (Wayback 2026-06-27)",
   notes:
-    "Featured vendor. US shipping only. Min order applies. Drop-ship via Undisclosed only — do not expose vendor site to customers.",
+    "Featured vendor. US shipping only. Min order applies. Drop-ship via Wellpept only — do not expose vendor site to customers.",
   createdAt: "2026-01-01T00:00:00.000Z",
 };
 
 /**
- * vendorCost = Lobster International list price before Undisclosed markup.
+ * vendorCost = Lobster International list price before Wellpept markup.
  * KIT = 10 vials unless packVials/form says otherwise.
  * Skipped: TheProLobster 50 IU (listed at $0 on source).
  */

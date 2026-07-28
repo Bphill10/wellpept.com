@@ -1,6 +1,6 @@
 # Payments (Stripe + Affirm)
 
-Undisclosed checkout accepts **credit/debit cards** and **Affirm** through Stripe Payment Element.
+Wellpept checkout accepts **credit/debit cards** and **Affirm** through Stripe Payment Element.
 
 ## 1. Stripe account
 
@@ -33,6 +33,6 @@ Use Stripe test mode cards, e.g. `4242 4242 4242 4242`. Affirm has its own test 
 
 ## Notes
 
-- Affirm is US-only (matches Undisclosed shipping).
+- Affirm is US-only (matches Wellpept shipping).
 - Without keys, checkout still queues an offline drop-ship packet.
 - Never commit real secret keys.
