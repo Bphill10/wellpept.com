@@ -132,13 +132,11 @@ function drawKeyholeSeal(ctx, cx, cy, r) {
   ctx.lineWidth = Math.max(1, r * 0.04);
   ctx.stroke();
 
-  // Inner brushed ring
   ellipse(ctx, cx, cy, r * 0.78, r * 0.78);
   ctx.strokeStyle = "rgba(255, 230, 160, 0.35)";
   ctx.lineWidth = Math.max(1, r * 0.03);
   ctx.stroke();
 
-  // Keyhole
   ctx.fillStyle = "#0a0a0a";
   ellipse(ctx, cx, cy - r * 0.12, r * 0.18, r * 0.18);
   ctx.fill();
@@ -149,6 +147,91 @@ function drawKeyholeSeal(ctx, cx, cy, r) {
   ctx.lineTo(cx - r * 0.14, cy + r * 0.42);
   ctx.closePath();
   ctx.fill();
+}
+
+function buildQrMatrix(seedStr, n = 21) {
+  const rand = mulberry32(hashString(seedStr) || 1);
+  const m = Array.from({ length: n }, () => Array(n).fill(null));
+
+  function paintFinder(ox, oy) {
+    for (let r = 0; r < 7; r += 1) {
+      for (let c = 0; c < 7; c += 1) {
+        const border = r === 0 || r === 6 || c === 0 || c === 6;
+        const core = r >= 2 && r <= 4 && c >= 2 && c <= 4;
+        m[oy + r][ox + c] = border || core;
+      }
+    }
+  }
+
+  paintFinder(0, 0);
+  paintFinder(n - 7, 0);
+  paintFinder(0, n - 7);
+
+  for (let i = 0; i < 8; i += 1) {
+    if (m[7][i] == null) m[7][i] = false;
+    if (m[i][7] == null) m[i][7] = false;
+    if (m[7][n - 1 - i] == null) m[7][n - 1 - i] = false;
+    if (m[i][n - 8] == null) m[i][n - 8] = false;
+    if (m[n - 8][i] == null) m[n - 8][i] = false;
+    if (m[n - 1 - i][7] == null) m[n - 1 - i][7] = false;
+  }
+
+  for (let i = 8; i < n - 8; i += 1) {
+    if (m[6][i] == null) m[6][i] = i % 2 === 0;
+    if (m[i][6] == null) m[i][6] = i % 2 === 0;
+  }
+  m[n - 8][8] = true;
+
+  for (let r = 0; r < n; r += 1) {
+    for (let c = 0; c < n; c += 1) {
+      if (m[r][c] == null) m[r][c] = rand() > 0.48;
+    }
+  }
+  return m;
+}
+
+/** Deterministic QR-style mark for vial / label templates. */
+export function drawQrCode(ctx, x, y, size, seedStr, inverted = false) {
+  const n = 21;
+  const quiet = Math.max(1, Math.floor(size * 0.08));
+  const inner = size - quiet * 2;
+  const mod = inner / n;
+  const matrix = buildQrMatrix(seedStr, n);
+
+  ctx.fillStyle = inverted ? "#0a0a0a" : "#ffffff";
+  roundRect(ctx, x, y, size, size, Math.max(1, size * 0.06));
+  ctx.fill();
+
+  ctx.fillStyle = inverted ? "#ffffff" : "#0a0a0a";
+  for (let r = 0; r < n; r += 1) {
+    for (let c = 0; c < n; c += 1) {
+      if (!matrix[r][c]) continue;
+      ctx.fillRect(
+        x + quiet + c * mod,
+        y + quiet + r * mod,
+        Math.ceil(mod),
+        Math.ceil(mod)
+      );
+    }
+  }
+
+  ctx.strokeStyle = inverted ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.15)";
+  ctx.lineWidth = 1;
+  roundRect(ctx, x + 0.5, y + 0.5, size - 1, size - 1, Math.max(1, size * 0.06));
+  ctx.stroke();
+}
+
+function qrSeedFromOptions(options) {
+  const {
+    name = "",
+    mass = "",
+    unit = "mg",
+    bacWater = "",
+    concentration = "",
+    doseRange = "",
+    sku = "",
+  } = options;
+  return `UD|${name}|${mass}${unit}|${bacWater}|${concentration}|${doseRange}|${sku}`;
 }
 
 function drawBrandWordmark(ctx, cx, y, maxW) {
@@ -187,6 +270,9 @@ function drawBrandThreeMl(ctx, dims, options) {
     sku = "",
     reconstituted = false,
     brandImage = null,
+    bacWater = "",
+    concentration = "",
+    doseRange = "",
   } = options;
 
   const cx = dims.w / 2;
@@ -403,30 +489,61 @@ function drawBrandThreeMl(ctx, dims, options) {
     drawKeyholeSeal(ctx, cx, sealCy, sealR);
   }
 
-  // Product name + strength on sleeve
+  // Product name + strength + calc data + QR on sleeve
   const massNum = mass !== "" && mass != null ? mass : "";
   const unitLabel = String(unit || "mg").toUpperCase();
   const massLabel = massNum !== "" ? `${massNum} ${unitLabel}` : "";
 
   ctx.fillStyle = "#ffffff";
-  ctx.font = `700 ${Math.max(10, bodyW * 0.13)}px Outfit, "Segoe UI", sans-serif`;
+  ctx.font = `700 ${Math.max(9, bodyW * 0.11)}px Outfit, "Segoe UI", sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const titleY = sealCy + sealR + sleeveH * 0.18;
-  const titleLines = wrapLines(ctx, String(name).toUpperCase(), bodyW * 0.88, 2);
+  const titleY = sealCy + sealR + sleeveH * 0.12;
+  const titleLines = wrapLines(ctx, String(name).toUpperCase(), bodyW * 0.86, 2);
   titleLines.forEach((line, i) => {
-    ctx.fillText(line, cx, titleY + i * bodyW * 0.14);
+    ctx.fillText(line, cx, titleY + i * bodyW * 0.12);
   });
 
+  let metaY = titleY + titleLines.length * bodyW * 0.12 + bodyW * 0.02;
   if (massLabel) {
     ctx.fillStyle = "#d4af37";
-    ctx.font = `700 ${Math.max(11, bodyW * 0.16)}px Outfit, "Segoe UI", sans-serif`;
-    ctx.fillText(massLabel, cx, titleY + titleLines.length * bodyW * 0.14 + bodyW * 0.08);
+    ctx.font = `700 ${Math.max(10, bodyW * 0.13)}px Outfit, "Segoe UI", sans-serif`;
+    ctx.fillText(massLabel, cx, metaY + bodyW * 0.06);
+    metaY += bodyW * 0.14;
   }
 
-  ctx.fillStyle = "rgba(255,255,255,0.55)";
-  ctx.font = `600 ${Math.max(7, bodyW * 0.08)}px Outfit, "Segoe UI", sans-serif`;
-  ctx.fillText("Reference Material", cx, bodyBottom - bodyW * 0.12);
+  const detailBits = [bacWater, concentration, doseRange].filter(Boolean);
+  if (detailBits.length) {
+    ctx.fillStyle = "rgba(255,255,255,0.72)";
+    ctx.font = `600 ${Math.max(6.5, bodyW * 0.065)}px Outfit, "Segoe UI", sans-serif`;
+    detailBits.slice(0, 3).forEach((bit, i) => {
+      ctx.fillText(bit, cx, metaY + bodyW * 0.02 + i * bodyW * 0.08);
+    });
+    metaY += detailBits.slice(0, 3).length * bodyW * 0.08;
+  }
+
+  const qrSize = Math.min(bodyW * 0.42, sleeveH * 0.28);
+  const qrY = Math.min(bodyBottom - qrSize - bodyW * 0.16, metaY + bodyW * 0.04);
+  drawQrCode(
+    ctx,
+    cx - qrSize / 2,
+    qrY,
+    qrSize,
+    qrSeedFromOptions({
+      name,
+      mass,
+      unit,
+      bacWater,
+      concentration,
+      doseRange,
+      sku,
+    }),
+    true
+  );
+
+  ctx.fillStyle = "rgba(255,255,255,0.5)";
+  ctx.font = `600 ${Math.max(6.5, bodyW * 0.07)}px Outfit, "Segoe UI", sans-serif`;
+  ctx.fillText("Reference Material", cx, bodyBottom - bodyW * 0.08);
 
   // Outer glass rim over sleeve edges
   ctx.strokeStyle = "rgba(180, 190, 200, 0.35)";
@@ -452,6 +569,9 @@ function drawBrandTenMl(ctx, dims, options) {
     sku = "",
     reconstituted = false,
     brandImage = null,
+    bacWater = "",
+    concentration = "",
+    doseRange = "",
   } = options;
 
   const cx = dims.w / 2;
@@ -564,14 +684,44 @@ function drawBrandTenMl(ctx, dims, options) {
   ctx.fillStyle = "#fff";
   ctx.font = `700 ${Math.max(11, bodyW * 0.11)}px Outfit, "Segoe UI", sans-serif`;
   ctx.textAlign = "center";
-  wrapLines(ctx, String(name).toUpperCase(), bodyW * 0.88, 2).forEach((line, i) => {
-    ctx.fillText(line, cx, sealCy + sealR + bodyW * 0.16 + i * bodyW * 0.12);
+  ctx.textBaseline = "middle";
+  let y = sealCy + sealR + bodyW * 0.14;
+  wrapLines(ctx, String(name).toUpperCase(), bodyW * 0.88, 2).forEach((line) => {
+    ctx.fillText(line, cx, y);
+    y += bodyW * 0.12;
   });
   if (massLabel) {
     ctx.fillStyle = "#d4af37";
     ctx.font = `700 ${Math.max(12, bodyW * 0.14)}px Outfit, "Segoe UI", sans-serif`;
-    ctx.fillText(massLabel, cx, bodyBottom - bodyW * 0.18);
+    ctx.fillText(massLabel, cx, y + bodyW * 0.02);
+    y += bodyW * 0.16;
   }
+  const bits = [bacWater, concentration, doseRange].filter(Boolean);
+  if (bits.length) {
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
+    ctx.font = `600 ${Math.max(7, bodyW * 0.06)}px Outfit, "Segoe UI", sans-serif`;
+    bits.slice(0, 3).forEach((bit) => {
+      ctx.fillText(bit, cx, y);
+      y += bodyW * 0.08;
+    });
+  }
+  const qrSize = Math.min(bodyW * 0.36, (bodyBottom - y) * 0.55);
+  drawQrCode(
+    ctx,
+    cx - qrSize / 2,
+    Math.min(y + 4, bodyBottom - qrSize - bodyW * 0.14),
+    qrSize,
+    qrSeedFromOptions({
+      name,
+      mass,
+      unit,
+      bacWater,
+      concentration,
+      doseRange,
+      sku,
+    }),
+    true
+  );
 
   ctx.fillStyle = "rgba(255,255,255,0.5)";
   ctx.font = `600 ${Math.max(8, bodyW * 0.07)}px Outfit, "Segoe UI", sans-serif`;
@@ -597,6 +747,9 @@ export function drawGeneratedVial(canvas, options = {}) {
     vialMl: vialMlOpt,
     form = "",
     brandImage = null,
+    bacWater = "",
+    concentration = "",
+    doseRange = "",
   } = options;
 
   const vialMl = resolveVialMl({ form: form || subtitle, vialMl: vialMlOpt });
@@ -627,10 +780,144 @@ export function drawGeneratedVial(canvas, options = {}) {
     sku,
     reconstituted,
     brandImage: brandImage || brandImageCache,
+    bacWater,
+    concentration,
+    doseRange,
   };
 
   if (isTen) drawBrandTenMl(ctx, dims, drawOpts);
   else drawBrandThreeMl(ctx, dims, drawOpts);
+
+  return canvas.toDataURL("image/png");
+}
+
+/**
+ * Flat printable Undisclosed label template filled with calc / vial data + QR.
+ */
+export function drawLabelTemplate(canvas, options = {}) {
+  const {
+    name = "Peptide",
+    mass = "",
+    unit = "mg",
+    bacWater = "",
+    concentration = "",
+    doseRange = "",
+    sku = "",
+    brandImage = null,
+    size = "md",
+  } = options;
+
+  const dims = {
+    sm: { w: 280, h: 180 },
+    md: { w: 420, h: 260 },
+    lg: { w: 560, h: 340 },
+  }[size] || { w: 420, h: 260 };
+
+  const dpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 2, 3) : 2;
+  canvas.width = dims.w * dpr;
+  canvas.height = dims.h * dpr;
+  canvas.style.width = `${dims.w}px`;
+  canvas.style.height = `${dims.h}px`;
+
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, dims.w, dims.h);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+
+  // Black brand plate
+  roundRect(ctx, 0, 0, dims.w, dims.h, 14);
+  ctx.fillStyle = "#0a0a0a";
+  ctx.fill();
+
+  // Gold top rule
+  ctx.fillStyle = "#d4af37";
+  ctx.fillRect(0, 0, dims.w, Math.max(3, dims.h * 0.015));
+
+  const pad = dims.w * 0.05;
+  const mark = brandImage || brandImageCache;
+  const sealR = Math.min(dims.h * 0.16, dims.w * 0.08);
+  if (mark && mark.width) {
+    const iw = mark.width;
+    const ih = mark.height;
+    const crop = Math.min(iw, ih) * 0.22;
+    ctx.save();
+    ellipse(ctx, pad + sealR, pad + sealR + 4, sealR, sealR);
+    ctx.clip();
+    ctx.drawImage(
+      mark,
+      iw * 0.5 - crop / 2,
+      ih * 0.42 - crop / 2,
+      crop,
+      crop,
+      pad,
+      pad + 4,
+      sealR * 2,
+      sealR * 2
+    );
+    ctx.restore();
+  } else {
+    drawKeyholeSeal(ctx, pad + sealR, pad + sealR + 4, sealR);
+  }
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = `600 ${Math.max(16, dims.h * 0.1)}px "Cormorant Garamond", "Times New Roman", serif`;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText("UNDISCLOSED", pad + sealR * 2.3, pad + sealR * 0.85);
+  ctx.fillStyle = "#d4af37";
+  ctx.font = `700 ${Math.max(9, dims.h * 0.045)}px Outfit, "Segoe UI", sans-serif`;
+  ctx.fillText("RESEARCH · REFERENCE MATERIAL", pad + sealR * 2.3, pad + sealR * 1.45);
+
+  const massLabel =
+    mass !== "" && mass != null
+      ? `${mass} ${String(unit || "mg").toUpperCase()}`
+      : "";
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = `800 ${Math.max(18, dims.h * 0.12)}px Outfit, "Segoe UI", sans-serif`;
+  ctx.fillText(String(name || "PEPTIDE").toUpperCase(), pad, dims.h * 0.48);
+  if (massLabel) {
+    ctx.fillStyle = "#d4af37";
+    ctx.font = `800 ${Math.max(16, dims.h * 0.1)}px Outfit, "Segoe UI", sans-serif`;
+    ctx.fillText(massLabel, pad, dims.h * 0.62);
+  }
+
+  const rows = [
+    bacWater ? `BAC ${bacWater}` : null,
+    concentration ? `Conc. ${concentration}` : null,
+    doseRange ? `Dose ${doseRange}` : null,
+    sku ? `SKU ${sku}` : null,
+  ].filter(Boolean);
+
+  ctx.fillStyle = "rgba(255,255,255,0.75)";
+  ctx.font = `600 ${Math.max(10, dims.h * 0.048)}px Outfit, "Segoe UI", sans-serif`;
+  rows.forEach((row, i) => {
+    ctx.fillText(row, pad, dims.h * 0.72 + i * dims.h * 0.07);
+  });
+
+  const qrSize = Math.min(dims.h * 0.42, dims.w * 0.22);
+  drawQrCode(
+    ctx,
+    dims.w - pad - qrSize,
+    dims.h * 0.42,
+    qrSize,
+    qrSeedFromOptions({
+      name,
+      mass,
+      unit,
+      bacWater,
+      concentration,
+      doseRange,
+      sku,
+    }),
+    true
+  );
+
+  ctx.fillStyle = "rgba(255,255,255,0.45)";
+  ctx.font = `600 ${Math.max(8, dims.h * 0.038)}px Outfit, "Segoe UI", sans-serif`;
+  ctx.textAlign = "right";
+  ctx.fillText("QR template", dims.w - pad, dims.h - pad * 0.6);
 
   return canvas.toDataURL("image/png");
 }
