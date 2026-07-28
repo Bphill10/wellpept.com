@@ -1725,6 +1725,169 @@ th {
   }
 }
 
+/* —— WellPept skincare public face —— */
+.skin-hero .hero-tagline {
+  max-width: 22rem;
+}
+
+.skin-nav-links {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  gap: 0.35rem;
+  justify-content: center;
+}
+
+.skin-nav-links .ghost-btn {
+  color: #f7f7f7;
+}
+
+.dept-link.quiet {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.lab-banner {
+  background: #0a0a0a;
+  border-bottom: 1px solid rgba(196, 163, 90, 0.35);
+  color: #f7f7f7;
+}
+
+.lab-banner-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lab-banner .ghost-btn {
+  color: var(--gold);
+  border-color: rgba(196, 163, 90, 0.4);
+}
+
+.skin-visual {
+  background:
+    radial-gradient(ellipse at 50% 40%, #2c2c2c 0%, #0a0a0a 70%) !important;
+}
+
+.skin-bottle {
+  width: 58px;
+  height: 120px;
+  position: relative;
+  display: grid;
+  place-items: end center;
+}
+
+.skin-bottle--lg {
+  width: 90px;
+  height: 200px;
+}
+
+.skin-bottle-preview {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.skin-bottle-preview--sm .skin-bottle {
+  width: 28px;
+  height: 52px;
+}
+
+.skin-bottle-cap {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 42%;
+  height: 14%;
+  border-radius: 3px 3px 1px 1px;
+  background: linear-gradient(180deg, #f0d78c, #a67c1a);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.skin-bottle-body {
+  width: 70%;
+  height: 78%;
+  border-radius: 8px 8px 14px 14px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.12), transparent 30%, transparent 70%, rgba(255, 255, 255, 0.08)),
+    linear-gradient(180deg, rgba(247, 247, 247, 0.2), rgba(20, 20, 20, 0.85));
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+.skin-ritual-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.skin-ritual-step {
+  padding: 1.25rem 1.1rem;
+  border-top: 1px solid rgba(196, 163, 90, 0.55);
+}
+
+.skin-ritual-num {
+  display: block;
+  font-family: var(--font-brand);
+  color: var(--gold);
+  letter-spacing: 0.14em;
+  margin-bottom: 0.55rem;
+}
+
+.skin-ritual-step h3 {
+  margin: 0 0 0.4rem;
+  font-family: var(--font-brand);
+  font-size: 1.45rem;
+}
+
+.skin-ritual-step p {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.skin-about {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 2rem 0 0.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.skin-about h2 {
+  font-family: var(--font-brand);
+  margin: 0.2rem 0 0.6rem;
+}
+
+.skin-about p {
+  max-width: 36rem;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+.skin-detail {
+  grid-template-columns: 0.9fr 1.1fr;
+}
+
+@media (max-width: 900px) {
+  .skin-ritual-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .skin-detail {
+    grid-template-columns: 1fr;
+  }
+}
+
 .vendor-section-title {
   margin: 0.5rem 0 0.65rem;
   font-family: var(--font-display);

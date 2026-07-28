@@ -51,6 +51,7 @@ import PeptideCalculator, {
 } from "./components/PeptideCalculator";
 import GeneratedVial from "./components/GeneratedVial";
 import CheckoutPayment from "./components/CheckoutPayment";
+import SkincareHome from "./components/SkincareHome";
 import PriceListDropzone from "./components/PriceListDropzone";
 import PriceCompare from "./components/PriceCompare";
 import { THE_LOBSTER_VENDOR } from "./data/theLobster";
@@ -59,8 +60,16 @@ import {
   RESEARCH_GLOSSARY,
   researchHelpFor,
 } from "./data/researchGuide";
+import {
+  isLabUnlocked,
+  setLabUnlocked,
+  labUnlockFromUrl,
+  cleanLabUnlockUrl,
+} from "./utils/secretMenu";
 
 const VIEWS = {
+  skincare: "skincare",
+  skinProduct: "skinProduct",
   shop: "shop",
   product: "product",
   cart: "cart",
@@ -70,6 +79,16 @@ const VIEWS = {
 };
 
 function VialPreview({ product, size = "md", showDownload = false }) {
+  if (product?.skin) {
+    return (
+      <div className={`skin-bottle-preview skin-bottle-preview--${size}`}>
+        <div className="skin-bottle" aria-hidden="true">
+          <span className="skin-bottle-cap" />
+          <span className="skin-bottle-body" />
+        </div>
+      </div>
+    );
+  }
   return (
     <GeneratedVial
       name={product.name}
@@ -101,9 +120,20 @@ export default function App() {
   const [submissions, setSubmissions] = useState(initial.submissions);
   const [products, setProducts] = useState(initial.products);
 
-  const [view, setView] = useState(
-    calcFromUrl ? VIEWS.calculator : VIEWS.shop
+  const urlWantsLab = useMemo(
+    () => labUnlockFromUrl(window.location.search, window.location.hash),
+    []
   );
+  const [labUnlocked, setLabUnlockedState] = useState(
+    () => urlWantsLab || isLabUnlocked()
+  );
+  const [logoClicks, setLogoClicks] = useState([]);
+  const [skinProduct, setSkinProduct] = useState(null);
+  const [view, setView] = useState(() => {
+    if (calcFromUrl && (urlWantsLab || isLabUnlocked())) return VIEWS.calculator;
+    if (urlWantsLab || isLabUnlocked()) return VIEWS.shop;
+    return VIEWS.skincare;
+  });
   const [calcInitial, setCalcInitial] = useState(calcFromUrl);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
@@ -126,6 +156,83 @@ export default function App() {
   useEffect(() => {
     fetchPaymentConfig().then(setPaymentConfig);
   }, []);
+
+  useEffect(() => {
+    if (!urlWantsLab) return;
+    setLabUnlocked(true);
+    setLabUnlockedState(true);
+    cleanLabUnlockUrl();
+    setFlash("Lab menu unlocked");
+  }, [urlWantsLab]);
+
+  useEffect(() => {
+    if (labUnlocked) return;
+    if (
+      view === VIEWS.shop ||
+      view === VIEWS.product ||
+      view === VIEWS.vendor ||
+      view === VIEWS.admin ||
+      view === VIEWS.calculator
+    ) {
+      setView(VIEWS.skincare);
+    }
+  }, [labUnlocked, view]);
+
+  function unlockLabMenu(message = "Lab menu unlocked") {
+    setLabUnlocked(true);
+    setLabUnlockedState(true);
+    setFlash(message);
+    setView(VIEWS.shop);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function lockLabMenu() {
+    setLabUnlocked(false);
+    setLabUnlockedState(false);
+    setView(VIEWS.skincare);
+    setSelectedId(null);
+    setSelectedVariantId(null);
+    setFlash("Back to WellPept skincare");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function handleBrandClick() {
+    if (!labUnlocked) {
+      const now = Date.now();
+      const next = [...logoClicks, now].filter((t) => now - t < 4000);
+      setLogoClicks(next);
+      if (next.length >= 5) {
+        setLogoClicks([]);
+        unlockLabMenu("Secret menu unlocked");
+        return;
+      }
+      setView(VIEWS.skincare);
+      setSkinProduct(null);
+      return;
+    }
+    goShop();
+  }
+
+  function addSkincareToCart(product) {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      form: product.size,
+      mg: 0,
+      unit: "",
+      unitLabel: product.size,
+      vendor: "WellPept",
+      vendorId: "wellpept-skin",
+      shippingFlat: 8,
+      minOrder: 0,
+      shippingNote: "US ground",
+      sku: String(product.id).toUpperCase(),
+      category: "Skincare",
+      skin: true,
+      ships: "Ships in 2–4 days",
+    });
+  }
 
   useEffect(() => {
     const nextProducts = persistMarketplace(vendors, submissions);
@@ -190,9 +297,10 @@ export default function App() {
   );
 
   function goShop() {
-    setView(VIEWS.shop);
+    setView(labUnlocked ? VIEWS.shop : VIEWS.skincare);
     setSelectedId(null);
     setSelectedVariantId(null);
+    setSkinProduct(null);
   }
 
   function openProduct(listing, variantId) {
@@ -214,8 +322,12 @@ export default function App() {
     });
     setCartPulse(true);
     setTimeout(() => setCartPulse(false), 350);
-    const strength = formatStrengthLabel(product);
-    setFlash(`${product.name} (${strength}) added to cart`);
+    if (product.skin) {
+      setFlash(`${product.name} added to bag`);
+    } else {
+      const strength = formatStrengthLabel(product);
+      setFlash(`${product.name} (${strength}) added to cart`);
+    }
   }
 
   function updateQty(id, delta) {
@@ -372,7 +484,7 @@ export default function App() {
 
     setVendors((prev) => [vendor, ...prev]);
     setSubmissions((prev) => [...lines, ...prev]);
-    setFlash("Price list submitted — waiting for Wellpept approval");
+    setFlash("Price list submitted — waiting for WellPept approval");
     return true;
   }
 
@@ -489,100 +601,156 @@ export default function App() {
       <header className="site-header">
         <div className="header-top">
           <div className="container header-top-inner">
-            <span>Research-grade peptides · Multi-vendor marketplace</span>
+            <span>
+              {labUnlocked
+                ? "Lab menu · Research peptides · Multi-vendor"
+                : "WellPept skincare · Clinical textures · US shipping"}
+            </span>
             <span className="header-top-links">
-              <button type="button" onClick={() => setView(VIEWS.calculator)}>
-                Peptide calculator
-              </button>
-              <button type="button" onClick={() => setView(VIEWS.vendor)}>
-                Sell on Wellpept
-              </button>
+              {labUnlocked ? (
+                <>
+                  <button type="button" onClick={() => setView(VIEWS.calculator)}>
+                    Peptide calculator
+                  </button>
+                  <button type="button" onClick={() => setView(VIEWS.vendor)}>
+                    Sell on WellPept
+                  </button>
+                  <button type="button" onClick={lockLabMenu}>
+                    Back to skincare
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() =>
+                    document
+                      .getElementById("ritual")
+                      ?.scrollIntoView({ behavior: "smooth" })
+                  }
+                >
+                  The ritual
+                </button>
+              )}
             </span>
           </div>
         </div>
         <div className="container header-inner">
-          <button className="brand" onClick={goShop} type="button">
+          <button className="brand" onClick={handleBrandClick} type="button">
             <img
               src="/wp-monogram.svg"
-              alt="Wellpept WP mark"
+              alt="WellPept"
               className="brand-logo"
               width={54}
               height={54}
             />
             <span className="brand-text">
-              <span className="brand-mark">Wellpept</span>
-              <span className="brand-sub">Research marketplace</span>
+              <span className="brand-mark">WellPept</span>
+              <span className="brand-sub">
+                {labUnlocked ? "Lab menu" : "Skincare"}
+              </span>
             </span>
           </button>
 
-          <div className="search-wrap">
-            <select
-              className="search-dept"
-              value={category}
-              onChange={(e) => {
-                setCategory(e.target.value);
-                setView(VIEWS.shop);
-              }}
-              aria-label="Department"
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c === "All" ? "All" : c}
-                </option>
-              ))}
-            </select>
-            <Search size={16} strokeWidth={2} />
-            <input
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setView(VIEWS.shop);
-              }}
-              placeholder="Search peptides, SKUs, vendors…"
-              aria-label="Search catalog"
-            />
-            <button
-              type="button"
-              className="search-go"
-              onClick={() => {
-                setView(VIEWS.shop);
-                document
-                  .getElementById("catalog")
-                  ?.scrollIntoView({ behavior: "smooth" });
-              }}
-            >
-              Search
-            </button>
-          </div>
+          {labUnlocked ? (
+            <div className="search-wrap">
+              <select
+                className="search-dept"
+                value={category}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  setView(VIEWS.shop);
+                }}
+                aria-label="Department"
+              >
+                {CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c === "All" ? "All" : c}
+                  </option>
+                ))}
+              </select>
+              <Search size={16} strokeWidth={2} />
+              <input
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setView(VIEWS.shop);
+                }}
+                placeholder="Search peptides, SKUs, vendors…"
+                aria-label="Search catalog"
+              />
+              <button
+                type="button"
+                className="search-go"
+                onClick={() => {
+                  setView(VIEWS.shop);
+                  document
+                    .getElementById("catalog")
+                    ?.scrollIntoView({ behavior: "smooth" });
+                }}
+              >
+                Search
+              </button>
+            </div>
+          ) : (
+            <div className="search-wrap skin-nav-links">
+              <button
+                type="button"
+                className="ghost-btn"
+                onClick={() => {
+                  setView(VIEWS.skincare);
+                  document
+                    .getElementById("skin-catalog")
+                    ?.scrollIntoView({ behavior: "smooth" });
+                }}
+              >
+                Shop
+              </button>
+              <button
+                type="button"
+                className="ghost-btn"
+                onClick={() =>
+                  document
+                    .getElementById("ritual")
+                    ?.scrollIntoView({ behavior: "smooth" })
+                }
+              >
+                Ritual
+              </button>
+            </div>
+          )}
 
           <div className="header-actions">
-            <button
-              type="button"
-              className="ghost-btn"
-              onClick={() => {
-                setCalcInitial(null);
-                setView(VIEWS.calculator);
-              }}
-            >
-              <Calculator size={16} />
-              <span>Calculator</span>
-            </button>
-            <button
-              type="button"
-              className="ghost-btn"
-              onClick={() => setView(VIEWS.vendor)}
-            >
-              <Store size={16} />
-              <span>Vendors</span>
-            </button>
-            <button
-              type="button"
-              className="soft-btn"
-              onClick={() => setView(VIEWS.admin)}
-            >
-              <ShieldCheck size={16} />
-              <span>Approve</span>
-            </button>
+            {labUnlocked && (
+              <>
+                <button
+                  type="button"
+                  className="ghost-btn"
+                  onClick={() => {
+                    setCalcInitial(null);
+                    setView(VIEWS.calculator);
+                  }}
+                >
+                  <Calculator size={16} />
+                  <span>Calculator</span>
+                </button>
+                <button
+                  type="button"
+                  className="ghost-btn"
+                  onClick={() => setView(VIEWS.vendor)}
+                >
+                  <Store size={16} />
+                  <span>Vendors</span>
+                </button>
+                <button
+                  type="button"
+                  className="soft-btn"
+                  onClick={() => setView(VIEWS.admin)}
+                >
+                  <ShieldCheck size={16} />
+                  <span>Approve</span>
+                </button>
+              </>
+            )}
             <button
               type="button"
               className="icon-btn cart-btn"
@@ -590,7 +758,7 @@ export default function App() {
               aria-label="Open cart"
             >
               <ShoppingCart size={18} />
-              <span className="cart-label">Cart</span>
+              <span className="cart-label">{labUnlocked ? "Cart" : "Bag"}</span>
               {cartCount > 0 && (
                 <span className={`cart-count ${cartPulse ? "pulse" : ""}`}>
                   {cartCount}
@@ -599,26 +767,37 @@ export default function App() {
             </button>
           </div>
         </div>
-        <nav className="dept-bar" aria-label="Categories">
-          <div className="container dept-bar-inner">
-            {CATEGORIES.map((c) => (
-              <button
-                key={c}
-                type="button"
-                className={`dept-link ${category === c ? "active" : ""}`}
-                onClick={() => {
-                  setCategory(c);
-                  setView(VIEWS.shop);
-                  document
-                    .getElementById("catalog")
-                    ?.scrollIntoView({ behavior: "smooth" });
-                }}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        </nav>
+        {labUnlocked ? (
+          <nav className="dept-bar" aria-label="Categories">
+            <div className="container dept-bar-inner">
+              {CATEGORIES.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  className={`dept-link ${category === c ? "active" : ""}`}
+                  onClick={() => {
+                    setCategory(c);
+                    setView(VIEWS.shop);
+                    document
+                      .getElementById("catalog")
+                      ?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          </nav>
+        ) : (
+          <nav className="dept-bar skin-dept" aria-label="Skincare">
+            <div className="container dept-bar-inner">
+              <span className="dept-link active">Skincare atelier</span>
+              <span className="dept-link quiet">Serums</span>
+              <span className="dept-link quiet">Creams</span>
+              <span className="dept-link quiet">Ritual</span>
+            </div>
+          </nav>
+        )}
       </header>
 
       {flash && (
@@ -628,28 +807,97 @@ export default function App() {
       )}
 
       <main>
-        {view === VIEWS.shop && (
+        {view === VIEWS.skincare && (
+          <SkincareHome
+            onShopSkin={() =>
+              document
+                .getElementById("skin-catalog")
+                ?.scrollIntoView({ behavior: "smooth" })
+            }
+            onOpenProduct={(product) => {
+              setSkinProduct(product);
+              setView(VIEWS.skinProduct);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            onAddToCart={addSkincareToCart}
+          />
+        )}
+
+        {view === VIEWS.skinProduct && skinProduct && (
+          <section className="panel-page fade">
+            <div className="container">
+              <button
+                type="button"
+                className="ghost-btn"
+                onClick={() => {
+                  setView(VIEWS.skincare);
+                  setSkinProduct(null);
+                }}
+              >
+                <ArrowLeft size={16} /> Back to skincare
+              </button>
+              <div className="amazon-detail skin-detail" style={{ marginTop: "1rem" }}>
+                <div className="detail-visual skin-visual">
+                  <div className="skin-bottle skin-bottle--lg" aria-hidden="true">
+                    <span className="skin-bottle-cap" />
+                    <span className="skin-bottle-body" />
+                  </div>
+                </div>
+                <div className="detail-info">
+                  <p className="section-kicker">{skinProduct.line}</p>
+                  <h1>{skinProduct.name}</h1>
+                  <p className="lede">{skinProduct.blurb}</p>
+                  <p className="meta">
+                    {skinProduct.size} · {skinProduct.focus} · {skinProduct.texture}
+                  </p>
+                  <div className="price-row" style={{ margin: "1rem 0" }}>
+                    <strong style={{ fontSize: "1.4rem" }}>
+                      {formatMoney(skinProduct.price)}
+                    </strong>
+                  </div>
+                  <button
+                    type="button"
+                    className="primary-btn"
+                    onClick={() => addSkincareToCart(skinProduct)}
+                  >
+                    Add to bag
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {view === VIEWS.shop && labUnlocked && (
           <>
+            <div className="lab-banner">
+              <div className="container lab-banner-inner">
+                <span>Lab menu · research peptides</span>
+                <button type="button" className="ghost-btn" onClick={lockLabMenu}>
+                  Exit to skincare
+                </button>
+              </div>
+            </div>
             <section className="hero">
               <div className="hero-media" />
               <div className="container hero-content">
                 <div className="hero-brand-lockup rise">
                   <img
                     src="/wp-monogram.svg"
-                    alt="Wellpept WP mark — P in front of W"
+                    alt="WellPept WP mark — P in front of W"
                     className="hero-brand-mark"
                     width={136}
                     height={136}
                   />
-                  <h1 className="hero-brand">Wellpept</h1>
+                  <h1 className="hero-brand">WellPept</h1>
                 </div>
                 <div className="hero-brand-rule rise-delay" aria-hidden="true" />
                 <p className="hero-tagline rise-delay">
-                  The research equivalent — same compound, clearer path.
+                  Lab menu — same compound, clearer path.
                 </p>
                 <p className="hero-copy rise-delay">
                   Most research peptides share the same synthesis pipeline.
-                  Wellpept sources approved manufacturers directly so labs
+                  WellPept sources approved manufacturers directly so labs
                   pay for the molecule — not the pharmacy markup.
                 </p>
                 <div className="hero-cta rise-delay">
@@ -733,7 +981,7 @@ export default function App() {
             <section className="mission-band">
               <div className="container mission-inner">
                 <div>
-                  <p className="section-kicker">Why Wellpept</p>
+                  <p className="section-kicker">Why WellPept</p>
                   <h2>Research equivalent. Not retail theater.</h2>
                   <p>
                     If a compound isn’t coming straight from a branded pharmacy
@@ -742,7 +990,7 @@ export default function App() {
                     resellers and storefronts. If it{" "}
                     <em>is</em> pharma-sourced, you’re often paying a premium for
                     packaging and distribution of the same active structure.
-                    Wellpept is the lab’s generic path: approved near-source
+                    WellPept is the lab’s generic path: approved near-source
                     vendors, documented batches, and a catalog built for the
                     bench — not the brand story.
                   </p>
@@ -772,7 +1020,7 @@ export default function App() {
                     <h2>From source plant to your US lab</h2>
                     <p>
                       Most research peptides follow the same manufacturing path.
-                      Wellpept sits after QC — connecting approved vendors to
+                      WellPept sits after QC — connecting approved vendors to
                       your bench without sending you to their storefront.
                     </p>
                   </div>
@@ -842,7 +1090,7 @@ export default function App() {
                     <span className="supply-step-num">5</span>
                     <strong>US drop-ship</strong>
                     <p>
-                      You order on Wellpept; the approved vendor ships to your
+                      You order on WellPept; the approved vendor ships to your
                       US address. Vendor sites stay hidden.
                     </p>
                   </li>
@@ -874,7 +1122,7 @@ export default function App() {
                     </li>
                     <li>
                       <span>Fulfill</span>
-                      Vendor drop-ships US-only via Wellpept
+                      Vendor drop-ships US-only via WellPept
                     </li>
                   </ol>
                   <ul className="supply-example-notes">
@@ -904,7 +1152,7 @@ export default function App() {
                     <h2>Two supply stories. One molecule.</h2>
                     <p>
                       Either way, the structure on the vial is what matters for
-                      research — Wellpept makes the source path clear.
+                      research — WellPept makes the source path clear.
                     </p>
                   </div>
                 </div>
@@ -926,12 +1174,12 @@ export default function App() {
                     <p>
                       When the active is the same sequence or small molecule,
                       the research question is purity, fill, and documentation —
-                      not the logo on the box. Wellpept lists research-grade
+                      not the logo on the box. WellPept lists research-grade
                       equivalents so you can judge the molecule on the bench.
                     </p>
                   </article>
                   <article className="thesis-card panel thesis-card-accent">
-                    <p className="section-kicker">Wellpept</p>
+                    <p className="section-kicker">WellPept</p>
                     <h3>Your generic research lane</h3>
                     <p>
                       Admin-vetted vendors. Documented kits. US drop-ship only.
@@ -950,7 +1198,7 @@ export default function App() {
                     <span className="featured-kicker">Featured vendor</span>
                     <h2>The Lobster</h2>
                     <p>
-                      Featured vendor on Wellpept. Minimum order{" "}
+                      Featured vendor on WellPept. Minimum order{" "}
                       {formatMoney(THE_LOBSTER_VENDOR.minOrder)}. US shipping
                       only — allow up to 4 weeks. Sold only through this
                       catalog; we handle drop-ship.
@@ -1151,7 +1399,7 @@ export default function App() {
           </>
         )}
 
-        {view === VIEWS.product && selectedListing && selectedVariant && (
+        {view === VIEWS.product && labUnlocked && selectedListing && selectedVariant && (
           <ProductDetail
             listing={selectedListing}
             product={selectedVariant}
@@ -1192,11 +1440,11 @@ export default function App() {
           />
         )}
 
-        {view === VIEWS.calculator && (
+        {view === VIEWS.calculator && labUnlocked && (
           <PeptideCalculator initial={calcInitial} />
         )}
 
-        {view === VIEWS.vendor && (
+        {view === VIEWS.vendor && labUnlocked && (
           <VendorPortal
             vendors={vendors}
             submissions={submissions}
@@ -1207,7 +1455,7 @@ export default function App() {
           />
         )}
 
-        {view === VIEWS.admin && (
+        {view === VIEWS.admin && labUnlocked && (
           <AdminPanel
             vendors={vendors}
             submissions={submissions}
@@ -1229,22 +1477,26 @@ export default function App() {
       <footer className="footer">
         <div className="container footer-inner">
           <div>
-            <strong>Wellpept</strong>
-            <div>Research equivalents — same compounds, clearer economics</div>
+            <strong>WellPept</strong>
+            <div>
+              {labUnlocked
+                ? "Lab menu — research peptides for laboratory use"
+                : "Skincare atelier — clinical textures, quiet finish"}
+            </div>
           </div>
           <p className="disclaimer">
-            For laboratory research use only. Not for human consumption, medical
-            use, or household purposes. Ships to United States addresses only.
-            Buyers are responsible for lawful use in their jurisdiction.
-            Peptide literacy notes reference public education from{" "}
-            <a
-              href="https://www.stairwaytogray.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Stairway to Gray
-            </a>{" "}
-            (unaffiliated).
+            {labUnlocked ? (
+              <>
+                Lab menu items are for laboratory research use only. Not for human
+                consumption, medical use, or household purposes. Ships to United
+                States addresses only.
+              </>
+            ) : (
+              <>
+                WellPept skincare ships to United States addresses only. For
+                external cosmetic use as directed on each product.
+              </>
+            )}
           </p>
         </div>
       </footer>
@@ -1470,7 +1722,7 @@ function ProductDetail({
             </div>
             <div className="meta sold-by">
               Sold by <strong>{product.vendor}</strong> · US shipping via
-              Wellpept marketplace
+              WellPept marketplace
             </div>
 
             <div className="detail-compare">
@@ -2212,7 +2464,7 @@ function VendorPortal({
 
               <div>
                 <h2>Your recent submissions</h2>
-                <p className="lede">Status updates after Wellpept review.</p>
+                <p className="lede">Status updates after WellPept review.</p>
                 <div className="table-wrap">
                   <table>
                     <thead>

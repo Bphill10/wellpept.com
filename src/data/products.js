@@ -426,6 +426,9 @@ export function strengthKey(product) {
 }
 
 export function formatStrengthLabel(product) {
+  if (product?.skin) {
+    return product.form || product.unitLabel || product.size || "Skincare";
+  }
   const amount = Number(product.mg);
   const pack = Number(product.packVials) || 1;
   const unit = product.unit || "mg";
