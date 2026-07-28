@@ -11,6 +11,7 @@ import {
   X,
   Package,
   Truck,
+  Calculator,
 } from "lucide-react";
 import {
   CATEGORIES,
@@ -23,6 +24,9 @@ import {
   persistMarketplace,
   uid,
 } from "./data/store";
+import PeptideCalculator, {
+  parseCalculatorQuery,
+} from "./components/PeptideCalculator";
 
 const VIEWS = {
   shop: "shop",
@@ -30,6 +34,7 @@ const VIEWS = {
   cart: "cart",
   vendor: "vendor",
   admin: "admin",
+  calculator: "calculator",
 };
 
 function Vial() {
@@ -42,11 +47,18 @@ function StatusPill({ status }) {
 
 export default function App() {
   const initial = useMemo(() => getInitialMarketplace(), []);
+  const calcFromUrl = useMemo(
+    () => parseCalculatorQuery(window.location.search),
+    []
+  );
   const [vendors, setVendors] = useState(initial.vendors);
   const [submissions, setSubmissions] = useState(initial.submissions);
   const [products, setProducts] = useState(initial.products);
 
-  const [view, setView] = useState(VIEWS.shop);
+  const [view, setView] = useState(
+    calcFromUrl ? VIEWS.calculator : VIEWS.shop
+  );
+  const [calcInitial, setCalcInitial] = useState(calcFromUrl);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
   const [selectedId, setSelectedId] = useState(null);
@@ -267,6 +279,17 @@ export default function App() {
             <button
               type="button"
               className="ghost-btn"
+              onClick={() => {
+                setCalcInitial(null);
+                setView(VIEWS.calculator);
+              }}
+            >
+              <Calculator size={16} />
+              <span>Calculator</span>
+            </button>
+            <button
+              type="button"
+              className="ghost-btn"
               onClick={() => setView(VIEWS.vendor)}
             >
               <Store size={16} />
@@ -334,6 +357,16 @@ export default function App() {
                     onClick={() => setView(VIEWS.vendor)}
                   >
                     Submit a price list
+                  </button>
+                  <button
+                    type="button"
+                    className="soft-btn"
+                    onClick={() => {
+                      setCalcInitial(null);
+                      setView(VIEWS.calculator);
+                    }}
+                  >
+                    Open calculator
                   </button>
                 </div>
               </div>
@@ -419,6 +452,17 @@ export default function App() {
             product={selected}
             onBack={goShop}
             onAdd={() => addToCart(selected)}
+            onCalculate={() => {
+              setCalcInitial({
+                name: selected.name,
+                mass: selected.mg || 10,
+                dose: selected.mg >= 10 ? 1 : 250,
+                doseUnit: selected.mg >= 10 ? "mg" : "mcg",
+                desiredUnits: 10,
+              });
+              setView(VIEWS.calculator);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
           />
         )}
 
@@ -429,6 +473,10 @@ export default function App() {
             onUpdateQty={updateQty}
             onRemove={removeLine}
           />
+        )}
+
+        {view === VIEWS.calculator && (
+          <PeptideCalculator initial={calcInitial} />
         )}
 
         {view === VIEWS.vendor && (
@@ -471,7 +519,7 @@ export default function App() {
   );
 }
 
-function ProductDetail({ product, onBack, onAdd }) {
+function ProductDetail({ product, onBack, onAdd, onCalculate }) {
   return (
     <section className="panel-page fade">
       <div className="container">
@@ -518,6 +566,9 @@ function ProductDetail({ product, onBack, onAdd }) {
               </div>
               <button type="button" className="primary-btn" onClick={onAdd}>
                 Add to cart
+              </button>
+              <button type="button" className="soft-btn" onClick={onCalculate}>
+                <Calculator size={16} /> Calculate reconstitution
               </button>
             </div>
           </div>
