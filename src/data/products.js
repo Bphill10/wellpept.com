@@ -139,6 +139,108 @@ export function guessBlurb(name) {
   return "Research peptide for laboratory use only. Not for human consumption.";
 }
 
+/** Normalize compound names so "BPC 157" / "BPC-157" share one listing. */
+export function normalizeCompoundKey(name) {
+  return String(name || "")
+    .toLowerCase()
+    .replace(/[–—]/g, "-")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\b(\d+(?:\.\d+)?)\s*mgs?\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function variantKey(product) {
+  const mg = Number(product.mg) || 0;
+  const pack = Number(product.packVials) || 1;
+  return `${mg}|${pack}|${product.externalOnly ? "ext" : "std"}`;
+}
+
+export function formatStrengthLabel(product) {
+  const mg = Number(product.mg);
+  const pack = Number(product.packVials) || 1;
+  if (!mg && !product.externalOnly) {
+    return pack > 1 ? `${pack}-pack` : "Standard";
+  }
+  const mgPart = mg ? `${mg} mg` : "See options";
+  return pack > 1 ? `${mgPart} · ${pack}-pack` : mgPart;
+}
+
+/**
+ * Collapse duplicate compound rows into one listing with MG (strength) variants.
+ * Same strength across vendors keeps the lowest retail price.
+ */
+export function groupCatalog(products) {
+  const groups = new Map();
+
+  for (const product of products) {
+    const key = normalizeCompoundKey(product.name);
+    if (!key) continue;
+
+    if (!groups.has(key)) {
+      groups.set(key, {
+        id: `g-${key.replace(/\s+/g, "-")}`,
+        key,
+        name: product.name,
+        category: product.category,
+        blurb: product.blurb,
+        variantsByKey: new Map(),
+      });
+    }
+
+    const group = groups.get(key);
+    const vKey = variantKey(product);
+    const prev = group.variantsByKey.get(vKey);
+
+    const better =
+      !prev ||
+      (!product.externalOnly && prev.externalOnly) ||
+      (!product.externalOnly &&
+        !prev.externalOnly &&
+        Number(product.price) < Number(prev.price)) ||
+      (product.externalOnly &&
+        prev.externalOnly &&
+        (Number(product.mg) || 0) === (Number(prev.mg) || 0));
+
+    if (better) {
+      group.variantsByKey.set(vKey, product);
+    }
+
+    if (product.name.length < group.name.length) {
+      group.name = product.name;
+    }
+  }
+
+  return [...groups.values()]
+    .map((group) => {
+      const variants = [...group.variantsByKey.values()].sort((a, b) => {
+        const mgDiff = (Number(a.mg) || 0) - (Number(b.mg) || 0);
+        if (mgDiff !== 0) return mgDiff;
+        return (Number(a.packVials) || 1) - (Number(b.packVials) || 1);
+      });
+      const defaultVariant =
+        variants.find((v) => !v.externalOnly) || variants[0];
+      const reviews = variants.reduce((sum, v) => sum + (v.reviews || 0), 0);
+      const rating =
+        variants.reduce((sum, v) => sum + (v.rating || 0), 0) /
+        Math.max(variants.length, 1);
+
+      return {
+        id: group.id,
+        name: group.name,
+        category: group.category || defaultVariant?.category,
+        blurb: group.blurb || defaultVariant?.blurb,
+        variants,
+        defaultVariantId: defaultVariant?.id,
+        rating,
+        reviews,
+        badge: defaultVariant?.badge || null,
+        featured: variants.some((v) => v.featured),
+      };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
 /**
  * Build the public catalog from approved submissions.
  * For each SKU, keep the lowest vendor cost among approved vendors.

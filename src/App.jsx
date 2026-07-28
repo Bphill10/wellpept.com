@@ -21,6 +21,8 @@ import {
   CATEGORIES,
   MARKUP,
   formatMoney,
+  formatStrengthLabel,
+  groupCatalog,
   guessCategory,
 } from "./data/products";
 import {
@@ -78,6 +80,7 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
   const [selectedId, setSelectedId] = useState(null);
+  const [selectedVariantId, setSelectedVariantId] = useState(null);
   const [cart, setCart] = useState([]);
   const [cartPulse, setCartPulse] = useState(false);
   const [flash, setFlash] = useState("");
@@ -93,46 +96,66 @@ export default function App() {
     return () => clearTimeout(t);
   }, [flash]);
 
-  const selected = products.find((p) => p.id === selectedId) || null;
+  const listings = useMemo(() => groupCatalog(products), [products]);
+  const selectedListing =
+    listings.find((l) => l.id === selectedId) || null;
+  const selectedVariant =
+    selectedListing?.variants.find((v) => v.id === selectedVariantId) ||
+    selectedListing?.variants.find(
+      (v) => v.id === selectedListing.defaultVariantId
+    ) ||
+    selectedListing?.variants[0] ||
+    null;
   const cartCount = cart.reduce((sum, line) => sum + line.qty, 0);
 
-  const filtered = products.filter((p) => {
+  const filtered = listings.filter((listing) => {
     const q = query.trim().toLowerCase();
     const matchesQuery =
       !q ||
-      p.name.toLowerCase().includes(q) ||
-      p.sku.toLowerCase().includes(q) ||
-      p.category.toLowerCase().includes(q) ||
-      p.vendor.toLowerCase().includes(q);
-    const matchesCategory = category === "All" || p.category === category;
+      listing.name.toLowerCase().includes(q) ||
+      listing.category.toLowerCase().includes(q) ||
+      listing.variants.some(
+        (v) =>
+          v.sku.toLowerCase().includes(q) ||
+          v.vendor.toLowerCase().includes(q) ||
+          String(v.mg).includes(q)
+      );
+    const matchesCategory =
+      category === "All" || listing.category === category;
     return matchesQuery && matchesCategory;
   });
 
   const bestsellers = useMemo(
     () =>
-      [...products]
-        .filter((p) => !p.externalOnly)
+      [...listings]
+        .filter((l) => l.variants.some((v) => !v.externalOnly))
         .sort((a, b) => b.reviews - a.reviews)
         .slice(0, 8),
-    [products]
+    [listings]
   );
 
   const newArrivals = useMemo(
     () =>
-      [...products]
-        .filter((p) => !p.externalOnly)
-        .sort((a, b) => String(b.sku).localeCompare(String(a.sku)))
+      [...listings]
+        .filter((l) => l.variants.some((v) => !v.externalOnly))
+        .sort((a, b) => {
+          const aSku = a.variants[a.variants.length - 1]?.sku || "";
+          const bSku = b.variants[b.variants.length - 1]?.sku || "";
+          return String(bSku).localeCompare(String(aSku));
+        })
         .slice(0, 8),
-    [products]
+    [listings]
   );
 
   function goShop() {
     setView(VIEWS.shop);
     setSelectedId(null);
+    setSelectedVariantId(null);
   }
 
-  function openProduct(product) {
-    setSelectedId(product.id);
+  function openProduct(listing, variantId) {
+    setSelectedId(listing.id);
+    setSelectedVariantId(variantId || listing.defaultVariantId);
     setView(VIEWS.product);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -149,7 +172,8 @@ export default function App() {
     });
     setCartPulse(true);
     setTimeout(() => setCartPulse(false), 350);
-    setFlash(`${product.name} added to cart`);
+    const strength = formatStrengthLabel(product);
+    setFlash(`${product.name} (${strength}) added to cart`);
   }
 
   function updateQty(id, delta) {
@@ -511,10 +535,10 @@ export default function App() {
                   </div>
                 </div>
                 <div className="product-grid product-grid-scroll">
-                  {bestsellers.map((product) => (
+                  {bestsellers.map((listing) => (
                     <ProductCard
-                      key={`best-${product.id}`}
-                      product={product}
+                      key={`best-${listing.id}`}
+                      listing={listing}
                       onOpen={openProduct}
                       onAdd={addToCart}
                     />
@@ -679,10 +703,10 @@ export default function App() {
                     </div>
                   </div>
                   <div className="product-grid">
-                    {newArrivals.map((product) => (
+                    {newArrivals.map((listing) => (
                       <ProductCard
-                        key={`new-${product.id}`}
-                        product={product}
+                        key={`new-${listing.id}`}
+                        listing={listing}
                         onOpen={openProduct}
                         onAdd={addToCart}
                       />
@@ -727,10 +751,10 @@ export default function App() {
                   </div>
                 ) : (
                   <div className="product-grid">
-                    {filtered.map((product) => (
+                    {filtered.map((listing) => (
                       <ProductCard
-                        key={product.id}
-                        product={product}
+                        key={listing.id}
+                        listing={listing}
                         onOpen={openProduct}
                         onAdd={addToCart}
                       />
@@ -762,17 +786,19 @@ export default function App() {
           </>
         )}
 
-        {view === VIEWS.product && selected && (
+        {view === VIEWS.product && selectedListing && selectedVariant && (
           <ProductDetail
-            product={selected}
+            listing={selectedListing}
+            product={selectedVariant}
+            onSelectVariant={setSelectedVariantId}
             onBack={goShop}
-            onAdd={() => addToCart(selected)}
+            onAdd={() => addToCart(selectedVariant)}
             onCalculate={() => {
               setCalcInitial({
-                name: selected.name,
-                mass: selected.mg || 10,
-                dose: selected.mg >= 10 ? 1 : 250,
-                doseUnit: selected.mg >= 10 ? "mg" : "mcg",
+                name: selectedVariant.name,
+                mass: selectedVariant.mg || 10,
+                dose: selectedVariant.mg >= 10 ? 1 : 250,
+                doseUnit: selectedVariant.mg >= 10 ? "mg" : "mcg",
                 desiredUnits: 10,
               });
               setView(VIEWS.calculator);
@@ -834,29 +860,45 @@ export default function App() {
   );
 }
 
-function ProductCard({ product, onOpen, onAdd }) {
+function ProductCard({ listing, onOpen, onAdd }) {
+  const [variantId, setVariantId] = useState(listing.defaultVariantId);
+  const product =
+    listing.variants.find((v) => v.id === variantId) || listing.variants[0];
+  const multi = listing.variants.length > 1;
+
+  useEffect(() => {
+    setVariantId(listing.defaultVariantId);
+  }, [listing.id, listing.defaultVariantId]);
+
+  if (!product) return null;
+
   return (
     <article className="product-card">
       <button
         type="button"
         className="product-card-main"
-        onClick={() => onOpen(product)}
+        onClick={() => onOpen(listing, product.id)}
       >
         <div className="product-visual">
-          {product.badge && <span className="badge">{product.badge}</span>}
+          {(product.badge || listing.badge) && (
+            <span className="badge">{product.badge || listing.badge}</span>
+          )}
           <VialPreview product={product} size="md" />
         </div>
         <div className="product-body">
           <div className="meta">
-            {product.category} · SKU {product.sku}
+            {listing.category}
+            {multi
+              ? ` · ${listing.variants.length} strengths`
+              : ` · SKU ${product.sku}`}
           </div>
-          <h3>{product.name}</h3>
+          <h3>{listing.name}</h3>
           <div className="meta">{product.form}</div>
           <div className="rating">
             <span className="stars" aria-hidden>
               ★★★★☆
             </span>{" "}
-            {product.rating.toFixed(1)} · {product.reviews} reviews
+            {listing.rating.toFixed(1)} · {listing.reviews} reviews
           </div>
           <div className="price-row">
             {product.externalOnly ? (
@@ -871,6 +913,27 @@ function ProductCard({ product, onOpen, onAdd }) {
           <div className="meta sold-by">Sold by {product.vendor}</div>
         </div>
       </button>
+
+      {multi && (
+        <label className="strength-field" onClick={(e) => e.stopPropagation()}>
+          <span>Strength</span>
+          <select
+            value={product.id}
+            onChange={(e) => setVariantId(e.target.value)}
+            aria-label={`${listing.name} strength`}
+          >
+            {listing.variants.map((v) => (
+              <option key={v.id} value={v.id}>
+                {formatStrengthLabel(v)}
+                {v.externalOnly
+                  ? " · vendor site"
+                  : ` · ${formatMoney(v.price)}`}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+
       {product.externalOnly ? (
         <a
           className="cart-cta soft-btn"
@@ -897,7 +960,15 @@ function ProductCard({ product, onOpen, onAdd }) {
   );
 }
 
-function ProductDetail({ product, onBack, onAdd, onCalculate }) {
+function ProductDetail({
+  listing,
+  product,
+  onSelectVariant,
+  onBack,
+  onAdd,
+  onCalculate,
+}) {
+  const multi = listing.variants.length > 1;
   return (
     <section className="panel-page fade">
       <div className="container">
@@ -910,14 +981,14 @@ function ProductDetail({ product, onBack, onAdd, onCalculate }) {
           </div>
           <div className="detail-info">
             <div className="meta">
-              {product.category} · SKU {product.sku}
+              {listing.category} · SKU {product.sku}
             </div>
-            <h1>{product.name}</h1>
+            <h1>{listing.name}</h1>
             <div className="rating">
-              <span className="stars">★★★★☆</span> {product.rating.toFixed(1)} ·{" "}
-              {product.reviews} ratings
+              <span className="stars">★★★★☆</span> {listing.rating.toFixed(1)} ·{" "}
+              {listing.reviews} ratings
             </div>
-            <p className="detail-blurb">{product.blurb}</p>
+            <p className="detail-blurb">{listing.blurb || product.blurb}</p>
             <div className="meta">
               {product.form} · Purity {product.purity}
             </div>
@@ -927,6 +998,25 @@ function ProductDetail({ product, onBack, onAdd, onCalculate }) {
             </div>
           </div>
           <div className="buy-box panel">
+            {multi && (
+              <label className="strength-field">
+                <span>Strength (mg)</span>
+                <select
+                  value={product.id}
+                  onChange={(e) => onSelectVariant(e.target.value)}
+                  aria-label="Select strength"
+                >
+                  {listing.variants.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {formatStrengthLabel(v)}
+                      {v.externalOnly
+                        ? " · vendor site"
+                        : ` · ${formatMoney(v.price)}`}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             {product.externalOnly ? (
               <>
                 <div className="price-row">
@@ -952,8 +1042,9 @@ function ProductDetail({ product, onBack, onAdd, onCalculate }) {
                   <span className="compare">{formatMoney(product.compareAt)}</span>
                 </div>
                 <div className="meta">
-                  per {product.unitLabel} (vendor cost{" "}
-                  {formatMoney(product.vendorCost)} + {Math.round(MARKUP * 100)}%)
+                  {formatStrengthLabel(product)} · per {product.unitLabel}{" "}
+                  (vendor cost {formatMoney(product.vendorCost)} +{" "}
+                  {Math.round(MARKUP * 100)}%)
                 </div>
                 <div className="buy-stock ok">In Stock</div>
                 <button type="button" className="cart-cta" onClick={onAdd}>
@@ -1047,7 +1138,7 @@ function CartPage({ cart, onBack, onUpdateQty, onRemove }) {
                     <div>
                       <strong>{line.name}</strong>
                       <div className="meta">
-                        {line.form} · {line.vendor}
+                        {formatStrengthLabel(line)} · {line.form} · {line.vendor}
                       </div>
                       <div className="qty-controls">
                         <button

@@ -992,6 +992,33 @@ a.cart-cta {
   box-shadow: none;
 }
 
+.strength-field {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0 0.85rem 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.strength-field span {
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.strength-field select {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 0.55rem 0.65rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.buy-box .strength-field {
+  margin: 0;
+}
+
 .empty-state {
   padding: 2.5rem;
   text-align: center;
