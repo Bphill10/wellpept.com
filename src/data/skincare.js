@@ -66,8 +66,42 @@ export const SKINCARE_PRODUCTS = [
 /**
  * Fresh Mix kits — we ship separated ingredients; you combine at home
  * right before use for maximum freshness.
+ *
+ * Flagship: 1 g fresh GHK-Cu + Buffet-style multi-peptide serum base
+ * (Ordinary Buffet–type matrix — amino acids / peptides / hydration).
  */
 export const SERUM_COMBOS = [
+  {
+    id: "wp-mix-ghk",
+    name: "GHK-Cu Fresh Mix",
+    line: "Fresh Mix · Flagship",
+    kind: "mix",
+    featured: true,
+    price: 98,
+    size: "Makes ~30 mL · ~3% GHK-Cu",
+    image: "/skincare/mix-ampoules.png",
+    blurb:
+      "1 gram fresh GHK-Cu (copper tripeptide) plus a Buffet-style multi-peptide serum base — Ordinary-like matrix, mixed at home so the copper stays bright.",
+    focus: "Firm look · Repair look · Glow",
+    texture: "Mix-at-home copper serum",
+    mixYield: "30 mL",
+    shelfAfterMix: "Use within 21 days once mixed · refrigerate after blending",
+    ingredients: [
+      { name: "Fresh GHK-Cu (copper tripeptide-1)", amount: "1 g vial" },
+      {
+        name: "Buffet-style multi-peptide serum base (HA + amino acids + matrix peptides)",
+        amount: "30 mL",
+      },
+      { name: "Empty dropper bottle", amount: "1" },
+      { name: "Mini funnel + mix card", amount: "1" },
+    ],
+    steps: [
+      "Pour the Buffet-style serum base into the empty dropper bottle.",
+      "Add the full 1 g fresh GHK-Cu vial (use the funnel).",
+      "Cap tightly and shake 45–60 seconds until fully dissolved — solution turns characteristic blue-green.",
+      "Use 2–4 drops evening on clean skin. Store refrigerated after mixing.",
+    ],
+  },
   {
     id: "wp-mix-radiance",
     name: "Radiance Fresh Mix",
@@ -75,7 +109,7 @@ export const SERUM_COMBOS = [
     kind: "mix",
     price: 84,
     size: "Makes ~30 mL",
-    image: "/skincare/mix-ampoules.png",
+    image: "/skincare/serum-bottle.png",
     blurb:
       "Fresh vitamin C powder + ferulic vehicle. Mix when you open — bright, clear finish.",
     focus: "Brightness · Even tone",
@@ -201,6 +235,9 @@ export const SERUM_COMBOS = [
     ],
   },
 ];
+
+export const FLAGSHIP_SERUM =
+  SERUM_COMBOS.find((p) => p.featured) || SERUM_COMBOS[0];
 
 export const ALL_SKINCARE = [...SERUM_COMBOS, ...SKINCARE_PRODUCTS];
 

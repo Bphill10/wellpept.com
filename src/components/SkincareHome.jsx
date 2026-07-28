@@ -1,12 +1,13 @@
 import React from "react";
 import { ArrowRight, Droplets, FlaskConical, Moon, Sparkles } from "lucide-react";
-import { formatMoney } from "../data/products";
 import {
   SKINCARE_PRODUCTS,
   SERUM_COMBOS,
   SKINCARE_RITUAL,
+  FLAGSHIP_SERUM,
 } from "../data/skincare";
 import ChargebeeCheckout from "./ChargebeeCheckout";
+import { formatMoney } from "../data/products";
 
 function ProductCard({ product, onOpenProduct, onAddToCart }) {
   return (
@@ -79,26 +80,31 @@ export default function SkincareHome({
           </div>
           <div className="hero-brand-rule rise-delay" aria-hidden="true" />
           <p className="hero-tagline rise-delay">
-            Fresh ingredients. You mix at home.
+            1 g fresh GHK-Cu. Buffet-style base. You mix.
           </p>
           <p className="hero-copy rise-delay">
-            WellPept ships separated actives and a clean vehicle — combine when
-            you open for serums that stay bright, clear, and clinical.
+            Our flagship serum: fresh copper tripeptide (GHK-Cu) plus an
+            Ordinary Buffet–style multi-peptide matrix — shipped separate so you
+            blend when you’re ready.
           </p>
           <div className="hero-cta rise-delay">
             <button
               type="button"
               className="primary-btn"
+              onClick={() => onOpenProduct?.(FLAGSHIP_SERUM)}
+            >
+              Shop GHK-Cu Fresh Mix
+            </button>
+            <button
+              type="button"
+              className="soft-btn"
               onClick={() =>
                 document
                   .getElementById("fresh-mixes")
                   ?.scrollIntoView({ behavior: "smooth" })
               }
             >
-              Shop Fresh Mixes
-            </button>
-            <button type="button" className="soft-btn" onClick={onShopSkin}>
-              Ready formulas
+              All Fresh Mixes
             </button>
           </div>
         </div>
@@ -144,13 +150,60 @@ export default function SkincareHome({
               <p className="section-kicker">Fresh Mix</p>
               <h2>Serum combos you blend at home</h2>
               <p>
-                We send the fresh ingredients separately. You combine them when
-                you’re ready — maximum potency, minimal shelf wait.
+                Flagship is <strong>1 g fresh GHK-Cu</strong> into a Buffet-style
+                multi-peptide serum base. Other kits follow the same idea —
+                actives sealed fresh until you mix.
               </p>
             </div>
           </div>
-          <div className="product-grid skin-grid">
-            {SERUM_COMBOS.map((product) => (
+
+          <article className="flagship-mix fade">
+            <button
+              type="button"
+              className="flagship-mix-media"
+              onClick={() => onOpenProduct?.(FLAGSHIP_SERUM)}
+            >
+              <img
+                src={FLAGSHIP_SERUM.image}
+                alt={FLAGSHIP_SERUM.name}
+                className="flagship-mix-img"
+              />
+              <span className="badge">Flagship</span>
+            </button>
+            <div className="flagship-mix-body">
+              <p className="section-kicker">{FLAGSHIP_SERUM.line}</p>
+              <h3>{FLAGSHIP_SERUM.name}</h3>
+              <p>{FLAGSHIP_SERUM.blurb}</p>
+              <ul className="flagship-mix-points">
+                <li>1 g fresh GHK-Cu copper tripeptide</li>
+                <li>30 mL Buffet-style multi-peptide serum base</li>
+                <li>Empty dropper — mix at home (~3% when blended)</li>
+              </ul>
+              <div className="price-row" style={{ margin: "0.85rem 0 1rem" }}>
+                <strong>{formatMoney(FLAGSHIP_SERUM.price)}</strong>
+                <span className="meta">{FLAGSHIP_SERUM.size}</span>
+              </div>
+              <div className="hero-cta" style={{ marginTop: 0 }}>
+                <button
+                  type="button"
+                  className="primary-btn"
+                  onClick={() => onAddToCart?.(FLAGSHIP_SERUM)}
+                >
+                  Add flagship to bag
+                </button>
+                <button
+                  type="button"
+                  className="soft-btn"
+                  onClick={() => onOpenProduct?.(FLAGSHIP_SERUM)}
+                >
+                  Mix steps
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <div className="product-grid skin-grid" style={{ marginTop: "1.75rem" }}>
+            {SERUM_COMBOS.filter((p) => !p.featured).map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
