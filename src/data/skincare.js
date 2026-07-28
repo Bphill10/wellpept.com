@@ -92,26 +92,26 @@ export const PEPTIDES = [
     name: "Syn-Ake",
     inci: "Dipeptide Diaminobutyroyl Benzylamide Diacetate",
     need: "Expression lines",
-    job: "Expression zones — forehead / crow’s feet look",
+    job: "Expression zones — Syn-Ake pathway",
     amount: "250 mg dry powder",
     price: 34,
     image: "/skincare/serum-2.jpg",
     packaging: "vial",
     blurb:
-      "Snake-venom–inspired tripeptide for expression-line zones — a different job than Matrixyl’s matrix work.",
+      "Snake-venom–inspired peptide for expression-line zones — pairs differently than SNAP-8’s Argireline-family pathway.",
   },
   {
-    id: "pep-eyeseryl",
-    name: "Eyeseryl",
-    inci: "Acetyl Tetrapeptide-5",
-    need: "Under-eye · Puff",
-    job: "Under-eye — puff / rested look (unique zone)",
-    amount: "150 mg dry powder",
-    price: 28,
+    id: "pep-snap8",
+    name: "SNAP-8",
+    inci: "Acetyl Octapeptide-3",
+    need: "Expression · Soften",
+    job: "Expression lines — Argireline-family octapeptide",
+    amount: "200 mg dry powder",
+    price: 38,
     image: "/skincare/serum-1.jpg",
     packaging: "vial",
     blurb:
-      "Fourth lane: periocular peptide for under-eye puff and a more rested look — not a face-wide wrinkle peptide.",
+      "Fourth core: SNAP-8 for the look of softer expression lines — longer cousin of Argireline, sealed dry until mix.",
   },
 ];
 
@@ -152,8 +152,8 @@ export const SERUM_BASES = [
     price: 24,
     image: "/skincare/serum-1.jpg",
     blurb:
-      "Cooling periocular serum sized for under-eye. Pair with Eyeseryl ± a micro dose of GHK-Cu.",
-    bestFor: "Under-eye · Eyeseryl ± GHK-Cu",
+      "Cooling periocular serum. Pair with SNAP-8 / Syn-Ake for crow’s feet, or add Eyeseryl as a custom.",
+    bestFor: "Under-eye · crow’s feet · expression",
     shelfAfterMix: "Use within 30 days after activation · refrigerate",
   },
 ];
@@ -164,12 +164,12 @@ export const SERUM_BASES = [
  */
 export const CUSTOM_PEPTIDES = [
   {
-    id: "custom-syncoll",
-    name: "Syn-Coll",
-    inci: "Palmitoyl Tripeptide-5",
-    amount: "250 mg dry",
-    price: 34,
-    blurb: "Extra collagen-signal peptide for firmness-focused builds.",
+    id: "custom-eyeseryl",
+    name: "Eyeseryl",
+    inci: "Acetyl Tetrapeptide-5",
+    amount: "150 mg dry",
+    price: 28,
+    blurb: "Under-eye puff / rested-look add-on — optional with the eye serum vehicle.",
   },
   {
     id: "custom-argireline",
@@ -177,7 +177,7 @@ export const CUSTOM_PEPTIDES = [
     inci: "Acetyl Hexapeptide-8",
     amount: "300 mg dry",
     price: 32,
-    blurb: "Optional expression add-on to stack with Syn-Ake if you want both.",
+    blurb: "Optional hexapeptide to stack with SNAP-8 / Syn-Ake.",
   },
   {
     id: "custom-copper",
@@ -198,7 +198,7 @@ export const SKINCARE_RITUAL = [
   {
     step: "02",
     title: "Add 1–4 peptides",
-    copy: "GHK-Cu (staple), Matrixyl 3000, Syn-Ake, Eyeseryl — each does a different job.",
+    copy: "GHK-Cu (staple), Matrixyl 3000, Syn-Ake, SNAP-8 — mix freely; add Eyeseryl etc. as customs.",
   },
   {
     step: "03",
@@ -372,25 +372,25 @@ export const SERUM_PRESETS = [
   {
     id: "preset-lines",
     name: "Lines + expression",
-    blurb: "Matrixyl + Syn-Ake in peptide cream.",
+    blurb: "Matrixyl + Syn-Ake + SNAP-8 in peptide cream.",
     baseId: "base-cream",
-    peptideIds: ["pep-matrixyl", "pep-synake"],
+    peptideIds: ["pep-matrixyl", "pep-synake", "pep-snap8"],
     customIds: [],
   },
   {
     id: "preset-eye",
-    name: "Under-eye",
-    blurb: "Eyeseryl + micro GHK-Cu in eye serum.",
+    name: "Crow’s feet focus",
+    blurb: "SNAP-8 + Syn-Ake in eye serum · add Eyeseryl as custom if you want.",
     baseId: "base-eye",
-    peptideIds: ["pep-eyeseryl", "pep-ghk"],
+    peptideIds: ["pep-snap8", "pep-synake"],
     customIds: [],
   },
   {
     id: "preset-all",
     name: "All four peptides",
-    blurb: "GHK-Cu, Matrixyl, Syn-Ake, Eyeseryl — one Buffet serum.",
+    blurb: "GHK-Cu, Matrixyl, Syn-Ake, SNAP-8 — one Buffet serum.",
     baseId: "base-buffet",
-    peptideIds: ["pep-ghk", "pep-matrixyl", "pep-synake", "pep-eyeseryl"],
+    peptideIds: ["pep-ghk", "pep-matrixyl", "pep-synake", "pep-snap8"],
     customIds: [],
   },
 ];

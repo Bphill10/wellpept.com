@@ -87,7 +87,7 @@ export default function SkincareHome({
             Four peptides. Two serums + one cream. Mix yours.
           </p>
           <p className="hero-copy rise-delay">
-            GHK-Cu is the staple — add Matrixyl 3000, Syn-Ake, and Eyeseryl (1–4)
+            GHK-Cu is the staple — add Matrixyl 3000, Syn-Ake, and SNAP-8 (1–4)
             into a Buffet serum, peptide cream, or eye serum. Dry until you activate.
           </p>
           <div className="hero-cta rise-delay">
@@ -118,8 +118,8 @@ export default function SkincareHome({
             <div>
               <strong>4 peptides · different jobs</strong>
               <p>
-                GHK-Cu (staple), Matrixyl 3000, Syn-Ake, Eyeseryl — firm, lines,
-                expression, under-eye.
+                GHK-Cu (staple), Matrixyl 3000, Syn-Ake, SNAP-8 — firm, matrix,
+                Syn-Ake expression, SNAP-8 expression.
               </p>
             </div>
           </div>
@@ -134,7 +134,7 @@ export default function SkincareHome({
             <Sparkles size={22} />
             <div>
               <strong>Custom add-ons</strong>
-              <p>Optional Syn-Coll, Argireline, or extra GHK-Cu on the same order.</p>
+              <p>Optional Eyeseryl, Argireline, or extra GHK-Cu on the same order.</p>
             </div>
           </div>
           <div className="trust-item">
@@ -218,7 +218,7 @@ export default function SkincareHome({
               <ul className="flagship-mix-points">
                 <li>1 g dry GHK-Cu powder sealed in the twist-on cap</li>
                 <li>30 mL Buffet-style serum in the bottle</li>
-                <li>Or build your own — cream vehicle + Syn-Ake / Matrixyl / Eyeseryl</li>
+                <li>Or build your own — cream vehicle + Syn-Ake / Matrixyl / SNAP-8</li>
                 <li>Cosmetic use only · see peptide acknowledgment at checkout</li>
               </ul>
               <div className="price-row" style={{ margin: "0.85rem 0 1rem" }}>
