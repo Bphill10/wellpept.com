@@ -639,52 +639,48 @@ export default function App() {
                     <span className="featured-kicker">
                       Featured drop-ship partner
                     </span>
-                    <h2>The Lobster · Cartman Gear</h2>
+                    <h2>The Lobster · International kits</h2>
                     <p>
-                      Pharma-grade HGH, peptides, and Turkish pharmacy —
-                      EU/Middle East based with US &amp; EU shipping. Browse{" "}
-                      <a
-                        href={THE_LOBSTER_VENDOR.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        cartmangear.co
-                      </a>{" "}
-                      for live pricing, then upload their list to sell here at +
-                      {Math.round(MARKUP * 100)}%.
+                      Pharma-grade HGH and research peptides fulfilled by our
+                      featured partner — sold only through Undisclosed. Browse
+                      strengths in the catalog, add to cart, and we handle
+                      drop-ship. Min order ~{formatMoney(THE_LOBSTER_VENDOR.minOrder)}.
                     </p>
                     <ul className="featured-meta">
-                      <li>
-                        Min order ~{formatMoney(THE_LOBSTER_VENDOR.minOrder)}
-                      </li>
-                      <li>Crypto · Contact to order</li>
-                      <li>{THE_LOBSTER_VENDOR.telegram}</li>
+                      <li>International reship pricing built in</li>
+                      <li>Transparent vendor cost + {Math.round(MARKUP * 100)}%</li>
+                      <li>No outbound vendor storefront for customers</li>
                     </ul>
                     <div className="hero-cta" style={{ marginTop: "0.85rem" }}>
-                      <a
+                      <button
+                        type="button"
                         className="primary-btn"
-                        href={THE_LOBSTER_VENDOR.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        onClick={() => {
+                          setQuery("Lobster");
+                          setCategory("All");
+                          document
+                            .getElementById("catalog")
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        }}
                       >
-                        Visit cartmangear.co
-                      </a>
+                        Shop Lobster catalog
+                      </button>
                       <button
                         type="button"
                         className="soft-btn"
                         onClick={() => setView(VIEWS.vendor)}
                       >
-                        Upload Lobster price list
+                        Vendor portal
                       </button>
                     </div>
                   </div>
                   <div className="featured-vendor-visual">
                     <GeneratedVial
                       name="The Lobster"
-                      sku="CARTMAN"
+                      sku="INTL"
                       mass={10}
                       category="Growth"
-                      mixText="cartmangear.co"
+                      mixText="Drop-ship only"
                       size="lg"
                     />
                   </div>
@@ -901,8 +897,8 @@ function ProductCard({ listing, onOpen, onAdd }) {
             {listing.rating.toFixed(1)} · {listing.reviews} reviews
           </div>
           <div className="price-row">
-            {product.externalOnly ? (
-              <span className="price price-external">{product.priceLabel}</span>
+            {product.externalOnly || product.price == null ? (
+              <span className="price price-external">See options</span>
             ) : (
               <>
                 <span className="price">{formatMoney(product.price)}</span>
@@ -925,37 +921,24 @@ function ProductCard({ listing, onOpen, onAdd }) {
             {listing.variants.map((v) => (
               <option key={v.id} value={v.id}>
                 {formatStrengthLabel(v)}
-                {v.externalOnly
-                  ? " · vendor site"
-                  : ` · ${formatMoney(v.price)}`}
+                {v.price == null ? "" : ` · ${formatMoney(v.price)}`}
               </option>
             ))}
           </select>
         </label>
       )}
 
-      {product.externalOnly ? (
-        <a
-          className="cart-cta soft-btn"
-          href={product.externalUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-        >
-          View on vendor site
-        </a>
-      ) : (
-        <button
-          type="button"
-          className="cart-cta"
-          onClick={(e) => {
-            e.stopPropagation();
-            onAdd(product);
-          }}
-        >
-          Add to cart
-        </button>
-      )}
+      <button
+        type="button"
+        className="cart-cta"
+        disabled={product.price == null}
+        onClick={(e) => {
+          e.stopPropagation();
+          onAdd(product);
+        }}
+      >
+        Add to cart
+      </button>
     </article>
   );
 }
@@ -1009,61 +992,37 @@ function ProductDetail({
                   {listing.variants.map((v) => (
                     <option key={v.id} value={v.id}>
                       {formatStrengthLabel(v)}
-                      {v.externalOnly
-                        ? " · vendor site"
-                        : ` · ${formatMoney(v.price)}`}
+                      {v.price == null ? "" : ` · ${formatMoney(v.price)}`}
                     </option>
                   ))}
                 </select>
               </label>
             )}
-            {product.externalOnly ? (
-              <>
-                <div className="price-row">
-                  <span className="price price-external">{product.priceLabel}</span>
-                </div>
-                <div className="meta">
-                  Pricing lives on the vendor storefront. Upload their price list
-                  in Vendors to sell through Undisclosed with markup.
-                </div>
-                <a
-                  className="primary-btn"
-                  href={product.externalUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Open cartmangear.co
-                </a>
-              </>
-            ) : (
-              <>
-                <div className="price-row">
-                  <span className="price">{formatMoney(product.price)}</span>
-                  <span className="compare">{formatMoney(product.compareAt)}</span>
-                </div>
-                <div className="meta">
-                  {formatStrengthLabel(product)} · per {product.unitLabel}{" "}
-                  (vendor cost {formatMoney(product.vendorCost)} +{" "}
-                  {Math.round(MARKUP * 100)}%)
-                </div>
-                <div className="buy-stock ok">In Stock</div>
-                <button type="button" className="cart-cta" onClick={onAdd}>
-                  Add to cart
-                </button>
-                <button type="button" className="primary-btn" onClick={onAdd}>
-                  Buy now
-                </button>
-              </>
-            )}
+            <>
+              <div className="price-row">
+                <span className="price">{formatMoney(product.price)}</span>
+                <span className="compare">{formatMoney(product.compareAt)}</span>
+              </div>
+              <div className="meta">
+                {formatStrengthLabel(product)} · per {product.unitLabel}{" "}
+                (vendor cost {formatMoney(product.vendorCost)} +{" "}
+                {Math.round(MARKUP * 100)}%)
+              </div>
+              <div className="buy-stock ok">In Stock</div>
+              <button type="button" className="cart-cta" onClick={onAdd}>
+                Add to cart
+              </button>
+              <button type="button" className="primary-btn" onClick={onAdd}>
+                Buy now
+              </button>
+            </>
             <div className="meta">
               <Truck size={14} style={{ display: "inline", marginRight: 6 }} />
               {product.ships}
-              {!product.externalOnly && (
-                <>
-                  . Shipping {formatMoney(product.shippingFlat)}
-                  {product.shippingNote ? ` · ${product.shippingNote}` : ""}
-                </>
-              )}
+              <>
+                . Shipping {formatMoney(product.shippingFlat)}
+                {product.shippingNote ? ` · ${product.shippingNote}` : ""}
+              </>
             </div>
             <div className="meta">
               <Package size={14} style={{ display: "inline", marginRight: 6 }} />

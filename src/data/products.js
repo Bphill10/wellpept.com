@@ -4,7 +4,7 @@ import {
 } from "./changshaPremium";
 import { ERP_SUBMISSIONS, ERP_VENDOR } from "./erpPeptide";
 import {
-  THE_LOBSTER_PLACEHOLDER_SUBMISSIONS,
+  THE_LOBSTER_SUBMISSIONS,
   THE_LOBSTER_VENDOR,
 } from "./theLobster";
 
@@ -91,7 +91,7 @@ export const SEED_VENDORS = [
 export const SEED_SUBMISSIONS = [
   ...CHANGSHA_SUBMISSIONS,
   ...ERP_SUBMISSIONS,
-  ...THE_LOBSTER_PLACEHOLDER_SUBMISSIONS,
+  ...THE_LOBSTER_SUBMISSIONS,
   {
     id: "s-pending-demo",
     vendorId: "v-demo-pending",
@@ -157,13 +157,14 @@ function variantKey(product) {
 }
 
 export function formatStrengthLabel(product) {
-  const mg = Number(product.mg);
+  const amount = Number(product.mg);
   const pack = Number(product.packVials) || 1;
-  if (!mg && !product.externalOnly) {
+  const unit = product.unit || "mg";
+  if (!amount && !product.externalOnly) {
     return pack > 1 ? `${pack}-pack` : "Standard";
   }
-  const mgPart = mg ? `${mg} mg` : "See options";
-  return pack > 1 ? `${mgPart} · ${pack}-pack` : mgPart;
+  const amountPart = amount ? `${amount} ${unit}` : "See options";
+  return pack > 1 ? `${amountPart} · ${pack}-pack` : amountPart;
 }
 
 /**
@@ -278,6 +279,7 @@ export function buildCatalog(vendors, submissions) {
       form: item.form,
       purity: item.purity,
       mg: item.mg,
+      unit: item.unit || (/\bIU\b/i.test(item.form || "") ? "IU" : "mg"),
       packVials,
       unitLabel: packVials > 1 ? `${packVials}-pack` : "each",
       category: item.category || guessCategory(item.name),
@@ -286,10 +288,10 @@ export function buildCatalog(vendors, submissions) {
       vendor: item.vendor.name,
       vendorCost,
       price,
-      priceLabel: isExternal ? "View on vendor site" : null,
+      priceLabel: null,
       compareAt: price ? Math.round(price * 1.18 * 100) / 100 : null,
-      externalOnly: isExternal,
-      externalUrl: isExternal ? item.vendor.website : null,
+      externalOnly: false,
+      externalUrl: null,
       minOrder: Number(item.vendor.minOrder) || 0,
       shippingFlat: Number(item.vendor.shippingFlat) || 0,
       shippingNote: item.vendor.shippingNote || "",
@@ -297,7 +299,7 @@ export function buildCatalog(vendors, submissions) {
       reviews: 12 + index * 9,
       inStock: true,
       ships: featured
-        ? "Drop-ship via The Lobster · see cartmangear.co"
+        ? "Drop-ship via The Lobster"
         : "Drop-ships in 7–15 business days",
       badge: featured
         ? "Featured · The Lobster"
