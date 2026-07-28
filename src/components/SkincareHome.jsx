@@ -84,11 +84,11 @@ export default function SkincareHome({
           </div>
           <div className="hero-brand-rule rise-delay" aria-hidden="true" />
           <p className="hero-tagline rise-delay">
-            Four peptides. Three bases. One serum.
+            Four peptides. Two serums + one cream. Mix yours.
           </p>
           <p className="hero-copy rise-delay">
-            Mix and match — add 1, 2, 3, or all four peptides to a single base.
-            Dry powder stays sealed until you twist and activate.
+            GHK-Cu is the staple — add Matrixyl 3000, Syn-Ake, and Eyeseryl (1–4)
+            into a Buffet serum, peptide cream, or eye serum. Dry until you activate.
           </p>
           <div className="hero-cta rise-delay">
             <button
@@ -116,22 +116,25 @@ export default function SkincareHome({
           <div className="trust-item">
             <FlaskConical size={22} />
             <div>
-              <strong>4 peptides · mix freely</strong>
-              <p>GHK-Cu, Matrixyl 3000, Argireline, Eyeseryl — any combination in one bottle.</p>
+              <strong>4 peptides · different jobs</strong>
+              <p>
+                GHK-Cu (staple), Matrixyl 3000, Syn-Ake, Eyeseryl — firm, lines,
+                expression, under-eye.
+              </p>
             </div>
           </div>
           <div className="trust-item">
             <Droplets size={22} />
             <div>
-              <strong>3 bases</strong>
-              <p>Buffet-style, light HA, or eye vehicle — pick the feel, then load peptides.</p>
+              <strong>2 serums + 1 cream</strong>
+              <p>Buffet serum, peptide cream base, or eye serum — then load peptides.</p>
             </div>
           </div>
           <div className="trust-item">
             <Sparkles size={22} />
             <div>
               <strong>Custom add-ons</strong>
-              <p>Optional Syn-Coll, SNAP-8, or extra GHK-Cu on the same order.</p>
+              <p>Optional Syn-Coll, Argireline, or extra GHK-Cu on the same order.</p>
             </div>
           </div>
           <div className="trust-item">
@@ -149,11 +152,11 @@ export default function SkincareHome({
           <div className="section-head">
             <div>
               <p className="section-kicker">Fresh Mix</p>
-              <h2>Your peptides. Your base. One bottle.</h2>
+              <h2>Your peptides. Serum or cream. One mix.</h2>
               <p>
-                Choose one of three vehicles, then add any combination of our four core
-                topical peptides — or all four. Optional custom peptides ship as extra dry
-                vials on the same order.
+                Choose a Buffet serum, peptide cream, or eye serum, then add any
+                combination of our four core topicals — or all four. Optional custom
+                peptides ship as extra dry vials on the same order.
               </p>
             </div>
           </div>
@@ -176,7 +179,10 @@ export default function SkincareHome({
                 {SERUM_BASES.map((b) => (
                   <li key={b.id}>
                     <strong>{b.name}</strong>
-                    <span>{b.volume}</span>
+                    <span>
+                      {b.form === "cream" ? "Cream · " : "Serum · "}
+                      {b.volume}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -211,8 +217,8 @@ export default function SkincareHome({
               <p>{FLAGSHIP_SERUM.blurb}</p>
               <ul className="flagship-mix-points">
                 <li>1 g dry GHK-Cu powder sealed in the twist-on cap</li>
-                <li>30 mL Buffet-style base in the bottle</li>
-                <li>Or build your own — swap peptides and base below</li>
+                <li>30 mL Buffet-style serum in the bottle</li>
+                <li>Or build your own — cream vehicle + Syn-Ake / Matrixyl / Eyeseryl</li>
                 <li>Cosmetic use only · see peptide acknowledgment at checkout</li>
               </ul>
               <div className="price-row" style={{ margin: "0.85rem 0 1rem" }}>
@@ -252,7 +258,10 @@ export default function SkincareHome({
             <div>
               <p className="section-kicker">How it works</p>
               <h2>Pick. Mix. Activate.</h2>
-              <p>One base, up to four peptides, optional customs — then twist when you’re ready.</p>
+              <p>
+                One vehicle (serum or cream), up to four peptides, optional customs —
+                then activate when you’re ready.
+              </p>
             </div>
           </div>
           <div className="skin-ritual-grid">

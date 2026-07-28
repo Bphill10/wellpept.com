@@ -919,9 +919,11 @@ export default function App() {
                     {skinProduct.kind === "mix" && (
                       <div className="mix-panel">
                         <p className="mix-lead">
-                          {skinProduct.packaging === "twist-cap"
-                            ? `Dry peptide powder is loaded in the twist-on cap. Twist to break the chamber into the serum — ${skinProduct.mixYield}`
-                            : `Fresh ingredients ship separated. You mix at home — ${skinProduct.mixYield}`}
+                          {skinProduct.form === "cream"
+                            ? `Dry peptides mix into a leave-on cream vehicle — ${skinProduct.mixYield}`
+                            : skinProduct.packaging === "twist-cap"
+                              ? `Dry peptide powder is loaded in the twist-on cap. Twist to break the chamber into the serum — ${skinProduct.mixYield}`
+                              : `Fresh ingredients ship separated. You mix at home — ${skinProduct.mixYield}`}
                           {skinProduct.shelfAfterMix
                             ? ` · ${skinProduct.shelfAfterMix}`
                             : ""}

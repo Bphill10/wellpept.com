@@ -82,10 +82,11 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
     <section className="sk-builder" id="build">
       <div className="sk-section-head">
         <p className="sk-eyebrow">Build your serum</p>
-        <h2>Add 1, 2, 3, or all four peptides to one base.</h2>
+        <h2>Add 1, 2, 3, or all four peptides to one serum — or the cream.</h2>
         <p>
-          Mix and match four core peptides with three vehicle bases. Optional custom peptides can be
-          layered on. Powder stays dry in the twist-cap until you activate.
+          Four different jobs: GHK-Cu (staple), Matrixyl 3000, Syn-Ake, Eyeseryl.
+          Choose Buffet serum, peptide cream, or eye serum. Optional customs on the side.
+          Powder stays dry until you activate.
         </p>
       </div>
 
@@ -109,8 +110,8 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
 
       <div className="sk-builder-grid">
         <div className="sk-builder-col">
-          <h3>1. Choose your base</h3>
-          <p className="sk-step-note">Three vehicles. One serum bottle.</p>
+          <h3>1. Choose your vehicle</h3>
+          <p className="sk-step-note">Two serums + one cream. One mix per order line.</p>
           <div className="sk-option-list">
             {SERUM_BASES.map((base) => (
               <label
@@ -130,7 +131,8 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
                   <strong>{base.name}</strong>
                   <span>{base.blurb}</span>
                   <em>
-                    {base.bestFor} · from ${base.price}
+                    {base.form === "cream" ? "Cream" : "Serum"} · {base.bestFor} · from $
+                    {base.price}
                   </em>
                 </span>
               </label>
@@ -156,7 +158,7 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
                       {pep.name} <small>+${pep.price}</small>
                     </strong>
                     <span>{pep.blurb}</span>
-                    <em>{pep.need}</em>
+                    <em>{pep.job || pep.need}</em>
                   </span>
                 </label>
               )

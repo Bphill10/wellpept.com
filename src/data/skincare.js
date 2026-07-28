@@ -56,90 +56,103 @@ export const SKINCARE_PRODUCTS = [
   },
 ];
 
-/** Four core topical peptides — pick 1, 2, 3, or all four for one serum. */
+/**
+ * Four core topical peptides — each with a different job.
+ * GHK-Cu is the staple; pick 1–4 into one vehicle (serum or cream).
+ */
 export const PEPTIDES = [
   {
     id: "pep-ghk",
     name: "GHK-Cu",
     inci: "Copper Tripeptide-1",
     need: "Firm · Repair · Glow",
+    job: "Staple copper — remodeling / firmness look",
     amount: "1 g dry powder",
     price: 48,
     image: "/skincare/ghk-twist-cap.png",
     packaging: "twist-cap",
     blurb:
-      "Flagship copper peptide. Ships dry in a twist-cap chamber so it doesn’t fade on the shelf.",
+      "The staple. Flagship copper peptide ships dry in a twist-cap so it doesn’t fade on the shelf.",
   },
   {
     id: "pep-matrixyl",
     name: "Matrixyl 3000",
     inci: "Palmitoyl Tripeptide-1 · Palmitoyl Tetrapeptide-7",
     need: "Lines · Elasticity",
+    job: "Matrix support — look of deeper lines",
     amount: "600 mg dry complex",
     price: 36,
     image: "/skincare/serum-bottle.png",
     packaging: "vial",
     blurb:
-      "The classic matrix signal peptide pair for the look of smoother lines — sealed dry until you mix.",
+      "Classic matrix-signal pair for the look of smoother static lines — sealed dry until you mix.",
   },
   {
-    id: "pep-argireline",
-    name: "Argireline",
-    inci: "Acetyl Hexapeptide-8",
+    id: "pep-synake",
+    name: "Syn-Ake",
+    inci: "Dipeptide Diaminobutyroyl Benzylamide Diacetate",
     need: "Expression lines",
-    amount: "300 mg dry powder",
-    price: 32,
+    job: "Expression zones — forehead / crow’s feet look",
+    amount: "250 mg dry powder",
+    price: 34,
     image: "/skincare/serum-2.jpg",
     packaging: "vial",
     blurb:
-      "Expression-zone peptide for forehead and crow’s feet areas — fresh, not aisle-aged.",
+      "Snake-venom–inspired tripeptide for expression-line zones — a different job than Matrixyl’s matrix work.",
   },
   {
     id: "pep-eyeseryl",
     name: "Eyeseryl",
     inci: "Acetyl Tetrapeptide-5",
-    need: "Under-eye",
+    need: "Under-eye · Puff",
+    job: "Under-eye — puff / rested look (unique zone)",
     amount: "150 mg dry powder",
     price: 28,
     image: "/skincare/serum-1.jpg",
     packaging: "vial",
     blurb:
-      "Periocular peptide for the look of less puff and more rested brightness under the eye.",
+      "Fourth lane: periocular peptide for under-eye puff and a more rested look — not a face-wide wrinkle peptide.",
   },
 ];
 
-/** Three serum bases — choose one vehicle for your peptide blend. */
+/**
+ * Three vehicles — two serums + one cream.
+ * Pick one, then load 1–4 peptides.
+ */
 export const SERUM_BASES = [
   {
     id: "base-buffet",
-    name: "Buffet-Style Base",
+    name: "Buffet-Style Serum",
+    form: "serum",
     volume: "30 mL",
     price: 28,
     image: "/skincare/mix-ampoules.png",
     blurb:
-      "Ordinary Buffet–type multi-peptide / HA / amino-acid matrix. Best all-rounder for face serums.",
-    bestFor: "Face · daily · 1–4 peptides",
+      "Ordinary Buffet–type multi-peptide / HA / amino-acid serum. Best all-rounder face vehicle.",
+    bestFor: "Face serum · daily · 1–4 peptides",
     shelfAfterMix: "Use within 21–30 days after activation · refrigerate if GHK-Cu included",
   },
   {
-    id: "base-ha",
-    name: "Light HA Base",
-    volume: "30 mL",
-    price: 22,
-    image: "/skincare/serum-bottle.png",
+    id: "base-cream",
+    name: "Peptide Cream Base",
+    form: "cream",
+    volume: "50 mL",
+    price: 32,
+    image: "/skincare/cream-1.jpg",
     blurb:
-      "Clean multiweight hyaluronic + glycerin vehicle. Light, fast, ideal when you want peptides alone to lead.",
-    bestFor: "Face · layering · lighter feel",
-    shelfAfterMix: "Use within 30–45 days after activation · cool & dark",
+      "Silken moisture cream vehicle — mix dry peptides into a leave-on cream instead of a dropper serum.",
+    bestFor: "Face cream · richer feel · day or night",
+    shelfAfterMix: "Use within 30 days after activation · cool & dark · refrigerate if GHK-Cu included",
   },
   {
     id: "base-eye",
-    name: "Eye Vehicle",
+    name: "Eye Serum Vehicle",
+    form: "serum",
     volume: "15 mL",
     price: 24,
     image: "/skincare/serum-1.jpg",
     blurb:
-      "Cooling periocular base sized for under-eye use. Pair with Eyeseryl and optionally a micro dose of GHK-Cu.",
+      "Cooling periocular serum sized for under-eye. Pair with Eyeseryl ± a micro dose of GHK-Cu.",
     bestFor: "Under-eye · Eyeseryl ± GHK-Cu",
     shelfAfterMix: "Use within 30 days after activation · refrigerate",
   },
@@ -156,15 +169,15 @@ export const CUSTOM_PEPTIDES = [
     inci: "Palmitoyl Tripeptide-5",
     amount: "250 mg dry",
     price: 34,
-    blurb: "Collagen-signal peptide add-on for firmness-focused builds.",
+    blurb: "Extra collagen-signal peptide for firmness-focused builds.",
   },
   {
-    id: "custom-snap8",
-    name: "SNAP-8",
-    inci: "Acetyl Octapeptide-3",
-    amount: "200 mg dry",
-    price: 38,
-    blurb: "Expression-line add-on related to Argireline’s family — optional stack.",
+    id: "custom-argireline",
+    name: "Argireline",
+    inci: "Acetyl Hexapeptide-8",
+    amount: "300 mg dry",
+    price: 32,
+    blurb: "Optional expression add-on to stack with Syn-Ake if you want both.",
   },
   {
     id: "custom-copper",
@@ -172,25 +185,25 @@ export const CUSTOM_PEPTIDES = [
     inci: "Copper Tripeptide-1",
     amount: "+500 mg dry",
     price: 30,
-    blurb: "Boost copper load in your bottle beyond the standard 1 g chamber.",
+    blurb: "Boost copper load beyond the standard 1 g staple chamber.",
   },
 ];
 
 export const SKINCARE_RITUAL = [
   {
     step: "01",
-    title: "Pick a base",
-    copy: "Buffet-style, light HA, or eye vehicle — one bottle per mix.",
+    title: "Pick a vehicle",
+    copy: "Buffet serum, peptide cream, or eye serum — one base per mix.",
   },
   {
     step: "02",
     title: "Add 1–4 peptides",
-    copy: "Mix and match GHK-Cu, Matrixyl, Argireline, and Eyeseryl. Add custom vials if you want more.",
+    copy: "GHK-Cu (staple), Matrixyl 3000, Syn-Ake, Eyeseryl — each does a different job.",
   },
   {
     step: "03",
     title: "Activate fresh",
-    copy: "Twist-cap or tip dry powder into the base. Shake. Use while potent.",
+    copy: "Twist-cap or tip dry powder into serum or cream. Mix. Use while potent.",
   },
 ];
 
@@ -248,6 +261,8 @@ export function buildSerumProduct({
   });
 
   const names = uniquePep.map((p) => p.name);
+  const isCream = base.form === "cream";
+  const vehicleWord = isCream ? "cream" : "serum";
   const title =
     uniquePep.length === 1
       ? `${uniquePep[0].name} · ${base.name}`
@@ -257,6 +272,37 @@ export function buildSerumProduct({
   const packaging = hasGhk ? "twist-cap" : "vial";
   const subtitle = `${uniquePep.length} peptide${uniquePep.length > 1 ? "s" : ""} · ${base.volume} ${base.name}`;
 
+  const creamSteps = [
+    "Open the cream jar. Keep peptides dry until ready.",
+    hasGhk
+      ? "Twist the GHK-Cu powder cap over the cream (or tip powder in), then add any other dry vials."
+      : "Tip each dry peptide vial into the cream (spatula / funnel included).",
+    "Fold and stir 60–90 seconds until evenly dispersed — no dry pockets.",
+    "Seal. Use on intact skin only. Follow the labeled use-by window after mixing.",
+  ];
+
+  const serumTwistSteps = [
+    "Keep upright. Do not shake before activating.",
+    "Twist any GHK-Cu powder cap until the chamber breaks — dry peptide drops into the serum.",
+    "Tip any additional dry peptide vials into the bottle (funnel included).",
+    "Seat the dropper. Shake 45–60 seconds until even. Use as directed. Follow refrigeration guidance.",
+  ];
+
+  const serumVialSteps = [
+    "Confirm the serum base is in the dropper bottle.",
+    "Tip each dry peptide vial into the base (funnel included).",
+    "Cap and shake 40–60 seconds until fully dissolved.",
+    "Use on intact skin only. Follow the labeled use-by window after mixing.",
+  ];
+
+  let steps = serumVialSteps;
+  if (isCream) steps = creamSteps;
+  else if (packaging === "twist-cap") steps = serumTwistSteps;
+
+  let texture = "Mix-at-home peptide serum";
+  if (isCream) texture = "Mix-at-home peptide cream";
+  else if (packaging === "twist-cap") texture = "Twist-cap activated serum";
+
   return {
     id: `mix-${base.id}-${uniquePep.map((p) => p.id).sort().join("-")}-${uniqueCustom
       .map((p) => p.id)
@@ -264,18 +310,20 @@ export function buildSerumProduct({
       .join("-") || "x"}`,
     name: title,
     subtitle,
-    line: "Fresh Mix · Custom",
+    line: isCream ? "Fresh Mix · Cream" : "Fresh Mix · Serum",
     kind: "mix",
     packaging,
+    form: base.form || "serum",
     price,
     size: `${base.volume} · ${uniquePep.length} peptide${uniquePep.length > 1 ? "s" : ""}`,
-    image: hasGhk ? "/skincare/ghk-twist-cap.png" : base.image,
-    gallery: hasGhk
-      ? ["/skincare/ghk-twist-cap.png", "/skincare/ghk-twist-howto.png"]
-      : [base.image],
-    blurb: `Your mix: ${names.join(" + ")} in ${base.name}. Dry peptides stay sealed until you activate into the base.`,
+    image: hasGhk && !isCream ? "/skincare/ghk-twist-cap.png" : base.image,
+    gallery:
+      hasGhk && !isCream
+        ? ["/skincare/ghk-twist-cap.png", "/skincare/ghk-twist-howto.png"]
+        : [base.image],
+    blurb: `Your mix: ${names.join(" + ")} in ${base.name}. Dry peptides stay sealed until you activate into the ${vehicleWord}.`,
     focus: uniquePep.map((p) => p.need).join(" · "),
-    texture: packaging === "twist-cap" ? "Twist-cap activated serum" : "Mix-at-home peptide serum",
+    texture,
     mixYield: base.volume,
     shelfAfterMix: base.shelfAfterMix,
     base,
@@ -297,25 +345,12 @@ export function buildSerumProduct({
         amount: p.amount,
       })),
     ],
-    steps:
-      packaging === "twist-cap"
-        ? [
-            "Keep upright. Do not shake before activating.",
-            "Twist any GHK-Cu powder cap until the chamber breaks — dry peptide drops into the serum.",
-            "Tip any additional dry peptide vials into the bottle (funnel included).",
-            "Seat the dropper. Shake 45–60 seconds until even. Use as directed. Follow refrigeration guidance.",
-          ]
-        : [
-            "Pour or confirm the serum base is in the dropper bottle.",
-            "Tip each dry peptide vial into the base (funnel included).",
-            "Cap and shake 40–60 seconds until fully dissolved.",
-            "Use on intact skin only. Follow the labeled use-by window after mixing.",
-          ],
+    steps,
     legal: PEPTIDE_LEGAL,
   };
 }
 
-/** Default featured build: Buffet base + GHK-Cu. */
+/** Default featured build: Buffet serum + GHK-Cu staple. */
 export const FLAGSHIP_BUILD = {
   baseId: "base-buffet",
   peptideIds: ["pep-ghk"],
@@ -329,7 +364,7 @@ export const SERUM_PRESETS = [
   {
     id: "preset-ghk",
     name: "Flagship copper",
-    blurb: "GHK-Cu in Buffet base — twist-cap freshness.",
+    blurb: "GHK-Cu staple in Buffet serum — twist-cap freshness.",
     baseId: "base-buffet",
     peptideIds: ["pep-ghk"],
     customIds: [],
@@ -337,15 +372,15 @@ export const SERUM_PRESETS = [
   {
     id: "preset-lines",
     name: "Lines + expression",
-    blurb: "Matrixyl + Argireline in one face serum.",
-    baseId: "base-buffet",
-    peptideIds: ["pep-matrixyl", "pep-argireline"],
+    blurb: "Matrixyl + Syn-Ake in peptide cream.",
+    baseId: "base-cream",
+    peptideIds: ["pep-matrixyl", "pep-synake"],
     customIds: [],
   },
   {
     id: "preset-eye",
     name: "Under-eye",
-    blurb: "Eyeseryl + micro GHK-Cu in eye vehicle.",
+    blurb: "Eyeseryl + micro GHK-Cu in eye serum.",
     baseId: "base-eye",
     peptideIds: ["pep-eyeseryl", "pep-ghk"],
     customIds: [],
@@ -353,9 +388,9 @@ export const SERUM_PRESETS = [
   {
     id: "preset-all",
     name: "All four peptides",
-    blurb: "GHK-Cu, Matrixyl, Argireline, Eyeseryl — one bottle.",
+    blurb: "GHK-Cu, Matrixyl, Syn-Ake, Eyeseryl — one Buffet serum.",
     baseId: "base-buffet",
-    peptideIds: ["pep-ghk", "pep-matrixyl", "pep-argireline", "pep-eyeseryl"],
+    peptideIds: ["pep-ghk", "pep-matrixyl", "pep-synake", "pep-eyeseryl"],
     customIds: [],
   },
 ];
