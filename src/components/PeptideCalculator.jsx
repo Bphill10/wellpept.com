@@ -166,15 +166,11 @@ export default function PeptideCalculator({ initial = null }) {
 
   const fillPct = dosage ? Math.min(100, Math.max(0, dosage.units)) : 0;
 
-  const vialMixText =
-    mass && solution
-      ? `${formatNum(mass, 2)}mg / ${formatNum(solution, 2)}ml`
-      : mass
-        ? `${formatNum(mass, 2)}mg lyophilized`
-        : "";
-
-  const vialDoseRef = dosage
-    ? `${formatNum(dosage.units, 1)}u = ${dosage.doseText}`
+  const vialBac =
+    solution && Number(solution) > 0 ? `${formatNum(solution, 2)} mL` : "";
+  const vialConc = dosage ? `${formatNum(dosage.mgPerMl, 2)} mg/mL` : "";
+  const vialDose = dosage
+    ? `${dosage.doseText} (${formatNum(dosage.units, 1)} u)`
     : recon
       ? `Add ${formatNum(recon.totalMl, 2)} mL BAC`
       : "";
@@ -430,17 +426,20 @@ export default function PeptideCalculator({ initial = null }) {
               <h2>Auto-generated vial</h2>
             </div>
             <p className="meta">
-              Label updates as you type — unique color per peptide, Undisclosed
-              branding, download-ready PNG.
+              Realistic 3 mL Undisclosed brand label — updates as you type.
+              Download-ready PNG.
             </p>
             <div className="calc-vial-stage">
               <GeneratedVial
                 name={name || "Peptide"}
                 mass={mass}
+                unit="mg"
                 category={vialCategory}
-                mixText={vialMixText}
-                doseRef={vialDoseRef}
+                bacWater={vialBac}
+                concentration={vialConc}
+                doseRange={vialDose}
                 reconstituted={Boolean(solution && parseFloat(solution) > 0)}
+                vialMl={3}
                 size="lg"
                 showDownload
               />

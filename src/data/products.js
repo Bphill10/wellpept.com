@@ -7,6 +7,9 @@ import {
   THE_LOBSTER_SUBMISSIONS,
   THE_LOBSTER_VENDOR,
 } from "./theLobster";
+import { resolveVialMl } from "../utils/vialArt";
+
+export { resolveVialMl };
 
 /** Default retail markup applied on top of vendor cost after approval.
  *  Final catalog price is marked up, then rounded UP to the nearest $5.
@@ -158,7 +161,8 @@ export function normalizeCompoundKey(name) {
 function variantKey(product) {
   const mg = Number(product.mg) || 0;
   const pack = Number(product.packVials) || 1;
-  return `${mg}|${pack}|${product.externalOnly ? "ext" : "std"}`;
+  const vialMl = resolveVialMl(product);
+  return `${mg}|${pack}|${vialMl}|${product.externalOnly ? "ext" : "std"}`;
 }
 
 export function formatStrengthLabel(product) {
@@ -166,6 +170,7 @@ export function formatStrengthLabel(product) {
   const pack = Number(product.packVials) || 1;
   const unit = product.unit || "mg";
   const form = String(product.form || "");
+  const vialMl = resolveVialMl(product);
   const lane =
     form.includes("· International")
       ? "Intl"
@@ -182,7 +187,7 @@ export function formatStrengthLabel(product) {
                 : null;
 
   if (!amount && !product.externalOnly) {
-    return pack > 1 ? `${pack}-pack` : "Standard";
+    return pack > 1 ? `${pack}-pack · ${vialMl} mL` : `${vialMl} mL vial`;
   }
 
   let amountPart;
@@ -194,8 +199,9 @@ export function formatStrengthLabel(product) {
   else amountPart = `${amount} ${unit}`;
 
   const packPart = pack > 1 ? ` · ${pack}-pack` : "";
+  const vialPart = ` · ${vialMl} mL`;
   const lanePart = lane ? ` · ${lane}` : "";
-  return `${amountPart}${packPart}${lanePart}`;
+  return `${amountPart}${vialPart}${packPart}${lanePart}`;
 }
 
 /**
@@ -302,6 +308,7 @@ export function buildCatalog(vendors, submissions) {
     const price = isExternal ? null : retailFromVendor(vendorCost);
     const packVials = Number(item.packVials) || 1;
     const featured = Boolean(item.vendor.featured);
+    const vialMl = resolveVialMl(item);
     return {
       id: `p-${item.sku.toLowerCase()}`,
       submissionId: item.id,
@@ -312,6 +319,7 @@ export function buildCatalog(vendors, submissions) {
       mg: item.mg,
       unit: item.unit || (/\bIU\b/i.test(item.form || "") ? "IU" : "mg"),
       packVials,
+      vialMl,
       unitLabel: packVials > 1 ? `${packVials}-pack` : "each",
       category: item.category || guessCategory(item.name),
       blurb: guessBlurb(item.name),

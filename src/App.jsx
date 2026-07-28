@@ -53,8 +53,11 @@ function VialPreview({ product, size = "md", showDownload = false }) {
       name={product.name}
       sku={product.sku}
       mass={product.mg}
+      unit={product.unit || "mg"}
       category={product.category}
       subtitle={product.form}
+      form={product.form}
+      vialMl={product.vialMl}
       size={size}
       showDownload={showDownload}
     />
@@ -243,20 +246,29 @@ export default function App() {
 
     const lines = payload.lines
       .filter((line) => line.name.trim() && line.sku.trim() && line.vendorCost)
-      .map((line) => ({
-        id: uid("s"),
-        vendorId,
-        sku: line.sku.trim().toUpperCase(),
-        name: line.name.trim(),
-        form: line.form.trim() || "Lyophilized vial",
-        purity: line.purity.trim() || "—",
-        mg: Number(line.mg) || 0,
-        vendorCost: Number(line.vendorCost),
-        category: line.category || guessCategory(line.name.trim()),
-        status: "pending",
-        submittedAt: new Date().toISOString(),
-        reviewedAt: null,
-      }));
+      .map((line) => {
+        const vialMl = Number(line.vialMl) === 10 ? 10 : 3;
+        const baseForm = line.form.trim() || "Lyophilized vial";
+        const form = /\b\d+\s*ml\b/i.test(baseForm)
+          ? baseForm
+          : `${baseForm} · ${vialMl}ml`;
+        return {
+          id: uid("s"),
+          vendorId,
+          sku: line.sku.trim().toUpperCase(),
+          name: line.name.trim(),
+          form,
+          purity: line.purity.trim() || "—",
+          mg: Number(line.mg) || 0,
+          vendorCost: Number(line.vendorCost),
+          category: line.category || guessCategory(line.name.trim()),
+          vialMl,
+          packVials: 10,
+          status: "pending",
+          submittedAt: new Date().toISOString(),
+          reviewedAt: null,
+        };
+      });
 
     if (!vendor.name || !vendor.email || lines.length === 0) {
       setFlash("Add vendor details and at least one price-list item");
@@ -272,20 +284,29 @@ export default function App() {
   function submitPriceListForExisting(vendorId, linesInput) {
     const lines = linesInput
       .filter((line) => line.name.trim() && line.sku.trim() && line.vendorCost)
-      .map((line) => ({
-        id: uid("s"),
-        vendorId,
-        sku: line.sku.trim().toUpperCase(),
-        name: line.name.trim(),
-        form: line.form.trim() || "Lyophilized vial",
-        purity: line.purity.trim() || "—",
-        mg: Number(line.mg) || 0,
-        vendorCost: Number(line.vendorCost),
-        category: line.category || guessCategory(line.name.trim()),
-        status: "pending",
-        submittedAt: new Date().toISOString(),
-        reviewedAt: null,
-      }));
+      .map((line) => {
+        const vialMl = Number(line.vialMl) === 10 ? 10 : 3;
+        const baseForm = line.form.trim() || "Lyophilized vial";
+        const form = /\b\d+\s*ml\b/i.test(baseForm)
+          ? baseForm
+          : `${baseForm} · ${vialMl}ml`;
+        return {
+          id: uid("s"),
+          vendorId,
+          sku: line.sku.trim().toUpperCase(),
+          name: line.name.trim(),
+          form,
+          purity: line.purity.trim() || "—",
+          mg: Number(line.mg) || 0,
+          vendorCost: Number(line.vendorCost),
+          category: line.category || guessCategory(line.name.trim()),
+          vialMl,
+          packVials: 10,
+          status: "pending",
+          submittedAt: new Date().toISOString(),
+          reviewedAt: null,
+        };
+      });
 
     if (lines.length === 0) {
       setFlash("Add at least one valid line item");
@@ -801,8 +822,10 @@ export default function App() {
                       name="The Lobster"
                       sku="INTL"
                       mass={10}
+                      unit="mg"
                       category="Growth"
-                      mixText="Featured vendor"
+                      vialMl={3}
+                      form="Lyophilized vial · 3ml"
                       size="lg"
                     />
                   </div>
@@ -1012,6 +1035,9 @@ function ProductCard({ listing, onOpen, onAdd }) {
           </div>
           <h3>{listing.name}</h3>
           <div className="meta">{product.form}</div>
+          <div className="meta vial-size-tag">
+            {product.vialMl || 3} mL vial
+          </div>
           <div className="rating">
             <span className="stars" aria-hidden>
               ★★★★☆
@@ -1287,11 +1313,12 @@ function emptyLine() {
   return {
     sku: "",
     name: "",
-    form: "Lyophilized vial",
+    form: "Lyophilized vial · 3ml",
     purity: "99%",
     mg: "",
     vendorCost: "",
     category: "Research",
+    vialMl: "3",
   };
 }
 
@@ -1644,6 +1671,33 @@ function PriceListEditor({ lines, onChange }) {
                 value={line.purity}
                 onChange={(e) => updateLine(index, "purity", e.target.value)}
               />
+            </label>
+            <label className="field">
+              Vial size
+              <select
+                value={line.vialMl === "10" || line.vialMl === 10 ? "10" : "3"}
+                onChange={(e) => {
+                  const vialMl = e.target.value;
+                  const base = String(line.form || "Lyophilized vial").replace(
+                    /\s*·\s*\d+\s*ml/gi,
+                    ""
+                  );
+                  onChange(
+                    lines.map((row, i) =>
+                      i === index
+                        ? {
+                            ...row,
+                            vialMl,
+                            form: `${base} · ${vialMl}ml`,
+                          }
+                        : row
+                    )
+                  );
+                }}
+              >
+                <option value="3">3 mL (standard)</option>
+                <option value="10">10 mL</option>
+              </select>
             </label>
             <label className="field">
               Category

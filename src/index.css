@@ -1108,6 +1108,15 @@ a.cart-cta {
   color: var(--ink-soft);
 }
 
+.vial-size-tag {
+  margin-top: 0.15rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--teal-deep);
+}
+
 .price-row {
   display: flex;
   align-items: baseline;

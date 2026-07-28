@@ -48,7 +48,7 @@ const LOBSTER_LINES = [
   { sku: "LOB-TIRZ10", name: "Tirzepatide", mg: 10, vendorCost: 80, category: "Metabolic", packVials: 10 },
   { sku: "LOB-TIRZ30", name: "Tirzepatide", mg: 30, vendorCost: 160, category: "Metabolic", packVials: 10 },
   { sku: "LOB-TIRZ60", name: "Tirzepatide", mg: 60, vendorCost: 290, category: "Metabolic", packVials: 10 },
-  { sku: "LOB-PRO62", name: "TheProLobster Plus HGH", mg: 62, unit: "IU", vendorCost: 35, category: "Growth", packVials: 1, form: "Large bottle · 62 IU single vial · International" },
+  { sku: "LOB-PRO62", name: "TheProLobster Plus HGH", mg: 62, unit: "IU", vendorCost: 35, category: "Growth", packVials: 1, vialMl: 10, form: "Large bottle · 62 IU single vial · 10ml · International" },
 ];
 
 export const THE_LOBSTER_SUBMISSIONS = LOBSTER_LINES.map((line) => ({
@@ -58,13 +58,14 @@ export const THE_LOBSTER_SUBMISSIONS = LOBSTER_LINES.map((line) => ({
   name: line.name,
   form:
     line.form ||
-    `Lyophilized vial · ${line.mg}${line.unit || "mg"}*${line.packVials}vials · International`,
+    `Lyophilized vial · ${line.mg}${line.unit || "mg"}*${line.packVials}vials · 3ml · International`,
   purity: "≥99%",
   mg: line.mg,
   unit: line.unit || "mg",
   vendorCost: line.vendorCost,
   category: line.category,
   packVials: line.packVials,
+  vialMl: line.vialMl || 3,
   status: "approved",
   submittedAt: "2026-06-27T00:00:00.000Z",
   reviewedAt: "2026-07-28T00:00:00.000Z",
