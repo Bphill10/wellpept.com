@@ -72,11 +72,13 @@ The site is locked behind an account gate:
 - User ID required
 - Password required (8+ characters, letter + number)
 - Must confirm **18 or older**
+- **Email must be confirmed** before shopping (6-digit code or confirmation link)
+
+Flow: create account → confirmation message opens to their email → they enter the code or open the link on the same device → then they can shop.
 
 Create account or sign in before browsing. Sign out is in the header.
 
-Accounts are stored in the browser for now (device local). For multi-device
-accounts later, we can connect Clerk, Auth0, or Supabase.
+Accounts are stored in the browser for now (device local). Confirmation links work on the same browser where they signed up. For multi-device accounts later, we can connect Clerk, Auth0, or Supabase with real outbound email.
 
 ## H. Go-live checklist
 
@@ -87,4 +89,5 @@ accounts later, we can connect Clerk, Auth0, or Supabase.
 - [ ] Crisp Website ID set + phone app installed
 - [ ] Order request flow tested (no pay at checkout; 4-week consent)
 - [ ] Create account / 18+ gate tested
+- [ ] Email confirmation required before store access
 - [ ] Legal notices still visible on Fresh Mix products

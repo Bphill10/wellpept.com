@@ -4082,6 +4082,36 @@ body:has(.app-shell--skincare) {
   color: #8a1f1f;
 }
 
+.auth-info {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: #0f3d7a;
+  background: color-mix(in srgb, #0047ab 8%, white);
+  border: 1px solid color-mix(in srgb, #0047ab 22%, transparent);
+  border-radius: 8px;
+  padding: 0.75rem 0.85rem;
+}
+
+.auth-pending-email {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--ink, #111);
+}
+
+.auth-confirm-actions {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.auth-confirm-actions .soft-btn,
+.auth-confirm-actions .ghost-btn {
+  width: 100%;
+  justify-content: center;
+}
+
 .auth-submit {
   width: 100%;
   justify-content: center;

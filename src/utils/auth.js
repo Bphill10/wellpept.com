@@ -1,8 +1,11 @@
-/** WellPept account auth (email + user id + password, 18+). */
+/** WellPept account auth (email + user id + password, 18+, email confirm). */
 
 const USERS_KEY = "wellpept_users_v1";
 const SESSION_KEY = "wellpept_session_v1";
+const PENDING_KEY = "wellpept_pending_verify_v1";
 const SESSION_DAYS = 30;
+const VERIFY_HOURS = 48;
+export const AUTH_NOTIFY_EMAIL = "info@wellpept.com";
 
 function bufToB64(buf) {
   const bytes = new Uint8Array(buf);
@@ -16,6 +19,19 @@ function b64ToBuf(b64) {
   const bytes = new Uint8Array(s.length);
   for (let i = 0; i < s.length; i += 1) bytes[i] = s.charCodeAt(i);
   return bytes.buffer;
+}
+
+function randomToken(bytes = 24) {
+  return bufToB64(crypto.getRandomValues(new Uint8Array(bytes)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+
+function randomCode() {
+  const n = crypto.getRandomValues(new Uint8Array(3));
+  const num = ((n[0] << 16) | (n[1] << 8) | n[2]) % 1000000;
+  return String(num).padStart(6, "0");
 }
 
 async function deriveKey(password, saltB64) {
@@ -85,6 +101,14 @@ export function validatePassword(password) {
   return "";
 }
 
+function isVerified(user) {
+  // New accounts require emailVerified === true.
+  // Legacy accounts created before this gate stay usable.
+  if (user.emailVerified === true) return true;
+  if (user.emailVerified === false) return false;
+  return Boolean(user.createdAt && !user.verifyToken);
+}
+
 export function getSession() {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
@@ -92,6 +116,12 @@ export function getSession() {
     const session = JSON.parse(raw);
     if (!session?.userId || !session?.expiresAt) return null;
     if (Date.now() > Number(session.expiresAt)) {
+      localStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+    const users = loadUsers();
+    const user = users.find((u) => u.userId === session.userId);
+    if (user && !isVerified(user)) {
       localStorage.removeItem(SESSION_KEY);
       return null;
     }
@@ -105,6 +135,7 @@ function writeSession(user) {
   const session = {
     userId: user.userId,
     email: user.email,
+    emailVerified: true,
     createdAt: Date.now(),
     expiresAt: Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000,
   };
@@ -114,6 +145,104 @@ function writeSession(user) {
 
 export function logout() {
   localStorage.removeItem(SESSION_KEY);
+}
+
+export function getPendingVerify() {
+  try {
+    const raw = localStorage.getItem(PENDING_KEY);
+    if (!raw) return null;
+    const pending = JSON.parse(raw);
+    if (!pending?.email || !pending?.userId) return null;
+    return pending;
+  } catch {
+    return null;
+  }
+}
+
+function setPendingVerify(user) {
+  const pending = {
+    email: user.email,
+    userId: user.userId,
+    createdAt: Date.now(),
+  };
+  localStorage.setItem(PENDING_KEY, JSON.stringify(pending));
+  return pending;
+}
+
+export function clearPendingVerify() {
+  localStorage.removeItem(PENDING_KEY);
+}
+
+function issueVerification(user) {
+  const verifyToken = randomToken(24);
+  const verifyCode = randomCode();
+  const verifyExpiresAt = Date.now() + VERIFY_HOURS * 60 * 60 * 1000;
+  user.verifyToken = verifyToken;
+  user.verifyCode = verifyCode;
+  user.verifyExpiresAt = verifyExpiresAt;
+  user.emailVerified = false;
+  user.emailVerifiedAt = null;
+  return { verifyToken, verifyCode, verifyExpiresAt };
+}
+
+export function buildConfirmUrl(token) {
+  const url = new URL(window.location.origin + window.location.pathname);
+  url.searchParams.set("confirm_email", token);
+  return url.toString();
+}
+
+export function openConfirmEmailDraft(user, { verifyToken, verifyCode } = {}) {
+  const token = verifyToken || user.verifyToken;
+  const code = verifyCode || user.verifyCode;
+  if (!token || !code) return null;
+  const link = buildConfirmUrl(token);
+  const subject = encodeURIComponent("Confirm your WellPept email");
+  const body = encodeURIComponent(
+    [
+      "Confirm your WellPept account email.",
+      "",
+      `User ID: ${user.userId}`,
+      `Confirmation code: ${code}`,
+      "",
+      "Open this link on the same device/browser where you signed up:",
+      link,
+      "",
+      "Or sign in and enter the 6-digit code on the confirmation screen.",
+      "",
+      "If you did not create a WellPept account, ignore this message.",
+    ].join("\n")
+  );
+  const mailto = `mailto:${encodeURIComponent(user.email)}?subject=${subject}&body=${body}`;
+  try {
+    const a = document.createElement("a");
+    a.href = mailto;
+    a.rel = "noopener";
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch {
+    /* ignore */
+  }
+  return { mailto, link, code };
+}
+
+function notifyOpsNewSignup(user) {
+  const subject = encodeURIComponent(
+    `WellPept signup pending email confirm · ${user.userId}`
+  );
+  const body = encodeURIComponent(
+    [
+      "New WellPept account (awaiting email confirmation):",
+      `User ID: ${user.userId}`,
+      `Email: ${user.email}`,
+      `Created: ${user.createdAt}`,
+      "",
+      "They cannot shop until they confirm their email.",
+    ].join("\n")
+  );
+  // Ops copy only — do not auto-open; signup already opens customer mailto.
+  return `mailto:${AUTH_NOTIFY_EMAIL}?subject=${subject}&body=${body}`;
 }
 
 export async function registerAccount({
@@ -159,12 +288,23 @@ export async function registerAccount({
     salt,
     hash,
     ageConfirmed: true,
+    emailVerified: false,
     createdAt: new Date().toISOString(),
   };
+  const issued = issueVerification(user);
   users.push(user);
   saveUsers(users);
-  const session = writeSession(user);
-  return { ok: true, session };
+  logout();
+  const pending = setPendingVerify(user);
+  const draft = openConfirmEmailDraft(user, issued);
+  return {
+    ok: true,
+    needsEmailConfirm: true,
+    pending,
+    confirmLink: draft?.link || buildConfirmUrl(issued.verifyToken),
+    confirmCode: issued.verifyCode,
+    opsMailto: notifyOpsNewSignup(user),
+  };
 }
 
 export async function loginAccount({ login, password }) {
@@ -186,6 +326,134 @@ export async function loginAccount({ login, password }) {
   if (!user.ageConfirmed) {
     return { ok: false, error: "This account is not cleared for 18+ access." };
   }
+  if (!isVerified(user)) {
+    // Refresh token if expired so they can confirm again
+    if (!user.verifyExpiresAt || Date.now() > Number(user.verifyExpiresAt)) {
+      issueVerification(user);
+      saveUsers(users);
+    }
+    setPendingVerify(user);
+    openConfirmEmailDraft(user);
+    return {
+      ok: false,
+      needsEmailConfirm: true,
+      error:
+        "Confirm your email before signing in. We opened a confirmation message — send it to yourself, then use the link or 6-digit code.",
+      pending: getPendingVerify(),
+      confirmCode: user.verifyCode,
+      confirmLink: buildConfirmUrl(user.verifyToken),
+    };
+  }
   const session = writeSession(user);
+  clearPendingVerify();
   return { ok: true, session };
+}
+
+function markVerified(user, users) {
+  user.emailVerified = true;
+  user.emailVerifiedAt = new Date().toISOString();
+  user.verifyToken = null;
+  user.verifyCode = null;
+  user.verifyExpiresAt = null;
+  saveUsers(users);
+  clearPendingVerify();
+  return writeSession(user);
+}
+
+export function confirmEmailWithToken(token) {
+  const t = String(token || "").trim();
+  if (!t) return { ok: false, error: "Missing confirmation link." };
+  const users = loadUsers();
+  const user = users.find((u) => u.verifyToken && u.verifyToken === t);
+  if (!user) {
+    return { ok: false, error: "This confirmation link is invalid or already used." };
+  }
+  if (user.verifyExpiresAt && Date.now() > Number(user.verifyExpiresAt)) {
+    return {
+      ok: false,
+      error: "This confirmation link expired. Sign in to get a new one.",
+      needsEmailConfirm: true,
+      pending: setPendingVerify(user),
+    };
+  }
+  const session = markVerified(user, users);
+  return { ok: true, session };
+}
+
+export function confirmEmailWithCode({ email, userId, code }) {
+  const entered = String(code || "")
+    .trim()
+    .replace(/\s+/g, "");
+  if (!/^\d{6}$/.test(entered)) {
+    return { ok: false, error: "Enter the 6-digit confirmation code." };
+  }
+  const users = loadUsers();
+  const pending = getPendingVerify();
+  const mail = normalizeEmail(email || pending?.email);
+  const id = normalizeUserId(userId || pending?.userId);
+  const user = users.find(
+    (u) => (mail && u.email === mail) || (id && u.userId === id)
+  );
+  if (!user) {
+    return { ok: false, error: "Account not found. Create an account first." };
+  }
+  if (isVerified(user)) {
+    const session = writeSession(user);
+    clearPendingVerify();
+    return { ok: true, session, alreadyVerified: true };
+  }
+  if (user.verifyExpiresAt && Date.now() > Number(user.verifyExpiresAt)) {
+    return {
+      ok: false,
+      error: "That code expired. Use Resend confirmation to get a new one.",
+    };
+  }
+  if (user.verifyCode !== entered) {
+    return { ok: false, error: "Incorrect confirmation code." };
+  }
+  const session = markVerified(user, users);
+  return { ok: true, session };
+}
+
+export function resendEmailConfirmation({ email, userId } = {}) {
+  const users = loadUsers();
+  const pending = getPendingVerify();
+  const mail = normalizeEmail(email || pending?.email);
+  const id = normalizeUserId(userId || pending?.userId);
+  const user = users.find(
+    (u) => (mail && u.email === mail) || (id && u.userId === id)
+  );
+  if (!user) {
+    return { ok: false, error: "Account not found." };
+  }
+  if (isVerified(user)) {
+    return { ok: false, error: "This email is already confirmed. Sign in." };
+  }
+  const issued = issueVerification(user);
+  saveUsers(users);
+  setPendingVerify(user);
+  const draft = openConfirmEmailDraft(user, issued);
+  return {
+    ok: true,
+    pending: getPendingVerify(),
+    confirmLink: draft?.link,
+    confirmCode: issued.verifyCode,
+  };
+}
+
+/** Consume ?confirm_email= from the URL if present. */
+export function consumeConfirmEmailFromUrl() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("confirm_email");
+    if (!token) return null;
+    params.delete("confirm_email");
+    const next = `${window.location.pathname}${
+      params.toString() ? `?${params}` : ""
+    }${window.location.hash || ""}`;
+    window.history.replaceState({}, "", next);
+    return confirmEmailWithToken(token);
+  } catch {
+    return { ok: false, error: "Could not read confirmation link." };
+  }
 }
