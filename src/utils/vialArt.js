@@ -190,7 +190,7 @@ function drawUdMonogramSeal(ctx, cx, cy, r) {
   ctx.lineWidth = Math.max(1, r * 0.03);
   ctx.stroke();
 
-  // U (behind)
+  // U (behind), centered
   ctx.strokeStyle = "#0a0a0a";
   ctx.lineWidth = Math.max(2, r * 0.22);
   ctx.lineCap = "butt";
@@ -202,36 +202,32 @@ function drawUdMonogramSeal(ctx, cx, cy, r) {
   ctx.lineTo(cx + r * 0.42, cy - r * 0.48);
   ctx.stroke();
 
-  // D (in front of U)
+  // D (in front of U), centered on the seal
+  const dLeft = cx - r * 0.34;
+  const dTop = cy - r * 0.5;
+  const dBottom = cy + r * 0.5;
+  const dSpine = cx - r * 0.1;
+  const dRight = cx + r * 0.42;
   ctx.fillStyle = "#0a0a0a";
   ctx.beginPath();
-  ctx.moveTo(cx - r * 0.18, cy - r * 0.52);
-  ctx.lineTo(cx + r * 0.02, cy - r * 0.52);
-  ctx.bezierCurveTo(
-    cx + r * 0.55,
-    cy - r * 0.52,
-    cx + r * 0.58,
-    cy + r * 0.52,
-    cx + r * 0.02,
-    cy + r * 0.52
-  );
-  ctx.lineTo(cx - r * 0.18, cy + r * 0.52);
+  ctx.moveTo(dLeft, dTop);
+  ctx.lineTo(dSpine, dTop);
+  ctx.bezierCurveTo(dRight, dTop, dRight, dBottom, dSpine, dBottom);
+  ctx.lineTo(dLeft, dBottom);
   ctx.closePath();
   ctx.fill();
 
-  // D counter so the letter reads clearly
+  // D counter so the letter reads clearly (also centered)
+  const cLeft = cx - r * 0.12;
+  const cTop = cy - r * 0.28;
+  const cBottom = cy + r * 0.28;
+  const cSpine = cx - r * 0.04;
+  const cRight = cx + r * 0.26;
   ctx.beginPath();
-  ctx.moveTo(cx - r * 0.02, cy - r * 0.28);
-  ctx.lineTo(cx + r * 0.02, cy - r * 0.28);
-  ctx.bezierCurveTo(
-    cx + r * 0.32,
-    cy - r * 0.28,
-    cx + r * 0.34,
-    cy + r * 0.28,
-    cx + r * 0.02,
-    cy + r * 0.28
-  );
-  ctx.lineTo(cx - r * 0.02, cy + r * 0.28);
+  ctx.moveTo(cLeft, cTop);
+  ctx.lineTo(cSpine, cTop);
+  ctx.bezierCurveTo(cRight, cTop, cRight, cBottom, cSpine, cBottom);
+  ctx.lineTo(cLeft, cBottom);
   ctx.closePath();
   ctx.fillStyle = gold;
   ctx.fill();
