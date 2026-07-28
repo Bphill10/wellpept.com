@@ -1017,8 +1017,7 @@ img {
 .product-visual {
   aspect-ratio: 1.05 / 1;
   background:
-    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.85), transparent 45%),
-    linear-gradient(145deg, #dce8f2, #b7cfe0 45%, #7ea8c4);
+    radial-gradient(ellipse at 50% 42%, #2a2a2a 0%, #0a0a0a 62%, #050505 100%);
   position: relative;
   display: grid;
   place-items: center;
@@ -1036,27 +1035,29 @@ img {
   display: block;
   max-width: 100%;
   height: auto;
+  border-radius: 4px;
 }
 
 .generated-vial--sm {
-  max-height: 84px;
+  max-height: 96px;
 }
 
 .generated-vial--md {
-  max-height: 200px;
+  max-height: 220px;
 }
 
 .generated-vial--lg {
-  max-height: 360px;
+  max-height: 420px;
 }
 
 .calc-vial-stage {
   display: grid;
   place-items: center;
   background:
-    radial-gradient(ellipse at 50% 70%, rgba(255, 255, 255, 0.9), rgba(232, 238, 245, 0.6));
+    radial-gradient(ellipse at 50% 40%, #1c1c1c 0%, #080808 70%);
   border-radius: 16px;
   padding: 1rem 0.5rem;
+  border: 1px solid rgba(196, 163, 90, 0.22);
 }
 
 .vial-download {
@@ -1147,6 +1148,11 @@ img {
 .featured-vendor-visual {
   display: grid;
   place-items: center;
+  padding: 1.25rem;
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse at 50% 40%, #222 0%, #0a0a0a 70%);
+  border: 1px solid rgba(196, 163, 90, 0.28);
 }
 
 .price-external {
@@ -1810,11 +1816,10 @@ th {
   border-radius: calc(var(--radius) + 2px);
   min-height: 360px;
   background:
-    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.85), transparent 45%),
-    linear-gradient(145deg, #dce8f2, #b7cfe0 45%, #7ea8c4);
+    radial-gradient(ellipse at 50% 40%, #2a2a2a 0%, #0a0a0a 65%, #050505 100%);
   display: grid;
   place-items: center;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(196, 163, 90, 0.28);
   padding: 1rem;
 }
 
@@ -2003,10 +2008,12 @@ th {
   width: 72px;
   height: 72px;
   border-radius: 10px;
-  background: linear-gradient(145deg, #dce8f2, #7ea8c4);
+  background:
+    radial-gradient(ellipse at 50% 40%, #2a2a2a 0%, #0a0a0a 70%);
   display: grid;
   place-items: center;
   overflow: hidden;
+  border: 1px solid rgba(196, 163, 90, 0.25);
 }
 
 .cart-thumb .generated-vial--sm {
@@ -2185,7 +2192,9 @@ th {
   margin: 0.75rem 0 1rem;
   padding: 0.75rem;
   border-radius: 12px;
-  background: #0a0a0a;
+  background:
+    radial-gradient(ellipse at 50% 40%, #1c1c1c 0%, #080808 70%);
+  border: 1px solid rgba(196, 163, 90, 0.22);
 }
 
 .calc-label-stage {

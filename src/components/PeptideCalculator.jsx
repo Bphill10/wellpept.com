@@ -310,11 +310,11 @@ export default function PeptideCalculator({ initial = null }) {
 
             <div className="calc-vial-panel">
               <div className="calc-card-head">
-                <h2>Brand label</h2>
+                <h2>Brand vial</h2>
               </div>
               <p className="meta">
-                Fills your Undisclosed vial + flat QR template from the numbers
-                above.
+                Real Undisclosed studio vial photo with your calc data and a
+                scannable QR.
               </p>
               <div className="calc-vial-stage">
                 <GeneratedVial

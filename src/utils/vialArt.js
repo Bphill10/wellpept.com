@@ -3,6 +3,8 @@ import QRCode from "qrcode";
 /** Undisclosed brand vial art — gold cap, black V-sleeve, UD monogram seal (D in front of U). */
 
 export const BRAND_IMAGE_SRC = "/undisclosed-brand.png";
+/** Real studio vial photo cropped from the brand plate. */
+export const BRAND_VIAL_SRC = "/brand-vial.png";
 /** Circular UD seal cropped from the brand plate. */
 export const UD_MARK_SRC = "/ud-mark.png";
 /** Vector UD monogram — D layered in front of U. */
@@ -10,6 +12,8 @@ export const UD_MONOGRAM_SRC = "/ud-monogram.svg";
 
 let brandImageCache = null;
 let brandImagePromise = null;
+let brandVialCache = null;
+let brandVialPromise = null;
 let udMarkCache = null;
 let udMarkPromise = null;
 
@@ -33,6 +37,23 @@ export function loadBrandImage() {
     return img;
   });
   return brandImagePromise;
+}
+
+/** Prefetch the real studio vial photo. */
+export function loadBrandVial() {
+  if (brandVialCache) return Promise.resolve(brandVialCache);
+  if (brandVialPromise) return brandVialPromise;
+  brandVialPromise = loadImage(BRAND_VIAL_SRC).then(async (img) => {
+    if (img) {
+      brandVialCache = img;
+      return img;
+    }
+    // Fall back to full brand plate
+    const plate = await loadBrandImage();
+    brandVialCache = plate;
+    return plate;
+  });
+  return brandVialPromise;
 }
 
 /** Prefetch the circular UD mark (preferred seal asset). */
@@ -803,6 +824,10 @@ function drawBrandTenMl(ctx, dims, options) {
   }
 }
 
+/**
+ * Draw the real brand vial photo, then overlay product / calc label data.
+ * Falls back to procedural 3 mL / 10 mL drawing if the photo is unavailable.
+ */
 export function drawGeneratedVial(canvas, options = {}) {
   const {
     name = "Peptide",
@@ -816,6 +841,7 @@ export function drawGeneratedVial(canvas, options = {}) {
     form = "",
     udMark = null,
     brandImage = null,
+    brandVial = null,
     bacWater = "",
     concentration = "",
     doseRange = "",
@@ -826,10 +852,10 @@ export function drawGeneratedVial(canvas, options = {}) {
   const isTen = vialMl >= 10;
 
   const dims = {
-    sm: { w: 180, h: 280 },
-    md: { w: 320, h: 480 },
-    lg: { w: 460, h: 690 },
-  }[size] || { w: 320, h: 480 };
+    sm: { w: 160, h: 240 },
+    md: { w: 280, h: 420 },
+    lg: { w: 360, h: 560 },
+  }[size] || { w: 280, h: 420 };
 
   const dpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 2, 3) : 2;
   canvas.width = dims.w * dpr;
@@ -842,6 +868,25 @@ export function drawGeneratedVial(canvas, options = {}) {
   ctx.clearRect(0, 0, dims.w, dims.h);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
+
+  const photo = brandVial || brandVialCache || brandImage || brandImageCache;
+  if (photo && photo.width) {
+    drawPhotoVial(ctx, dims, {
+      photo,
+      name,
+      mass,
+      unit,
+      sku,
+      bacWater,
+      concentration,
+      doseRange,
+      qrPayload,
+      vialMl,
+      isTen,
+      udMark: udMark || udMarkCache,
+    });
+    return canvas.toDataURL("image/png");
+  }
 
   const drawOpts = {
     name,
@@ -860,6 +905,102 @@ export function drawGeneratedVial(canvas, options = {}) {
   else drawBrandThreeMl(ctx, dims, drawOpts);
 
   return canvas.toDataURL("image/png");
+}
+
+/** Cover-fit the studio vial photo, then stamp product data on the sleeve. */
+function drawPhotoVial(ctx, dims, options) {
+  const {
+    photo,
+    name = "Peptide",
+    mass = "",
+    unit = "mg",
+    sku = "",
+    bacWater = "",
+    concentration = "",
+    doseRange = "",
+    qrPayload = "",
+    vialMl = 3,
+    isTen = false,
+    udMark = null,
+  } = options;
+
+  // Match brand studio black
+  ctx.fillStyle = "#0a0a0a";
+  ctx.fillRect(0, 0, dims.w, dims.h);
+
+  const iw = photo.width;
+  const ih = photo.height;
+  const scale = Math.max(dims.w / iw, dims.h / ih);
+  const dw = iw * scale;
+  const dh = ih * scale;
+  const dx = (dims.w - dw) / 2;
+  const dy = (dims.h - dh) / 2;
+  ctx.drawImage(photo, dx, dy, dw, dh);
+
+  // Soft bottom vignette so overlay text stays readable
+  const veil = ctx.createLinearGradient(0, dims.h * 0.55, 0, dims.h);
+  veil.addColorStop(0, "rgba(0,0,0,0)");
+  veil.addColorStop(0.4, "rgba(0,0,0,0.4)");
+  veil.addColorStop(1, "rgba(0,0,0,0.82)");
+  ctx.fillStyle = veil;
+  ctx.fillRect(0, dims.h * 0.52, dims.w, dims.h * 0.48);
+
+  const cx = dims.w / 2;
+  const massNum = mass !== "" && mass != null ? mass : "";
+  const massLabel =
+    massNum !== "" ? `${massNum} ${String(unit || "mg").toUpperCase()}` : "";
+
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  let y = dims.h * 0.7;
+  ctx.fillStyle = "#ffffff";
+  ctx.font = `700 ${Math.max(11, dims.w * 0.065)}px Outfit, "Segoe UI", sans-serif`;
+  const titleLines = wrapLines(ctx, String(name).toUpperCase(), dims.w * 0.82, 2);
+  titleLines.forEach((line, i) => {
+    ctx.fillText(line, cx, y + i * dims.w * 0.075);
+  });
+  y += titleLines.length * dims.w * 0.075 + dims.w * 0.02;
+
+  if (massLabel) {
+    ctx.fillStyle = "#d4af37";
+    ctx.font = `700 ${Math.max(12, dims.w * 0.08)}px Outfit, "Segoe UI", sans-serif`;
+    ctx.fillText(massLabel, cx, y);
+    y += dims.w * 0.09;
+  }
+
+  const metaBits = [
+    isTen || vialMl >= 10 ? "10 mL vial" : "3 mL vial",
+    bacWater,
+    concentration,
+    doseRange,
+  ].filter(Boolean);
+  if (metaBits.length) {
+    ctx.fillStyle = "rgba(255,255,255,0.72)";
+    ctx.font = `600 ${Math.max(8, dims.w * 0.042)}px Outfit, "Segoe UI", sans-serif`;
+    metaBits.slice(0, 3).forEach((bit, i) => {
+      ctx.fillText(bit, cx, y + i * dims.w * 0.055);
+    });
+    y += metaBits.slice(0, 3).length * dims.w * 0.055;
+  }
+
+  if (qrPayload || bacWater || concentration || doseRange) {
+    const qrSize = Math.min(dims.w * 0.28, dims.h * 0.16);
+    const qrY = Math.min(dims.h - qrSize - dims.w * 0.06, y + dims.w * 0.04);
+    drawQrCode(
+      ctx,
+      cx - qrSize / 2,
+      qrY,
+      qrSize,
+      qrSeedFromOptions({ name, mass, unit, bacWater, concentration, doseRange, sku }),
+      true,
+      qrPayload
+    );
+  } else if (sku) {
+    ctx.fillStyle = "rgba(255,255,255,0.4)";
+    ctx.font = `500 ${Math.max(8, dims.w * 0.038)}px Outfit, sans-serif`;
+    ctx.fillText(sku, cx, dims.h - dims.w * 0.06);
+  }
 }
 
 /**

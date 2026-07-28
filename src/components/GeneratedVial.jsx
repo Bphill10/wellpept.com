@@ -3,6 +3,7 @@ import { Download } from "lucide-react";
 import {
   drawGeneratedVial,
   downloadVialPng,
+  loadBrandVial,
   loadUdMark,
   resolveVialMl,
 } from "../utils/vialArt";
@@ -30,13 +31,16 @@ export default function GeneratedVial({
 }) {
   const canvasRef = useRef(null);
   const [png, setPng] = useState("");
+  const [brandVial, setBrandVial] = useState(null);
   const [udMark, setUdMark] = useState(null);
   const resolvedMl = resolveVialMl({ form: form || subtitle, vialMl });
 
   useEffect(() => {
     let alive = true;
-    loadUdMark().then((img) => {
-      if (alive) setUdMark(img);
+    Promise.all([loadBrandVial(), loadUdMark()]).then(([vial, mark]) => {
+      if (!alive) return;
+      setBrandVial(vial);
+      setUdMark(mark);
     });
     return () => {
       alive = false;
@@ -64,6 +68,7 @@ export default function GeneratedVial({
         reconstituted,
         vialMl: resolvedMl,
         form: form || subtitle,
+        brandVial,
         udMark,
         qrPayload,
       });
@@ -88,6 +93,7 @@ export default function GeneratedVial({
     reconstituted,
     resolvedMl,
     form,
+    brandVial,
     udMark,
     qrPayload,
   ]);
@@ -103,6 +109,7 @@ export default function GeneratedVial({
       <canvas
         ref={canvasRef}
         className={`generated-vial generated-vial--${size} generated-vial--${resolvedMl}ml`}
+        aria-label={`${name} Undisclosed brand vial`}
       />
       {showDownload && (
         <button type="button" className="soft-btn vial-download" onClick={handleDownload}>
