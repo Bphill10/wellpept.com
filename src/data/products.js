@@ -419,6 +419,10 @@ function variantKey(product) {
   return `${mg}|${pack}|${vialMl}|${product.externalOnly ? "ext" : "std"}`;
 }
 
+export function strengthKey(product) {
+  return variantKey(product);
+}
+
 export function formatStrengthLabel(product) {
   const amount = Number(product.mg);
   const pack = Number(product.packVials) || 1;
@@ -458,9 +462,27 @@ export function formatStrengthLabel(product) {
   return `${amountPart}${vialPart}${packPart}${lanePart}`;
 }
 
+function sortOffers(a, b) {
+  const pa = a.price == null ? Number.POSITIVE_INFINITY : Number(a.price);
+  const pb = b.price == null ? Number.POSITIVE_INFINITY : Number(b.price);
+  if (pa !== pb) return pa - pb;
+  if (Boolean(b.featured) !== Boolean(a.featured)) return b.featured ? 1 : -1;
+  return String(a.vendor || "").localeCompare(String(b.vendor || ""));
+}
+
+export function formatVendorOfferLabel(product) {
+  const price =
+    product.price == null ? "See options" : formatMoney(product.price);
+  const ship =
+    product.shippingFlat != null
+      ? ` · ship ${formatMoney(product.shippingFlat)}`
+      : "";
+  return `${product.vendor} · ${price}${ship}`;
+}
+
 /**
- * Collapse duplicate compound rows into one listing with MG (strength) variants.
- * Same strength across vendors keeps the lowest retail price.
+ * Collapse duplicate compound rows into strength groups with all vendor offers.
+ * Default offer per strength is the lowest retail price.
  */
 export function groupCatalog(products) {
   const groups = new Map();
@@ -477,27 +499,16 @@ export function groupCatalog(products) {
         category: product.category,
         blurb: product.blurb,
         tagline: product.tagline,
-        variantsByKey: new Map(),
+        offersByStrength: new Map(),
       });
     }
 
     const group = groups.get(key);
     const vKey = variantKey(product);
-    const prev = group.variantsByKey.get(vKey);
-
-    const better =
-      !prev ||
-      (!product.externalOnly && prev.externalOnly) ||
-      (!product.externalOnly &&
-        !prev.externalOnly &&
-        Number(product.price) < Number(prev.price)) ||
-      (product.externalOnly &&
-        prev.externalOnly &&
-        (Number(product.mg) || 0) === (Number(prev.mg) || 0));
-
-    if (better) {
-      group.variantsByKey.set(vKey, product);
+    if (!group.offersByStrength.has(vKey)) {
+      group.offersByStrength.set(vKey, []);
     }
+    group.offersByStrength.get(vKey).push(product);
 
     if (product.name.length < group.name.length) {
       group.name = product.name;
@@ -506,13 +517,34 @@ export function groupCatalog(products) {
 
   return [...groups.values()]
     .map((group) => {
-      const variants = [...group.variantsByKey.values()].sort((a, b) => {
-        const mgDiff = (Number(a.mg) || 0) - (Number(b.mg) || 0);
-        if (mgDiff !== 0) return mgDiff;
-        return (Number(a.packVials) || 1) - (Number(b.packVials) || 1);
-      });
-      const defaultVariant =
-        variants.find((v) => !v.externalOnly) || variants[0];
+      const strengths = [...group.offersByStrength.entries()]
+        .map(([key, offers]) => {
+          const sorted = [...offers].sort(sortOffers);
+          const sample = sorted[0];
+          const priced = sorted.find((o) => o.price != null);
+          return {
+            key,
+            mg: sample.mg,
+            unit: sample.unit || "mg",
+            packVials: sample.packVials,
+            vialMl: sample.vialMl,
+            label: formatStrengthLabel(sample),
+            offers: sorted,
+            defaultOfferId: (priced || sample).id,
+            lowestPrice: priced?.price ?? null,
+            vendorCount: sorted.length,
+          };
+        })
+        .sort((a, b) => {
+          const mgDiff = (Number(a.mg) || 0) - (Number(b.mg) || 0);
+          if (mgDiff !== 0) return mgDiff;
+          return (Number(a.packVials) || 1) - (Number(b.packVials) || 1);
+        });
+
+      const variants = strengths.flatMap((s) => s.offers);
+      const defaultStrength =
+        strengths.find((s) => s.lowestPrice != null) || strengths[0];
+      const defaultVariantId = defaultStrength?.defaultOfferId || variants[0]?.id;
       const reviews = variants.reduce((sum, v) => sum + (v.reviews || 0), 0);
       const rating =
         variants.reduce((sum, v) => sum + (v.rating || 0), 0) /
@@ -521,44 +553,68 @@ export function groupCatalog(products) {
       return {
         id: group.id,
         name: group.name,
-        category: group.category || defaultVariant?.category,
-        blurb: group.blurb || defaultVariant?.blurb,
-        tagline: group.tagline || defaultVariant?.tagline,
+        category: group.category || defaultStrength?.offers[0]?.category,
+        blurb: group.blurb || defaultStrength?.offers[0]?.blurb,
+        tagline: group.tagline || defaultStrength?.offers[0]?.tagline,
+        strengths,
         variants,
-        defaultVariantId: defaultVariant?.id,
+        defaultVariantId,
         rating,
         reviews,
-        badge: defaultVariant?.badge || null,
+        badge: defaultStrength?.offers[0]?.badge || null,
         featured: variants.some((v) => v.featured),
+        vendorCount: new Set(variants.map((v) => v.vendorId)).size,
       };
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
+/** Offers for the same strength as the given product within a listing. */
+export function offersForStrength(listing, product) {
+  if (!listing?.strengths?.length) {
+    return product ? [product] : [];
+  }
+  const key = product ? variantKey(product) : listing.strengths[0].key;
+  const strength =
+    listing.strengths.find((s) => s.key === key) || listing.strengths[0];
+  return strength?.offers || [];
+}
+
+export function strengthForProduct(listing, product) {
+  if (!listing?.strengths?.length) return null;
+  const key = product ? variantKey(product) : null;
+  return (
+    listing.strengths.find((s) => s.key === key) ||
+    listing.strengths[0] ||
+    null
+  );
+}
+
 /**
  * Build the public catalog from approved submissions.
- * For each SKU, keep the lowest vendor cost among approved vendors.
+ * One retail offer per vendor SKU (vendorId + sku).
  */
 export function buildCatalog(vendors, submissions) {
   const vendorById = Object.fromEntries(vendors.map((v) => [v.id, v]));
   const approved = submissions.filter((s) => s.status === "approved");
-  const bySku = new Map();
+  const byOffer = new Map();
 
   for (const item of approved) {
     const vendor = vendorById[item.vendorId];
     if (!vendor || vendor.status !== "approved") continue;
-    const prev = bySku.get(item.sku);
+    const offerKey = `${item.vendorId}::${item.sku}`;
+    const prev = byOffer.get(offerKey);
     const isExternal = Boolean(item.externalOnly);
     if (
       !prev ||
       isExternal ||
       Number(item.vendorCost) < Number(prev.vendorCost)
     ) {
-      bySku.set(item.sku, { ...item, vendor });
+      byOffer.set(offerKey, { ...item, vendor });
     }
   }
 
-  return [...bySku.values()].map((item, index) => {
+  return [...byOffer.values()].map((item, index) => {
     const isExternal = Boolean(item.externalOnly);
     const vendorCost = Number(item.vendorCost);
     const price = isExternal ? null : retailFromVendor(vendorCost);
@@ -566,7 +622,7 @@ export function buildCatalog(vendors, submissions) {
     const featured = Boolean(item.vendor.featured);
     const vialMl = resolveVialMl(item);
     return {
-      id: `p-${item.sku.toLowerCase()}`,
+      id: `p-${item.vendorId}-${item.sku}`.toLowerCase().replace(/[^a-z0-9-]+/g, "-"),
       submissionId: item.id,
       sku: item.sku,
       name: item.name,
