@@ -152,9 +152,28 @@ img {
 
 .brand {
   display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: max-content;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.brand-logo {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 4px 14px rgba(16, 33, 28, 0.18);
+}
+
+.brand-text {
+  display: flex;
   flex-direction: column;
   gap: 0.05rem;
-  min-width: max-content;
 }
 
 .brand-mark {

@@ -258,8 +258,17 @@ export default function App() {
       <header className="site-header">
         <div className="container header-inner">
           <button className="brand" onClick={goShop} type="button">
-            <span className="brand-mark">Undisclosed</span>
-            <span className="brand-sub">Research marketplace</span>
+            <img
+              src="/undisclosed-brand.png"
+              alt=""
+              className="brand-logo"
+              width={36}
+              height={36}
+            />
+            <span className="brand-text">
+              <span className="brand-mark">Undisclosed</span>
+              <span className="brand-sub">Research marketplace</span>
+            </span>
           </button>
 
           <div className="search-wrap">
