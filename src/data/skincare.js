@@ -283,10 +283,11 @@ export function buildSerumProduct({
 
   const serumTwistSteps = [
     "Keep upright. Do not shake before activating.",
-    "Twist any GHK-Cu powder cap until the chamber breaks — dry peptide drops into the serum.",
-    "Tip any additional dry peptide vials into the bottle (funnel included).",
-    "Seat the dropper. Shake 45–60 seconds until even. Use as directed. Follow refrigeration guidance.",
-  ];
+            "Twist any GHK-Cu powder cap until the chamber breaks — dry peptide drops into the serum.",
+            "Tip any additional dry peptide vials into the bottle (funnel included).",
+            "Seat the dropper (ships beside the bottle) after activation. Shake 45–60 seconds until even.",
+            "Use as directed. Follow refrigeration guidance.",
+          ];
 
   const serumVialSteps = [
     "Confirm the serum base is in the dropper bottle.",

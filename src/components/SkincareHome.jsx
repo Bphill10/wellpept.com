@@ -34,7 +34,6 @@ function ProductCard({ product, onOpenProduct, onAddToCart }) {
               <span className="skin-bottle-body" />
             </div>
           )}
-          <span className="badge">{product.line}</span>
         </div>
         <div className="product-body">
           <h3>{product.name}</h3>
@@ -84,11 +83,11 @@ export default function SkincareHome({
           </div>
           <div className="hero-brand-rule rise-delay" aria-hidden="true" />
           <p className="hero-tagline rise-delay">
-            Four peptides. Two serums + one cream. Mix yours.
+            Four peptides. Serum or cream. Mixed when you are.
           </p>
           <p className="hero-copy rise-delay">
-            GHK-Cu is the staple — add Matrixyl 3000, Syn-Ake, and SNAP-8 (1–4)
-            into a Buffet serum, peptide cream, or eye serum. Dry until you activate.
+            GHK-Cu is the staple — with Matrixyl 3000, Syn-Ake, and SNAP-8.
+            Dry powder in the twist-cap. Dropper beside until you activate.
           </p>
           <div className="hero-cta rise-delay">
             <button
@@ -201,25 +200,24 @@ export default function SkincareHome({
                   alt={FLAGSHIP_SERUM.name}
                   className="flagship-mix-img"
                 />
-                <span className="badge">Twist-cap · Flagship</span>
               </button>
               {FLAGSHIP_SERUM.gallery?.[1] && (
                 <img
                   src={FLAGSHIP_SERUM.gallery[1]}
-                  alt="Twist cap to release dry peptide powder into serum"
+                  alt="Twist powder chamber on bottle; dropper rests beside until activated"
                   className="flagship-mix-howto"
                 />
               )}
             </div>
             <div className="flagship-mix-body">
-              <p className="section-kicker">{FLAGSHIP_SERUM.line}</p>
+              <p className="section-kicker">Flagship</p>
               <h3>{FLAGSHIP_SERUM.name}</h3>
               <p>{FLAGSHIP_SERUM.blurb}</p>
               <ul className="flagship-mix-points">
-                <li>1 g dry GHK-Cu powder sealed in the twist-on cap</li>
+                <li>1 g dry GHK-Cu sealed in the twist-cap chamber</li>
                 <li>30 mL Buffet-style serum in the bottle</li>
-                <li>Or build your own — cream vehicle + Syn-Ake / Matrixyl / SNAP-8</li>
-                <li>Cosmetic use only · see peptide acknowledgment at checkout</li>
+                <li>Dropper ships beside — seat it after you activate</li>
+                <li>Cosmetic use only · peptide acknowledgment at checkout</li>
               </ul>
               <div className="price-row" style={{ margin: "0.85rem 0 1rem" }}>
                 <strong>{formatMoney(FLAGSHIP_SERUM.price)}</strong>

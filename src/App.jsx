@@ -655,7 +655,7 @@ export default function App() {
             <span className="header-top-msg">
               {labUnlocked
                 ? "Undisclosed · Research peptides · US only"
-                : "Fresh topical peptides · Twist-cap activation · US shipping"}
+                : "Twist-cap freshness · Dropper beside · US shipping"}
             </span>
             <span className="header-top-links">
               {labUnlocked ? (
@@ -922,7 +922,7 @@ export default function App() {
                           {skinProduct.form === "cream"
                             ? `Dry peptides mix into a leave-on cream vehicle — ${skinProduct.mixYield}`
                             : skinProduct.packaging === "twist-cap"
-                              ? `Dry peptide powder is loaded in the twist-on cap. Twist to break the chamber into the serum — ${skinProduct.mixYield}`
+                              ? `Dry peptide powder lives in the twist-cap. The dropper ships beside the bottle — seat it after you activate. Yield ${skinProduct.mixYield}`
                               : `Fresh ingredients ship separated. You mix at home — ${skinProduct.mixYield}`}
                           {skinProduct.shelfAfterMix
                             ? ` · ${skinProduct.shelfAfterMix}`
