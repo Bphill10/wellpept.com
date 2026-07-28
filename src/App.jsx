@@ -12,6 +12,10 @@ import {
   Package,
   Truck,
   Calculator,
+  FlaskConical,
+  Headset,
+  BadgeCheck,
+  Microscope,
 } from "lucide-react";
 import {
   CATEGORIES,
@@ -103,6 +107,24 @@ export default function App() {
     const matchesCategory = category === "All" || p.category === category;
     return matchesQuery && matchesCategory;
   });
+
+  const bestsellers = useMemo(
+    () =>
+      [...products]
+        .filter((p) => !p.externalOnly)
+        .sort((a, b) => b.reviews - a.reviews)
+        .slice(0, 8),
+    [products]
+  );
+
+  const newArrivals = useMemo(
+    () =>
+      [...products]
+        .filter((p) => !p.externalOnly)
+        .sort((a, b) => String(b.sku).localeCompare(String(a.sku)))
+        .slice(0, 8),
+    [products]
+  );
 
   function goShop() {
     setView(VIEWS.shop);
@@ -268,14 +290,27 @@ export default function App() {
   return (
     <div className="app-shell">
       <header className="site-header">
+        <div className="header-top">
+          <div className="container header-top-inner">
+            <span>Research-grade peptides · Multi-vendor marketplace</span>
+            <span className="header-top-links">
+              <button type="button" onClick={() => setView(VIEWS.calculator)}>
+                Peptide calculator
+              </button>
+              <button type="button" onClick={() => setView(VIEWS.vendor)}>
+                Sell on Undisclosed
+              </button>
+            </span>
+          </div>
+        </div>
         <div className="container header-inner">
           <button className="brand" onClick={goShop} type="button">
             <img
               src="/undisclosed-brand.png"
               alt=""
               className="brand-logo"
-              width={36}
-              height={36}
+              width={40}
+              height={40}
             />
             <span className="brand-text">
               <span className="brand-mark">Undisclosed</span>
@@ -284,6 +319,21 @@ export default function App() {
           </button>
 
           <div className="search-wrap">
+            <select
+              className="search-dept"
+              value={category}
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setView(VIEWS.shop);
+              }}
+              aria-label="Department"
+            >
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c === "All" ? "All" : c}
+                </option>
+              ))}
+            </select>
             <Search size={16} strokeWidth={2} />
             <input
               value={query}
@@ -294,6 +344,18 @@ export default function App() {
               placeholder="Search peptides, SKUs, vendors…"
               aria-label="Search catalog"
             />
+            <button
+              type="button"
+              className="search-go"
+              onClick={() => {
+                setView(VIEWS.shop);
+                document
+                  .getElementById("catalog")
+                  ?.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
+              Search
+            </button>
           </div>
 
           <div className="header-actions">
@@ -326,11 +388,12 @@ export default function App() {
             </button>
             <button
               type="button"
-              className="icon-btn"
+              className="icon-btn cart-btn"
               onClick={() => setView(VIEWS.cart)}
               aria-label="Open cart"
             >
               <ShoppingCart size={18} />
+              <span className="cart-label">Cart</span>
               {cartCount > 0 && (
                 <span className={`cart-count ${cartPulse ? "pulse" : ""}`}>
                   {cartCount}
@@ -339,6 +402,26 @@ export default function App() {
             </button>
           </div>
         </div>
+        <nav className="dept-bar" aria-label="Categories">
+          <div className="container dept-bar-inner">
+            {CATEGORIES.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className={`dept-link ${category === c ? "active" : ""}`}
+                onClick={() => {
+                  setCategory(c);
+                  setView(VIEWS.shop);
+                  document
+                    .getElementById("catalog")
+                    ?.scrollIntoView({ behavior: "smooth" });
+                }}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </nav>
       </header>
 
       {flash && (
@@ -354,11 +437,13 @@ export default function App() {
               <div className="hero-media" />
               <div className="container hero-content">
                 <h1 className="hero-brand rise">Undisclosed</h1>
+                <p className="hero-tagline rise-delay">
+                  Precision. Quality. Reliability.
+                </p>
                 <p className="hero-copy rise-delay">
-                  A quiet storefront for research peptides. Vendors drop price
-                  lists. You approve. The catalog updates — priced with a{" "}
-                  {Math.round(MARKUP * 100)}% markup, drop-shipped to your
-                  buyers.
+                  Research-grade peptides from approved vendors — Amazon-style
+                  shopping, transparent +{Math.round(MARKUP * 100)}% markup,
+                  drop-shipped to your lab.
                 </p>
                 <div className="hero-cta rise-delay">
                   <button
@@ -370,26 +455,98 @@ export default function App() {
                         ?.scrollIntoView({ behavior: "smooth" })
                     }
                   >
-                    Browse catalog
+                    Shop catalog
                   </button>
                   <button
                     type="button"
                     className="soft-btn"
                     onClick={() => setView(VIEWS.vendor)}
                   >
-                    Submit a price list
-                  </button>
-                  <button
-                    type="button"
-                    className="soft-btn"
-                    onClick={() => {
-                      setCalcInitial(null);
-                      setView(VIEWS.calculator);
-                    }}
-                  >
-                    Open calculator
+                    Become a vendor
                   </button>
                 </div>
+              </div>
+            </section>
+
+            <section className="trust-strip">
+              <div className="container trust-grid">
+                <div className="trust-item">
+                  <Truck size={22} />
+                  <div>
+                    <strong>Fast &amp; reliable shipping</strong>
+                    <p>Drop-ship from approved vendor warehouses worldwide.</p>
+                  </div>
+                </div>
+                <div className="trust-item">
+                  <Microscope size={22} />
+                  <div>
+                    <strong>3rd-party lab tested</strong>
+                    <p>Vendors publish Janoshik / COA-backed purity claims.</p>
+                  </div>
+                </div>
+                <div className="trust-item">
+                  <BadgeCheck size={22} />
+                  <div>
+                    <strong>Admin-approved listings</strong>
+                    <p>Price lists reviewed before they hit the catalog.</p>
+                  </div>
+                </div>
+                <div className="trust-item">
+                  <Headset size={22} />
+                  <div>
+                    <strong>Research tools built in</strong>
+                    <p>Reconstitution calculator + auto-generated vial labels.</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="section">
+              <div className="container">
+                <div className="section-head">
+                  <div>
+                    <p className="section-kicker">This week</p>
+                    <h2>Bestsellers</h2>
+                    <p>Top-reviewed research peptides across approved vendors.</p>
+                  </div>
+                </div>
+                <div className="product-grid product-grid-scroll">
+                  {bestsellers.map((product) => (
+                    <ProductCard
+                      key={`best-${product.id}`}
+                      product={product}
+                      onOpen={openProduct}
+                      onAdd={addToCart}
+                    />
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            <section className="mission-band">
+              <div className="container mission-inner">
+                <div>
+                  <p className="section-kicker">About Undisclosed</p>
+                  <h2>Your marketplace for research-grade peptides</h2>
+                  <p>
+                    Vendors submit price lists. You approve. The catalog updates
+                    with transparent retail pricing — then orders drop-ship to
+                    researchers. Built like a modern peptide shop, shoppable
+                    like Amazon.
+                  </p>
+                </div>
+                <ul className="mission-points">
+                  <li>
+                    <FlaskConical size={18} /> Lowest approved vendor cost wins
+                    each SKU
+                  </li>
+                  <li>
+                    <ShieldCheck size={18} /> Admin desk for vendors &amp; lines
+                  </li>
+                  <li>
+                    <Calculator size={18} /> Shareable reconstitution calculator
+                  </li>
+                </ul>
               </div>
             </section>
 
@@ -397,12 +554,13 @@ export default function App() {
               <div className="container">
                 <div className="featured-vendor panel">
                   <div className="featured-vendor-copy">
-                    <span className="featured-kicker">Featured drop-ship partner</span>
+                    <span className="featured-kicker">
+                      Featured drop-ship partner
+                    </span>
                     <h2>The Lobster · Cartman Gear</h2>
                     <p>
-                      Your go-to for pharma-grade HGH, peptides, and Turkish
-                      pharmacy — EU/Middle East based with US &amp; EU shipping.
-                      Browse{" "}
+                      Pharma-grade HGH, peptides, and Turkish pharmacy —
+                      EU/Middle East based with US &amp; EU shipping. Browse{" "}
                       <a
                         href={THE_LOBSTER_VENDOR.website}
                         target="_blank"
@@ -410,11 +568,13 @@ export default function App() {
                       >
                         cartmangear.co
                       </a>{" "}
-                      for live pricing, then upload their price list here to
-                      sync your Undisclosed catalog at +{Math.round(MARKUP * 100)}%.
+                      for live pricing, then upload their list to sell here at +
+                      {Math.round(MARKUP * 100)}%.
                     </p>
                     <ul className="featured-meta">
-                      <li>Min order ~{formatMoney(THE_LOBSTER_VENDOR.minOrder)}</li>
+                      <li>
+                        Min order ~{formatMoney(THE_LOBSTER_VENDOR.minOrder)}
+                      </li>
                       <li>Crypto · Contact to order</li>
                       <li>{THE_LOBSTER_VENDOR.telegram}</li>
                     </ul>
@@ -450,13 +610,41 @@ export default function App() {
               </div>
             </section>
 
+            {!query.trim() && category === "All" && (
+              <section className="section section-tight">
+                <div className="container">
+                  <div className="section-head">
+                    <div>
+                      <p className="section-kicker">Just listed</p>
+                      <h2>New arrivals</h2>
+                      <p>Fresh SKUs from the latest approved price lists.</p>
+                    </div>
+                  </div>
+                  <div className="product-grid">
+                    {newArrivals.map((product) => (
+                      <ProductCard
+                        key={`new-${product.id}`}
+                        product={product}
+                        onOpen={openProduct}
+                        onAdd={addToCart}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )}
+
             <section className="section" id="catalog">
               <div className="container">
                 <div className="section-head">
                   <div>
+                    <p className="section-kicker">Full marketplace</p>
                     <h2>Catalog</h2>
                     <p>
-                      Live listings from approved vendors. Retail price =
+                      {filtered.length} result
+                      {filtered.length === 1 ? "" : "s"}
+                      {category !== "All" ? ` in ${category}` : ""}
+                      {query.trim() ? ` for “${query.trim()}”` : ""}. Retail =
                       vendor cost + {Math.round(MARKUP * 100)}%.
                     </p>
                   </div>
@@ -482,52 +670,33 @@ export default function App() {
                 ) : (
                   <div className="product-grid">
                     {filtered.map((product) => (
-                      <button
+                      <ProductCard
                         key={product.id}
-                        type="button"
-                        className="product-card"
-                        onClick={() => openProduct(product)}
-                      >
-                        <div className="product-visual">
-                          {product.badge && (
-                            <span className="badge">{product.badge}</span>
-                          )}
-                          <VialPreview product={product} size="md" />
-                        </div>
-                        <div className="product-body">
-                          <div className="meta">
-                            {product.category} · SKU {product.sku}
-                          </div>
-                          <h3>{product.name}</h3>
-                          <div className="meta">{product.form}</div>
-                          <div className="rating">
-                            ★ {product.rating.toFixed(1)} · {product.reviews}{" "}
-                            reviews
-                          </div>
-                          <div className="price-row">
-                            {product.externalOnly ? (
-                              <span className="price price-external">
-                                {product.priceLabel}
-                              </span>
-                            ) : (
-                              <>
-                                <span className="price">
-                                  {formatMoney(product.price)}
-                                </span>
-                                <span className="compare">
-                                  {formatMoney(product.compareAt)}
-                                </span>
-                              </>
-                            )}
-                          </div>
-                          <div className="meta">
-                            per {product.unitLabel} · {product.vendor}
-                          </div>
-                        </div>
-                      </button>
+                        product={product}
+                        onOpen={openProduct}
+                        onAdd={addToCart}
+                      />
                     ))}
                   </div>
                 )}
+              </div>
+            </section>
+
+            <section className="lab-band">
+              <div className="container lab-inner">
+                <div>
+                  <p className="section-kicker">Quality</p>
+                  <h2>Third-party lab tested</h2>
+                  <p>
+                    Independent testing gives researchers a neutral view of
+                    purity and fill — not just a vendor’s in-house claim.
+                  </p>
+                </div>
+                <ul className="lab-points">
+                  <li>Consumer transparency</li>
+                  <li>Unbiased independent reports</li>
+                  <li>Safety &amp; batch assurance</li>
+                </ul>
               </div>
             </section>
           </>
@@ -605,90 +774,154 @@ export default function App() {
   );
 }
 
+function ProductCard({ product, onOpen, onAdd }) {
+  return (
+    <article className="product-card">
+      <button
+        type="button"
+        className="product-card-main"
+        onClick={() => onOpen(product)}
+      >
+        <div className="product-visual">
+          {product.badge && <span className="badge">{product.badge}</span>}
+          <VialPreview product={product} size="md" />
+        </div>
+        <div className="product-body">
+          <div className="meta">
+            {product.category} · SKU {product.sku}
+          </div>
+          <h3>{product.name}</h3>
+          <div className="meta">{product.form}</div>
+          <div className="rating">
+            <span className="stars" aria-hidden>
+              ★★★★☆
+            </span>{" "}
+            {product.rating.toFixed(1)} · {product.reviews} reviews
+          </div>
+          <div className="price-row">
+            {product.externalOnly ? (
+              <span className="price price-external">{product.priceLabel}</span>
+            ) : (
+              <>
+                <span className="price">{formatMoney(product.price)}</span>
+                <span className="compare">{formatMoney(product.compareAt)}</span>
+              </>
+            )}
+          </div>
+          <div className="meta sold-by">Sold by {product.vendor}</div>
+        </div>
+      </button>
+      {product.externalOnly ? (
+        <a
+          className="cart-cta soft-btn"
+          href={product.externalUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+        >
+          View on vendor site
+        </a>
+      ) : (
+        <button
+          type="button"
+          className="cart-cta"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAdd(product);
+          }}
+        >
+          Add to cart
+        </button>
+      )}
+    </article>
+  );
+}
+
 function ProductDetail({ product, onBack, onAdd, onCalculate }) {
   return (
     <section className="panel-page fade">
       <div className="container">
         <button type="button" className="ghost-btn" onClick={onBack}>
-          <ArrowLeft size={16} /> Back to catalog
+          <ArrowLeft size={16} /> Back to results
         </button>
-        <div className="detail-layout" style={{ marginTop: "1rem" }}>
+        <div className="detail-layout amazon-detail" style={{ marginTop: "1rem" }}>
           <div className="detail-visual">
             <VialPreview product={product} size="lg" showDownload />
           </div>
-          <div className="detail-panel panel">
+          <div className="detail-info">
             <div className="meta">
               {product.category} · SKU {product.sku}
             </div>
             <h1>{product.name}</h1>
-            <p style={{ color: "var(--muted)", lineHeight: 1.55 }}>
-              {product.blurb}
-            </p>
-            <div className="meta" style={{ marginTop: "0.75rem" }}>
+            <div className="rating">
+              <span className="stars">★★★★☆</span> {product.rating.toFixed(1)} ·{" "}
+              {product.reviews} ratings
+            </div>
+            <p className="detail-blurb">{product.blurb}</p>
+            <div className="meta">
               {product.form} · Purity {product.purity}
             </div>
-            <div className="rating" style={{ marginTop: "0.35rem" }}>
-              ★ {product.rating.toFixed(1)} · {product.reviews} reviews
+            <div className="meta sold-by">
+              Sold by <strong>{product.vendor}</strong> · Ships via Undisclosed
+              marketplace
             </div>
-
-            <div className="buy-box">
-              {product.externalOnly ? (
+          </div>
+          <div className="buy-box panel">
+            {product.externalOnly ? (
+              <>
+                <div className="price-row">
+                  <span className="price price-external">{product.priceLabel}</span>
+                </div>
+                <div className="meta">
+                  Pricing lives on the vendor storefront. Upload their price list
+                  in Vendors to sell through Undisclosed with markup.
+                </div>
+                <a
+                  className="primary-btn"
+                  href={product.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Open cartmangear.co
+                </a>
+              </>
+            ) : (
+              <>
+                <div className="price-row">
+                  <span className="price">{formatMoney(product.price)}</span>
+                  <span className="compare">{formatMoney(product.compareAt)}</span>
+                </div>
+                <div className="meta">
+                  per {product.unitLabel} (vendor cost{" "}
+                  {formatMoney(product.vendorCost)} + {Math.round(MARKUP * 100)}%)
+                </div>
+                <div className="buy-stock ok">In Stock</div>
+                <button type="button" className="cart-cta" onClick={onAdd}>
+                  Add to cart
+                </button>
+                <button type="button" className="primary-btn" onClick={onAdd}>
+                  Buy now
+                </button>
+              </>
+            )}
+            <div className="meta">
+              <Truck size={14} style={{ display: "inline", marginRight: 6 }} />
+              {product.ships}
+              {!product.externalOnly && (
                 <>
-                  <div className="price-row">
-                    <span className="price price-external">
-                      {product.priceLabel}
-                    </span>
-                  </div>
-                  <div className="meta">
-                    Pricing lives on the vendor storefront. Upload their price
-                    list in Vendors to sell through Undisclosed with markup.
-                  </div>
-                  <a
-                    className="primary-btn"
-                    href={product.externalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Open cartmangear.co
-                  </a>
-                </>
-              ) : (
-                <>
-                  <div className="price-row">
-                    <span className="price">{formatMoney(product.price)}</span>
-                    <span className="compare">
-                      {formatMoney(product.compareAt)}
-                    </span>
-                  </div>
-                  <div className="meta">
-                    per {product.unitLabel} (vendor cost{" "}
-                    {formatMoney(product.vendorCost)} + {Math.round(MARKUP * 100)}
-                    %)
-                  </div>
-                  <button type="button" className="primary-btn" onClick={onAdd}>
-                    Add to cart
-                  </button>
+                  . Shipping {formatMoney(product.shippingFlat)}
+                  {product.shippingNote ? ` · ${product.shippingNote}` : ""}
                 </>
               )}
-              <div className="meta">
-                <Truck size={14} style={{ display: "inline", marginRight: 6 }} />
-                {product.ships}
-                {!product.externalOnly && (
-                  <>
-                    . Shipping {formatMoney(product.shippingFlat)}
-                    {product.shippingNote ? ` · ${product.shippingNote}` : ""}
-                  </>
-                )}
-              </div>
-              <div className="meta">
-                <Package size={14} style={{ display: "inline", marginRight: 6 }} />
-                Vendor minimum order {formatMoney(product.minOrder)} · Fulfilled
-                by {product.vendor}
-              </div>
-              <button type="button" className="soft-btn" onClick={onCalculate}>
-                <Calculator size={16} /> Calculate reconstitution
-              </button>
             </div>
+            <div className="meta">
+              <Package size={14} style={{ display: "inline", marginRight: 6 }} />
+              Vendor minimum order {formatMoney(product.minOrder)} · Fulfilled by{" "}
+              {product.vendor}
+            </div>
+            <button type="button" className="soft-btn" onClick={onCalculate}>
+              <Calculator size={16} /> Calculate reconstitution
+            </button>
           </div>
         </div>
       </div>
