@@ -961,15 +961,22 @@ img {
 }
 
 .generated-vial--sm {
-  max-height: 68px;
+  max-height: 84px;
 }
 
 .generated-vial--md {
-  max-height: 150px;
+  max-height: 200px;
 }
 
 .generated-vial--lg {
-  max-height: 280px;
+  max-height: 360px;
+}
+
+.calc-vial-stage {
+  background:
+    radial-gradient(ellipse at 50% 70%, rgba(255, 255, 255, 0.9), rgba(232, 238, 245, 0.6));
+  border-radius: 16px;
+  padding: 1rem 0.5rem;
 }
 
 .vial-download {
