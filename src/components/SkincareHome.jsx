@@ -188,18 +188,6 @@ export default function SkincareHome({
             </div>
           </div>
 
-          <div className="sk-vehicle-gallery">
-            {SERUM_BASES.map((b, i) => (
-              <figure key={b.id} className={i === 0 ? "is-main" : undefined}>
-                <img src={b.image} alt={b.name} loading="lazy" />
-                <figcaption>
-                  <strong>{b.name}</strong>
-                  <span>{b.form === "cream" ? "Cream base" : "Serum base"}</span>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-
           <article className="flagship-mix fade">
             <div className="flagship-mix-media-col">
               <button
@@ -213,23 +201,6 @@ export default function SkincareHome({
                   className="flagship-mix-img"
                 />
               </button>
-              <img
-                src="/skincare/buffet-serum-mixed.png"
-                alt="After activation: GHK-Cu mixed into the serum, dropper seated"
-                className="flagship-mix-howto"
-              />
-              <video
-                className="flagship-mix-video"
-                controls
-                muted
-                playsInline
-                loop
-                preload="metadata"
-                poster="/skincare/buffet-serum-mixing.png"
-              >
-                <source src="/skincare/mix-activation.mp4" type="video/mp4" />
-              </video>
-              <p className="flagship-mix-video-caption">Twist. Mix. Ready.</p>
             </div>
             <div className="flagship-mix-body">
               <p className="section-kicker">Flagship</p>
@@ -292,6 +263,32 @@ export default function SkincareHome({
                 <p>{item.copy}</p>
               </div>
             ))}
+          </div>
+          <div className="sk-mix-demo">
+            <div className="sk-mix-demo-stills">
+              <figure>
+                <img src="/skincare/buffet-serum.png" alt="Before: dry powder in the twist-cap" />
+                <figcaption>Before</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src="/skincare/buffet-serum-mixed.png"
+                  alt="After: powder mixed into the serum"
+                />
+                <figcaption>After</figcaption>
+              </figure>
+            </div>
+            <video
+              className="sk-mix-demo-video"
+              controls
+              muted
+              playsInline
+              loop
+              preload="metadata"
+              poster="/skincare/buffet-serum-mixing.png"
+            >
+              <source src="/skincare/mix-activation.mp4" type="video/mp4" />
+            </video>
           </div>
         </div>
       </section>

@@ -901,7 +901,7 @@ export default function App() {
                         <span className="skin-bottle-body" />
                       </div>
                     )}
-                    {skinProduct.gallery?.[1] && (
+                    {skinProduct.gallery?.[1] && skinProduct.gallery[1] !== skinProduct.image && (
                       <img
                         src={skinProduct.gallery[1]}
                         alt="After mixing: peptide activated into the base"
@@ -909,17 +909,20 @@ export default function App() {
                       />
                     )}
                     {skinProduct.video && (
-                      <video
-                        className="skin-product-video"
-                        controls
-                        muted
-                        playsInline
-                        loop
-                        preload="metadata"
-                        poster={skinProduct.videoPoster || skinProduct.gallery?.[1]}
-                      >
-                        <source src={skinProduct.video} type="video/mp4" />
-                      </video>
+                      <details className="skin-product-video-wrap">
+                        <summary>Watch mix activation</summary>
+                        <video
+                          className="skin-product-video"
+                          controls
+                          muted
+                          playsInline
+                          loop
+                          preload="metadata"
+                          poster={skinProduct.videoPoster || skinProduct.gallery?.[1]}
+                        >
+                          <source src={skinProduct.video} type="video/mp4" />
+                        </video>
+                      </details>
                     )}
                   </div>
                   <div className="detail-info">

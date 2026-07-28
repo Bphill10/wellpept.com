@@ -140,7 +140,7 @@ export const SERUM_BASES = [
     price: 32,
     image: "/skincare/peptide-cream.png",
     blurb:
-      "Silken moisture cream vehicle. Mix dry peptides into a leave-on cream instead of a dropper serum.",
+      "Silken moisture cream in a soft powder-blue finish. Mix dry peptides into a leave-on cream instead of a dropper serum.",
     bestFor: "Face cream, richer feel, day or night",
     shelfAfterMix: "Use within 30 days after activation. Keep cool and dark. Refrigerate if GHK-Cu included.",
   },
@@ -322,8 +322,8 @@ export function buildSerumProduct({
       hasGhk && !isCream
         ? ["/skincare/buffet-serum.png", "/skincare/buffet-serum-mixed.png"]
         : isCream
-          ? ["/skincare/peptide-cream.png", "/skincare/buffet-serum-mixed.png"]
-          : [base.image, "/skincare/buffet-serum-mixed.png"],
+          ? ["/skincare/peptide-cream.png"]
+          : [base.image],
     video: hasGhk && !isCream ? "/skincare/mix-activation.mp4" : null,
     videoPoster: hasGhk && !isCream ? "/skincare/buffet-serum-mixing.png" : null,
     blurb: `Your mix: ${names.join(" + ")} in ${base.name}. Dry peptides stay sealed until you activate into the ${vehicleWord}.`,
