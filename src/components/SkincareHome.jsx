@@ -329,6 +329,49 @@ export default function SkincareHome({
         </div>
       </section>
 
+      <section className="section" id="contact-wellpept">
+        <div className="container skin-about">
+          <div>
+            <p className="section-kicker">Contact</p>
+            <h2>Talk with WellPept</h2>
+            <p>
+              Email{" "}
+              <a className="sk-contact-link" href="mailto:info@wellpept.com">
+                info@wellpept.com
+              </a>
+              . Or use the chat bubble to message us live. Replies come from our
+              phone.
+            </p>
+            <p className="meta" style={{ marginTop: "1rem" }}>
+              Ships to United States addresses only. For external cosmetic use. Not for
+              injection or medical use.
+            </p>
+          </div>
+          <div className="skin-about-actions">
+            <a className="primary-btn" href="mailto:info@wellpept.com">
+              Email info@wellpept.com
+            </a>
+            <button
+              type="button"
+              className="soft-btn"
+              onClick={() => {
+                if (typeof window !== "undefined" && window.$crisp) {
+                  try {
+                    window.$crisp.push(["do", "chat:open"]);
+                    return;
+                  } catch {
+                    /* fall through */
+                  }
+                }
+                window.location.href = "mailto:info@wellpept.com?subject=WellPept%20question";
+              }}
+            >
+              Open chat
+            </button>
+          </div>
+        </div>
+      </section>
+
       <section className="section">
         <div className="container skin-about">
           <div>
@@ -338,10 +381,6 @@ export default function SkincareHome({
               Fresh Mix keeps topical peptides dry until you activate them into your chosen
               base. Ready formulas handle the rest with restrained textures, white light,
               and a cobalt signal.
-            </p>
-            <p className="meta" style={{ marginTop: "1rem" }}>
-              Ships to United States addresses only. For external cosmetic use. Not for
-              injection or medical use.
             </p>
           </div>
           <button

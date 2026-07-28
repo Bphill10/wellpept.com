@@ -56,6 +56,7 @@ import ChargebeeCheckout from "./components/ChargebeeCheckout";
 import SkincareHome from "./components/SkincareHome";
 import PriceListDropzone from "./components/PriceListDropzone";
 import PriceCompare from "./components/PriceCompare";
+import { openLiveChat, contactEmail } from "./components/LiveChat";
 import { THE_LOBSTER_VENDOR } from "./data/theLobster";
 import {
   LYOPHILIZED_QC,
@@ -773,6 +774,17 @@ export default function App() {
                 }
               >
                 How it works
+              </button>
+              <button
+                type="button"
+                className="header-nav-link"
+                onClick={() =>
+                  document
+                    .getElementById("contact-wellpept")
+                    ?.scrollIntoView({ behavior: "smooth" })
+                }
+              >
+                Contact
               </button>
             </nav>
           )}
@@ -1610,15 +1622,29 @@ export default function App() {
         )}
       </main>
 
-      <footer className="footer">
+      <footer className="footer" id="contact">
         <div className="container footer-inner">
           <div>
             <strong>{labUnlocked ? "Undisclosed" : "WellPept"}</strong>
             <div>
               {labUnlocked
-                ? "Undisclosed — research peptides for laboratory use"
+                ? "Research peptides for laboratory use"
                 : "Fresh Mix skincare. White light, cobalt signal"}
             </div>
+            <p className="footer-contact">
+              <a href={`mailto:${contactEmail()}`}>{contactEmail()}</a>
+              <button
+                type="button"
+                className="footer-chat-btn"
+                onClick={() => {
+                  if (!openLiveChat()) {
+                    window.location.href = `mailto:${contactEmail()}?subject=WellPept%20question`;
+                  }
+                }}
+              >
+                Message us
+              </button>
+            </p>
           </div>
           <p className="disclaimer">
             {labUnlocked ? (
@@ -1633,7 +1659,7 @@ export default function App() {
                 external use on intact skin only. Not for injection, ingestion, or
                 medical use. Not evaluated by the FDA. Not intended to diagnose,
                 treat, cure, or prevent any disease. Ships to United States
-                addresses only. See full peptide notices on product pages.
+                addresses only. Questions: {contactEmail()}.
               </>
             )}
           </p>
