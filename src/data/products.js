@@ -160,11 +160,37 @@ export function formatStrengthLabel(product) {
   const amount = Number(product.mg);
   const pack = Number(product.packVials) || 1;
   const unit = product.unit || "mg";
+  const form = String(product.form || "");
+  const lane =
+    form.includes("· International")
+      ? "Intl"
+      : form.includes("· China")
+        ? "China"
+        : form.includes("· Canada")
+          ? "Canada"
+          : form.includes("· AU ") || form.includes("AU domestic")
+            ? "AU"
+            : form.includes("Raw")
+              ? "Raw"
+              : form.includes("Pharma")
+                ? "Pharma"
+                : null;
+
   if (!amount && !product.externalOnly) {
     return pack > 1 ? `${pack}-pack` : "Standard";
   }
-  const amountPart = amount ? `${amount} ${unit}` : "See options";
-  return pack > 1 ? `${amountPart} · ${pack}-pack` : amountPart;
+
+  let amountPart;
+  if (unit === "ml") amountPart = `${amount} ml`;
+  else if (amount >= 1000000 && unit === "IU")
+    amountPart = `${amount / 1000000}M IU`;
+  else if (amount >= 1000 && unit === "mg" && form.includes("Raw"))
+    amountPart = amount === 1000 ? "1g raw" : `${amount} mg raw`;
+  else amountPart = `${amount} ${unit}`;
+
+  const packPart = pack > 1 ? ` · ${pack}-pack` : "";
+  const lanePart = lane ? ` · ${lane}` : "";
+  return `${amountPart}${packPart}${lanePart}`;
 }
 
 /**
