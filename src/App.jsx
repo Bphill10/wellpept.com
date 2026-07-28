@@ -38,6 +38,11 @@ import PeptideCalculator, {
 import GeneratedVial from "./components/GeneratedVial";
 import PriceListDropzone from "./components/PriceListDropzone";
 import { THE_LOBSTER_VENDOR } from "./data/theLobster";
+import {
+  LYOPHILIZED_QC,
+  RESEARCH_GLOSSARY,
+  researchHelpFor,
+} from "./data/researchGuide";
 
 const VIEWS = {
   shop: "shop",
@@ -935,6 +940,70 @@ export default function App() {
                 </ul>
               </div>
             </section>
+
+            <section className="section research-guide" id="research-guide">
+              <div className="container">
+                <div className="section-head">
+                  <div>
+                    <p className="section-kicker">Lab literacy</p>
+                    <h2>What to check before you assay</h2>
+                    <p>
+                      Quick visual and testing cues for lyophilized research
+                      peptides — layer these with third-party COAs. For
+                      laboratory research use only.
+                    </p>
+                  </div>
+                </div>
+                <div className="qc-grid">
+                  <article className="panel qc-card">
+                    <h3>Looks good</h3>
+                    <ul>
+                      {LYOPHILIZED_QC.good.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </article>
+                  <article className="panel qc-card">
+                    <h3>Pause / retest</h3>
+                    <ul>
+                      {LYOPHILIZED_QC.caution.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </article>
+                  <article className="panel qc-card">
+                    <h3>Worth testing</h3>
+                    <ul>
+                      {LYOPHILIZED_QC.testing.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </article>
+                </div>
+                <div className="glossary-block">
+                  <h3>Research glossary</h3>
+                  <div className="glossary-grid">
+                    {RESEARCH_GLOSSARY.map((g) => (
+                      <div key={g.term} className="glossary-item">
+                        <strong>{g.term}</strong>
+                        <p>{g.def}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="meta glossary-credit">
+                    Educational reference (unaffiliated):{" "}
+                    <a
+                      href="https://www.stairwaytogray.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Stairway to Gray
+                    </a>{" "}
+                    — rewritten here for lab research framing, not medical use.
+                  </p>
+                </div>
+              </div>
+            </section>
           </>
         )}
 
@@ -1005,6 +1074,15 @@ export default function App() {
             For laboratory research use only. Not for human consumption, medical
             use, or household purposes. Ships to United States addresses only.
             Buyers are responsible for lawful use in their jurisdiction.
+            Peptide literacy notes reference public education from{" "}
+            <a
+              href="https://www.stairwaytogray.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Stairway to Gray
+            </a>{" "}
+            (unaffiliated).
           </p>
         </div>
       </footer>
@@ -1134,6 +1212,12 @@ function ProductDetail({
               {listing.reviews} ratings
             </div>
             <p className="detail-blurb">{listing.blurb || product.blurb}</p>
+            {researchHelpFor(listing.name || product.name) && (
+              <p className="detail-help">
+                <strong>Research focus: </strong>
+                {researchHelpFor(listing.name || product.name)}
+              </p>
+            )}
             <p className="detail-research-note">
               For laboratory research use only. Not for human consumption,
               medical use, or household purposes.

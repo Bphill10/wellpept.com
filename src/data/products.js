@@ -98,13 +98,13 @@ const BLURBS = {
   KLOW:
     "Multi-peptide blend oriented toward skin/hair appearance research — check the vendor form for exact component ratios.",
   Retatrutide:
-    "Triple agonist (GLP-1 / GIP / glucagon pathways) studied in metabolic, weight, and energy-balance research.",
+    "Triple agonist at GLP-1, GIP, and glucagon receptors — studied for metabolic, weight, and energy-balance research. Incretin-class compound for lab use only.",
   Tirzepatide:
-    "Dual GIP/GLP-1 receptor agonist used in metabolic and appetite research models.",
+    "Dual GIP/GLP-1 receptor agonist in the incretin (GLP-1 class) family — widely studied in metabolic research. Kits are commonly 10 vials at the labeled mg each.",
   Semaglutide:
-    "GLP-1 receptor agonist studied for metabolic, glycemic, and appetite-pathway research.",
+    "Selective GLP-1 receptor agonist — metabolic, glycemic, and appetite-pathway research compound. Distinct from Semax (a different nootropic peptide).",
   Liraglutide:
-    "GLP-1 analogue examined in metabolic and weight-regulation research settings.",
+    "GLP-1 receptor agonist analogue studied in metabolic research; shorter-acting profile than semaglutide in clinical literature.",
   Cagrilintide:
     "Long-acting amylin analogue studied alongside incretins in satiety and metabolic research.",
   Mazdutide:
