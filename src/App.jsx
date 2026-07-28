@@ -36,6 +36,7 @@ import PeptideCalculator, {
   parseCalculatorQuery,
 } from "./components/PeptideCalculator";
 import GeneratedVial from "./components/GeneratedVial";
+import PriceListDropzone from "./components/PriceListDropzone";
 import { THE_LOBSTER_VENDOR } from "./data/theLobster";
 
 const VIEWS = {
@@ -1383,16 +1384,13 @@ function VendorPortal({
         <div className="panel">
           <h1>Vendor portal</h1>
           <p className="lede">
-            Drop your price list here. Undisclosed reviews each line, then
-            publishes approved items to the live catalog. You set your cost,
-            minimum order, and US shipping terms — we fulfill to United States
-            addresses only.
+            Drop an Excel sheet, PDF, or CSV — we auto-fill your price list.
+            Review the rows, fix anything off, then submit. US shipping only.
           </p>
 
           <div className="notice">
-            Catalog is loaded from approved vendor price lists. Changsha Premium
-            (182 SKUs) and ERP Peptide (151 SKUs) are pre-imported. New vendors
-            submit here; nothing goes live until you approve it.
+            Best results: columns like Product / Name, Strength (mg), and Price /
+            Cost. PDF needs selectable text (not a scanned image).
           </div>
 
           <div className="tabs">
@@ -1492,6 +1490,16 @@ function VendorPortal({
                 />
               </label>
 
+              <h2 className="vendor-section-title">Price list</h2>
+              <PriceListDropzone
+                onParsed={(lines) =>
+                  setForm((f) => ({
+                    ...f,
+                    lines: lines.length ? lines : [emptyLine()],
+                  }))
+                }
+              />
+
               <PriceListEditor
                 lines={form.lines}
                 onChange={(lines) => setForm((f) => ({ ...f, lines }))}
@@ -1562,6 +1570,11 @@ function VendorPortal({
                 </button>
 
                 <h2 style={{ marginTop: "0.75rem" }}>New price-list lines</h2>
+                <PriceListDropzone
+                  onParsed={(lines) =>
+                    setExistingLines(lines.length ? lines : [emptyLine()])
+                  }
+                />
                 <PriceListEditor
                   lines={existingLines}
                   onChange={setExistingLines}
@@ -1632,14 +1645,46 @@ function PriceListEditor({ lines, onChange }) {
     );
   }
 
+  const filled = lines.filter(
+    (l) => l.name?.trim() && l.sku?.trim() && l.vendorCost
+  ).length;
+
   return (
     <div className="form-grid">
+      <div className="price-review-head">
+        <div>
+          <strong>Review auto-filled lines</strong>
+          <p className="meta">
+            {filled} ready · {lines.length} row{lines.length === 1 ? "" : "s"} —
+            edit anything before submit.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="soft-btn"
+          onClick={() => onChange([...lines, emptyLine()])}
+        >
+          <Plus size={14} /> Add blank row
+        </button>
+      </div>
       {lines.map((line, index) => (
         <div
           key={index}
-          className="panel"
+          className="panel price-line-card"
           style={{ padding: "0.9rem", boxShadow: "none" }}
         >
+          <div className="price-line-top">
+            <span className="meta">Line {index + 1}</span>
+            {lines.length > 1 && (
+              <button
+                type="button"
+                className="ghost-btn"
+                onClick={() => onChange(lines.filter((_, i) => i !== index))}
+              >
+                <X size={14} /> Remove
+              </button>
+            )}
+          </div>
           <div className="form-row">
             <label className="field">
               SKU
@@ -1730,6 +1775,14 @@ function PriceListEditor({ lines, onChange }) {
               </select>
             </label>
           </div>
+          <label className="field" style={{ marginTop: "0.5rem" }}>
+            Form / pack note
+            <input
+              value={line.form}
+              onChange={(e) => updateLine(index, "form", e.target.value)}
+              placeholder="Lyophilized vial · 10mg*10vials · 3ml"
+            />
+          </label>
           <div className="meta" style={{ marginTop: "0.35rem" }}>
             Catalog price after approval:{" "}
             {line.vendorCost
@@ -1738,13 +1791,6 @@ function PriceListEditor({ lines, onChange }) {
           </div>
         </div>
       ))}
-      <button
-        type="button"
-        className="soft-btn"
-        onClick={() => onChange([...lines, emptyLine()])}
-      >
-        <Plus size={16} /> Add another line
-      </button>
     </div>
   );
 }

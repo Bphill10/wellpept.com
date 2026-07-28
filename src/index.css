@@ -1428,6 +1428,148 @@ th {
   border-color: rgba(196, 163, 90, 0.3);
 }
 
+.notice.ok {
+  background: rgba(31, 122, 77, 0.1);
+  border-color: rgba(31, 122, 77, 0.28);
+  color: var(--ink-soft);
+}
+
+.vendor-section-title {
+  margin: 0.5rem 0 0.65rem;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+}
+
+.price-dropzone-wrap {
+  margin-bottom: 1rem;
+}
+
+.price-dropzone {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1.15rem 1.25rem;
+  border: 1.5px dashed rgba(196, 163, 90, 0.55);
+  border-radius: 14px;
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(196, 163, 90, 0.06)
+  );
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.price-dropzone:hover,
+.price-dropzone.dragging {
+  border-color: var(--gold);
+  background: rgba(196, 163, 90, 0.1);
+  transform: translateY(-1px);
+}
+
+.price-dropzone.busy {
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.price-dropzone-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #0a0a0a;
+  color: var(--gold-bright);
+}
+
+.price-dropzone strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--ink);
+  margin-bottom: 0.2rem;
+}
+
+.price-dropzone p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.price-dropzone-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  background: var(--black);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.price-dropzone-alt {
+  margin: 0.55rem 0 0.75rem;
+}
+
+.price-paste {
+  margin-bottom: 0.85rem;
+  padding: 0.9rem;
+}
+
+.price-paste textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  resize: vertical;
+  font: inherit;
+  background: #fff;
+}
+
+.price-review-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.price-review-head strong {
+  font-family: var(--font-display);
+}
+
+.price-line-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.45rem;
+}
+
+.price-line-card {
+  border-color: rgba(196, 163, 90, 0.22);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+@media (max-width: 700px) {
+  .price-dropzone {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+}
+
 /* ---------- Product detail / cart ---------- */
 .detail-layout {
   display: grid;
