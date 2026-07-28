@@ -1255,7 +1255,7 @@ function CartPage({ cart, onBack, onUpdateQty, onRemove }) {
                   <span>{formatMoney(subtotal)}</span>
                 </div>
                 <div className="summary-row">
-                  <span>Shipping (by vendor)</span>
+                  <span>US shipping (by vendor)</span>
                   <span>{formatMoney(shipping)}</span>
                 </div>
                 <div className="summary-row total">
