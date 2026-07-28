@@ -14,10 +14,10 @@ export const THE_LOBSTER_VENDOR = {
   featured: true,
   minOrder: 800,
   shippingFlat: 0,
-  shippingNote: "Allow up to 4 weeks for shipping",
+  shippingNote: "US shipping only · allow up to 4 weeks",
   priceListSource: "Lobster International (Wayback 2026-06-27)",
   notes:
-    "Featured vendor. Min order applies. Drop-ship via Undisclosed only — do not expose vendor site to customers.",
+    "Featured vendor. US shipping only. Min order applies. Drop-ship via Undisclosed only — do not expose vendor site to customers.",
   createdAt: "2026-01-01T00:00:00.000Z",
 };
 

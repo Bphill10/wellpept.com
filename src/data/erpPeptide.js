@@ -7,7 +7,7 @@ export const ERP_VENDOR = {
   "status": "approved",
   "minOrder": 0,
   "shippingFlat": 50,
-  "shippingNote": "$50 first 500g · Free standard shipping on orders over $598 (Jul promo)",
+  "shippingNote": "US shipping only · $50 first 500g · Free standard over $598 (Jul promo)",
   "priceListSource": "ERP Price list (Jul.31end).pdf",
   "createdAt": "2026-07-31T00:00:00.000Z"
 };

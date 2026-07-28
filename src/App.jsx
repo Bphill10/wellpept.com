@@ -501,8 +501,8 @@ export default function App() {
                 <div className="trust-item">
                   <Truck size={22} />
                   <div>
-                    <strong>Fast &amp; reliable shipping</strong>
-                    <p>Drop-ship from approved vendor warehouses worldwide.</p>
+                    <strong>US shipping only</strong>
+                    <p>Drop-ship to United States addresses from approved vendors.</p>
                   </div>
                 </div>
                 <div className="trust-item">
@@ -654,7 +654,7 @@ export default function App() {
                     </span>
                     <span className="supply-step-num">5</span>
                     <strong>Vendor drop-ships</strong>
-                    <p>Stock ships from the seller’s warehouse to your lab.</p>
+                    <p>Stock ships from the seller to your US lab address.</p>
                   </li>
                 </ol>
 
@@ -690,7 +690,7 @@ export default function App() {
                     </li>
                     <li>
                       <Truck size={16} />
-                      Allow up to 4 weeks for shipping
+                      US shipping only · allow up to 4 weeks
                     </li>
                     <li>
                       <ShieldCheck size={16} />
@@ -759,15 +759,15 @@ export default function App() {
                     <h2>The Lobster</h2>
                     <p>
                       Featured vendor on Undisclosed. Minimum order{" "}
-                      {formatMoney(THE_LOBSTER_VENDOR.minOrder)} — allow up to 4
-                      weeks for shipping. Sold only through this catalog; we
-                      handle drop-ship.
+                      {formatMoney(THE_LOBSTER_VENDOR.minOrder)}. US shipping
+                      only — allow up to 4 weeks. Sold only through this
+                      catalog; we handle drop-ship.
                     </p>
                     <ul className="featured-meta">
                       <li>
                         Min order {formatMoney(THE_LOBSTER_VENDOR.minOrder)}
                       </li>
-                      <li>Allow up to 4 weeks for shipping</li>
+                      <li>US shipping only · allow up to 4 weeks</li>
                     </ul>
                     <div className="hero-cta" style={{ marginTop: "0.85rem" }}>
                       <button
@@ -958,8 +958,8 @@ export default function App() {
           </div>
           <p className="disclaimer">
             For laboratory research use only. Not for human consumption, medical
-            use, or household purposes. Buyers are responsible for lawful use in
-            their jurisdiction.
+            use, or household purposes. Ships to United States addresses only.
+            Buyers are responsible for lawful use in their jurisdiction.
           </p>
         </div>
       </footer>
@@ -1087,7 +1087,8 @@ function ProductDetail({
               {product.form} · Purity {product.purity}
             </div>
             <div className="meta sold-by">
-              Sold by <strong>{product.vendor}</strong> · Ships via Undisclosed
+              Sold by <strong>{product.vendor}</strong> · US shipping via
+              Undisclosed
               marketplace
             </div>
           </div>
@@ -1192,7 +1193,7 @@ function CartPage({ cart, onBack, onUpdateQty, onRemove }) {
         <div className="panel" style={{ marginTop: "1rem" }}>
           <h1>Cart</h1>
           <p className="lede">
-            Orders drop-ship from the approved vendor for each line item.
+            Orders drop-ship from the approved vendor to US addresses only.
           </p>
 
           {cart.length === 0 ? (
@@ -1298,7 +1299,7 @@ function VendorPortal({
     email: "",
     minOrder: "150",
     shippingFlat: "18",
-    shippingNote: "Cold-pack ground",
+    shippingNote: "US cold-pack ground",
     lines: [emptyLine(), emptyLine()],
   });
   const [existingVendorId, setExistingVendorId] = useState(
@@ -1332,7 +1333,7 @@ function VendorPortal({
             Drop your price list here. Undisclosed reviews each line, then
             publishes approved items to the live catalog with a{" "}
             {Math.round(MARKUP * 100)}% retail markup. You set minimum order and
-            shipping.
+            US shipping terms — we fulfill to United States addresses only.
           </p>
 
           <div className="notice">
@@ -1370,7 +1371,7 @@ function VendorPortal({
                     email: "",
                     minOrder: "150",
                     shippingFlat: "18",
-                    shippingNote: "Cold-pack ground",
+                    shippingNote: "US cold-pack ground",
                     lines: [emptyLine(), emptyLine()],
                   });
                 }
