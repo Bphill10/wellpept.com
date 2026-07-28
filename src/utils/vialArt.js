@@ -441,8 +441,6 @@ function drawBrandThreeMl(ctx, dims, options) {
     ctx.font = `500 ${Math.max(8, dims.w * 0.025)}px Outfit, "Segoe UI", sans-serif`;
     ctx.fillText(sku, cx, bodyBottom + dims.h * 0.095);
   }
-
-  return canvas.toDataURL("image/png");
 }
 
 /** 10 mL — same brand language, taller bottle. */
@@ -585,8 +583,6 @@ function drawBrandTenMl(ctx, dims, options) {
     ctx.font = `500 ${Math.max(8, dims.w * 0.024)}px Outfit, sans-serif`;
     ctx.fillText(sku, cx, bodyBottom + dims.h * 0.09);
   }
-
-  return canvas.toDataURL("image/png");
 }
 
 export function drawGeneratedVial(canvas, options = {}) {
@@ -633,8 +629,10 @@ export function drawGeneratedVial(canvas, options = {}) {
     brandImage: brandImage || brandImageCache,
   };
 
-  if (isTen) return drawBrandTenMl(ctx, dims, drawOpts);
-  return drawBrandThreeMl(ctx, dims, drawOpts);
+  if (isTen) drawBrandTenMl(ctx, dims, drawOpts);
+  else drawBrandThreeMl(ctx, dims, drawOpts);
+
+  return canvas.toDataURL("image/png");
 }
 
 export function downloadVialPng(dataUrl, filename = "undisclosed-vial.png") {

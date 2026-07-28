@@ -45,26 +45,30 @@ export default function GeneratedVial({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const dataUrl = drawGeneratedVial(canvas, {
-      name,
-      subtitle,
-      sku,
-      mass,
-      unit,
-      category,
-      mixText,
-      doseRef,
-      bacWater,
-      concentration,
-      doseRange,
-      summary,
-      size,
-      reconstituted,
-      vialMl: resolvedMl,
-      form: form || subtitle,
-      brandImage,
-    });
-    setPng(dataUrl);
+    try {
+      const dataUrl = drawGeneratedVial(canvas, {
+        name,
+        subtitle,
+        sku,
+        mass,
+        unit,
+        category,
+        mixText,
+        doseRef,
+        bacWater,
+        concentration,
+        doseRange,
+        summary,
+        size,
+        reconstituted,
+        vialMl: resolvedMl,
+        form: form || subtitle,
+        brandImage,
+      });
+      setPng(dataUrl);
+    } catch (err) {
+      console.error("Vial render failed", err);
+    }
   }, [
     name,
     subtitle,
