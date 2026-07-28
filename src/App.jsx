@@ -874,7 +874,7 @@ export default function App() {
                 <ArrowLeft size={16} /> Back to skincare
               </button>
               <div className="amazon-detail skin-detail" style={{ marginTop: "1rem" }}>
-                  <div className="detail-visual skin-visual">
+                  <div className="detail-visual skin-visual-col">
                     {skinProduct.image ? (
                       <img
                         src={skinProduct.image}
@@ -887,6 +887,13 @@ export default function App() {
                         <span className="skin-bottle-body" />
                       </div>
                     )}
+                    {skinProduct.gallery?.[1] && (
+                      <img
+                        src={skinProduct.gallery[1]}
+                        alt="Activation: twist cap releases dry peptide into serum"
+                        className="skin-product-img skin-product-img--howto"
+                      />
+                    )}
                   </div>
                   <div className="detail-info">
                     <p className="section-kicker">{skinProduct.line}</p>
@@ -898,8 +905,9 @@ export default function App() {
                     {skinProduct.kind === "mix" && (
                       <div className="mix-panel">
                         <p className="mix-lead">
-                          Fresh ingredients ship separated. You mix at home into
-                          the empty bottle — {skinProduct.mixYield}
+                          {skinProduct.packaging === "twist-cap"
+                            ? `Dry peptide powder is loaded in the twist-on cap. Twist to break the chamber into the serum — ${skinProduct.mixYield}`
+                            : `Fresh ingredients ship separated. You mix at home — ${skinProduct.mixYield}`}
                           {skinProduct.shelfAfterMix
                             ? ` · ${skinProduct.shelfAfterMix}`
                             : ""}
@@ -907,7 +915,7 @@ export default function App() {
                         </p>
                         {Array.isArray(skinProduct.ingredients) && (
                           <>
-                            <h3>In the kit</h3>
+                            <h3>In the bottle</h3>
                             <ul className="mix-list">
                               {skinProduct.ingredients.map((ing) => (
                                 <li key={ing.name}>
@@ -920,7 +928,11 @@ export default function App() {
                         )}
                         {Array.isArray(skinProduct.steps) && (
                           <>
-                            <h3>Mix steps</h3>
+                            <h3>
+                              {skinProduct.packaging === "twist-cap"
+                                ? "Activate"
+                                : "Mix steps"}
+                            </h3>
                             <ol className="mix-steps">
                               {skinProduct.steps.map((step) => (
                                 <li key={step}>{step}</li>

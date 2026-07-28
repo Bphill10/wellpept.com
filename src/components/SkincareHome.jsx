@@ -81,12 +81,12 @@ export default function SkincareHome({
           </div>
           <div className="hero-brand-rule rise-delay" aria-hidden="true" />
           <p className="hero-tagline rise-delay">
-            1 g fresh GHK-Cu. Buffet-style base. You mix.
+            Dry GHK-Cu in the cap. Twist. Activate.
           </p>
           <p className="hero-copy rise-delay">
-            Our flagship serum: fresh copper tripeptide (GHK-Cu) plus an
-            Ordinary Buffet–style multi-peptide matrix — shipped separate so you
-            blend when you’re ready.
+            Flagship packaging: 1 g copper peptide powder locked in a twist-on
+            cap that breaks into the Buffet-style serum — fresh the moment you
+            open it, not months on a shelf.
           </p>
           <div className="hero-cta rise-delay">
             <button
@@ -153,35 +153,45 @@ export default function SkincareHome({
               <p className="section-kicker">Fresh Mix</p>
               <h2>Topical peptides, mixed when you’re ready</h2>
               <p>
-                Pre-mixed store peptides lose potency on the shelf. WellPept
-                ships them fresh and dry — you blend into the base at home.
-                Flagship is <strong>1 g GHK-Cu</strong>; the rest cover lines,
-                expression zones, eyes, or an all-rounder.
+                Flagship uses a <strong>twist-cap powder chamber</strong> — dry
+                GHK-Cu loads in the cap, then breaks into the serum when you
+                twist. Other kits follow the same freshness idea for Matrixyl,
+                Argireline, eyes, and a multi all-rounder.
               </p>
             </div>
           </div>
 
           <article className="flagship-mix fade">
-            <button
-              type="button"
-              className="flagship-mix-media"
-              onClick={() => onOpenProduct?.(FLAGSHIP_SERUM)}
-            >
-              <img
-                src={FLAGSHIP_SERUM.image}
-                alt={FLAGSHIP_SERUM.name}
-                className="flagship-mix-img"
-              />
-              <span className="badge">Flagship</span>
-            </button>
+            <div className="flagship-mix-media-col">
+              <button
+                type="button"
+                className="flagship-mix-media"
+                onClick={() => onOpenProduct?.(FLAGSHIP_SERUM)}
+              >
+                <img
+                  src={FLAGSHIP_SERUM.image}
+                  alt={FLAGSHIP_SERUM.name}
+                  className="flagship-mix-img"
+                />
+                <span className="badge">Twist-cap · Flagship</span>
+              </button>
+              {FLAGSHIP_SERUM.gallery?.[1] && (
+                <img
+                  src={FLAGSHIP_SERUM.gallery[1]}
+                  alt="Twist cap to release dry peptide powder into serum"
+                  className="flagship-mix-howto"
+                />
+              )}
+            </div>
             <div className="flagship-mix-body">
               <p className="section-kicker">{FLAGSHIP_SERUM.line}</p>
               <h3>{FLAGSHIP_SERUM.name}</h3>
               <p>{FLAGSHIP_SERUM.blurb}</p>
               <ul className="flagship-mix-points">
-                <li>1 g fresh GHK-Cu copper tripeptide</li>
-                <li>30 mL Buffet-style multi-peptide serum base</li>
-                <li>Empty dropper — mix at home (~3% when blended)</li>
+                <li>1 g dry GHK-Cu powder sealed in the twist-on cap</li>
+                <li>30 mL Buffet-style multi-peptide serum in the bottle</li>
+                <li>Twist to break the chamber — powder drops into serum</li>
+                <li>Shake until blue-green · ~3% once activated</li>
               </ul>
               <div className="price-row" style={{ margin: "0.85rem 0 1rem" }}>
                 <strong>{formatMoney(FLAGSHIP_SERUM.price)}</strong>
@@ -200,7 +210,7 @@ export default function SkincareHome({
                   className="soft-btn"
                   onClick={() => onOpenProduct?.(FLAGSHIP_SERUM)}
                 >
-                  Mix steps
+                  Activation steps
                 </button>
               </div>
             </div>
@@ -224,8 +234,8 @@ export default function SkincareHome({
           <div className="section-head">
             <div>
               <p className="section-kicker">How it works</p>
-              <h2>Receive. Mix. Apply.</h2>
-              <p>A short sequence — no lab bench required.</p>
+              <h2>Twist. Activate. Apply.</h2>
+              <p>Dry peptide in the cap — released into serum only when you twist.</p>
             </div>
           </div>
           <div className="skin-ritual-grid">

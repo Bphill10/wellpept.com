@@ -81,30 +81,37 @@ export const SERUM_COMBOS = [
     line: "Fresh Mix · Flagship",
     kind: "mix",
     featured: true,
+    packaging: "twist-cap",
     need: "Firm · Repair · Glow",
     price: 98,
-    size: "Makes ~30 mL · ~3% GHK-Cu",
-    image: "/skincare/mix-ampoules.png",
+    size: "30 mL serum · 1 g dry GHK-Cu in twist cap",
+    image: "/skincare/ghk-twist-cap.png",
+    gallery: [
+      "/skincare/ghk-twist-cap.png",
+      "/skincare/ghk-twist-howto.png",
+    ],
     blurb:
-      "1 g fresh GHK-Cu (copper tripeptide-1) plus a Buffet-style multi-peptide serum base. Copper peptides fade on the shelf — we keep them dry until you mix.",
+      "Dry GHK-Cu powder lives in the twist-on cap — sealed fresh until you activate. Twist to break the chamber and drop 1 g copper peptide into the Buffet-style serum below.",
     focus: "Firm look · Repair look · Glow",
-    texture: "Mix-at-home copper serum",
+    texture: "Twist-cap activated copper serum",
     mixYield: "30 mL",
-    shelfAfterMix: "Use within 21 days once mixed · refrigerate after blending",
+    shelfAfterMix: "Use within 21 days after activation · refrigerate once mixed",
     ingredients: [
-      { name: "Fresh GHK-Cu (copper tripeptide-1)", amount: "1 g vial" },
       {
-        name: "Buffet-style multi-peptide serum base (HA + amino acids + matrix peptides)",
+        name: "Dry GHK-Cu powder (copper tripeptide-1) — loaded in twist-cap chamber",
+        amount: "1 g",
+      },
+      {
+        name: "Buffet-style multi-peptide serum base in bottle",
         amount: "30 mL",
       },
-      { name: "Empty dropper bottle", amount: "1" },
-      { name: "Mini funnel + mix card", amount: "1" },
+      { name: "Breakaway twist-cap activator", amount: "1 (pre-loaded)" },
     ],
     steps: [
-      "Pour the Buffet-style serum base into the empty dropper bottle.",
-      "Add the full 1 g fresh GHK-Cu vial (use the funnel).",
-      "Cap tightly and shake 45–60 seconds until fully dissolved — solution turns characteristic blue-green.",
-      "Use 2–4 drops evening on clean skin. Store refrigerated after mixing.",
+      "Keep upright. Do not shake before activating.",
+      "Twist the powder cap firmly until you feel the chamber break open — dry GHK-Cu drops into the serum.",
+      "Remove the spent powder chamber if it separates; seat the dropper top.",
+      "Shake 45–60 seconds until fully dissolved (blue-green tint). Use 2–4 drops evening. Refrigerate after activation.",
     ],
   },
   {
@@ -233,18 +240,18 @@ export const ALL_SKINCARE = [...SERUM_COMBOS, ...SKINCARE_PRODUCTS];
 export const SKINCARE_RITUAL = [
   {
     step: "01",
-    title: "Peptides stay dry",
-    copy: "Store bottles degrade. We ship actives sealed fresh — not pre-dissolved for months.",
+    title: "Powder stays dry",
+    copy: "Peptide sits sealed in the twist-cap chamber — not dissolving on a store shelf.",
   },
   {
     step: "02",
-    title: "Mix at home",
-    copy: "Tip peptide into the base, shake under a minute, and you’re live.",
+    title: "Twist to activate",
+    copy: "Twist the cap to break the chamber. Dry powder drops into the serum.",
   },
   {
     step: "03",
-    title: "Use while potent",
-    copy: "Each card lists how long the blend stays at its best after you mix.",
+    title: "Shake & use",
+    copy: "Shake until clear, then apply while the peptide is still fresh.",
   },
 ];
 

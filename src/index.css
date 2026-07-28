@@ -1930,6 +1930,20 @@ th {
   object-fit: cover;
 }
 
+.skin-visual-col {
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+}
+
+.skin-product-img--howto {
+  width: 100%;
+  max-height: 200px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+}
+
 .skin-visual .badge {
   position: absolute;
   left: 0.75rem;
@@ -2002,6 +2016,19 @@ th {
   border-radius: 16px;
   background:
     linear-gradient(135deg, rgba(0, 57, 198, 0.06), rgba(255, 255, 255, 0.95));
+}
+
+.flagship-mix-media-col {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.flagship-mix-howto {
+  width: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+  max-height: 160px;
+  border: 1px solid var(--line);
 }
 
 .flagship-mix-media {
