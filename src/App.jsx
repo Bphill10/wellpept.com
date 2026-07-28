@@ -64,6 +64,7 @@ function VialPreview({ product, size = "md", showDownload = false }) {
       subtitle={product.form}
       form={product.form}
       vialMl={product.vialMl}
+      summary={product.tagline || ""}
       size={size}
       showDownload={showDownload}
     />
@@ -1211,7 +1212,10 @@ function ProductDetail({
               <span className="stars">★★★★☆</span> {listing.rating.toFixed(1)} ·{" "}
               {listing.reviews} ratings
             </div>
-            <p className="detail-blurb">{listing.blurb || product.blurb}</p>
+            <div className="detail-summary">
+              <h2 className="detail-summary-label">Summary</h2>
+              <p className="detail-blurb">{listing.blurb || product.blurb}</p>
+            </div>
             {researchHelpFor(listing.name || product.name) && (
               <p className="detail-help">
                 <strong>Research focus: </strong>

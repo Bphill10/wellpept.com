@@ -170,7 +170,7 @@ function drawQrCode(ctx, x, y, size, seedStr, inverted = false) {
  * Brand colors: black / white / gold (not competitor red/blue).
  */
 function drawThreeMlLabel(ctx, w, h, options) {
-  const { name = "PEPTIDE", massLabel = "", sku = "" } = options;
+  const { name = "PEPTIDE", massLabel = "", sku = "", summary = "" } = options;
   const gold = "#c9a227";
   const ink = "#0a0a0a";
 
@@ -185,14 +185,14 @@ function drawThreeMlLabel(ctx, w, h, options) {
   }
 
   const padX = w * 0.06;
-  const topH = h * 0.34;
-  const midH = h * 0.28;
+  const topH = h * 0.3;
+  const midH = h * 0.36;
   const botH = h - topH - midH;
 
   // —— Top: brand lockup ——
-  const markR = Math.min(w, h) * 0.07;
+  const markR = Math.min(w, h) * 0.065;
   const markCx = padX + markR * 1.15;
-  const markCy = topH * 0.48;
+  const markCy = topH * 0.5;
   hexagonPath(ctx, markCx, markCy, markR);
   ctx.fillStyle = ink;
   ctx.fill();
@@ -208,21 +208,20 @@ function drawThreeMlLabel(ctx, w, h, options) {
 
   const brandX = markCx + markR * 1.55;
   ctx.fillStyle = ink;
-  ctx.font = `800 ${Math.max(14, h * 0.095)}px Outfit, "Segoe UI", sans-serif`;
+  ctx.font = `800 ${Math.max(13, h * 0.085)}px Outfit, "Segoe UI", sans-serif`;
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
   ctx.fillText("UNDISCLOSED", brandX, topH * 0.42);
   ctx.fillStyle = gold;
-  ctx.font = `700 ${Math.max(9, h * 0.048)}px Outfit, "Segoe UI", sans-serif`;
+  ctx.font = `700 ${Math.max(8, h * 0.042)}px Outfit, "Segoe UI", sans-serif`;
   const pep = "PEPTIDES";
-  const pepGap = Math.max(2, h * 0.012);
+  const pepGap = Math.max(2, h * 0.01);
   let pepX = brandX;
   for (let i = 0; i < pep.length; i += 1) {
-    ctx.fillText(pep[i], pepX, topH * 0.62);
+    ctx.fillText(pep[i], pepX, topH * 0.64);
     pepX += ctx.measureText(pep[i]).width + pepGap;
   }
 
-  // Gold hairline under brand
   ctx.strokeStyle = gold;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
@@ -230,50 +229,60 @@ function drawThreeMlLabel(ctx, w, h, options) {
   ctx.lineTo(w - padX, topH - 2);
   ctx.stroke();
 
-  // —— Middle: framed product name ——
+  // —— Middle: framed product name + brief summary ——
   const midY = topH;
   ctx.strokeStyle = ink;
   ctx.lineWidth = 1.6;
   ctx.beginPath();
-  ctx.moveTo(padX, midY + midH * 0.18);
-  ctx.lineTo(w - padX, midY + midH * 0.18);
+  ctx.moveTo(padX, midY + midH * 0.12);
+  ctx.lineTo(w - padX, midY + midH * 0.12);
   ctx.stroke();
   ctx.beginPath();
+  ctx.moveTo(padX, midY + midH * 0.88);
+  ctx.lineTo(w - padX, midY + midH * 0.88);
+  ctx.stroke();
+
+  ctx.strokeStyle = "rgba(201,162,39,0.55)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padX, midY + midH * 0.18);
+  ctx.lineTo(w - padX, midY + midH * 0.18);
   ctx.moveTo(padX, midY + midH * 0.82);
   ctx.lineTo(w - padX, midY + midH * 0.82);
   ctx.stroke();
 
-  // Soft gold inner rules
-  ctx.strokeStyle = "rgba(201,162,39,0.55)";
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(padX, midY + midH * 0.26);
-  ctx.lineTo(w - padX, midY + midH * 0.26);
-  ctx.moveTo(padX, midY + midH * 0.74);
-  ctx.lineTo(w - padX, midY + midH * 0.74);
-  ctx.stroke();
-
   const titleMaxW = w - padX * 2;
-  const titleSize = Math.max(16, Math.min(h * 0.14, titleMaxW * 0.2));
+  const hasSummary = Boolean(String(summary || "").trim());
+  const titleSize = Math.max(14, Math.min(h * (hasSummary ? 0.11 : 0.14), titleMaxW * 0.2));
   ctx.fillStyle = ink;
   ctx.font = `800 ${titleSize}px Outfit, "Segoe UI", sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   const titleLines = wrapLines(ctx, String(name).toUpperCase(), titleMaxW * 0.98, 2);
-  const lineGap = titleSize * 0.95;
-  const titleBlockH = titleLines.length * lineGap;
+  const lineGap = titleSize * 0.92;
+  const summarySize = Math.max(8, h * 0.038);
+  const summaryGap = hasSummary ? summarySize * 1.35 : 0;
+  const titleBlockH = titleLines.length * lineGap + summaryGap;
   let ty = midY + midH / 2 - titleBlockH / 2 + lineGap * 0.35;
   titleLines.forEach((line) => {
     ctx.fillText(line, w / 2, ty);
     ty += lineGap;
   });
 
+  if (hasSummary) {
+    ctx.fillStyle = "#555555";
+    ctx.font = `600 ${summarySize}px Outfit, "Segoe UI", sans-serif`;
+    const sumLines = wrapLines(ctx, String(summary), titleMaxW * 0.95, 2);
+    sumLines.forEach((line, i) => {
+      ctx.fillText(line, w / 2, ty + summarySize * 0.55 + i * summarySize * 1.15);
+    });
+  }
+
   // —— Bottom: solid band + large strength ——
   const botY = topH + midH;
   ctx.fillStyle = ink;
   ctx.fillRect(0, botY, w, botH);
 
-  // Gold top edge on band
   ctx.fillStyle = gold;
   ctx.fillRect(0, botY, w, Math.max(2, h * 0.012));
 
@@ -284,7 +293,6 @@ function drawThreeMlLabel(ctx, w, h, options) {
   ctx.textBaseline = "middle";
   ctx.fillText(massLabel || "—", w / 2, botY + botH * 0.38);
 
-  // Small mark + QR row
   const rowY = botY + botH * 0.68;
   const miniR = Math.max(6, botH * 0.12);
   hexagonPath(ctx, w * 0.22, rowY, miniR);
@@ -505,6 +513,7 @@ export function drawGeneratedVial(canvas, options = {}) {
     bacWater = "",
     concentration = "",
     doseRange = "",
+    summary = "",
     size = "md",
     reconstituted = false,
     vialMl: vialMlOpt,
@@ -784,7 +793,12 @@ export function drawGeneratedVial(canvas, options = {}) {
   const labelCanvas = makeCanvas(labelW, labelHflat);
   const lctx = labelCanvas.getContext("2d");
   if (isThree) {
-    drawThreeMlLabel(lctx, labelW, labelHflat, { name, massLabel, sku });
+    drawThreeMlLabel(lctx, labelW, labelHflat, {
+      name,
+      massLabel,
+      sku,
+      summary,
+    });
   } else {
     drawTenMlLabel(lctx, labelW, labelHflat, {
       name,

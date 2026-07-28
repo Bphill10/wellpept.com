@@ -54,59 +54,60 @@ const CATEGORY_MAP = {
   Epithalon: "Longevity",
 };
 
+/** Brief summaries: what it is + what labs study it for (1–2 sentences). */
 const BLURBS = {
   "BPC-157":
-    "Body-protection compound studied for gut lining, soft-tissue, and recovery signaling in research models. Often explored where repair pathways are the focus.",
+    "BPC-157 is a body-protection pentadecapeptide. Labs use it to study gut lining, soft-tissue repair, and recovery signaling in research models.",
   "TB-500":
-    "Synthetic thymosin β-4 fragment used in cytoskeletal, mobility, and tissue-remodeling research. Paired with BPC in many recovery protocols.",
+    "TB-500 is a synthetic fragment of thymosin β-4. It is used in cytoskeletal, cell-migration, and tissue-remodeling research, often alongside BPC-157.",
   "TB-4 (full sequence)":
-    "Full-sequence thymosin beta-4 studied for actin regulation, cell migration, and repair biology — broader than the TB-500 fragment.",
+    "Full-sequence thymosin β-4 regulates actin and cell migration. Researchers choose it when they need the broader biology beyond the TB-500 fragment.",
   "BPC-157 + TB-500":
-    "Recovery blend combining BPC-157 and TB-500 for labs comparing dual tissue-signaling pathways in one kit.",
+    "A recovery blend that pairs BPC-157 with TB-500. Useful when a lab wants both tissue-signaling pathways in one research kit.",
   "GHK-Cu":
-    "Copper-binding tripeptide explored in skin, collagen, and gene-expression research. Common in cosmetic and wound-biology assays.",
+    "GHK-Cu is a copper-binding tripeptide. It is studied in skin, collagen, wound biology, and gene-expression assays.",
   "GHK BASIC":
-    "Non-copper GHK peptide studied alongside GHK-Cu for skin and remodeling research without the copper complex.",
+    "Non-copper GHK peptide used beside GHK-Cu when remodeling research should exclude the copper complex.",
   "AHK-CU":
-    "Copper peptide examined in hair-follicle and dermal research settings.",
+    "AHK-Cu is a copper peptide examined in hair-follicle and dermal research settings.",
   "GHRP-6":
-    "Ghrelin mimetic used in growth-hormone pulse and appetite-axis research. Strong GH secretagogue profile in lab models.",
+    "GHRP-6 is a ghrelin mimetic and strong GH secretagogue. Labs use it for growth-hormone pulse and appetite-axis research.",
   "GHRP-2":
-    "GH-releasing peptide studied for pulsatile GH secretion with a different receptor bias than GHRP-6.",
+    "GHRP-2 is a GH-releasing peptide studied for pulsatile GH secretion, with a different receptor bias than GHRP-6.",
   Ipamorelin:
-    "Selective ghrelin-receptor agonist studied for cleaner GH pulses with less off-target hormone noise in research models.",
+    "Ipamorelin is a selective ghrelin-receptor agonist. It is studied for cleaner GH pulses with less off-target hormone noise in research models.",
   "CJC-1295 (no DAC)":
-    "GHRH analogue used in growth-hormone axis research without a drug-affinity complex — short-acting pulse design.",
+    "A short-acting GHRH analogue without a drug-affinity complex. Used for pulsed growth-hormone axis research.",
   "CJC-1295 with DAC":
-    "Long-acting GHRH analogue (with DAC) studied for extended GH-axis stimulation in research protocols.",
+    "Long-acting GHRH analogue with DAC. Studied when protocols need extended GH-axis stimulation.",
   Sermorelin:
-    "GHRH (1-29) analogue used to probe pituitary GH release in endocrine research.",
+    "Sermorelin is GHRH (1-29). Endocrine labs use it to probe pituitary GH release.",
   Tesamorelin:
     "Stabilized GHRH analogue studied in visceral-fat and GH-axis research models.",
   Hexarelin:
     "Potent GHRP secretagogue examined in cardiac and GH-release research.",
   "HGH Fragment 176-191":
-    "C-terminal HGH fragment studied in fat-metabolism research without full somatropin activity.",
+    "C-terminal fragment of HGH studied in fat-metabolism research without full somatropin activity.",
   HGH:
-    "Recombinant growth hormone (somatropin) for GH-receptor and growth-pathway laboratory research.",
+    "Recombinant growth hormone (somatropin). Used for GH-receptor, growth, and metabolic pathway laboratory work.",
   "TheProLobster Plus HGH":
     "Lobster HGH presentation for growth-pathway research. Confirm IU labeling on the vendor line before assay design.",
   Glow:
-    "Blend typically pairing recovery and copper peptides (often BPC / TB / GHK-Cu) for multi-pathway tissue research.",
+    "Multi-peptide blend (often BPC, TB, and GHK-Cu). Built for labs comparing recovery and copper-peptide pathways together.",
   GLOW:
     "Multi-peptide recovery blend used when labs want BPC, TB-500, and GHK-Cu signaling in one research kit.",
   KLOW:
-    "Multi-peptide blend oriented toward skin/hair appearance research — check the vendor form for exact component ratios.",
+    "Multi-peptide blend oriented toward skin and hair appearance research. Check the vendor form for exact component ratios.",
   Retatrutide:
-    "Triple agonist at GLP-1, GIP, and glucagon receptors — studied for metabolic, weight, and energy-balance research. Incretin-class compound for lab use only.",
+    "Retatrutide is a triple agonist at GLP-1, GIP, and glucagon receptors. Studied for metabolic, weight, and energy-balance research (lab use only).",
   Tirzepatide:
-    "Dual GIP/GLP-1 receptor agonist in the incretin (GLP-1 class) family — widely studied in metabolic research. Kits are commonly 10 vials at the labeled mg each.",
+    "Tirzepatide is a dual GIP/GLP-1 incretin agonist. Widely used in metabolic research; kits are commonly 10 vials at the labeled mg each.",
   Semaglutide:
-    "Selective GLP-1 receptor agonist — metabolic, glycemic, and appetite-pathway research compound. Distinct from Semax (a different nootropic peptide).",
+    "Semaglutide is a selective GLP-1 receptor agonist. Studied for metabolic, glycemic, and appetite pathways — not the same peptide as Semax.",
   Liraglutide:
-    "GLP-1 receptor agonist analogue studied in metabolic research; shorter-acting profile than semaglutide in clinical literature.",
+    "GLP-1 receptor agonist analogue for metabolic research, with a shorter clinical half-life profile than semaglutide.",
   Cagrilintide:
-    "Long-acting amylin analogue studied alongside incretins in satiety and metabolic research.",
+    "Long-acting amylin analogue studied with incretins in satiety and metabolic research.",
   Mazdutide:
     "Dual GLP-1/glucagon agonist explored in metabolic research models.",
   Survodutide:
@@ -114,9 +115,9 @@ const BLURBS = {
   AOD9604:
     "Modified HGH fragment studied in lipolysis and fat-metabolism research.",
   "MOTS-c":
-    "Mitochondrial-derived peptide studied in metabolic regulation, exercise, and insulin-pathway research.",
+    "MOTS-c is a mitochondrial-derived peptide. Labs study it for metabolic regulation, exercise biology, and insulin-pathway research.",
   "SS-31":
-    "Mitochondria-targeted peptide (elamipretide class) explored for cellular energy and oxidative-stress research.",
+    "SS-31 is a mitochondria-targeted peptide (elamipretide class). Explored for cellular energy and oxidative-stress research.",
   "Melanotan-2":
     "Melanocortin agonist studied for pigmentation and melanocortin-receptor research. Research use only.",
   "Melanotan 1":
@@ -126,9 +127,9 @@ const BLURBS = {
   HCG:
     "Human chorionic gonadotropin used in reproductive-axis and LH-receptor laboratory research.",
   "NAD+":
-    "Essential redox coenzyme for cellular energy, sirtuin, and aging-pathway research.",
+    "Essential redox coenzyme. Used in cellular energy, sirtuin, and aging-pathway research.",
   Epithalon:
-    "Tetrapeptide associated with telomerase and circadian/aging-pathway research.",
+    "Tetrapeptide associated with telomerase and circadian / aging-pathway research.",
   Selank:
     "Synthetic tuftsin analogue examined in stress-response and cognitive research settings.",
   Semax:
@@ -154,7 +155,7 @@ const BLURBS = {
   "PEG MGF":
     "PEGylated MGF studied for extended growth-factor signaling in tissue research.",
   Follistatin:
-    "Activin-binding glycoprotein studied in myostatin/muscle-growth pathway research.",
+    "Activin-binding glycoprotein studied in myostatin and muscle-growth pathway research.",
   "5-AMINO-1MQ":
     "NNMT inhibitor small molecule explored in metabolic and fat-biology research.",
   "SLU-PP-332":
@@ -187,83 +188,165 @@ const BLURBS = {
     "Bacteriostatic water for reconstituting lyophilized research peptides in the lab.",
 };
 
-export function guessBlurb(name) {
-  const raw = String(name || "").trim();
-  if (BLURBS[raw]) return BLURBS[raw];
+/** Ultra-short vial taglines (fits under product name on 3 mL wrap). */
+const TAGLINES = {
+  "BPC-157": "Tissue & gut recovery research",
+  "TB-500": "Actin & remodeling research",
+  "TB-4 (full sequence)": "Full thymosin β-4 research",
+  "BPC-157 + TB-500": "Dual recovery pathway kit",
+  "GHK-Cu": "Skin & collagen research",
+  "GHK BASIC": "Remodeling without copper",
+  "AHK-CU": "Hair & dermal research",
+  "GHRP-6": "GH pulse & appetite axis",
+  "GHRP-2": "Pulsatile GH research",
+  Ipamorelin: "Selective GH secretagogue",
+  "CJC-1295 (no DAC)": "Short-acting GHRH research",
+  "CJC-1295 with DAC": "Extended GHRH research",
+  Sermorelin: "Pituitary GH release",
+  Tesamorelin: "GH axis & visceral research",
+  Hexarelin: "Potent GHRP research",
+  "HGH Fragment 176-191": "Fat-metabolism fragment",
+  HGH: "Somatropin pathway research",
+  "TheProLobster Plus HGH": "Growth pathway research",
+  Glow: "Multi-pathway tissue blend",
+  GLOW: "BPC / TB / GHK-Cu blend",
+  KLOW: "Skin & hair research blend",
+  Retatrutide: "Triple incretin agonist",
+  Tirzepatide: "Dual GIP/GLP-1 research",
+  Semaglutide: "GLP-1 metabolic research",
+  Liraglutide: "GLP-1 analogue research",
+  Cagrilintide: "Amylin / satiety research",
+  Mazdutide: "GLP-1/glucagon research",
+  Survodutide: "GLP-1/glucagon research",
+  AOD9604: "Lipolysis research fragment",
+  "MOTS-c": "Mitochondrial metabolism",
+  "SS-31": "Mitochondrial energy research",
+  "Melanotan-2": "Melanocortin research",
+  "Melanotan 1": "Pigmentation research",
+  PT141: "Melanocortin pharmacology",
+  HCG: "LH-receptor research",
+  "NAD+": "Redox & energy research",
+  Epithalon: "Telomerase / aging research",
+  Selank: "Stress & cognition research",
+  Semax: "Neuroprotection research",
+  Dihexa: "Synaptic research analogue",
+  "LL-37": "Innate immunity research",
+  KPV: "Inflammation & barrier research",
+  Thymalin: "Immune modulation research",
+  "Thymosin Alpha-1": "T-cell signaling research",
+  DSIP: "Sleep & stress-axis research",
+  Oxytocin: "Neuropeptide research",
+  "IGF-1 LR3": "Growth-factor research",
+  MGF: "Muscle repair research",
+  "PEG MGF": "Extended MGF signaling",
+  Follistatin: "Myostatin pathway research",
+  "5-AMINO-1MQ": "NNMT / metabolic research",
+  "SLU-PP-332": "Exercise-mimetic research",
+  AICAR: "AMPK pathway research",
+  Glutathione: "Redox research tripeptide",
+  Cerebrolysin: "Neuroprotection research",
+  Pinealon: "CNS / circadian research",
+  Humanin: "Cytoprotection research",
+  VIP: "Neuroendocrine research",
+  "SNAP-8": "Cosmetic peptide research",
+  Matrixyl: "Collagen matrix research",
+  "KissPeptin-10": "GnRH axis research",
+  Gonadorelin: "Gonadotropin release research",
+  Melatonin: "Circadian timing research",
+  BAC: "Reconstitution diluent",
+  "BAC WATER": "Reconstitution diluent",
+};
 
-  const key = Object.keys(BLURBS).find(
+function resolveCompoundKey(name) {
+  const raw = String(name || "").trim();
+  if (!raw) return null;
+  if (BLURBS[raw]) return raw;
+
+  const exact = Object.keys(BLURBS).find(
     (k) => k.toLowerCase() === raw.toLowerCase()
   );
-  if (key) return BLURBS[key];
+  if (exact) return exact;
 
   const n = raw.toUpperCase().replace(/\s+/g, " ");
 
-  if (/\bBPC\b/.test(n) && /\bTB\b/.test(n)) return BLURBS["BPC-157 + TB-500"];
-  if (/\bBPC\b/.test(n)) return BLURBS["BPC-157"];
-  if (/\bTB-?4\b/.test(n) || /FULL SEQUENCE/.test(n)) return BLURBS["TB-4 (full sequence)"];
-  if (/\bTB-?500\b/.test(n) || /\bTB500\b/.test(n)) return BLURBS["TB-500"];
-  if (/GHK/.test(n) && /CU|COPPER/.test(n)) return BLURBS["GHK-Cu"];
-  if (/AHK/.test(n)) return BLURBS["AHK-CU"];
-  if (/GHRP-?6/.test(n)) return BLURBS["GHRP-6"];
-  if (/GHRP-?2/.test(n)) return BLURBS["GHRP-2"];
-  if (/IPAMORELIN/.test(n)) return BLURBS.Ipamorelin;
+  if (/\bBPC\b/.test(n) && /\bTB\b/.test(n)) return "BPC-157 + TB-500";
+  if (/\bBPC\b/.test(n)) return "BPC-157";
+  if (/\bTB-?4\b/.test(n) || /FULL SEQUENCE/.test(n)) return "TB-4 (full sequence)";
+  if (/\bTB-?500\b/.test(n) || /\bTB500\b/.test(n)) return "TB-500";
+  if (/GHK/.test(n) && /CU|COPPER/.test(n)) return "GHK-Cu";
+  if (/GHK/.test(n) && /BASIC|NO.?COPPER/.test(n)) return "GHK BASIC";
+  if (/AHK/.test(n)) return "AHK-CU";
+  if (/GHRP-?6/.test(n)) return "GHRP-6";
+  if (/GHRP-?2/.test(n)) return "GHRP-2";
+  if (/IPAMORELIN/.test(n)) return "Ipamorelin";
   if (/CJC/.test(n) && /DAC/.test(n) && !/WITHOUT|NO DAC|WHITOUT/.test(n))
-    return BLURBS["CJC-1295 with DAC"];
-  if (/CJC/.test(n)) return BLURBS["CJC-1295 (no DAC)"];
-  if (/SERMORELIN/.test(n)) return BLURBS.Sermorelin;
-  if (/TESAMORELIN|TESA/.test(n)) return BLURBS.Tesamorelin;
-  if (/HEXARELIN/.test(n)) return BLURBS.Hexarelin;
+    return "CJC-1295 with DAC";
+  if (/CJC/.test(n)) return "CJC-1295 (no DAC)";
+  if (/SERMORELIN/.test(n)) return "Sermorelin";
+  if (/TESAMORELIN|TESA/.test(n)) return "Tesamorelin";
+  if (/HEXARELIN/.test(n)) return "Hexarelin";
   if (/176-?191|AOD|FRAGMENT/.test(n) && /HGH|GH|AOD/.test(n))
-    return BLURBS["HGH Fragment 176-191"];
-  if (/AOD\s*9604|AOD9604/.test(n)) return BLURBS.AOD9604;
-  if (/PROLOBSTER|SOMATROPIN|\bHGH\b/.test(n)) return BLURBS.HGH;
-  if (/\bGLOW\b/.test(n)) return BLURBS.Glow;
-  if (/\bKLOW\b/.test(n)) return BLURBS.KLOW;
-  if (/RETATRUTIDE|RETA\b/.test(n)) return BLURBS.Retatrutide;
-  if (/TIRZEPATIDE|TIRZ/.test(n)) return BLURBS.Tirzepatide;
-  if (/SEMAGLUTIDE|SEMA\b/.test(n) && !/SEMAX|SELANK/.test(n))
-    return BLURBS.Semaglutide;
-  if (/LIRAGLUTIDE/.test(n)) return BLURBS.Liraglutide;
-  if (/CAGRILINTIDE|CAGRI/.test(n)) return BLURBS.Cagrilintide;
-  if (/MAZDUTIDE/.test(n)) return BLURBS.Mazdutide;
-  if (/SURVODUTIDE/.test(n)) return BLURBS.Survodutide;
-  if (/MOTS/.test(n)) return BLURBS["MOTS-c"];
-  if (/SS-?31|ELAMIPRETIDE/.test(n)) return BLURBS["SS-31"];
-  if (/MELANOTAN\s*2|MELANOTAN-2|MT-?2\b/.test(n)) return BLURBS["Melanotan-2"];
-  if (/MELANOTAN\s*1|MT-?1\b/.test(n)) return BLURBS["Melanotan 1"];
-  if (/PT-?141|BREMELANOTIDE/.test(n)) return BLURBS.PT141;
-  if (/\bHCG\b/.test(n)) return BLURBS.HCG;
-  if (/NAD/.test(n)) return BLURBS["NAD+"];
-  if (/EPITHAL/.test(n)) return BLURBS.Epithalon;
-  if (/SELANK/.test(n)) return BLURBS.Selank;
-  if (/SEMAX/.test(n)) return BLURBS.Semax;
-  if (/DIHEXA/.test(n)) return BLURBS.Dihexa;
-  if (/LL-?37/.test(n)) return BLURBS["LL-37"];
-  if (/\bKPV\b/.test(n)) return BLURBS.KPV;
-  if (/THYMALIN|THYMULIN/.test(n)) return BLURBS.Thymalin;
-  if (/THYMOSIN\s*ALPHA|TA1|Tα1/.test(n)) return BLURBS["Thymosin Alpha-1"];
-  if (/\bDSIP\b/.test(n)) return BLURBS.DSIP;
-  if (/OXYTOCIN/.test(n)) return BLURBS.Oxytocin;
-  if (/IGF/.test(n)) return BLURBS["IGF-1 LR3"];
-  if (/PEG\s*MGF/.test(n)) return BLURBS["PEG MGF"];
-  if (/\bMGF\b/.test(n)) return BLURBS.MGF;
-  if (/FOLLISTATIN/.test(n)) return BLURBS.Follistatin;
-  if (/5-?AMINO|1MQ/.test(n)) return BLURBS["5-AMINO-1MQ"];
-  if (/SLU-?PP|SLUPP/.test(n)) return BLURBS["SLU-PP-332"];
-  if (/AICAR/.test(n)) return BLURBS.AICAR;
-  if (/GLUTATHIONE/.test(n)) return BLURBS.Glutathione;
-  if (/CEREBROLYSIN/.test(n)) return BLURBS.Cerebrolysin;
-  if (/PINEALON/.test(n)) return BLURBS.Pinealon;
-  if (/HUMANIN/.test(n)) return BLURBS.Humanin;
-  if (/\bVIP\b/.test(n)) return BLURBS.VIP;
-  if (/SNAP-?8/.test(n)) return BLURBS["SNAP-8"];
-  if (/MATRIXYL/.test(n)) return BLURBS.Matrixyl;
-  if (/KISSPEPTIN|KISSPETIN/.test(n)) return BLURBS["KissPeptin-10"];
-  if (/GONADORELIN/.test(n)) return BLURBS.Gonadorelin;
-  if (/MELATONIN/.test(n)) return BLURBS.Melatonin;
-  if (/BAC|BACTERIOSTATIC|STERILE WATER|\bWATER\b/.test(n)) return BLURBS["BAC WATER"];
+    return "HGH Fragment 176-191";
+  if (/AOD\s*9604|AOD9604/.test(n)) return "AOD9604";
+  if (/PROLOBSTER|SOMATROPIN|\bHGH\b/.test(n)) return "HGH";
+  if (/\bGLOW\b/.test(n)) return "Glow";
+  if (/\bKLOW\b/.test(n)) return "KLOW";
+  if (/RETATRUTIDE|RETA\b/.test(n)) return "Retatrutide";
+  if (/TIRZEPATIDE|TIRZ/.test(n)) return "Tirzepatide";
+  if (/SEMAGLUTIDE|SEMA\b/.test(n) && !/SEMAX|SELANK/.test(n)) return "Semaglutide";
+  if (/LIRAGLUTIDE/.test(n)) return "Liraglutide";
+  if (/CAGRILINTIDE|CAGRI/.test(n)) return "Cagrilintide";
+  if (/MAZDUTIDE/.test(n)) return "Mazdutide";
+  if (/SURVODUTIDE/.test(n)) return "Survodutide";
+  if (/MOTS/.test(n)) return "MOTS-c";
+  if (/SS-?31|ELAMIPRETIDE/.test(n)) return "SS-31";
+  if (/MELANOTAN\s*2|MELANOTAN-2|MT-?2\b/.test(n)) return "Melanotan-2";
+  if (/MELANOTAN\s*1|MT-?1\b/.test(n)) return "Melanotan 1";
+  if (/PT-?141|BREMELANOTIDE/.test(n)) return "PT141";
+  if (/\bHCG\b/.test(n)) return "HCG";
+  if (/NAD/.test(n)) return "NAD+";
+  if (/EPITHAL/.test(n)) return "Epithalon";
+  if (/SELANK/.test(n)) return "Selank";
+  if (/SEMAX/.test(n)) return "Semax";
+  if (/DIHEXA/.test(n)) return "Dihexa";
+  if (/LL-?37/.test(n)) return "LL-37";
+  if (/\bKPV\b/.test(n)) return "KPV";
+  if (/THYMALIN|THYMULIN/.test(n)) return "Thymalin";
+  if (/THYMOSIN\s*ALPHA|TA1|Tα1/.test(n)) return "Thymosin Alpha-1";
+  if (/\bDSIP\b/.test(n)) return "DSIP";
+  if (/OXYTOCIN/.test(n)) return "Oxytocin";
+  if (/IGF/.test(n)) return "IGF-1 LR3";
+  if (/PEG\s*MGF/.test(n)) return "PEG MGF";
+  if (/\bMGF\b/.test(n)) return "MGF";
+  if (/FOLLISTATIN/.test(n)) return "Follistatin";
+  if (/5-?AMINO|1MQ/.test(n)) return "5-AMINO-1MQ";
+  if (/SLU-?PP|SLUPP/.test(n)) return "SLU-PP-332";
+  if (/AICAR/.test(n)) return "AICAR";
+  if (/GLUTATHIONE/.test(n)) return "Glutathione";
+  if (/CEREBROLYSIN/.test(n)) return "Cerebrolysin";
+  if (/PINEALON/.test(n)) return "Pinealon";
+  if (/HUMANIN/.test(n)) return "Humanin";
+  if (/\bVIP\b/.test(n)) return "VIP";
+  if (/SNAP-?8/.test(n)) return "SNAP-8";
+  if (/MATRIXYL/.test(n)) return "Matrixyl";
+  if (/KISSPEPTIN|KISSPETIN/.test(n)) return "KissPeptin-10";
+  if (/GONADORELIN/.test(n)) return "Gonadorelin";
+  if (/MELATONIN/.test(n)) return "Melatonin";
+  if (/BAC|BACTERIOSTATIC|STERILE WATER|\bWATER\b/.test(n)) return "BAC WATER";
+  return null;
+}
 
+export function guessBlurb(name) {
+  const key = resolveCompoundKey(name);
+  if (key && BLURBS[key]) return BLURBS[key];
   return "Research compound for laboratory use only. Review COA and vendor notes before assay design — not for human consumption.";
+}
+
+/** Short line for vial labels and card meta — more detail without a wall of text. */
+export function guessTagline(name) {
+  const key = resolveCompoundKey(name);
+  if (key && TAGLINES[key]) return TAGLINES[key];
+  return "Laboratory research compound";
 }
 const DEMO_PENDING_VENDOR = {
   id: "v-demo-pending",
@@ -393,6 +476,7 @@ export function groupCatalog(products) {
         name: product.name,
         category: product.category,
         blurb: product.blurb,
+        tagline: product.tagline,
         variantsByKey: new Map(),
       });
     }
@@ -439,6 +523,7 @@ export function groupCatalog(products) {
         name: group.name,
         category: group.category || defaultVariant?.category,
         blurb: group.blurb || defaultVariant?.blurb,
+        tagline: group.tagline || defaultVariant?.tagline,
         variants,
         defaultVariantId: defaultVariant?.id,
         rating,
@@ -494,6 +579,7 @@ export function buildCatalog(vendors, submissions) {
       unitLabel: packVials > 1 ? `${packVials}-pack` : "each",
       category: item.category || guessCategory(item.name),
       blurb: guessBlurb(item.name),
+      tagline: guessTagline(item.name),
       vendorId: item.vendorId,
       vendor: item.vendor.name,
       vendorCost,
