@@ -34,6 +34,17 @@ import {
   persistMarketplace,
   uid,
 } from "./data/store";
+import {
+  loadAutomationSettings,
+  saveAutomationSettings,
+  buildOrderPacket,
+  formatOrderPacketText,
+  createOrderId,
+  isValidUsZip,
+  loadOrders,
+  saveOrder,
+  suggestedBacMl,
+} from "./utils/automation";
 import PeptideCalculator, {
   parseCalculatorQuery,
 } from "./components/PeptideCalculator";
@@ -99,6 +110,12 @@ export default function App() {
   const [cart, setCart] = useState([]);
   const [cartPulse, setCartPulse] = useState(false);
   const [flash, setFlash] = useState("");
+  const [automation, setAutomation] = useState(() => loadAutomationSettings());
+  const [orders, setOrders] = useState(() => loadOrders());
+
+  function updateAutomation(patch) {
+    setAutomation((prev) => saveAutomationSettings({ ...prev, ...patch }));
+  }
 
   useEffect(() => {
     const nextProducts = persistMarketplace(vendors, submissions);
@@ -228,10 +245,22 @@ export default function App() {
   }
 
   function approveVendor(id) {
+    const now = new Date().toISOString();
     setVendors((prev) =>
       prev.map((v) => (v.id === id ? { ...v, status: "approved" } : v))
     );
-    setFlash("Vendor approved");
+    if (automation.approveVendorPublishesLines) {
+      setSubmissions((prev) =>
+        prev.map((s) =>
+          s.vendorId === id && s.status === "pending"
+            ? { ...s, status: "approved", reviewedAt: now }
+            : s
+        )
+      );
+      setFlash("Vendor approved — pending lines published");
+    } else {
+      setFlash("Vendor approved");
+    }
   }
 
   function rejectVendor(id) {
@@ -239,6 +268,52 @@ export default function App() {
       prev.map((v) => (v.id === id ? { ...v, status: "rejected" } : v))
     );
     setFlash("Vendor rejected");
+  }
+
+  function approveAllPending() {
+    const now = new Date().toISOString();
+    setVendors((prev) =>
+      prev.map((v) =>
+        v.status === "pending" ? { ...v, status: "approved" } : v
+      )
+    );
+    setSubmissions((prev) =>
+      prev.map((s) =>
+        s.status === "pending"
+          ? { ...s, status: "approved", reviewedAt: now }
+          : s
+      )
+    );
+    setFlash("All pending vendors and lines approved");
+  }
+
+  function approveAllPendingLines() {
+    const now = new Date().toISOString();
+    let count = 0;
+    setSubmissions((prev) =>
+      prev.map((s) => {
+        if (s.status !== "pending") return s;
+        count += 1;
+        return { ...s, status: "approved", reviewedAt: now };
+      })
+    );
+    setFlash(
+      count
+        ? `${count} price-list line${count === 1 ? "" : "s"} approved`
+        : "No pending lines"
+    );
+  }
+
+  function rejectAllPendingLines() {
+    const now = new Date().toISOString();
+    setSubmissions((prev) =>
+      prev.map((s) =>
+        s.status === "pending"
+          ? { ...s, status: "rejected", reviewedAt: now }
+          : s
+      )
+    );
+    setFlash("All pending lines rejected");
   }
 
   function submitVendorApplication(payload) {
@@ -292,6 +367,10 @@ export default function App() {
   }
 
   function submitPriceListForExisting(vendorId, linesInput) {
+    const vendor = vendors.find((v) => v.id === vendorId);
+    const autoPublish =
+      automation.autoApproveTrustedUpdates && vendor?.status === "approved";
+    const now = new Date().toISOString();
     const lines = linesInput
       .filter((line) => line.name.trim() && line.sku.trim() && line.vendorCost)
       .map((line) => {
@@ -312,9 +391,9 @@ export default function App() {
           category: line.category || guessCategory(line.name.trim()),
           vialMl,
           packVials: 10,
-          status: "pending",
-          submittedAt: new Date().toISOString(),
-          reviewedAt: null,
+          status: autoPublish ? "approved" : "pending",
+          submittedAt: now,
+          reviewedAt: autoPublish ? now : null,
         };
       });
 
@@ -324,7 +403,11 @@ export default function App() {
     }
 
     setSubmissions((prev) => [...lines, ...prev]);
-    setFlash("Updated price list submitted for approval");
+    setFlash(
+      autoPublish
+        ? `${lines.length} line${lines.length === 1 ? "" : "s"} auto-published for ${vendor?.name || "vendor"}`
+        : "Updated price list submitted for approval"
+    );
     return true;
   }
 
@@ -342,6 +425,39 @@ export default function App() {
       )
     );
     setFlash("Vendor shipping & minimum order updated");
+  }
+
+  function placeOrder(customer) {
+    if (!cart.length) {
+      setFlash("Cart is empty");
+      return null;
+    }
+    if (!isValidUsZip(customer.zip)) {
+      setFlash("Enter a valid US ZIP code");
+      return null;
+    }
+    const subtotal = cart.reduce((sum, line) => sum + line.price * line.qty, 0);
+    const shippingByVendor = new Map();
+    for (const line of cart) {
+      if (!shippingByVendor.has(line.vendorId)) {
+        shippingByVendor.set(line.vendorId, Number(line.shippingFlat) || 0);
+      }
+    }
+    let shipping = 0;
+    for (const fee of shippingByVendor.values()) shipping += fee;
+    const total = subtotal + shipping;
+    const packet = buildOrderPacket({
+      orderId: createOrderId(),
+      customer,
+      cart,
+      subtotal,
+      shipping,
+      total,
+    });
+    setOrders(saveOrder(packet));
+    setCart([]);
+    setFlash(`Order ${packet.orderId} queued for drop-ship`);
+    return packet;
   }
 
   return (
@@ -1019,12 +1135,21 @@ export default function App() {
             onBack={goShop}
             onAdd={() => addToCart(selectedVariant)}
             onCalculate={() => {
+              const mass = selectedVariant.mg || 10;
+              const dose = mass >= 10 ? 1 : 250;
+              const doseUnit = mass >= 10 ? "mg" : "mcg";
+              const autoBac = automation.autoSuggestBacFromProduct;
+              const bac = autoBac
+                ? suggestedBacMl(mass, dose, doseUnit, 10)
+                : null;
               setCalcInitial({
                 name: selectedVariant.name,
-                mass: selectedVariant.mg || 10,
-                dose: selectedVariant.mg >= 10 ? 1 : 250,
-                doseUnit: selectedVariant.mg >= 10 ? "mg" : "mcg",
+                mass,
+                dose,
+                doseUnit,
                 desiredUnits: 10,
+                solution: bac != null ? Number(bac.toFixed(2)) : undefined,
+                autoBac,
               });
               setView(VIEWS.calculator);
               window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1038,6 +1163,7 @@ export default function App() {
             onBack={goShop}
             onUpdateQty={updateQty}
             onRemove={removeLine}
+            onPlaceOrder={placeOrder}
           />
         )}
 
@@ -1049,6 +1175,7 @@ export default function App() {
           <VendorPortal
             vendors={vendors}
             submissions={submissions}
+            autoApproveTrusted={automation.autoApproveTrustedUpdates}
             onApply={submitVendorApplication}
             onSubmitLines={submitPriceListForExisting}
             onUpdateTerms={updateVendorTerms}
@@ -1060,10 +1187,16 @@ export default function App() {
             vendors={vendors}
             submissions={submissions}
             products={products}
+            orders={orders}
+            automation={automation}
+            onUpdateAutomation={updateAutomation}
             onApproveSubmission={approveSubmission}
             onRejectSubmission={rejectSubmission}
             onApproveVendor={approveVendor}
             onRejectVendor={rejectVendor}
+            onApproveAllPending={approveAllPending}
+            onApproveAllLines={approveAllPendingLines}
+            onRejectAllLines={rejectAllPendingLines}
           />
         )}
       </main>
@@ -1409,7 +1542,7 @@ function ProductDetail({
   );
 }
 
-function CartPage({ cart, onBack, onUpdateQty, onRemove }) {
+function CartPage({ cart, onBack, onUpdateQty, onRemove, onPlaceOrder }) {
   const subtotal = cart.reduce((sum, line) => sum + line.price * line.qty, 0);
 
   const shippingByVendor = new Map();
@@ -1441,6 +1574,43 @@ function CartPage({ cart, onBack, onUpdateQty, onRemove }) {
   }
 
   const total = subtotal + shipping;
+  const [customer, setCustomer] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address1: "",
+    address2: "",
+    city: "",
+    state: "",
+    zip: "",
+  });
+  const [packet, setPacket] = useState(null);
+  const [packetMsg, setPacketMsg] = useState("");
+
+  async function handleCheckout(e) {
+    e.preventDefault();
+    if (minOrderWarnings.length) {
+      setPacketMsg("Meet each vendor minimum before checkout.");
+      return;
+    }
+    const next = onPlaceOrder?.(customer);
+    if (!next) return;
+    setPacket(next);
+    const text = formatOrderPacketText(next);
+    try {
+      await navigator.clipboard.writeText(text);
+      setPacketMsg("Order queued · drop-ship packet copied.");
+    } catch {
+      setPacketMsg("Order queued · download the packet below.");
+    }
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${next.orderId}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <section className="panel-page fade">
@@ -1451,55 +1621,59 @@ function CartPage({ cart, onBack, onUpdateQty, onRemove }) {
         <div className="panel" style={{ marginTop: "1rem" }}>
           <h1>Cart</h1>
           <p className="lede">
-            Orders drop-ship from the approved vendor to US addresses only.
+            Checkout builds a US drop-ship packet automatically — grouped by
+            vendor, no storefront links exposed.
           </p>
 
-          {cart.length === 0 ? (
+          {cart.length === 0 && !packet ? (
             <div className="empty-state">Your cart is empty.</div>
           ) : (
             <>
-              <div className="cart-list">
-                {cart.map((line) => (
-                  <div className="cart-item" key={line.id}>
-                    <div className="cart-thumb">
-                      <VialPreview product={line} size="sm" />
-                    </div>
-                    <div>
-                      <strong>{line.name}</strong>
-                      <div className="meta">
-                        {formatStrengthLabel(line)} · {line.form} · {line.vendor}
+              {cart.length > 0 && (
+                <div className="cart-list">
+                  {cart.map((line) => (
+                    <div className="cart-item" key={line.id}>
+                      <div className="cart-thumb">
+                        <VialPreview product={line} size="sm" />
                       </div>
-                      <div className="qty-controls">
-                        <button
-                          type="button"
-                          onClick={() => onUpdateQty(line.id, -1)}
-                          aria-label="Decrease quantity"
-                        >
-                          <Minus size={14} />
-                        </button>
-                        <span>{line.qty}</span>
-                        <button
-                          type="button"
-                          onClick={() => onUpdateQty(line.id, 1)}
-                          aria-label="Increase quantity"
-                        >
-                          <Plus size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          className="danger-btn"
-                          onClick={() => onRemove(line.id)}
-                        >
-                          Remove
-                        </button>
+                      <div>
+                        <strong>{line.name}</strong>
+                        <div className="meta">
+                          {formatStrengthLabel(line)} · {line.form} ·{" "}
+                          {line.vendor}
+                        </div>
+                        <div className="qty-controls">
+                          <button
+                            type="button"
+                            onClick={() => onUpdateQty(line.id, -1)}
+                            aria-label="Decrease quantity"
+                          >
+                            <Minus size={14} />
+                          </button>
+                          <span>{line.qty}</span>
+                          <button
+                            type="button"
+                            onClick={() => onUpdateQty(line.id, 1)}
+                            aria-label="Increase quantity"
+                          >
+                            <Plus size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            className="danger-btn"
+                            onClick={() => onRemove(line.id)}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                      <div className="line-total">
+                        <strong>{formatMoney(line.price * line.qty)}</strong>
                       </div>
                     </div>
-                    <div className="line-total">
-                      <strong>{formatMoney(line.price * line.qty)}</strong>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
 
               {minOrderWarnings.length > 0 && (
                 <div className="notice warn" style={{ marginTop: "1rem" }}>
@@ -1507,23 +1681,135 @@ function CartPage({ cart, onBack, onUpdateQty, onRemove }) {
                 </div>
               )}
 
-              <div className="cart-summary">
-                <div className="summary-row">
-                  <span>Subtotal</span>
-                  <span>{formatMoney(subtotal)}</span>
+              {cart.length > 0 && (
+                <form className="checkout-form" onSubmit={handleCheckout}>
+                  <h2>US shipping</h2>
+                  <div className="form-row">
+                    <label className="field">
+                      Full name
+                      <input
+                        required
+                        value={customer.name}
+                        onChange={(e) =>
+                          setCustomer((c) => ({ ...c, name: e.target.value }))
+                        }
+                      />
+                    </label>
+                    <label className="field">
+                      Email
+                      <input
+                        required
+                        type="email"
+                        value={customer.email}
+                        onChange={(e) =>
+                          setCustomer((c) => ({ ...c, email: e.target.value }))
+                        }
+                      />
+                    </label>
+                  </div>
+                  <label className="field">
+                    Address
+                    <input
+                      required
+                      value={customer.address1}
+                      onChange={(e) =>
+                        setCustomer((c) => ({ ...c, address1: e.target.value }))
+                      }
+                      placeholder="Street address"
+                    />
+                  </label>
+                  <label className="field">
+                    Address line 2
+                    <input
+                      value={customer.address2}
+                      onChange={(e) =>
+                        setCustomer((c) => ({ ...c, address2: e.target.value }))
+                      }
+                      placeholder="Apt, suite (optional)"
+                    />
+                  </label>
+                  <div className="form-row form-row--3">
+                    <label className="field">
+                      City
+                      <input
+                        required
+                        value={customer.city}
+                        onChange={(e) =>
+                          setCustomer((c) => ({ ...c, city: e.target.value }))
+                        }
+                      />
+                    </label>
+                    <label className="field">
+                      State
+                      <input
+                        required
+                        maxLength={2}
+                        value={customer.state}
+                        onChange={(e) =>
+                          setCustomer((c) => ({
+                            ...c,
+                            state: e.target.value.toUpperCase(),
+                          }))
+                        }
+                        placeholder="CA"
+                      />
+                    </label>
+                    <label className="field">
+                      ZIP
+                      <input
+                        required
+                        value={customer.zip}
+                        onChange={(e) =>
+                          setCustomer((c) => ({ ...c, zip: e.target.value }))
+                        }
+                        placeholder="90210"
+                        pattern="\d{5}(-\d{4})?"
+                      />
+                    </label>
+                  </div>
+                  <label className="field">
+                    Phone (optional)
+                    <input
+                      value={customer.phone}
+                      onChange={(e) =>
+                        setCustomer((c) => ({ ...c, phone: e.target.value }))
+                      }
+                    />
+                  </label>
+
+                  <div className="cart-summary">
+                    <div className="summary-row">
+                      <span>Subtotal</span>
+                      <span>{formatMoney(subtotal)}</span>
+                    </div>
+                    <div className="summary-row">
+                      <span>US shipping (by vendor)</span>
+                      <span>{formatMoney(shipping)}</span>
+                    </div>
+                    <div className="summary-row total">
+                      <span>Total</span>
+                      <span>{formatMoney(total)}</span>
+                    </div>
+                    <button type="submit" className="primary-btn">
+                      Place order · auto drop-ship packet
+                    </button>
+                    <p className="meta" style={{ marginTop: "0.65rem" }}>
+                      Payment capture is still offline — this queues the order
+                      and downloads the vendor packet for ops.
+                    </p>
+                  </div>
+                </form>
+              )}
+
+              {packet && (
+                <div className="notice" style={{ marginTop: "1rem" }}>
+                  <strong>{packet.orderId}</strong> queued
+                  {packetMsg ? ` · ${packetMsg}` : ""}
+                  <pre className="order-packet-preview">
+                    {formatOrderPacketText(packet)}
+                  </pre>
                 </div>
-                <div className="summary-row">
-                  <span>US shipping (by vendor)</span>
-                  <span>{formatMoney(shipping)}</span>
-                </div>
-                <div className="summary-row total">
-                  <span>Total</span>
-                  <span>{formatMoney(total)}</span>
-                </div>
-                <button type="button" className="primary-btn" disabled>
-                  Checkout coming soon
-                </button>
-              </div>
+              )}
             </>
           )}
         </div>
@@ -1548,6 +1834,7 @@ function emptyLine() {
 function VendorPortal({
   vendors,
   submissions,
+  autoApproveTrusted = true,
   onApply,
   onSubmitLines,
   onUpdateTerms,
@@ -1596,6 +1883,9 @@ function VendorPortal({
           <div className="notice">
             Best results: columns like Product / Name, Strength (mg), and Price /
             Cost. PDF needs selectable text (not a scanned image).
+            {autoApproveTrusted
+              ? " Approved vendors: price-list updates auto-publish to the catalog."
+              : " All price-list updates still need admin approval."}
           </div>
 
           <div className="tabs">
@@ -1792,7 +2082,11 @@ function VendorPortal({
                     if (ok) setExistingLines([emptyLine(), emptyLine()]);
                   }}
                 >
-                  Submit price list update
+                  {autoApproveTrusted &&
+                  vendors.find((v) => v.id === existingVendorId)?.status ===
+                    "approved"
+                    ? "Publish price list update"
+                    : "Submit price list update"}
                 </button>
               </div>
 
@@ -2004,10 +2298,16 @@ function AdminPanel({
   vendors,
   submissions,
   products,
+  orders = [],
+  automation,
+  onUpdateAutomation,
   onApproveSubmission,
   onRejectSubmission,
   onApproveVendor,
   onRejectVendor,
+  onApproveAllPending,
+  onApproveAllLines,
+  onRejectAllLines,
 }) {
   const pendingVendors = vendors.filter((v) => v.status === "pending");
   const pendingItems = submissions.filter((s) => s.status === "pending");
@@ -2019,15 +2319,86 @@ function AdminPanel({
         <div className="panel">
           <h1>Approval desk</h1>
           <p className="lede">
-            Nothing reaches the public catalog until you approve it. Approved
-            items publish immediately at the calculated catalog price.
+            New vendors stay human-gated. Everything else can run on autopilot —
+            bulk approve, trusted updates, and queued drop-ship orders.
           </p>
 
           <div className="notice warn">
             {pendingVendors.length} vendor
             {pendingVendors.length === 1 ? "" : "s"} and {pendingItems.length}{" "}
             price-list line{pendingItems.length === 1 ? "" : "s"} awaiting
-            review · {products.length} live products
+            review · {products.length} live products · {orders.length} queued
+            order{orders.length === 1 ? "" : "s"}
+          </div>
+
+          <div className="automation-bar">
+            <h2>Automation</h2>
+            <label className="toggle-row">
+              <input
+                type="checkbox"
+                checked={Boolean(automation?.autoApproveTrustedUpdates)}
+                onChange={(e) =>
+                  onUpdateAutomation?.({
+                    autoApproveTrustedUpdates: e.target.checked,
+                  })
+                }
+              />
+              <span>
+                Auto-publish price-list updates from already-approved vendors
+              </span>
+            </label>
+            <label className="toggle-row">
+              <input
+                type="checkbox"
+                checked={Boolean(automation?.approveVendorPublishesLines)}
+                onChange={(e) =>
+                  onUpdateAutomation?.({
+                    approveVendorPublishesLines: e.target.checked,
+                  })
+                }
+              />
+              <span>Approving a vendor also publishes their pending lines</span>
+            </label>
+            <label className="toggle-row">
+              <input
+                type="checkbox"
+                checked={Boolean(automation?.autoSuggestBacFromProduct)}
+                onChange={(e) =>
+                  onUpdateAutomation?.({
+                    autoSuggestBacFromProduct: e.target.checked,
+                  })
+                }
+              />
+              <span>Auto-fill BAC water when opening calculator from a product</span>
+            </label>
+            <div className="row-actions" style={{ marginTop: "0.75rem" }}>
+              <button
+                type="button"
+                className="primary-btn"
+                disabled={
+                  pendingVendors.length === 0 && pendingItems.length === 0
+                }
+                onClick={onApproveAllPending}
+              >
+                <Check size={16} /> Approve all pending
+              </button>
+              <button
+                type="button"
+                className="soft-btn"
+                disabled={pendingItems.length === 0}
+                onClick={onApproveAllLines}
+              >
+                Approve all lines
+              </button>
+              <button
+                type="button"
+                className="danger-btn"
+                disabled={pendingItems.length === 0}
+                onClick={onRejectAllLines}
+              >
+                <X size={16} /> Reject all lines
+              </button>
+            </div>
           </div>
 
           <h2>Pending vendors</h2>
@@ -2071,6 +2442,9 @@ function AdminPanel({
                             onClick={() => onApproveVendor(v.id)}
                           >
                             <Check size={16} /> Approve
+                            {automation?.approveVendorPublishesLines
+                              ? " + lines"
+                              : ""}
                           </button>
                           <button
                             type="button"
@@ -2138,6 +2512,47 @@ function AdminPanel({
                           </button>
                         </div>
                       </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <h2>Queued drop-ship orders</h2>
+          <div className="table-wrap" style={{ marginBottom: "1.5rem" }}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>Customer</th>
+                  <th>Shipments</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.length === 0 ? (
+                  <tr>
+                    <td colSpan={4}>No orders queued yet.</td>
+                  </tr>
+                ) : (
+                  orders.slice(0, 20).map((o) => (
+                    <tr key={o.orderId}>
+                      <td>
+                        <strong>{o.orderId}</strong>
+                        <div className="meta">
+                          {new Date(o.createdAt).toLocaleString()}
+                        </div>
+                      </td>
+                      <td>
+                        {o.customer?.name}
+                        <div className="meta">{o.customer?.email}</div>
+                      </td>
+                      <td>
+                        {o.shipments?.length || 0} vendor
+                        {(o.shipments?.length || 0) === 1 ? "" : "s"}
+                      </td>
+                      <td>{formatMoney(o.totals?.total || 0)}</td>
                     </tr>
                   ))
                 )}

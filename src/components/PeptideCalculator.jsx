@@ -3,6 +3,10 @@ import { Calculator, RotateCcw, Link2 } from "lucide-react";
 import GeneratedVial from "./GeneratedVial";
 import LabelTemplate from "./LabelTemplate";
 import { guessCategory } from "../data/products";
+import {
+  buildCalculatorShareUrl,
+  suggestedBacMl as suggestedBacFromAutomation,
+} from "../utils/automation";
 
 function formatNum(v, digits = 2) {
   const n = Number(v);
@@ -22,14 +26,7 @@ function formatDoseText(dose, unit) {
 
 /** Suggested BAC water so the chosen dose lands on `units` on a U-100 syringe. */
 function suggestedBacMl(massMg, dose, doseUnit, units = 10) {
-  const massN = Number(massMg);
-  const doseN = Number(dose);
-  const unitsN = Number(units);
-  if (!(massN > 0 && doseN > 0 && unitsN > 0)) return null;
-  const doseMcg = toMcg(doseN, doseUnit);
-  const mcgPerUnit = doseMcg / unitsN;
-  const totalUnits = (massN * 1000) / mcgPerUnit;
-  return totalUnits / 100;
+  return suggestedBacFromAutomation(massMg, dose, doseUnit, units);
 }
 
 const PRESETS = [
@@ -55,8 +52,30 @@ export default function PeptideCalculator({ initial = null }) {
     if (initial.mass != null) setMass(String(initial.mass));
     if (initial.dose != null) setDose(String(initial.dose));
     if (initial.doseUnit) setDoseUnit(initial.doseUnit);
-    if (initial.solution != null) setSolution(String(initial.solution));
+    if (initial.solution != null && String(initial.solution) !== "") {
+      setSolution(String(initial.solution));
+    } else if (initial.autoBac && initial.mass != null && initial.dose != null) {
+      const bac = suggestedBacMl(
+        initial.mass,
+        initial.dose,
+        initial.doseUnit || "mcg",
+        initial.desiredUnits || 10
+      );
+      if (bac != null) setSolution(formatNum(bac, 2));
+    }
   }, [initial]);
+
+  const shareUrl = useMemo(
+    () =>
+      buildCalculatorShareUrl({
+        name,
+        mass,
+        solution,
+        dose,
+        doseUnit,
+      }),
+    [name, mass, solution, dose, doseUnit]
+  );
 
   const suggested = useMemo(
     () => suggestedBacMl(mass, dose, doseUnit, 10),
@@ -108,20 +127,11 @@ export default function PeptideCalculator({ initial = null }) {
   }
 
   async function shareCalc() {
-    const params = new URLSearchParams({
-      view: "calculator",
-      name: name || "",
-      mass: mass || "",
-      solution: solution || "",
-      dose: dose || "",
-      doseUnit,
-    });
-    const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(shareUrl);
       setShareMsg("Link copied.");
     } catch {
-      setShareMsg(url);
+      setShareMsg(shareUrl);
     }
   }
 
@@ -318,6 +328,7 @@ export default function PeptideCalculator({ initial = null }) {
                   reconstituted={Boolean(solution && parseFloat(solution) > 0)}
                   vialMl={3}
                   size="lg"
+                  qrPayload={shareUrl}
                   showDownload
                 />
               </div>
@@ -330,6 +341,7 @@ export default function PeptideCalculator({ initial = null }) {
                   concentration={vialConc}
                   doseRange={vialDose}
                   size="md"
+                  qrPayload={shareUrl}
                   showDownload
                 />
               </div>

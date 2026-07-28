@@ -1,3 +1,5 @@
+import QRCode from "qrcode";
+
 /** Undisclosed brand vial art — gold cap, black V-sleeve, UD monogram seal (D in front of U). */
 
 export const BRAND_IMAGE_SRC = "/undisclosed-brand.png";
@@ -272,13 +274,27 @@ function buildQrMatrix(seedStr, n = 21) {
   return m;
 }
 
-/** Deterministic QR-style mark for vial / label templates. */
-export function drawQrCode(ctx, x, y, size, seedStr, inverted = false) {
-  const n = 21;
+function buildRealQrMatrix(payload) {
+  try {
+    const qr = QRCode.create(String(payload), { errorCorrectionLevel: "M" });
+    const n = qr.modules.size;
+    const m = Array.from({ length: n }, (_, r) =>
+      Array.from({ length: n }, (_, c) => Boolean(qr.modules.get(r, c)))
+    );
+    return m;
+  } catch {
+    return null;
+  }
+}
+
+/** Scannable QR when `payload` is set; otherwise a deterministic decorative mark. */
+export function drawQrCode(ctx, x, y, size, seedStr, inverted = false, payload = "") {
   const quiet = Math.max(1, Math.floor(size * 0.08));
   const inner = size - quiet * 2;
+  const matrix =
+    (payload && buildRealQrMatrix(payload)) || buildQrMatrix(seedStr || payload || "UD", 21);
+  const n = matrix.length;
   const mod = inner / n;
-  const matrix = buildQrMatrix(seedStr, n);
 
   ctx.fillStyle = inverted ? "#0a0a0a" : "#ffffff";
   roundRect(ctx, x, y, size, size, Math.max(1, size * 0.06));
@@ -314,6 +330,11 @@ function qrSeedFromOptions(options) {
     sku = "",
   } = options;
   return `UD|${name}|${mass}${unit}|${bacWater}|${concentration}|${doseRange}|${sku}`;
+}
+
+function qrPayloadFromOptions(options) {
+  if (options.qrPayload) return String(options.qrPayload);
+  return "";
 }
 
 function drawBrandWordmark(ctx, cx, y, maxW) {
@@ -355,6 +376,7 @@ function drawBrandThreeMl(ctx, dims, options) {
     bacWater = "",
     concentration = "",
     doseRange = "",
+    qrPayload = "",
   } = options;
 
   const cx = dims.w / 2;
@@ -602,7 +624,8 @@ function drawBrandThreeMl(ctx, dims, options) {
       doseRange,
       sku,
     }),
-    true
+    true,
+    qrPayloadFromOptions({ qrPayload })
   );
 
   ctx.fillStyle = "rgba(255,255,255,0.5)";
@@ -636,6 +659,7 @@ function drawBrandTenMl(ctx, dims, options) {
     bacWater = "",
     concentration = "",
     doseRange = "",
+    qrPayload = "",
   } = options;
 
   const cx = dims.w / 2;
@@ -763,7 +787,8 @@ function drawBrandTenMl(ctx, dims, options) {
       doseRange,
       sku,
     }),
-    true
+    true,
+    qrPayloadFromOptions({ qrPayload })
   );
 
   ctx.fillStyle = "rgba(255,255,255,0.5)";
@@ -794,6 +819,7 @@ export function drawGeneratedVial(canvas, options = {}) {
     bacWater = "",
     concentration = "",
     doseRange = "",
+    qrPayload = "",
   } = options;
 
   const vialMl = resolveVialMl({ form: form || subtitle, vialMl: vialMlOpt });
@@ -827,6 +853,7 @@ export function drawGeneratedVial(canvas, options = {}) {
     bacWater,
     concentration,
     doseRange,
+    qrPayload,
   };
 
   if (isTen) drawBrandTenMl(ctx, dims, drawOpts);
@@ -850,6 +877,7 @@ export function drawLabelTemplate(canvas, options = {}) {
     udMark = null,
     brandImage = null,
     size = "md",
+    qrPayload = "",
   } = options;
 
   const dims = {
@@ -940,7 +968,8 @@ export function drawLabelTemplate(canvas, options = {}) {
       doseRange,
       sku,
     }),
-    true
+    true,
+    qrPayloadFromOptions({ qrPayload })
   );
 
   ctx.fillStyle = "rgba(255,255,255,0.45)";

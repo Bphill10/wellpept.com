@@ -24,6 +24,7 @@ export default function GeneratedVial({
   reconstituted = false,
   vialMl,
   form = "",
+  qrPayload = "",
   showDownload = false,
   className = "",
 }) {
@@ -64,6 +65,7 @@ export default function GeneratedVial({
         vialMl: resolvedMl,
         form: form || subtitle,
         udMark,
+        qrPayload,
       });
       setPng(dataUrl);
     } catch (err) {
@@ -87,6 +89,7 @@ export default function GeneratedVial({
     resolvedMl,
     form,
     udMark,
+    qrPayload,
   ]);
 
   function handleDownload() {

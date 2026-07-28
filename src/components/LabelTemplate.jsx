@@ -15,6 +15,7 @@ export default function LabelTemplate({
   doseRange = "",
   sku = "",
   size = "md",
+  qrPayload = "",
   showDownload = true,
   className = "",
 }) {
@@ -46,6 +47,7 @@ export default function LabelTemplate({
         sku,
         size,
         udMark,
+        qrPayload,
       });
       setPng(dataUrl);
     } catch (err) {
@@ -61,6 +63,7 @@ export default function LabelTemplate({
     sku,
     size,
     udMark,
+    qrPayload,
   ]);
 
   function handleDownload() {

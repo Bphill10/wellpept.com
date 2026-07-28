@@ -1600,6 +1600,64 @@ th {
   color: var(--ink-soft);
 }
 
+.automation-bar {
+  margin: 0 0 1.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fafafa;
+}
+
+.automation-bar h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin: 0.45rem 0;
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.toggle-row input {
+  margin-top: 0.2rem;
+  accent-color: var(--gold);
+}
+
+.checkout-form {
+  margin-top: 1.25rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.checkout-form h2 {
+  margin: 0.25rem 0 0;
+  font-size: 1.1rem;
+}
+
+.form-row--3 {
+  display: grid;
+  grid-template-columns: 1.4fr 0.6fr 0.8fr;
+  gap: 0.75rem;
+}
+
+.order-packet-preview {
+  margin: 0.75rem 0 0;
+  padding: 0.85rem;
+  max-height: 16rem;
+  overflow: auto;
+  background: #0a0a0a;
+  color: #f2f2f2;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
 .vendor-section-title {
   margin: 0.5rem 0 0.65rem;
   font-family: var(--font-display);
@@ -2327,6 +2385,10 @@ th {
   }
 
   .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row--3 {
     grid-template-columns: 1fr;
   }
 
