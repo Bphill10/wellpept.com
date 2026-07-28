@@ -82,7 +82,7 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
     <section className="sk-builder" id="build">
       <div className="sk-section-head">
         <p className="sk-eyebrow">Build your serum</p>
-        <h2>Add 1, 2, 3, or all four peptides to one serum — or the cream.</h2>
+        <h2>Add 1, 2, 3, or all four peptides to one serum or the cream.</h2>
         <p>
           Four cores: GHK-Cu (staple), Matrixyl 3000, Syn-Ake, SNAP-8. Choose Buffet
           serum, peptide cream, or eye serum. Optional Eyeseryl / Argireline / extra
@@ -131,7 +131,7 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
                   <strong>{base.name}</strong>
                   <span>{base.blurb}</span>
                   <em>
-                    {base.form === "cream" ? "Cream" : "Serum"} · {base.bestFor} · from $
+                    {base.form === "cream" ? "Cream" : "Serum"}, {base.bestFor}, from $
                     {base.price}
                   </em>
                 </span>
@@ -142,7 +142,7 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
 
         <div className="sk-builder-col">
           <h3>2. Add peptides ({peptideCount}/4)</h3>
-          <p className="sk-step-note">Select any combination — one through all four.</p>
+          <p className="sk-step-note">Select any combination, one through all four.</p>
           <div className="sk-option-list">
             {PEPTIDES.map((pep) => {
               const on = build.peptideIds.includes(pep.id)
@@ -204,11 +204,11 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
               <strong>Base</strong> {product.buildSummary.base}
             </li>
             <li>
-              <strong>Peptides</strong> {product.buildSummary.peptides.join(' · ')}
+              <strong>Peptides</strong> {product.buildSummary.peptides.join(', ')}
             </li>
             {product.buildSummary.customs.length > 0 && (
               <li>
-                <strong>Custom</strong> {product.buildSummary.customs.join(' · ')}
+                <strong>Custom</strong> {product.buildSummary.customs.join(', ')}
               </li>
             )}
           </ul>
@@ -237,7 +237,7 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
 
         <div className="sk-summary-actions">
           <button type="button" className="primary-btn" onClick={handleAdd} disabled={!product}>
-            Add mix to bag — ${price.toFixed(0)}
+            Add mix to bag (${price.toFixed(0)})
           </button>
           {product && (
             <button type="button" className="soft-btn" onClick={() => onOpenProduct?.(product)}>

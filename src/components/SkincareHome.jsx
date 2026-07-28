@@ -39,7 +39,7 @@ function ProductCard({ product, onOpenProduct, onAddToCart }) {
           <h3>{product.name}</h3>
           <p className="card-blurb">{product.blurb}</p>
           <div className="meta">
-            {product.need ? `${product.need} · ` : ""}
+            {product.need ? `${product.need}, ` : ""}
             {product.size}
           </div>
           <div className="price-row">
@@ -86,7 +86,7 @@ export default function SkincareHome({
             Four peptides. Serum or cream. Mixed when you are.
           </p>
           <p className="hero-copy rise-delay">
-            GHK-Cu is the staple — with Matrixyl 3000, Syn-Ake, and SNAP-8.
+            GHK-Cu is the staple, with Matrixyl 3000, Syn-Ake, and SNAP-8.
             Dry powder in the twist-cap. Dropper beside until you activate.
           </p>
           <div className="hero-cta rise-delay">
@@ -115,10 +115,10 @@ export default function SkincareHome({
           <div className="trust-item">
             <FlaskConical size={22} />
             <div>
-              <strong>4 peptides · different jobs</strong>
+              <strong>4 peptides, different jobs</strong>
               <p>
-                GHK-Cu (staple), Matrixyl 3000, Syn-Ake, SNAP-8 — firm, matrix,
-                Syn-Ake expression, SNAP-8 expression.
+                GHK-Cu (staple), Matrixyl 3000, Syn-Ake, and SNAP-8 for firmness,
+                matrix support, and expression zones.
               </p>
             </div>
           </div>
@@ -126,7 +126,7 @@ export default function SkincareHome({
             <Droplets size={22} />
             <div>
               <strong>2 serums + 1 cream</strong>
-              <p>Buffet serum, peptide cream base, or eye serum — then load peptides.</p>
+              <p>Buffet serum, peptide cream base, or eye serum. Then load peptides.</p>
             </div>
           </div>
           <div className="trust-item">
@@ -140,7 +140,7 @@ export default function SkincareHome({
             <Moon size={22} />
             <div>
               <strong>Fresh until you mix</strong>
-              <p>Dry chambers and vials — activate when you’re ready, not months on a shelf.</p>
+              <p>Dry chambers and vials. Activate when you’re ready, not months on a shelf.</p>
             </div>
           </div>
         </div>
@@ -154,7 +154,7 @@ export default function SkincareHome({
               <h2>Your peptides. Serum or cream. One mix.</h2>
               <p>
                 Choose a Buffet serum, peptide cream, or eye serum, then add any
-                combination of our four core topicals — or all four. Optional custom
+                combination of our four core topicals, or all four. Optional custom
                 peptides ship as extra dry vials on the same order.
               </p>
             </div>
@@ -179,7 +179,7 @@ export default function SkincareHome({
                   <li key={b.id}>
                     <strong>{b.name}</strong>
                     <span>
-                      {b.form === "cream" ? "Cream · " : "Serum · "}
+                      {b.form === "cream" ? "Cream, " : "Serum, "}
                       {b.volume}
                     </span>
                   </li>
@@ -216,8 +216,8 @@ export default function SkincareHome({
               <ul className="flagship-mix-points">
                 <li>1 g dry GHK-Cu sealed in the twist-cap chamber</li>
                 <li>30 mL Buffet-style serum in the bottle</li>
-                <li>Dropper ships beside — seat it after you activate</li>
-                <li>Cosmetic use only · peptide acknowledgment at checkout</li>
+                <li>Dropper ships beside. Seat it after you activate.</li>
+                <li>Cosmetic use only. Peptide acknowledgment at checkout.</li>
               </ul>
               <div className="price-row" style={{ margin: "0.85rem 0 1rem" }}>
                 <strong>{formatMoney(FLAGSHIP_SERUM.price)}</strong>
@@ -257,8 +257,8 @@ export default function SkincareHome({
               <p className="section-kicker">How it works</p>
               <h2>Pick. Mix. Activate.</h2>
               <p>
-                One vehicle (serum or cream), up to four peptides, optional customs —
-                then activate when you’re ready.
+                One vehicle (serum or cream), up to four peptides, optional customs.
+                Activate when you’re ready.
               </p>
             </div>
           </div>
@@ -280,7 +280,7 @@ export default function SkincareHome({
             <div>
               <p className="section-kicker">Ready</p>
               <h2>Already-blended essentials</h2>
-              <p>Stable formulas for the rest of the ritual — cream, mist, oil.</p>
+              <p>Stable formulas for the rest of the ritual: cream, mist, and oil.</p>
             </div>
           </div>
           <div className="product-grid skin-grid">
@@ -317,8 +317,8 @@ export default function SkincareHome({
             <h2>WellPept skincare</h2>
             <p>
               Fresh Mix keeps topical peptides dry until you activate them into your chosen
-              base. Ready formulas handle the rest — restrained formulas, white light,
-              cobalt signal.
+              base. Ready formulas handle the rest with restrained textures, white light,
+              and a cobalt signal.
             </p>
             <p className="meta" style={{ marginTop: "1rem" }}>
               Ships to United States addresses only. For external cosmetic use. Not for
@@ -345,7 +345,7 @@ export default function SkincareHome({
                 <p className="section-kicker">Membership</p>
                 <h2>Subscribe to the ritual</h2>
                 <p>
-                  Recurring Fresh Mix deliveries — manage billing in the customer portal
+                  Recurring Fresh Mix deliveries. Manage billing in the customer portal
                   after checkout.
                 </p>
               </div>

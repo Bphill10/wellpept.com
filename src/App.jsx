@@ -245,9 +245,9 @@ export default function App() {
   function addSkincareToCart(product) {
     const mixLabel =
       product.kind === "mix" && product.buildSummary
-        ? `${product.buildSummary.base} · ${product.buildSummary.peptides.join(" + ")}${
+        ? `${product.buildSummary.base}: ${product.buildSummary.peptides.join(" + ")}${
             product.buildSummary.customs?.length
-              ? ` · +${product.buildSummary.customs.join(", ")}`
+              ? ` + ${product.buildSummary.customs.join(", ")}`
               : ""
           }`
         : product.size;
@@ -263,20 +263,20 @@ export default function App() {
       vendorId: "wellpept-skin",
       shippingFlat: 8,
       minOrder: 0,
-      shippingNote: "US ground · cold-pack when needed",
+      shippingNote: "US ground, cold-pack when needed",
       sku: String(product.id).toUpperCase().slice(0, 48),
       category: product.kind === "mix" ? "Fresh Mix" : "Skincare",
       skin: true,
       mix: product.kind === "mix",
-      ships: product.kind === "mix" ? "Fresh pack · 2–4 days" : "Ships in 2–4 days",
+      ships: product.kind === "mix" ? "Fresh pack, 2 to 4 days" : "Ships in 2 to 4 days",
       legalNote:
         product.kind === "mix"
-          ? "Cosmetic topical peptides only — not for injection or medical use."
+          ? "Cosmetic topical peptides only. Not for injection or medical use."
           : undefined,
     });
     setFlash(
       product.kind === "mix"
-        ? `Added ${product.name} — cosmetic use only`
+        ? `Added ${product.name} (cosmetic use only)`
         : `Added ${product.name}`
     );
   }
@@ -655,7 +655,7 @@ export default function App() {
             <span className="header-top-msg">
               {labUnlocked
                 ? "Undisclosed · Research peptides · US only"
-                : "Twist-cap freshness · Dropper beside · US shipping"}
+                : "Twist-cap freshness. Dropper beside. US shipping"}
             </span>
             <span className="header-top-links">
               {labUnlocked ? (
@@ -914,20 +914,19 @@ export default function App() {
                     <h1>{skinProduct.name}</h1>
                     <p className="lede">{skinProduct.blurb}</p>
                     <p className="meta">
-                      {skinProduct.size} · {skinProduct.focus} · {skinProduct.texture}
+                      {skinProduct.size}. {skinProduct.focus}. {skinProduct.texture}
                     </p>
                     {skinProduct.kind === "mix" && (
                       <div className="mix-panel">
                         <p className="mix-lead">
                           {skinProduct.form === "cream"
-                            ? `Dry peptides mix into a leave-on cream vehicle — ${skinProduct.mixYield}`
+                            ? `Dry peptides mix into a leave-on cream vehicle (${skinProduct.mixYield}).`
                             : skinProduct.packaging === "twist-cap"
-                              ? `Dry peptide powder lives in the twist-cap. The dropper ships beside the bottle — seat it after you activate. Yield ${skinProduct.mixYield}`
-                              : `Fresh ingredients ship separated. You mix at home — ${skinProduct.mixYield}`}
+                              ? `Dry peptide powder lives in the twist-cap. The dropper ships beside the bottle. Seat it after you activate (${skinProduct.mixYield}).`
+                              : `Fresh ingredients ship separated. You mix at home (${skinProduct.mixYield}).`}
                           {skinProduct.shelfAfterMix
-                            ? ` · ${skinProduct.shelfAfterMix}`
+                            ? ` ${skinProduct.shelfAfterMix}`
                             : ""}
-                          .
                         </p>
                         {Array.isArray(skinProduct.ingredients) && (
                           <>
@@ -1602,7 +1601,7 @@ export default function App() {
             <div>
               {labUnlocked
                 ? "Undisclosed — research peptides for laboratory use"
-                : "Fresh Mix skincare — white light, cobalt signal"}
+                : "Fresh Mix skincare. White light, cobalt signal"}
             </div>
           </div>
           <p className="disclaimer">
