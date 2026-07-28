@@ -2,11 +2,13 @@ import React from "react";
 import { ArrowRight, Droplets, Moon, Sparkles, Sun } from "lucide-react";
 import { formatMoney } from "../data/products";
 import { SKINCARE_PRODUCTS, SKINCARE_RITUAL } from "../data/skincare";
+import ChargebeeCheckout from "./ChargebeeCheckout";
 
 export default function SkincareHome({
   onShopSkin,
   onOpenProduct,
   onAddToCart,
+  chargebeeConfig,
 }) {
   return (
     <>
@@ -170,6 +172,32 @@ export default function SkincareHome({
           </button>
         </div>
       </section>
+
+      {chargebeeConfig?.enabled && chargebeeConfig?.skincarePlanPriceId && (
+        <section className="section section-tight" id="subscribe">
+          <div className="container">
+            <div className="section-head">
+              <div>
+                <p className="section-kicker">Membership</p>
+                <h2>Subscribe to the ritual</h2>
+                <p>
+                  A Chargebee plan for recurring skincare — manage billing in the
+                  customer portal after checkout.
+                </p>
+              </div>
+            </div>
+            <ChargebeeCheckout
+              config={chargebeeConfig}
+              mode="subscription"
+              total={0}
+              buttonLabel="Subscribe with Chargebee"
+              onPaid={() => {
+                /* Hosted checkout success — Chargebee owns the subscription */
+              }}
+            />
+          </div>
+        </section>
+      )}
     </>
   );
 }

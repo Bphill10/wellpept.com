@@ -1,16 +1,43 @@
-# Payments (Stripe + Affirm)
+# Payments (Chargebee + Stripe Affirm)
 
-Wellpept checkout accepts **credit/debit cards** and **Affirm** through Stripe Payment Element.
+WellPept checkout prefers **Chargebee** hosted checkout for cart charges and
+optional skincare subscriptions. **Stripe Payment Element** (cards + Affirm)
+remains as a fallback when Chargebee is not configured.
 
-## 1. Stripe account
+## 1. Chargebee (preferred)
+
+1. Create / open a Chargebee site
+2. **Settings → Configure Chargebee → API Keys** → copy a full-access API key
+3. **Checkout & Self-Serve Portal** → copy the publishable key
+4. Connect a payment gateway (Stripe is common) and enable Affirm there if you want installments
+5. (Optional) Create a Product Catalog 2.0 plan item price for skincare membership
+
+### Environment
+
+```
+CHARGEBEE_SITE=your-site
+VITE_CHARGEBEE_SITE=your-site
+CHARGEBEE_API_KEY=full_access_key_...
+VITE_CHARGEBEE_PUBLISHABLE_KEY=publishable_key_...
+
+# Optional skincare subscription
+CHARGEBEE_SKINCARE_PLAN_PRICE_ID=skincare-ritual-USD-Monthly
+VITE_CHARGEBEE_SKINCARE_PLAN_PRICE_ID=skincare-ritual-USD-Monthly
+```
+
+### How it works
+
+- Cart → US shipping → **Pay with Chargebee** (hosted page)
+- `/api/chargebee-checkout` creates a one-time hosted page from cart `charges[]`
+- Skincare home shows **Subscribe** when a plan price id is set (`checkout_new_for_items`)
+- Return URLs use `?view=cart&cb=success` / `cb=cancel`
+- `/api/chargebee-portal` can open the customer billing portal by email or customer id
+
+## 2. Stripe Affirm (fallback)
 
 1. Create / open https://dashboard.stripe.com
 2. **Settings → Payment methods → Affirm** → turn on (US)
 3. **Developers → API keys** → copy Publishable + Secret keys
-
-## 2. Environment
-
-Copy `.env.example` to `.env` (local) or set the same vars in Vercel:
 
 ```
 VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
@@ -18,21 +45,12 @@ STRIPE_SECRET_KEY=sk_test_...
 STRIPE_CURRENCY=usd
 ```
 
-Restart `npm run dev` after changing env.
-
-## 3. How it works
-
-- Cart → US shipping form → **Pay with card or Affirm**
-- `/api/create-payment-intent` creates a PaymentIntent with `automatic_payment_methods` (cards + Affirm when enabled)
-- Affirm messaging shows for eligible US carts **$50+**
-- On success, the order is marked paid and the drop-ship packet downloads for ops
-
-## 4. Test cards
-
-Use Stripe test mode cards, e.g. `4242 4242 4242 4242`. Affirm has its own test flow in Stripe test mode after Affirm is enabled.
+- Used only when Chargebee is **not** enabled
+- `/api/create-payment-intent` + embedded Payment Element (cards + Affirm $50+)
 
 ## Notes
 
-- Affirm is US-only (matches Wellpept shipping).
-- Without keys, checkout still queues an offline drop-ship packet.
+- Affirm is US-only (matches WellPept shipping). On Chargebee, enable it via your gateway settings.
+- Without any keys, checkout still queues an offline drop-ship packet.
 - Never commit real secret keys.
+- Local `vite` / `vite preview` expose the same `/api/*` routes as Vercel via `vite.config.js`.

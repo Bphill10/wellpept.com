@@ -4,12 +4,12 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 /**
- * Local /api middleware so Stripe PaymentIntents work in `vite`/`vite preview`
+ * Local /api middleware so Stripe + Chargebee work in `vite`/`vite preview`
  * the same way they do on Vercel serverless.
  */
-function stripeLocalApiPlugin(env) {
+function paymentsLocalApiPlugin(env) {
   return {
-    name: "wellpept-stripe-api",
+    name: "wellpept-payments-api",
     configureServer(server) {
       attachApi(server, env);
     },
@@ -20,7 +20,6 @@ function stripeLocalApiPlugin(env) {
 }
 
 function attachApi(server, env) {
-  // Make secrets available to API handlers during local dev.
   for (const [key, value] of Object.entries(env)) {
     if (value != null && process.env[key] == null) process.env[key] = value;
   }
@@ -34,31 +33,35 @@ function attachApi(server, env) {
     await handler(req, res);
   }
 
+  const routes = {
+    "/api/payment-config": "payment-config.js",
+    "/api/create-payment-intent": "create-payment-intent.js",
+    "/api/chargebee-config": "chargebee-config.js",
+    "/api/chargebee-checkout": "chargebee-checkout.js",
+    "/api/chargebee-portal": "chargebee-portal.js",
+  };
+
   server.middlewares.use(async (req, res, next) => {
     const url = req.url?.split("?")[0] || "";
+    const file = routes[url];
+    if (!file) {
+      next();
+      return;
+    }
     try {
-      if (url === "/api/payment-config") {
-        await runHandler("payment-config.js", req, res);
-        return;
-      }
-      if (url === "/api/create-payment-intent") {
-        await runHandler("create-payment-intent.js", req, res);
-        return;
-      }
+      await runHandler(file, req, res);
     } catch (err) {
-      console.error("Local Stripe API error", err);
+      console.error("Local payments API error", err);
       res.statusCode = 500;
       res.setHeader("Content-Type", "application/json");
       res.end(JSON.stringify({ error: err?.message || "API error" }));
-      return;
     }
-    next();
   });
 }
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return {
-    plugins: [react(), stripeLocalApiPlugin(env)],
+    plugins: [react(), paymentsLocalApiPlugin(env)],
   };
 });

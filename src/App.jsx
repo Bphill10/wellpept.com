@@ -46,11 +46,13 @@ import {
   suggestedBacMl,
 } from "./utils/automation";
 import { fetchPaymentConfig } from "./utils/payments";
+import { fetchChargebeeConfig } from "./utils/chargebeeClient";
 import PeptideCalculator, {
   parseCalculatorQuery,
 } from "./components/PeptideCalculator";
 import GeneratedVial from "./components/GeneratedVial";
 import CheckoutPayment from "./components/CheckoutPayment";
+import ChargebeeCheckout from "./components/ChargebeeCheckout";
 import SkincareHome from "./components/SkincareHome";
 import PriceListDropzone from "./components/PriceListDropzone";
 import PriceCompare from "./components/PriceCompare";
@@ -148,6 +150,12 @@ export default function App() {
     enabled: false,
     publishableKey: null,
   });
+  const [chargebeeConfig, setChargebeeConfig] = useState({
+    enabled: false,
+    site: null,
+    publishableKey: null,
+    skincarePlanPriceId: null,
+  });
 
   function updateAutomation(patch) {
     setAutomation((prev) => saveAutomationSettings({ ...prev, ...patch }));
@@ -155,6 +163,27 @@ export default function App() {
 
   useEffect(() => {
     fetchPaymentConfig().then(setPaymentConfig);
+    fetchChargebeeConfig().then(setChargebeeConfig);
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const viewParam = params.get("view");
+    const cb = params.get("cb");
+    if (viewParam === "cart" || cb === "success" || cb === "cancel") {
+      setView(VIEWS.cart);
+    }
+    if (cb === "success") {
+      setFlash("Chargebee checkout completed — confirm the order packet below if needed.");
+    } else if (cb === "cancel") {
+      setFlash("Chargebee checkout canceled");
+    }
+    if (cb || viewParam === "cart") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("cb");
+      url.searchParams.delete("view");
+      window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    }
   }, []);
 
   useEffect(() => {
@@ -577,12 +606,16 @@ export default function App() {
       total,
     });
     if (payment) {
+      const provider = payment.provider || "stripe";
       packet.payment = {
-        provider: "stripe",
+        provider,
         paymentIntentId: payment.id || payment.paymentIntentId || "",
         status: payment.status || "succeeded",
         amountCents: payment.amount || null,
-        methods: "card_or_affirm",
+        methods:
+          provider === "chargebee"
+            ? "chargebee_hosted"
+            : "card_or_affirm",
       };
       packet.status = "paid";
     }
@@ -809,6 +842,7 @@ export default function App() {
       <main>
         {view === VIEWS.skincare && (
           <SkincareHome
+            chargebeeConfig={chargebeeConfig}
             onShopSkin={() =>
               document
                 .getElementById("skin-catalog")
@@ -1437,6 +1471,7 @@ export default function App() {
             onRemove={removeLine}
             onPlaceOrder={placeOrder}
             paymentConfig={paymentConfig}
+            chargebeeConfig={chargebeeConfig}
           />
         )}
 
@@ -1826,7 +1861,12 @@ function CartPage({
   onRemove,
   onPlaceOrder,
   paymentConfig = { enabled: false, publishableKey: null },
+  chargebeeConfig = { enabled: false },
 }) {
+  const paymentsReady = Boolean(
+    chargebeeConfig?.enabled ||
+      (paymentConfig?.enabled && paymentConfig?.publishableKey)
+  );
   const subtotal = cart.reduce((sum, line) => sum + line.price * line.qty, 0);
 
   const shippingByVendor = new Map();
@@ -1904,11 +1944,11 @@ function CartPage({
     }
     setDraftOrderId(createOrderId());
     setPacketMsg("");
-    if (paymentConfig?.enabled && paymentConfig?.publishableKey) {
+    if (paymentsReady) {
       setStep("pay");
       return;
     }
-    // Offline fallback when Stripe keys are not configured
+    // Offline fallback when payment providers are not configured
     const next = onPlaceOrder?.(customer);
     if (!next) return;
     finalizePacket(next, "Order queued (payments offline) · packet copied.");
@@ -1935,8 +1975,11 @@ function CartPage({
         <div className="panel" style={{ marginTop: "1rem" }}>
           <h1>Cart</h1>
           <p className="lede">
-            US shipping only. Pay by card or Affirm through Stripe — then we
-            auto-build the vendor drop-ship packet.
+            US shipping only. Pay by card or Affirm
+            {chargebeeConfig?.enabled
+              ? " through Chargebee"
+              : " through Stripe"}{" "}
+            — then we auto-build the vendor drop-ship packet.
           </p>
 
           {cart.length === 0 && !packet ? (
@@ -2105,15 +2148,16 @@ function CartPage({
                       <span>{formatMoney(total)}</span>
                     </div>
                     <button type="submit" className="primary-btn">
-                      {paymentConfig?.enabled
-                        ? "Continue to card / Affirm"
+                      {paymentsReady
+                        ? chargebeeConfig?.enabled
+                          ? "Continue to Chargebee"
+                          : "Continue to card / Affirm"
                         : "Place order · auto drop-ship packet"}
                     </button>
-                    {!paymentConfig?.enabled && (
+                    {!paymentsReady && (
                       <p className="meta" style={{ marginTop: "0.65rem" }}>
-                        Stripe keys not configured yet — orders queue offline.
-                        Add keys from <code>.env.example</code> and enable Affirm
-                        in the Stripe Dashboard.
+                        Payment keys not configured yet — orders queue offline.
+                        Add Chargebee or Stripe keys from <code>.env.example</code>.
                       </p>
                     )}
                     {packetMsg && (
@@ -2143,16 +2187,32 @@ function CartPage({
                     </div>
                   </div>
 
-                  <CheckoutPayment
-                    publishableKey={paymentConfig.publishableKey}
-                    total={total}
-                    orderId={draftOrderId}
-                    customer={customer}
-                    onPaid={handlePaid}
-                    onError={(err) =>
-                      setPacketMsg(err?.message || "Payment error")
-                    }
-                  />
+                  {chargebeeConfig?.enabled ? (
+                    <ChargebeeCheckout
+                      config={chargebeeConfig}
+                      mode="cart"
+                      total={total}
+                      shippingCents={Math.round(Number(shipping) * 100)}
+                      orderId={draftOrderId}
+                      customer={customer}
+                      lines={cart}
+                      onPaid={handlePaid}
+                      onError={(err) =>
+                        setPacketMsg(err?.message || "Payment error")
+                      }
+                    />
+                  ) : (
+                    <CheckoutPayment
+                      publishableKey={paymentConfig.publishableKey}
+                      total={total}
+                      orderId={draftOrderId}
+                      customer={customer}
+                      onPaid={handlePaid}
+                      onError={(err) =>
+                        setPacketMsg(err?.message || "Payment error")
+                      }
+                    />
+                  )}
 
                   <button
                     type="button"
@@ -2174,7 +2234,11 @@ function CartPage({
                 <div className="notice ok" style={{ marginTop: "1rem" }}>
                   <strong>{packet.orderId}</strong>
                   {packet.payment?.paymentIntentId
-                    ? ` · paid via Stripe (${packet.payment.status})`
+                    ? ` · paid via ${
+                        packet.payment.provider === "chargebee"
+                          ? "Chargebee"
+                          : "Stripe"
+                      } (${packet.payment.status})`
                     : " · queued"}
                   {packetMsg ? ` · ${packetMsg}` : ""}
                   <pre className="order-packet-preview">
