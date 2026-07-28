@@ -17,13 +17,10 @@ import {
   Headset,
   BadgeCheck,
   Microscope,
-  ClipboardCheck,
-  Tag,
   Factory,
 } from "lucide-react";
 import {
   CATEGORIES,
-  MARKUP,
   formatMoney,
   formatStrengthLabel,
   groupCatalog,
@@ -560,14 +557,13 @@ export default function App() {
                   <p>
                     If a compound isn’t coming straight from a branded pharmacy
                     line, it’s almost always made in the same research-chemical
-                    manufacturing corridors — largely China — then marked up
-                    through middlemen. If it{" "}
+                    manufacturing corridors — largely China — then passed through
+                    resellers and storefronts. If it{" "}
                     <em>is</em> pharma-sourced, you’re often paying a premium for
                     packaging and distribution of the same active structure.
-                    Undisclosed is the lab’s generic path: approved vendors,
-                    published costs, and a transparent +
-                    {Math.round(MARKUP * 100)}% catalog so researchers fund the
-                    assay — not the brand story.
+                    Undisclosed is the lab’s generic path: approved near-source
+                    vendors, documented batches, and a catalog built for the
+                    bench — not the brand story.
                   </p>
                 </div>
                 <ul className="mission-points">
@@ -577,10 +573,10 @@ export default function App() {
                   </li>
                   <li>
                     <ShieldCheck size={18} /> Source closer to manufacture —
-                    fewer markups between plant and bench
+                    fewer hands between plant and bench
                   </li>
                   <li>
-                    <Microscope size={18} /> Compare COAs &amp; vendor cost before
+                    <Microscope size={18} /> Compare COAs &amp; fill data before
                     you commit inventory
                   </li>
                 </ul>
@@ -591,12 +587,12 @@ export default function App() {
               <div className="container">
                 <div className="section-head">
                   <div>
-                    <p className="section-kicker">How supply works</p>
-                    <h2>From vendor list to your bench</h2>
+                    <p className="section-kicker">How peptides are made</p>
+                    <h2>From source plant to your US lab</h2>
                     <p>
-                      One transparent chain: approved cost in, catalog retail
-                      out, vendor drop-ships. You never get sent to a third-party
-                      storefront.
+                      Most research peptides follow the same manufacturing path.
+                      Undisclosed sits after QC — connecting approved vendors to
+                      your bench without sending you to their storefront.
                     </p>
                   </div>
                 </div>
@@ -607,33 +603,10 @@ export default function App() {
                       <Factory size={22} />
                     </span>
                     <span className="supply-step-num">1</span>
-                    <strong>Vendor lists cost</strong>
-                    <p>Approved sellers submit kit prices from near-source supply.</p>
-                  </li>
-                  <li className="supply-flow-arrow" aria-hidden="true">
-                    <ArrowRight size={20} />
-                  </li>
-                  <li className="supply-step">
-                    <span className="supply-step-icon" aria-hidden="true">
-                      <ClipboardCheck size={22} />
-                    </span>
-                    <span className="supply-step-num">2</span>
-                    <strong>Admin approves</strong>
-                    <p>Listings only publish after review — no open dump of SKUs.</p>
-                  </li>
-                  <li className="supply-flow-arrow" aria-hidden="true">
-                    <ArrowRight size={20} />
-                  </li>
-                  <li className="supply-step">
-                    <span className="supply-step-icon" aria-hidden="true">
-                      <Tag size={22} />
-                    </span>
-                    <span className="supply-step-num">3</span>
-                    <strong>Catalog +{Math.round(MARKUP * 100)}%</strong>
+                    <strong>Synthesis</strong>
                     <p>
-                      Retail is vendor cost +{" "}
-                      {Math.round(MARKUP * 100)}%, then rounded up to the
-                      nearest $5.
+                      Sequences are built in research-chemical manufacturing
+                      hubs — the same corridors behind most “research” vials.
                     </p>
                   </li>
                   <li className="supply-flow-arrow" aria-hidden="true">
@@ -641,11 +614,42 @@ export default function App() {
                   </li>
                   <li className="supply-step">
                     <span className="supply-step-icon" aria-hidden="true">
-                      <ShoppingCart size={22} />
+                      <FlaskConical size={22} />
+                    </span>
+                    <span className="supply-step-num">2</span>
+                    <strong>Purify &amp; dry</strong>
+                    <p>
+                      Crude peptide is purified and lyophilized into stable
+                      powder ready for research vials.
+                    </p>
+                  </li>
+                  <li className="supply-flow-arrow" aria-hidden="true">
+                    <ArrowRight size={20} />
+                  </li>
+                  <li className="supply-step">
+                    <span className="supply-step-icon" aria-hidden="true">
+                      <Package size={22} />
+                    </span>
+                    <span className="supply-step-num">3</span>
+                    <strong>Vial &amp; kit</strong>
+                    <p>
+                      Powder is filled into vials or kits — strength and pack
+                      size set for lab inventory, not pharmacy packaging.
+                    </p>
+                  </li>
+                  <li className="supply-flow-arrow" aria-hidden="true">
+                    <ArrowRight size={20} />
+                  </li>
+                  <li className="supply-step">
+                    <span className="supply-step-icon" aria-hidden="true">
+                      <Microscope size={22} />
                     </span>
                     <span className="supply-step-num">4</span>
-                    <strong>You order here</strong>
-                    <p>Checkout on Undisclosed only — vendor sites stay hidden.</p>
+                    <strong>QC / COA</strong>
+                    <p>
+                      Batches are checked for purity and identity; third-party
+                      reports back the claim when available.
+                    </p>
                   </li>
                   <li className="supply-flow-arrow" aria-hidden="true">
                     <ArrowRight size={20} />
@@ -655,40 +659,48 @@ export default function App() {
                       <Truck size={22} />
                     </span>
                     <span className="supply-step-num">5</span>
-                    <strong>Vendor drop-ships</strong>
-                    <p>Stock ships from the seller to your US lab address.</p>
+                    <strong>US drop-ship</strong>
+                    <p>
+                      You order on Undisclosed; the approved vendor ships to your
+                      US address. Vendor sites stay hidden.
+                    </p>
                   </li>
                 </ol>
 
                 <div className="supply-example">
                   <div className="supply-example-copy">
-                    <p className="section-kicker">Worked example</p>
-                    <h3>Tirzepatide 10mg kit · The Lobster</h3>
+                    <p className="section-kicker">Source path example</p>
+                    <h3>Tirzepatide kit · research supply</h3>
                     <p>
-                      Same kit, same drop-ship — the only markup you pay is the
-                      published catalog fee.
+                      Same active structure whether it arrives via a branded
+                      pharmacy lane or a research manufacturer. We list the
+                      research path: plant → vial → COA → approved vendor →
+                      your lab.
                     </p>
                   </div>
-                  <div className="supply-math" role="list">
-                    <div className="supply-math-row" role="listitem">
-                      <span>Lobster vendor cost</span>
-                      <strong>{formatMoney(80)}</strong>
-                    </div>
-                    <div className="supply-math-row" role="listitem">
-                      <span>
-                        After +{Math.round(MARKUP * 100)}% markup
-                      </span>
-                      <strong>{formatMoney(80 * (1 + MARKUP))}</strong>
-                    </div>
-                    <div className="supply-math-row supply-math-total" role="listitem">
-                      <span>Catalog (round up to $5)</span>
-                      <strong>{formatMoney(retailFromVendor(80))}</strong>
-                    </div>
-                  </div>
+                  <ol className="source-path">
+                    <li>
+                      <span>Plant</span>
+                      Research-chemical synthesis corridor
+                    </li>
+                    <li>
+                      <span>Fill</span>
+                      Lyophilized kit at labeled strength
+                    </li>
+                    <li>
+                      <span>Proof</span>
+                      Purity / identity documentation
+                    </li>
+                    <li>
+                      <span>Fulfill</span>
+                      Vendor drop-ships US-only via Undisclosed
+                    </li>
+                  </ol>
                   <ul className="supply-example-notes">
                     <li>
                       <Package size={16} />
-                      Meet featured min order {formatMoney(THE_LOBSTER_VENDOR.minOrder)}
+                      Featured vendor min order{" "}
+                      {formatMoney(THE_LOBSTER_VENDOR.minOrder)}
                     </li>
                     <li>
                       <Truck size={16} />
@@ -696,7 +708,7 @@ export default function App() {
                     </li>
                     <li>
                       <ShieldCheck size={16} />
-                      Lobster fulfills; you never leave this site
+                      You never leave this site to checkout
                     </li>
                   </ul>
                 </div>
@@ -711,7 +723,7 @@ export default function App() {
                     <h2>Two supply stories. One molecule.</h2>
                     <p>
                       Either way, the structure on the vial is what matters for
-                      research — Undisclosed makes the economics honest.
+                      research — Undisclosed makes the source path clear.
                     </p>
                   </div>
                 </div>
@@ -723,8 +735,8 @@ export default function App() {
                       Most “research peptide” inventory traces back to the same
                       manufacturing hubs. Paying a domestic storefront premium
                       doesn’t change the synthesis origin — it only changes who
-                      pockets the margin. We surface approved manufacturer price
-                      lists so your lab can buy closer to source.
+                      sits between the plant and your lab. We connect approved
+                      near-source vendors so you buy closer to manufacture.
                     </p>
                   </article>
                   <article className="thesis-card panel">
@@ -734,18 +746,14 @@ export default function App() {
                       When the active is the same sequence or small molecule,
                       the research question is purity, fill, and documentation —
                       not the logo on the box. Undisclosed lists research-grade
-                      equivalents beside vendor cost so you can see what the
-                      compound actually clears for.
+                      equivalents so you can judge the molecule on the bench.
                     </p>
                   </article>
                   <article className="thesis-card panel thesis-card-accent">
                     <p className="section-kicker">Undisclosed</p>
                     <h3>Your generic research lane</h3>
                     <p>
-                      Admin-vetted vendors. Lowest approved cost wins each SKU.
-                      Catalog retail is vendor cost +{" "}
-                      {Math.round(MARKUP * 100)}%, rounded up to the nearest
-                      $5 — explicit, not mysterious.
+                      Admin-vetted vendors. Documented kits. US drop-ship only.
                       For laboratory research use only; not for human
                       consumption or medical use.
                     </p>
@@ -836,9 +844,8 @@ export default function App() {
                       {filtered.length} result
                       {filtered.length === 1 ? "" : "s"}
                       {category !== "All" ? ` in ${category}` : ""}
-                      {query.trim() ? ` for “${query.trim()}”` : ""}. Retail =
-                      vendor cost + {Math.round(MARKUP * 100)}%, rounded up to
-                      the nearest $5.
+                      {query.trim() ? ` for “${query.trim()}”` : ""}. US
+                      shipping only.
                     </p>
                   </div>
                 </div>
@@ -879,7 +886,7 @@ export default function App() {
               <div className="container lab-inner">
                 <div>
                   <p className="section-kicker">Documentation</p>
-                  <h2>Judge the molecule — not the markup</h2>
+                  <h2>Judge the molecule on the data</h2>
                   <p>
                     Research equivalents earn trust with verifiable purity and
                     fill data. Independent COAs let your lab compare batches the
@@ -1120,9 +1127,7 @@ function ProductDetail({
                 <span className="compare">{formatMoney(product.compareAt)}</span>
               </div>
               <div className="meta">
-                {formatStrengthLabel(product)} · per {product.unitLabel}{" "}
-                (vendor cost {formatMoney(product.vendorCost)} +{" "}
-                {Math.round(MARKUP * 100)}%, round up $5)
+                {formatStrengthLabel(product)} · per {product.unitLabel}
               </div>
               <div className="buy-stock ok">In Stock</div>
               <button type="button" className="cart-cta" onClick={onAdd}>
@@ -1335,10 +1340,9 @@ function VendorPortal({
           <h1>Vendor portal</h1>
           <p className="lede">
             Drop your price list here. Undisclosed reviews each line, then
-            publishes approved items to the live catalog with a{" "}
-            {Math.round(MARKUP * 100)}% retail markup (then round up to the
-            nearest $5). You set minimum order and
-            US shipping terms — we fulfill to United States addresses only.
+            publishes approved items to the live catalog. You set your cost,
+            minimum order, and US shipping terms — we fulfill to United States
+            addresses only.
           </p>
 
           <div className="notice">
@@ -1656,7 +1660,7 @@ function PriceListEditor({ lines, onChange }) {
             </label>
           </div>
           <div className="meta" style={{ marginTop: "0.35rem" }}>
-            Buyer price after approval:{" "}
+            Catalog price after approval:{" "}
             {line.vendorCost
               ? formatMoney(retailFromVendor(line.vendorCost))
               : "—"}
@@ -1694,8 +1698,7 @@ function AdminPanel({
           <h1>Approval desk</h1>
           <p className="lede">
             Nothing reaches the public catalog until you approve it. Approved
-            items publish immediately with a {Math.round(MARKUP * 100)}% markup,
-            rounded up to the nearest $5.
+            items publish immediately at the calculated catalog price.
           </p>
 
           <div className="notice warn">
