@@ -356,8 +356,8 @@ export default function App() {
               src="/undisclosed-brand.png"
               alt=""
               className="brand-logo"
-              width={40}
-              height={40}
+              width={48}
+              height={48}
             />
             <span className="brand-text">
               <span className="brand-mark">Undisclosed</span>
@@ -483,7 +483,17 @@ export default function App() {
             <section className="hero">
               <div className="hero-media" />
               <div className="container hero-content">
-                <h1 className="hero-brand rise">Undisclosed</h1>
+                <div className="hero-brand-lockup rise">
+                  <img
+                    src="/undisclosed-brand.png"
+                    alt=""
+                    className="hero-brand-mark"
+                    width={104}
+                    height={104}
+                  />
+                  <h1 className="hero-brand">Undisclosed</h1>
+                </div>
+                <div className="hero-brand-rule rise-delay" aria-hidden="true" />
                 <p className="hero-tagline rise-delay">
                   The research equivalent — same compound, clearer path.
                 </p>
