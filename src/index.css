@@ -1903,6 +1903,45 @@ th {
   font-size: 1.1rem;
 }
 
+.order-flow-steps {
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--muted, #5a5a5a);
+}
+
+.consent-check {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  margin-top: 0.35rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid color-mix(in srgb, var(--cobalt, #0047ab) 28%, transparent);
+  background: color-mix(in srgb, var(--cobalt, #0047ab) 6%, transparent);
+  border-radius: 8px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.consent-check input {
+  margin-top: 0.2rem;
+  accent-color: var(--cobalt, #0047ab);
+  flex-shrink: 0;
+}
+
+.app-shell--undisclosed .consent-check {
+  border-color: color-mix(in srgb, var(--gold, #c9a227) 35%, transparent);
+  background: color-mix(in srgb, var(--gold, #c9a227) 8%, transparent);
+}
+
+.app-shell--undisclosed .consent-check input {
+  accent-color: var(--gold, #c9a227);
+}
+
 .form-row--3 {
   display: grid;
   grid-template-columns: 1.4fr 0.6fr 0.8fr;

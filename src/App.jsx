@@ -43,16 +43,14 @@ import {
   isValidUsZip,
   loadOrders,
   saveOrder,
+  notifyOrderRequest,
   suggestedBacMl,
 } from "./utils/automation";
-import { fetchPaymentConfig } from "./utils/payments";
 import { fetchChargebeeConfig } from "./utils/chargebeeClient";
 import PeptideCalculator, {
   parseCalculatorQuery,
 } from "./components/PeptideCalculator";
 import GeneratedVial from "./components/GeneratedVial";
-import CheckoutPayment from "./components/CheckoutPayment";
-import ChargebeeCheckout from "./components/ChargebeeCheckout";
 import SkincareHome from "./components/SkincareHome";
 import PriceListDropzone from "./components/PriceListDropzone";
 import PriceCompare from "./components/PriceCompare";
@@ -149,10 +147,6 @@ export default function App() {
   const [flash, setFlash] = useState("");
   const [automation, setAutomation] = useState(() => loadAutomationSettings());
   const [orders, setOrders] = useState(() => loadOrders());
-  const [paymentConfig, setPaymentConfig] = useState({
-    enabled: false,
-    publishableKey: null,
-  });
   const [chargebeeConfig, setChargebeeConfig] = useState({
     enabled: false,
     site: null,
@@ -172,7 +166,6 @@ export default function App() {
   }
 
   useEffect(() => {
-    fetchPaymentConfig().then(setPaymentConfig);
     fetchChargebeeConfig().then(setChargebeeConfig);
   }, []);
 
@@ -184,7 +177,7 @@ export default function App() {
       setView(VIEWS.cart);
     }
     if (cb === "success") {
-      setFlash("Chargebee checkout completed — confirm the order packet below if needed.");
+      setFlash("Chargebee return noted — confirm supply before taking payment.");
     } else if (cb === "cancel") {
       setFlash("Chargebee checkout canceled");
     }
@@ -278,7 +271,7 @@ export default function App() {
       category: product.kind === "mix" ? "Fresh Mix" : "Skincare",
       skin: true,
       mix: product.kind === "mix",
-      ships: product.kind === "mix" ? "Fresh pack, 2 to 4 days" : "Ships in 2 to 4 days",
+      ships: product.kind === "mix" ? "Up to 4 weeks after payment" : "Up to 4 weeks after payment",
       legalNote:
         product.kind === "mix"
           ? "Cosmetic topical peptides only. Not for injection or medical use."
@@ -286,8 +279,8 @@ export default function App() {
     });
     setFlash(
       product.kind === "mix"
-        ? `Added ${product.name} (cosmetic use only)`
-        : `Added ${product.name}`
+        ? `Added ${product.name} (request only — no payment yet)`
+        : `Added ${product.name} (request only — no payment yet)`
     );
   }
 
@@ -380,10 +373,10 @@ export default function App() {
     setCartPulse(true);
     setTimeout(() => setCartPulse(false), 350);
     if (product.skin) {
-      setFlash(`${product.name} added to bag`);
+      setFlash(`${product.name} added (request only — no payment yet)`);
     } else {
       const strength = formatStrengthLabel(product);
-      setFlash(`${product.name} (${strength}) added to cart`);
+      setFlash(`${product.name} (${strength}) added (request only — no payment yet)`);
     }
   }
 
@@ -606,13 +599,18 @@ export default function App() {
     setFlash("Vendor shipping & minimum order updated");
   }
 
-  function placeOrder(customer, payment = null) {
+  function placeOrder(customer, options = {}) {
+    const { payment = null, waitConsent = false, notify = true } = options;
     if (!cart.length) {
       setFlash("Cart is empty");
       return null;
     }
     if (!isValidUsZip(customer.zip)) {
       setFlash("Enter a valid US ZIP code");
+      return null;
+    }
+    if (!payment && !waitConsent) {
+      setFlash("Confirm you can wait up to 4 weeks for inventory");
       return null;
     }
     const subtotal = cart.reduce((sum, line) => sum + line.price * line.qty, 0);
@@ -627,11 +625,17 @@ export default function App() {
     const total = subtotal + shipping;
     const packet = buildOrderPacket({
       orderId: createOrderId(),
-      customer,
+      customer: {
+        ...customer,
+        userId: customer.userId || session?.userId || "",
+        email: customer.email || session?.email || "",
+      },
       cart,
       subtotal,
       shipping,
       total,
+      status: payment ? "paid" : "awaiting_supply_review",
+      waitConsent: Boolean(waitConsent) || Boolean(payment),
     });
     if (payment) {
       const provider = payment.provider || "stripe";
@@ -646,13 +650,17 @@ export default function App() {
             : "card_or_affirm",
       };
       packet.status = "paid";
+      packet.paymentDue = null;
     }
     setOrders(saveOrder(packet));
     setCart([]);
+    if (notify && !payment) {
+      notifyOrderRequest(packet);
+    }
     setFlash(
       payment
         ? `Payment received · order ${packet.orderId}`
-        : `Order ${packet.orderId} queued for drop-ship`
+        : `Request ${packet.orderId} sent · we’ll confirm supply within 24 hours`
     );
     return packet;
   }
@@ -667,8 +675,8 @@ export default function App() {
           <div className="container header-top-inner">
             <span className="header-top-msg">
               {labUnlocked
-                ? "Undisclosed · Research peptides · US only"
-                : "Twist-cap freshness. Dropper beside. US shipping"}
+                ? "Undisclosed · Request first · Pay after supply check · Up to 4 weeks"
+                : "Request first · Pay after supply check · Up to 4 weeks"}
             </span>
             <span className="header-top-links">
               {labUnlocked ? (
@@ -1097,8 +1105,11 @@ export default function App() {
                 <div className="trust-item">
                   <Truck size={22} />
                   <div>
-                    <strong>US shipping only</strong>
-                    <p>Drop-ship to United States addresses from approved vendors.</p>
+                    <strong>Request → supply check → pay</strong>
+                    <p>
+                      All orders come to us first. We confirm inventory, then
+                      email payment within 24 hours. Allow up to 4 weeks.
+                    </p>
                   </div>
                 </div>
                 <div className="trust-item">
@@ -1302,11 +1313,11 @@ export default function App() {
                     </li>
                     <li>
                       <Truck size={16} />
-                      US shipping only · allow up to 4 weeks
+                      US shipping only · allow up to 4 weeks after payment
                     </li>
                     <li>
                       <ShieldCheck size={16} />
-                      You never leave this site to checkout
+                      Request first · we confirm supply · then you pay
                     </li>
                   </ul>
                 </div>
@@ -1368,15 +1379,16 @@ export default function App() {
                     <h2>The Lobster</h2>
                     <p>
                       Featured vendor on WellPept. Minimum order{" "}
-                      {formatMoney(THE_LOBSTER_VENDOR.minOrder)}. US shipping
-                      only — allow up to 4 weeks. Sold only through this
-                      catalog; we handle drop-ship.
+                      {formatMoney(THE_LOBSTER_VENDOR.minOrder)}. Request first —
+                      we confirm supply within 24 hours, then payment. US
+                      shipping only; allow up to 4 weeks after payment.
                     </p>
                     <ul className="featured-meta">
                       <li>
                         Min order {formatMoney(THE_LOBSTER_VENDOR.minOrder)}
                       </li>
-                      <li>US shipping only · allow up to 4 weeks</li>
+                      <li>Request first · pay after supply check</li>
+                      <li>US shipping only · up to 4 weeks after payment</li>
                     </ul>
                     <div className="hero-cta" style={{ marginTop: "0.85rem" }}>
                       <button
@@ -1601,12 +1613,11 @@ export default function App() {
         {view === VIEWS.cart && (
           <CartPage
             cart={cart}
+            session={session}
             onBack={goShop}
             onUpdateQty={updateQty}
             onRemove={removeLine}
             onPlaceOrder={placeOrder}
-            paymentConfig={paymentConfig}
-            chargebeeConfig={chargebeeConfig}
           />
         )}
 
@@ -2011,20 +2022,12 @@ function ProductDetail({
 
 function CartPage({
   cart,
+  session = null,
   onBack,
   onUpdateQty,
   onRemove,
   onPlaceOrder,
-  paymentConfig = { enabled: false, publishableKey: null },
-  chargebeeConfig = { enabled: false },
 }) {
-  const paymentsReady = Boolean(
-    (paymentConfig?.enabled && paymentConfig?.publishableKey) ||
-      chargebeeConfig?.enabled
-  );
-  const useStripe = Boolean(
-    paymentConfig?.enabled && paymentConfig?.publishableKey
-  );
   const subtotal = cart.reduce((sum, line) => sum + line.price * line.qty, 0);
 
   const shippingByVendor = new Map();
@@ -2058,7 +2061,8 @@ function CartPage({
   const total = subtotal + shipping;
   const [customer, setCustomer] = useState({
     name: "",
-    email: "",
+    email: session?.email || "",
+    userId: session?.userId || "",
     phone: "",
     address1: "",
     address2: "",
@@ -2066,10 +2070,11 @@ function CartPage({
     state: "",
     zip: "",
   });
-  const [step, setStep] = useState("shipping"); // shipping | pay | done
-  const [draftOrderId, setDraftOrderId] = useState("");
+  const [waitConsent, setWaitConsent] = useState(false);
+  const [step, setStep] = useState("shipping"); // shipping | done
   const [packet, setPacket] = useState(null);
   const [packetMsg, setPacketMsg] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   function finalizePacket(next, note) {
     setPacket(next);
@@ -2077,51 +2082,51 @@ function CartPage({
     const text = formatOrderPacketText(next);
     try {
       navigator.clipboard.writeText(text);
-      setPacketMsg(note || "Drop-ship packet copied.");
+      setPacketMsg(note || "Request packet copied.");
     } catch {
-      setPacketMsg(note || "Download the packet below.");
+      setPacketMsg(note || "Download the request packet below.");
     }
     const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${next.orderId}.txt`;
+    a.download = `${next.orderId}-request.txt`;
     a.click();
     URL.revokeObjectURL(url);
   }
 
-  function handleShippingContinue(e) {
+  function handleSubmitRequest(e) {
     e.preventDefault();
     if (minOrderWarnings.length) {
-      setPacketMsg("Meet each vendor minimum before checkout.");
+      setPacketMsg("Meet each vendor minimum before submitting.");
       return;
     }
     if (!isValidUsZip(customer.zip)) {
       setPacketMsg("Enter a valid US ZIP code");
       return;
     }
-    setDraftOrderId(createOrderId());
-    setPacketMsg("");
-    if (paymentsReady) {
-      setStep("pay");
+    if (!waitConsent) {
+      setPacketMsg(
+        "Confirm you are willing to wait up to 4 weeks until inventory replenishes."
+      );
       return;
     }
-    // Offline fallback when payment providers are not configured
-    const next = onPlaceOrder?.(customer);
+    setSubmitting(true);
+    setPacketMsg("");
+    const next = onPlaceOrder?.(
+      {
+        ...customer,
+        email: customer.email || session?.email || "",
+        userId: customer.userId || session?.userId || "",
+      },
+      { waitConsent: true, notify: true }
+    );
+    setSubmitting(false);
     if (!next) return;
-    finalizePacket(next, "Order queued (payments offline) · packet copied.");
-  }
-
-  function handlePaid(paymentIntent) {
-    const next = onPlaceOrder?.(customer, paymentIntent);
-    if (!next) return;
-    finalizePacket(next, "Payment received · drop-ship packet copied.");
-  }
-
-  function handleOfflineQueue() {
-    const next = onPlaceOrder?.(customer);
-    if (!next) return;
-    finalizePacket(next, "Order queued without card charge · packet copied.");
+    finalizePacket(
+      next,
+      "Request sent · we check supply and email payment instructions within 24 hours."
+    );
   }
 
   return (
@@ -2133,14 +2138,19 @@ function CartPage({
         <div className="panel" style={{ marginTop: "1rem" }}>
           <h1>Cart</h1>
           <p className="lede">
-            US shipping only. Pay by card or Affirm
-            {useStripe
-              ? " through Stripe"
-              : chargebeeConfig?.enabled
-                ? " through Chargebee"
-                : ""}{" "}
-            — then we auto-build the vendor drop-ship packet.
+            No payment at checkout. Submit a request, we confirm supply, then email
+            payment instructions within 24 hours. Fulfillment can take up to 4 weeks.
           </p>
+
+          <div className="notice" style={{ marginTop: "0.75rem" }}>
+            <strong>How ordering works</strong>
+            <ol className="order-flow-steps">
+              <li>You submit this request (quoted total below is not charged yet).</li>
+              <li>We check supply and get back to you within 24 hours.</li>
+              <li>You pay only after we confirm we can fulfill.</li>
+              <li>Ship after payment — allow up to 4 weeks / until inventory replenishes.</li>
+            </ol>
+          </div>
 
           {cart.length === 0 && !packet ? (
             <div className="empty-state">Your cart is empty.</div>
@@ -2159,6 +2169,9 @@ function CartPage({
                           {formatStrengthLabel(line)} · {line.form} ·{" "}
                           {line.vendor}
                         </div>
+                        {line.ships && (
+                          <div className="meta">{line.ships}</div>
+                        )}
                         <div className="qty-controls">
                           <button
                             type="button"
@@ -2199,7 +2212,7 @@ function CartPage({
               )}
 
               {cart.length > 0 && step === "shipping" && (
-                <form className="checkout-form" onSubmit={handleShippingContinue}>
+                <form className="checkout-form" onSubmit={handleSubmitRequest}>
                   <h2>US shipping</h2>
                   <div className="form-row">
                     <label className="field">
@@ -2224,6 +2237,11 @@ function CartPage({
                       />
                     </label>
                   </div>
+                  {session?.userId && (
+                    <p className="meta" style={{ marginTop: "-0.35rem" }}>
+                      Account: {session.userId}
+                    </p>
+                  )}
                   <label className="field">
                     Address
                     <input
@@ -2294,9 +2312,24 @@ function CartPage({
                     />
                   </label>
 
+                  <label className="consent-check">
+                    <input
+                      type="checkbox"
+                      checked={waitConsent}
+                      onChange={(e) => setWaitConsent(e.target.checked)}
+                      required
+                    />
+                    <span>
+                      I understand there is no payment yet. After supply is
+                      confirmed I will receive payment instructions within 24
+                      hours, and I am willing to wait up to 4 weeks (or until
+                      inventory replenishes) for fulfillment.
+                    </span>
+                  </label>
+
                   <div className="cart-summary">
                     <div className="summary-row">
-                      <span>Subtotal</span>
+                      <span>Quoted subtotal</span>
                       <span>{formatMoney(subtotal)}</span>
                     </div>
                     <div className="summary-row">
@@ -2304,23 +2337,22 @@ function CartPage({
                       <span>{formatMoney(shipping)}</span>
                     </div>
                     <div className="summary-row total">
-                      <span>Total</span>
+                      <span>Quoted total (not charged yet)</span>
                       <span>{formatMoney(total)}</span>
                     </div>
-                    <button type="submit" className="primary-btn">
-                      {paymentsReady
-                        ? useStripe
-                          ? "Continue to card / Affirm"
-                          : "Continue to Chargebee"
-                        : "Place order · auto drop-ship packet"}
+                    <button
+                      type="submit"
+                      className="primary-btn"
+                      disabled={submitting || !waitConsent}
+                    >
+                      {submitting
+                        ? "Sending request…"
+                        : "Submit order request"}
                     </button>
-                    {!paymentsReady && (
-                      <p className="meta" style={{ marginTop: "0.65rem" }}>
-                        Stripe keys not configured yet — orders queue offline.
-                        Add <code>VITE_STRIPE_PUBLISHABLE_KEY</code> and{" "}
-                        <code>STRIPE_SECRET_KEY</code> from your Stripe sandbox.
-                      </p>
-                    )}
+                    <p className="meta" style={{ marginTop: "0.65rem" }}>
+                      Opens a message to info@wellpept.com with your request so
+                      we can check supply.
+                    </p>
                     {packetMsg && (
                       <div className="notice warn" style={{ marginTop: "0.75rem" }}>
                         {packetMsg}
@@ -2330,78 +2362,21 @@ function CartPage({
                 </form>
               )}
 
-              {cart.length > 0 && step === "pay" && (
-                <div className="checkout-form">
-                  <div className="checkout-step-bar">
-                    <button
-                      type="button"
-                      className="ghost-btn"
-                      onClick={() => setStep("shipping")}
-                    >
-                      <ArrowLeft size={16} /> Edit shipping
-                    </button>
-                    <div className="cart-summary" style={{ marginTop: 0, borderTop: 0, paddingTop: 0 }}>
-                      <div className="summary-row total">
-                        <span>Total due</span>
-                        <span>{formatMoney(total)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {useStripe ? (
-                    <CheckoutPayment
-                      publishableKey={paymentConfig.publishableKey}
-                      total={total}
-                      orderId={draftOrderId}
-                      customer={customer}
-                      onPaid={handlePaid}
-                      onError={(err) =>
-                        setPacketMsg(err?.message || "Payment error")
-                      }
-                    />
-                  ) : chargebeeConfig?.enabled ? (
-                    <ChargebeeCheckout
-                      config={chargebeeConfig}
-                      mode="cart"
-                      total={total}
-                      shippingCents={Math.round(Number(shipping) * 100)}
-                      orderId={draftOrderId}
-                      customer={customer}
-                      lines={cart}
-                      onPaid={handlePaid}
-                      onError={(err) =>
-                        setPacketMsg(err?.message || "Payment error")
-                      }
-                    />
-                  ) : null}
-
-                  <button
-                    type="button"
-                    className="soft-btn"
-                    style={{ marginTop: "0.75rem" }}
-                    onClick={handleOfflineQueue}
-                  >
-                    Queue without payment (ops fallback)
-                  </button>
-                  {packetMsg && (
-                    <div className="notice warn" style={{ marginTop: "0.75rem" }}>
-                      {packetMsg}
-                    </div>
-                  )}
-                </div>
-              )}
-
               {packet && (
                 <div className="notice ok" style={{ marginTop: "1rem" }}>
-                  <strong>{packet.orderId}</strong>
-                  {packet.payment?.paymentIntentId
-                    ? ` · paid via ${
-                        packet.payment.provider === "chargebee"
-                          ? "Chargebee"
-                          : "Stripe"
-                      } (${packet.payment.status})`
-                    : " · queued"}
-                  {packetMsg ? ` · ${packetMsg}` : ""}
+                  <strong>Request {packet.orderId} received</strong>
+                  <p style={{ margin: "0.5rem 0 0" }}>
+                    We will check supply and email you at{" "}
+                    <strong>{packet.customer?.email}</strong> within 24 hours
+                    with next steps for payment. Do not send payment until you
+                    hear from us. Allow up to 4 weeks after payment for
+                    fulfillment.
+                  </p>
+                  {packetMsg ? (
+                    <p className="meta" style={{ marginTop: "0.5rem" }}>
+                      {packetMsg}
+                    </p>
+                  ) : null}
                   <pre className="order-packet-preview">
                     {formatOrderPacketText(packet)}
                   </pre>
@@ -2917,15 +2892,16 @@ function AdminPanel({
           <h1>Approval desk</h1>
           <p className="lede">
             New vendors stay human-gated. Everything else can run on autopilot —
-            bulk approve, trusted updates, and queued drop-ship orders.
+            bulk approve, trusted updates, and order requests awaiting supply
+            review.
           </p>
 
           <div className="notice warn">
             {pendingVendors.length} vendor
             {pendingVendors.length === 1 ? "" : "s"} and {pendingItems.length}{" "}
             price-list line{pendingItems.length === 1 ? "" : "s"} awaiting
-            review · {products.length} live products · {orders.length} queued
-            order{orders.length === 1 ? "" : "s"}
+            review · {products.length} live products · {orders.length} order
+            request{orders.length === 1 ? "" : "s"}
           </div>
 
           <div className="automation-bar">
@@ -3116,21 +3092,21 @@ function AdminPanel({
             </table>
           </div>
 
-          <h2>Queued drop-ship orders</h2>
+          <h2>Order requests (supply review)</h2>
           <div className="table-wrap" style={{ marginBottom: "1.5rem" }}>
             <table>
               <thead>
                 <tr>
-                  <th>Order</th>
+                  <th>Request</th>
                   <th>Customer</th>
-                  <th>Shipments</th>
-                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Quoted total</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.length === 0 ? (
                   <tr>
-                    <td colSpan={4}>No orders queued yet.</td>
+                    <td colSpan={4}>No order requests yet.</td>
                   </tr>
                 ) : (
                   orders.slice(0, 20).map((o) => (
@@ -3144,10 +3120,15 @@ function AdminPanel({
                       <td>
                         {o.customer?.name}
                         <div className="meta">{o.customer?.email}</div>
+                        {o.customer?.userId ? (
+                          <div className="meta">ID: {o.customer.userId}</div>
+                        ) : null}
                       </td>
                       <td>
-                        {o.shipments?.length || 0} vendor
-                        {(o.shipments?.length || 0) === 1 ? "" : "s"}
+                        {o.status || "awaiting_supply_review"}
+                        {o.waitConsent ? (
+                          <div className="meta">4-week wait accepted</div>
+                        ) : null}
                       </td>
                       <td>{formatMoney(o.totals?.total || 0)}</td>
                     </tr>

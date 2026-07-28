@@ -71,9 +71,12 @@ export function createOrderId() {
   return `WP-${t}-${r}`;
 }
 
+export const ORDER_NOTIFY_EMAIL = "info@wellpept.com";
+
 /**
  * Build a drop-ship order packet grouped by vendor.
  * Never includes vendor storefront URLs — admin/ops relay only.
+ * Default status is awaiting_supply_review (no payment yet).
  */
 export function buildOrderPacket({
   orderId,
@@ -82,6 +85,8 @@ export function buildOrderPacket({
   subtotal,
   shipping,
   total,
+  status = "awaiting_supply_review",
+  waitConsent = false,
 }) {
   const byVendor = new Map();
   for (const line of cart) {
@@ -127,30 +132,45 @@ export function buildOrderPacket({
   return {
     orderId,
     createdAt: new Date().toISOString(),
-    status: "queued",
+    status,
     channel: "wellpept",
     shipCountry: "US",
+    waitConsent: Boolean(waitConsent),
+    waitConsentAt: waitConsent ? new Date().toISOString() : null,
+    paymentDue: status === "awaiting_supply_review" ? "after_supply_check" : null,
     customer: {
       name: customer.name,
       email: customer.email,
       phone: customer.phone || "",
+      userId: customer.userId || "",
     },
     totals: { subtotal, shipping, total },
     shipments,
     notes:
-      "Drop-ship via Wellpept only. Do not share vendor storefront links with the customer.",
+      "ORDER REQUEST — check supply first. Do not charge until confirmed. Reply to customer within 24 hours with payment instructions. Fulfillment can take up to 4 weeks / until inventory replenishes. Drop-ship via Wellpept only. Do not share vendor storefront links with the customer.",
   };
 }
 
 export function formatOrderPacketText(packet) {
   const lines = [
-    `WELLPEPT ORDER ${packet.orderId}`,
+    `WELLPEPT ORDER REQUEST ${packet.orderId}`,
+    `Status: ${packet.status || "awaiting_supply_review"}`,
     `Created ${packet.createdAt}`,
     `Customer: ${packet.customer.name} <${packet.customer.email}>`,
-    `Ship: US only`,
-    `Subtotal ${packet.totals.subtotal.toFixed(2)} · Shipping ${packet.totals.shipping.toFixed(2)} · Total ${packet.totals.total.toFixed(2)}`,
-    "",
   ];
+  if (packet.customer?.userId) {
+    lines.push(`User ID: ${packet.customer.userId}`);
+  }
+  lines.push(`Ship: US only`);
+  lines.push(
+    `Quoted total $${packet.totals.subtotal.toFixed(2)} + ship $${packet.totals.shipping.toFixed(2)} = $${packet.totals.total.toFixed(2)} (NOT paid yet unless status is paid)`
+  );
+  if (packet.waitConsent) {
+    lines.push(
+      `Wait consent: YES — customer accepts up to 4 weeks / until inventory replenishes`
+    );
+  }
+  lines.push("");
   for (const ship of packet.shipments) {
     lines.push(`── Vendor: ${ship.vendor} ──`);
     lines.push(
@@ -160,8 +180,10 @@ export function formatOrderPacketText(packet) {
     );
     if (ship.shippingNote) lines.push(`Note: ${ship.shippingNote}`);
     for (const line of ship.lines) {
+      const strength =
+        line.mg != null && Number(line.mg) > 0 ? ` (${line.mg}mg)` : "";
       lines.push(
-        `  ${line.qty}× ${line.sku} ${line.name} (${line.mg}mg) @ $${line.unitPrice.toFixed(2)} = $${line.lineTotal.toFixed(2)}`
+        `  ${line.qty}× ${line.sku} ${line.name}${strength} @ $${line.unitPrice.toFixed(2)} = $${line.lineTotal.toFixed(2)}`
       );
     }
     lines.push(
@@ -172,10 +194,35 @@ export function formatOrderPacketText(packet) {
   lines.push(packet.notes);
   if (packet.payment?.paymentIntentId) {
     lines.push(
-      `Payment: Stripe ${packet.payment.paymentIntentId} (${packet.payment.status})`
+      `Payment: ${packet.payment.provider || "Stripe"} ${packet.payment.paymentIntentId} (${packet.payment.status})`
+    );
+  } else {
+    lines.push(
+      "Payment: PENDING — email customer within 24h after supply check."
     );
   }
   return lines.join("\n");
+}
+
+  /** Open a mailto so Ben gets the request at info@wellpept.com. */
+export function notifyOrderRequest(packet) {
+  const body = formatOrderPacketText(packet);
+  const subject = encodeURIComponent(
+    `WellPept order request ${packet.orderId} — supply check`
+  );
+  const mailto = `mailto:${ORDER_NOTIFY_EMAIL}?subject=${subject}&body=${encodeURIComponent(body)}`;
+  try {
+    const a = document.createElement("a");
+    a.href = mailto;
+    a.rel = "noopener";
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch {
+    /* ignore if blocked */
+  }
+  return mailto;
 }
 
 const ORDERS_KEY = "wellpept-orders-v1";

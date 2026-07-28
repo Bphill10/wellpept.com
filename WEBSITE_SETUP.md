@@ -53,12 +53,16 @@ Customers use the chat bubble on wellpept.com. You reply from the Crisp phone ap
 
 Until Crisp is configured, the site still shows **info@wellpept.com** and a Message us button that opens email.
 
-## E. Stripe checkout
+## E. Ordering (request first, pay later)
 
-1. Stripe Dashboard → Developers → API keys (Test mode first)
-2. Add publishable + secret keys to Vercel env vars (section B)
-3. Optional: enable Affirm under Stripe payment methods
-4. Switch to live keys (`pk_live_` / `sk_live_`) when you are ready to take real payments
+Checkout does **not** charge the card. Flow:
+
+1. Customer submits an order request
+2. You get a mailto + local queue entry at **info@wellpept.com**
+3. Check supply and reply within **24 hours** with payment instructions
+4. After payment, fulfill (customer accepted up to **4 weeks** / inventory wait)
+
+Stripe keys are optional for when you invoice after supply check (see `PAYMENTS.md`).
 
 ## G. Customer accounts (required to shop)
 
@@ -79,8 +83,8 @@ accounts later, we can connect Clerk, Auth0, or Supabase.
 - [ ] New WellPept GitHub repo (resume untouched)
 - [ ] Vercel project deployed
 - [ ] Domain DNS pointed at Vercel
-- [ ] `info@wellpept.com` mailbox working
+- [ ] `info@wellpept.com` mailbox working (order requests)
 - [ ] Crisp Website ID set + phone app installed
-- [ ] Stripe test checkout works
+- [ ] Order request flow tested (no pay at checkout; 4-week consent)
 - [ ] Create account / 18+ gate tested
 - [ ] Legal notices still visible on Fresh Mix products

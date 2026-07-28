@@ -656,8 +656,8 @@ export function buildCatalog(vendors, submissions) {
       reviews: 12 + index * 9,
       inStock: true,
       ships: featured
-        ? "US shipping only · featured vendor · allow up to 4 weeks"
-        : "US shipping only · drop-ships in 7–15 business days",
+        ? "US only · request first · pay after supply check · up to 4 weeks"
+        : "US only · request first · pay after supply check · up to 4 weeks",
       badge: featured
         ? "Featured vendor"
         : index < 3

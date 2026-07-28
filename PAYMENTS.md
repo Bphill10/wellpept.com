@@ -1,13 +1,20 @@
-# Payments (Stripe Affirm + optional Chargebee)
+# Ordering & payments
 
-WellPept checkout prefers **Stripe** (cards + Affirm) when sandbox keys are set.
-Chargebee remains optional for hosted checkout / subscriptions.
+WellPept uses a **request-first** flow. Customers do **not** pay at checkout.
 
-## 1. Stripe sandbox (recommended)
+## Customer flow
 
-1. Open https://dashboard.stripe.com/test/apikeys (Test mode ON)
-2. Copy **Publishable key** (`pk_test_…`) and **Secret key** (`sk_test_…`)
-3. Put them in `.env` locally, and in **Vercel → Project → Settings → Environment Variables**:
+1. Customer submits an **order request** (shipping + quoted total)
+2. Customer must confirm they can wait **up to 4 weeks** / until inventory replenishes
+3. You (ops) check supply
+4. Within **24 hours**, email the customer payment instructions
+5. After payment, fulfill (allow up to 4 weeks)
+
+Requests are stored in the browser order queue (admin panel) and open a mailto to **info@wellpept.com** with the packet.
+
+## Stripe / Chargebee (optional, after supply check)
+
+Keys can still be configured for when you later invoice or take payment manually:
 
 ```
 VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
@@ -15,38 +22,21 @@ STRIPE_SECRET_KEY=sk_test_...
 STRIPE_CURRENCY=usd
 ```
 
-4. Restart `npm run dev` locally after changing `.env`
-5. Optional: **Settings → Payment methods → Affirm** → enable for US test
+Chargebee remains optional for subscriptions / hosted pages (see `.env.example`).
 
-### How it works
+## Deploy on Vercel + wellpept.com
 
-- Cart → US shipping → **Pay with card or Affirm**
-- `/api/create-payment-intent` creates a PaymentIntent with automatic payment methods
-- Affirm messaging shows for eligible US carts **$50+**
+You do **not** need to upload `.crt` / `.ca-bundle` / `.p7b` files to Vercel.
+Vercel issues free HTTPS after the domain is connected.
 
-## 2. Chargebee (optional)
-
-Only used when Stripe is **not** configured. See `.env.example` for Chargebee vars.
-
-## 3. Deploy on Vercel + wellpept.com
-
-You do **not** need to upload the `.crt` / `.ca-bundle` / `.p7b` files to Vercel.
-Vercel issues free HTTPS automatically after the domain is connected.
-
-1. Go to https://vercel.com/new and **Import** `Bphill10/Ben_Phillips_Resume`
-2. Framework preset: Vite (or leave auto). Build: `npm run build`. Output: `dist`
-3. Add the Stripe env vars above (Production + Preview)
-4. Deploy
-5. **Project → Settings → Domains** → add `wellpept.com` and `www.wellpept.com`
-6. At your domain registrar DNS, add what Vercel shows (usually):
-   - `www` → CNAME to `cname.vercel-dns.com`
-   - apex `wellpept.com` → A record `76.76.21.21` (or the values Vercel lists)
-7. Wait for DNS + SSL (often a few minutes; can take up to 48h)
-
-Keep any private `.key` file offline. Never commit certificates or keys to GitHub.
+1. Import the WellPept GitHub repo into Vercel
+2. Framework: Vite. Build: `npm run build`. Output: `dist`
+3. Add env vars if you use Stripe/Chargebee/Crisp
+4. Domains: `wellpept.com` and `www.wellpept.com`
+5. Create mailbox for **info@wellpept.com** (order requests go here)
 
 ## Notes
 
 - Never commit real secret keys (`.env` is gitignored).
-- Without keys, checkout still queues an offline drop-ship packet.
-- Local `vite` exposes `/api/*` via `vite.config.js`.
+- Cart CTA is **Submit order request**, not pay now.
+- Local `vite` exposes `/api/*` via `vite.config.js` when payment APIs are used later.

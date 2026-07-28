@@ -139,8 +139,11 @@ export default function SkincareHome({
           <div className="trust-item">
             <Moon size={22} />
             <div>
-              <strong>Fresh until you mix</strong>
-              <p>Dry chambers and vials. Activate when you’re ready, not months on a shelf.</p>
+              <strong>Request first, pay later</strong>
+              <p>
+                We check supply, then email payment within 24 hours. Allow up to
+                4 weeks for fulfillment.
+              </p>
             </div>
           </div>
         </div>
@@ -211,6 +214,8 @@ export default function SkincareHome({
                 <li>30 mL Buffet-style serum in the bottle</li>
                 <li>Dropper ships beside. Seat it after you activate.</li>
                 <li>Cosmetic use only. Peptide acknowledgment at checkout.</li>
+                <li>Request first — pay only after we confirm supply (within 24 hours).</li>
+                <li>Allow up to 4 weeks after payment, or until inventory replenishes.</li>
               </ul>
               <div className="price-row" style={{ margin: "0.85rem 0 1rem" }}>
                 <strong>{formatMoney(FLAGSHIP_SERUM.price)}</strong>
@@ -403,8 +408,9 @@ export default function SkincareHome({
                 <p className="section-kicker">Membership</p>
                 <h2>Subscribe to the ritual</h2>
                 <p>
-                  Recurring Fresh Mix deliveries. Manage billing in the customer portal
-                  after checkout.
+                  Optional recurring Fresh Mix. One-time orders still use
+                  request-first: we confirm supply, then email payment within
+                  24 hours.
                 </p>
               </div>
             </div>
