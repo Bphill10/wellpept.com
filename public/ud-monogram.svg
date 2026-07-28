@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Undisclosed UD monogram">
+  <!-- White hex outer -->
+  <polygon
+    points="64,6 118,37 118,91 64,122 10,91 10,37"
+    fill="#ffffff"
+  />
+  <!-- Black hex inner -->
+  <polygon
+    points="64,18 108,43 108,85 64,110 20,85 20,43"
+    fill="#0a0a0a"
+  />
+  <text
+    x="64"
+    y="78"
+    text-anchor="middle"
+    font-family="Arial Black, Arial, sans-serif"
+    font-size="42"
+    font-weight="800"
+    fill="#ffffff"
+    letter-spacing="-1"
+  >UD</text>
+</svg>

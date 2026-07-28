@@ -191,7 +191,7 @@ export default function App() {
     setLabUnlocked(true);
     setLabUnlockedState(true);
     cleanLabUnlockUrl();
-    setFlash("Lab menu unlocked");
+    setFlash("Undisclosed unlocked");
   }, [urlWantsLab]);
 
   useEffect(() => {
@@ -207,7 +207,7 @@ export default function App() {
     }
   }, [labUnlocked, view]);
 
-  function unlockLabMenu(message = "Lab menu unlocked") {
+  function unlockLabMenu(message = "Undisclosed unlocked") {
     setLabUnlocked(true);
     setLabUnlockedState(true);
     setFlash(message);
@@ -232,7 +232,7 @@ export default function App() {
       setLogoClicks(next);
       if (next.length >= 5) {
         setLogoClicks([]);
-        unlockLabMenu("Secret menu unlocked");
+        unlockLabMenu("Undisclosed unlocked");
         return;
       }
       setView(VIEWS.skincare);
@@ -630,14 +630,14 @@ export default function App() {
   }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${labUnlocked ? "app-shell--undisclosed" : "app-shell--skincare"}`}>
       <header className="site-header">
         <div className="header-top">
           <div className="container header-top-inner">
             <span>
               {labUnlocked
-                ? "Lab menu · Research peptides · Multi-vendor"
-                : "WellPept skincare · Clinical textures · US shipping"}
+                ? "Undisclosed · Research peptides · Multi-vendor"
+                : "WellPept · Clinical skincare · Cobalt purity · US shipping"}
             </span>
             <span className="header-top-links">
               {labUnlocked ? (
@@ -646,10 +646,10 @@ export default function App() {
                     Peptide calculator
                   </button>
                   <button type="button" onClick={() => setView(VIEWS.vendor)}>
-                    Sell on WellPept
+                    Sell on Undisclosed
                   </button>
                   <button type="button" onClick={lockLabMenu}>
-                    Back to skincare
+                    Back to WellPept
                   </button>
                 </>
               ) : (
@@ -670,16 +670,18 @@ export default function App() {
         <div className="container header-inner">
           <button className="brand" onClick={handleBrandClick} type="button">
             <img
-              src="/wp-monogram.svg"
-              alt="WellPept"
+              src={labUnlocked ? "/ud-monogram.svg" : "/wp-monogram.svg"}
+              alt={labUnlocked ? "Undisclosed" : "WellPept"}
               className="brand-logo"
               width={54}
               height={54}
             />
             <span className="brand-text">
-              <span className="brand-mark">WellPept</span>
+              <span className="brand-mark">
+                {labUnlocked ? "Undisclosed" : "WellPept"}
+              </span>
               <span className="brand-sub">
-                {labUnlocked ? "Lab menu" : "Skincare"}
+                {labUnlocked ? "Research lab" : "Skincare"}
               </span>
             </span>
           </button>
@@ -824,7 +826,7 @@ export default function App() {
         ) : (
           <nav className="dept-bar skin-dept" aria-label="Skincare">
             <div className="container dept-bar-inner">
-              <span className="dept-link active">Skincare atelier</span>
+              <span className="dept-link active">Skincare</span>
               <span className="dept-link quiet">Serums</span>
               <span className="dept-link quiet">Creams</span>
               <span className="dept-link quiet">Ritual</span>
@@ -906,32 +908,32 @@ export default function App() {
           <>
             <div className="lab-banner">
               <div className="container lab-banner-inner">
-                <span>Lab menu · research peptides</span>
+                <span>Undisclosed · research peptides</span>
                 <button type="button" className="ghost-btn" onClick={lockLabMenu}>
-                  Exit to skincare
+                  Exit to WellPept
                 </button>
               </div>
             </div>
-            <section className="hero">
-              <div className="hero-media" />
+            <section className="hero hero--undisclosed">
+              <div className="hero-media hero-media--undisclosed" />
               <div className="container hero-content">
                 <div className="hero-brand-lockup rise">
                   <img
-                    src="/wp-monogram.svg"
-                    alt="WellPept WP mark — P in front of W"
+                    src="/ud-monogram.svg"
+                    alt="Undisclosed UD mark"
                     className="hero-brand-mark"
                     width={136}
                     height={136}
                   />
-                  <h1 className="hero-brand">WellPept</h1>
+                  <h1 className="hero-brand">Undisclosed</h1>
                 </div>
                 <div className="hero-brand-rule rise-delay" aria-hidden="true" />
                 <p className="hero-tagline rise-delay">
-                  Lab menu — same compound, clearer path.
+                  Research peptides — same compound, clearer path.
                 </p>
                 <p className="hero-copy rise-delay">
                   Most research peptides share the same synthesis pipeline.
-                  WellPept sources approved manufacturers directly so labs
+                  Undisclosed sources approved manufacturers directly so labs
                   pay for the molecule — not the pharmacy markup.
                 </p>
                 <div className="hero-cta rise-delay">
@@ -1512,17 +1514,17 @@ export default function App() {
       <footer className="footer">
         <div className="container footer-inner">
           <div>
-            <strong>WellPept</strong>
+            <strong>{labUnlocked ? "Undisclosed" : "WellPept"}</strong>
             <div>
               {labUnlocked
-                ? "Lab menu — research peptides for laboratory use"
-                : "Skincare atelier — clinical textures, quiet finish"}
+                ? "Undisclosed — research peptides for laboratory use"
+                : "Clinical skincare — white light, cobalt purity"}
             </div>
           </div>
           <p className="disclaimer">
             {labUnlocked ? (
               <>
-                Lab menu items are for laboratory research use only. Not for human
+                Undisclosed items are for laboratory research use only. Not for human
                 consumption, medical use, or household purposes. Ships to United
                 States addresses only.
               </>

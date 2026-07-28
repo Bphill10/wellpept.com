@@ -26,10 +26,10 @@ export default function SkincareHome({
             <h1 className="hero-brand">WellPept</h1>
           </div>
           <div className="hero-brand-rule rise-delay" aria-hidden="true" />
-          <p className="hero-tagline rise-delay">Clinical skincare, quietly made.</p>
+          <p className="hero-tagline rise-delay">Clinical skincare in cobalt and light.</p>
           <p className="hero-copy rise-delay">
-            WellPept is a skincare atelier — precise textures, restrained formulas,
-            and a finish that never announces itself.
+            WellPept is a clinical atelier — silver, white, and electric blue
+            purity, with textures that stay quiet on the skin.
           </p>
           <div className="hero-cta rise-delay">
             <button type="button" className="primary-btn" onClick={onShopSkin}>
@@ -77,7 +77,7 @@ export default function SkincareHome({
             <Moon size={22} />
             <div>
               <strong>Atelier finish</strong>
-              <p>Clinical discipline with a private, black-and-gold presentation.</p>
+              <p>Clinical light, chrome, and cobalt — no theater, just purity.</p>
             </div>
           </div>
         </div>
@@ -160,8 +160,9 @@ export default function SkincareHome({
             <p className="section-kicker">About</p>
             <h2>WellPept skincare</h2>
             <p>
-              We design for people who want clinical restraint — black, white, a
-              little gold, and formulas that earn their place on the shelf.
+              We design for people who want clinical restraint — white marble
+              light, chrome precision, and a cobalt signal that earns its place
+              on the shelf.
             </p>
             <p className="meta" style={{ marginTop: "1rem" }}>
               Ships to United States addresses only.

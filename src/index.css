@@ -1,28 +1,33 @@
 :root {
   --ink: #0a0a0a;
-  --ink-soft: #2a2a2a;
-  --muted: #6b6b6b;
-  --paper: #f5f5f5;
-  --paper-2: #ebebeb;
+  --ink-soft: #243044;
+  --muted: #5c6b7a;
+  --paper: #f7f9fc;
+  --paper-2: #eef2f7;
   --surface: #ffffff;
-  --line: rgba(10, 10, 10, 0.12);
+  --line: rgba(10, 30, 80, 0.1);
   --black: #0a0a0a;
-  --black-mid: #1a1a1a;
-  --gold: #c4a35a;
-  --gold-bright: #e0c078;
-  --gold-deep: #9a7a3a;
+  --black-mid: #121820;
+  /* Clinical cobalt — WellPept public accent */
+  --cobalt: #0039c6;
+  --cobalt-bright: #2a5bff;
+  --cobalt-deep: #001f7a;
+  --cobalt-soft: rgba(0, 57, 198, 0.12);
+  --gold: var(--cobalt);
+  --gold-bright: var(--cobalt-bright);
+  --gold-deep: var(--cobalt-deep);
   --navy: var(--black);
   --navy-mid: var(--black-mid);
-  --teal: var(--gold);
-  --teal-deep: var(--gold-deep);
-  --amber: var(--gold);
-  --amber-deep: var(--gold-deep);
-  --accent: var(--gold);
+  --teal: var(--cobalt);
+  --teal-deep: var(--cobalt-deep);
+  --amber: var(--cobalt);
+  --amber-deep: var(--cobalt-deep);
+  --accent: var(--cobalt);
   --accent-deep: var(--black);
-  --signal: var(--gold);
+  --signal: var(--cobalt);
   --danger: #b42318;
   --ok: #1f7a4d;
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  --shadow: 0 10px 30px rgba(10, 40, 100, 0.08);
   --radius: 12px;
   --font-display: "Outfit", "Segoe UI", sans-serif;
   --font-brand: "Cormorant Garamond", "Times New Roman", serif;
@@ -49,7 +54,8 @@ body {
   color: var(--ink);
   font-family: var(--font-body);
   background:
-    linear-gradient(180deg, #fafafa 0%, var(--paper) 28%, #f0f0f0 100%);
+    radial-gradient(ellipse at 70% 0%, rgba(0, 57, 198, 0.06), transparent 42%),
+    linear-gradient(180deg, #ffffff 0%, var(--paper) 40%, #e8eef8 100%);
   background-attachment: fixed;
 }
 
@@ -58,10 +64,11 @@ body::before {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  opacity: 0.35;
+  opacity: 0.45;
   background-image:
-    radial-gradient(circle at 1px 1px, rgba(10, 10, 10, 0.05) 1px, transparent 0);
-  background-size: 22px 22px;
+    radial-gradient(circle at 18% 12%, rgba(0, 57, 198, 0.05), transparent 28%),
+    linear-gradient(125deg, rgba(255, 255, 255, 0.7), transparent 40%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
   z-index: 0;
 }
 
@@ -156,17 +163,31 @@ img {
   position: sticky;
   top: 0;
   z-index: 40;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 1px 0 var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.app-shell--undisclosed .site-header {
   background: var(--black);
   color: #f7f7f7;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
-  border-bottom: 1px solid rgba(196, 163, 90, 0.35);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .header-top {
-  background: #000;
+  background: rgba(0, 57, 198, 0.06);
   font-size: 0.78rem;
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--line);
+}
+
+.app-shell--undisclosed .header-top {
+  background: #000;
   color: rgba(247, 247, 247, 0.72);
-  border-bottom: 1px solid rgba(196, 163, 90, 0.18);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .header-top-inner {
@@ -191,8 +212,12 @@ img {
 }
 
 .header-top-links button:hover {
-  color: var(--gold-bright);
+  color: var(--cobalt-bright);
   text-decoration: underline;
+}
+
+.app-shell--undisclosed .header-top-links button:hover {
+  color: #fff;
 }
 
 .header-inner {
@@ -213,6 +238,10 @@ img {
   padding: 0;
   cursor: pointer;
   text-align: left;
+  color: var(--ink);
+}
+
+.app-shell--undisclosed .brand {
   color: #fff;
 }
 
@@ -221,7 +250,13 @@ img {
   height: 3.35rem;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid rgba(196, 163, 90, 0.65);
+  border: 1px solid rgba(0, 57, 198, 0.35);
+  box-shadow: 0 4px 14px rgba(0, 40, 120, 0.12);
+  background: #fff;
+}
+
+.app-shell--undisclosed .brand-logo {
+  border: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.4);
   background: #0a0a0a;
 }
@@ -239,6 +274,10 @@ img {
   letter-spacing: 0.08em;
   line-height: 1;
   text-transform: uppercase;
+  color: var(--ink);
+}
+
+.app-shell--undisclosed .brand-mark {
   color: #fff;
 }
 
@@ -246,7 +285,11 @@ img {
   font-size: 0.66rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--cobalt);
+}
+
+.app-shell--undisclosed .brand-sub {
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .search-wrap {
@@ -281,15 +324,15 @@ img {
 
 .search-go {
   border: 0;
-  background: var(--gold);
-  color: #0a0a0a;
+  background: var(--cobalt);
+  color: #fff;
   font-weight: 700;
   padding: 0.65rem 0.95rem;
   border-radius: 6px;
 }
 
 .search-go:hover {
-  background: var(--gold-bright);
+  background: var(--cobalt-bright);
 }
 
 .header-actions {
@@ -318,10 +361,15 @@ img {
   min-height: 2.5rem;
   padding: 0.35rem 0.7rem;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: #fff;
+  border: 1px solid var(--line);
+  color: var(--ink);
   position: relative;
   border-radius: 10px;
+}
+
+.app-shell--undisclosed .icon-btn {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fff;
 }
 
 .cart-btn .cart-label {
@@ -342,8 +390,8 @@ img {
   min-width: 1.15rem;
   height: 1.15rem;
   border-radius: 999px;
-  background: var(--amber);
-  color: var(--navy);
+  background: var(--cobalt);
+  color: #fff;
   font-size: 0.7rem;
   font-weight: 800;
   display: grid;
@@ -357,11 +405,21 @@ img {
 
 .site-header .ghost-btn,
 .site-header .soft-btn {
-  color: #f4f7fb;
+  color: var(--ink);
   border-color: transparent;
 }
 
+.app-shell--undisclosed .site-header .ghost-btn,
+.app-shell--undisclosed .site-header .soft-btn {
+  color: #f4f7fb;
+}
+
 .site-header .soft-btn {
+  background: rgba(0, 57, 198, 0.06);
+  border: 1px solid var(--line);
+}
+
+.app-shell--undisclosed .site-header .soft-btn {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.16);
 }
@@ -383,15 +441,15 @@ img {
 
 .primary-btn {
   padding: 0.7rem 1.15rem;
-  background: var(--black);
-  color: #f7f7f7;
+  background: var(--cobalt);
+  color: #fff;
   font-weight: 700;
-  border: 1px solid rgba(196, 163, 90, 0.35);
+  border: 1px solid var(--cobalt-deep);
 }
 
 .primary-btn:hover {
-  background: var(--black-mid);
-  border-color: var(--gold);
+  background: var(--cobalt-bright);
+  border-color: var(--cobalt-bright);
   transform: translateY(-1px);
 }
 
@@ -450,7 +508,7 @@ img {
   display: grid;
   align-items: end;
   overflow: hidden;
-  border-bottom: 1px solid rgba(196, 163, 90, 0.35);
+  border-bottom: 1px solid var(--line);
 }
 
 .hero-media {
@@ -459,11 +517,11 @@ img {
   background:
     linear-gradient(
       105deg,
-      rgba(0, 0, 0, 0.88) 0%,
-      rgba(0, 0, 0, 0.55) 42%,
-      rgba(0, 0, 0, 0.25) 100%
+      rgba(255, 255, 255, 0.92) 0%,
+      rgba(255, 255, 255, 0.55) 38%,
+      rgba(255, 255, 255, 0.12) 100%
     ),
-    url("/wellpept-brand.png") right center / cover no-repeat;
+    url("/wellpept-hero-blue.png") right center / cover no-repeat;
   transform: scale(1.02);
   animation: hero-drift 18s ease-in-out infinite alternate;
 }
@@ -474,7 +532,7 @@ img {
   inset: 0;
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.55) 0%,
+    rgba(255, 255, 255, 0.55) 0%,
     transparent 42%
   );
   pointer-events: none;
@@ -484,7 +542,7 @@ img {
   position: relative;
   z-index: 1;
   padding: 4.5rem 0 3rem;
-  color: #f7f7f7;
+  color: var(--ink);
   max-width: 42rem;
 }
 
@@ -500,9 +558,9 @@ img {
   height: clamp(5.5rem, 14vw, 8.5rem);
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid rgba(196, 163, 90, 0.75);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
-  background: #0a0a0a;
+  border: 1px solid rgba(0, 57, 198, 0.35);
+  box-shadow: 0 16px 48px rgba(0, 40, 120, 0.18);
+  background: #fff;
   flex-shrink: 0;
 }
 
@@ -514,8 +572,8 @@ img {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   margin: 0;
-  color: #fff;
-  text-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+  color: var(--ink);
+  text-shadow: none;
 }
 
 .hero-brand-rule {
@@ -525,9 +583,9 @@ img {
   background: linear-gradient(
     90deg,
     transparent,
-    var(--gold) 20%,
-    var(--gold-bright) 50%,
-    var(--gold) 80%,
+    var(--cobalt) 20%,
+    var(--cobalt-bright) 50%,
+    var(--cobalt) 80%,
     transparent
   );
   position: relative;
@@ -538,12 +596,78 @@ img {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 7px;
-  height: 7px;
-  border: 1px solid var(--gold);
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   transform: translate(-50%, -50%);
+  background: var(--cobalt);
+  border: 1px solid var(--cobalt-deep);
+}
+
+/* Undisclosed lab hero — black / white clinical */
+.hero--undisclosed {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.hero-media--undisclosed {
+  background:
+    linear-gradient(
+      105deg,
+      rgba(0, 0, 0, 0.92) 0%,
+      rgba(0, 0, 0, 0.62) 42%,
+      rgba(0, 0, 0, 0.28) 100%
+    ),
+    url("/undisclosed-brand.png") right center / cover no-repeat;
+}
+
+.hero-media--undisclosed::after {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.55) 0%,
+    transparent 42%
+  );
+}
+
+.hero--undisclosed .hero-content {
+  color: #f7f7f7;
+}
+
+.hero--undisclosed .hero-brand {
+  color: #fff;
+  text-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+
+.hero--undisclosed .hero-brand-mark {
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
   background: #0a0a0a;
+}
+
+.hero--undisclosed .hero-brand-rule {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.35) 20%,
+    #fff 50%,
+    rgba(255, 255, 255, 0.35) 80%,
+    transparent
+  );
+}
+
+.hero--undisclosed .hero-brand-rule::after {
+  background: #fff;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.hero--undisclosed .hero-cta .primary-btn {
+  background: #fff;
+  color: #0a0a0a;
+}
+
+.hero--undisclosed .hero-cta .soft-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
 }
 
 .hero-tagline {
@@ -570,23 +694,23 @@ img {
 }
 
 .hero-cta .primary-btn {
-  background: var(--gold);
-  color: #0a0a0a;
+  background: var(--cobalt);
+  color: #fff;
 }
 
 .hero-cta .primary-btn:hover {
-  background: var(--gold-bright);
+  background: var(--cobalt-bright);
 }
 
 .hero-cta .soft-btn {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(196, 163, 90, 0.45);
-  color: #f7f7f7;
+  background: rgba(255, 255, 255, 0.75);
+  border-color: var(--line);
+  color: var(--ink);
 }
 
 .hero-cta .soft-btn:hover {
-  border-color: var(--gold);
-  color: var(--gold-bright);
+  border-color: var(--cobalt);
+  color: var(--cobalt);
 }
 
 /* ---------- Trust / mission / lab ---------- */
@@ -1739,6 +1863,10 @@ th {
 }
 
 .skin-nav-links .ghost-btn {
+  color: var(--ink-soft);
+}
+
+.app-shell--undisclosed .skin-nav-links .ghost-btn {
   color: #f7f7f7;
 }
 
@@ -1749,7 +1877,7 @@ th {
 
 .lab-banner {
   background: #0a0a0a;
-  border-bottom: 1px solid rgba(196, 163, 90, 0.35);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
   color: #f7f7f7;
 }
 
@@ -1765,13 +1893,13 @@ th {
 }
 
 .lab-banner .ghost-btn {
-  color: var(--gold);
-  border-color: rgba(196, 163, 90, 0.4);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.35);
 }
 
 .skin-visual {
   background:
-    radial-gradient(ellipse at 50% 40%, #2c2c2c 0%, #0a0a0a 70%) !important;
+    radial-gradient(ellipse at 50% 35%, #e8f0ff 0%, #f7f9fc 55%, #ffffff 100%) !important;
 }
 
 .skin-bottle {
@@ -1807,8 +1935,8 @@ th {
   width: 42%;
   height: 14%;
   border-radius: 3px 3px 1px 1px;
-  background: linear-gradient(180deg, #f0d78c, #a67c1a);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  background: linear-gradient(180deg, #f2f4f8, #9aa3b2 55%, #6b7585);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 .skin-bottle-body {
@@ -1816,10 +1944,10 @@ th {
   height: 78%;
   border-radius: 8px 8px 14px 14px;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.12), transparent 30%, transparent 70%, rgba(255, 255, 255, 0.08)),
-    linear-gradient(180deg, rgba(247, 247, 247, 0.2), rgba(20, 20, 20, 0.85));
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    linear-gradient(90deg, rgba(255, 255, 255, 0.55), transparent 35%, transparent 70%, rgba(255, 255, 255, 0.25)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(230, 238, 255, 0.35) 45%, rgba(0, 57, 198, 0.85) 100%);
+  border: 1px solid rgba(0, 40, 120, 0.15);
+  box-shadow: 0 18px 40px rgba(0, 40, 120, 0.12);
 }
 
 .skin-ritual-grid {
@@ -1830,13 +1958,13 @@ th {
 
 .skin-ritual-step {
   padding: 1.25rem 1.1rem;
-  border-top: 1px solid rgba(196, 163, 90, 0.55);
+  border-top: 1px solid rgba(0, 57, 198, 0.35);
 }
 
 .skin-ritual-num {
   display: block;
   font-family: var(--font-brand);
-  color: var(--gold);
+  color: var(--cobalt);
   letter-spacing: 0.14em;
   margin-bottom: 0.55rem;
 }
@@ -2289,18 +2417,28 @@ th {
 
 .footer {
   margin-top: auto;
-  border-top: 1px solid rgba(196, 163, 90, 0.28);
+  border-top: 1px solid var(--line);
   padding: 1.5rem 0 2rem;
   font-size: 0.88rem;
+  background: #fff;
+  color: var(--ink-soft);
+}
+
+.app-shell--undisclosed .footer {
   background: #0a0a0a;
   color: rgba(247, 247, 247, 0.7);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .footer strong {
-  color: var(--gold-bright);
+  color: var(--cobalt);
   font-family: var(--font-brand);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.app-shell--undisclosed .footer strong {
+  color: #fff;
 }
 
 .footer-inner {

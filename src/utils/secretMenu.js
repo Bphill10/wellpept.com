@@ -1,4 +1,4 @@
-/** Secret lab menu gate — public face is skincare; peptides stay behind unlock. */
+/** Secret Undisclosed lab gate — public face is WellPept skincare. */
 
 const STORAGE_KEY = "wellpept-lab-unlocked-v1";
 
@@ -9,6 +9,8 @@ export const LAB_GATE_CODES = new Set([
   "peptides",
   "wellpept-lab",
   "wp-lab",
+  "undisclosed",
+  "ud",
 ]);
 
 export function isLabUnlocked() {
@@ -29,7 +31,7 @@ export function setLabUnlocked(unlocked) {
   return Boolean(unlocked);
 }
 
-/** Parse ?lab=1 / ?menu=lab / #lab style unlocks from the current URL. */
+/** Parse ?lab=1 / ?menu=undisclosed / #undisclosed style unlocks. */
 export function labUnlockFromUrl(search = "", hash = "") {
   const params = new URLSearchParams(search);
   const candidates = [
@@ -37,6 +39,7 @@ export function labUnlockFromUrl(search = "", hash = "") {
     params.get("menu"),
     params.get("atelier"),
     params.get("gate"),
+    params.get("undisclosed"),
     hash.replace(/^#/, ""),
   ]
     .filter(Boolean)
@@ -54,7 +57,9 @@ export function labUnlockFromUrl(search = "", hash = "") {
 export function cleanLabUnlockUrl() {
   try {
     const url = new URL(window.location.href);
-    ["lab", "menu", "atelier", "gate"].forEach((key) => url.searchParams.delete(key));
+    ["lab", "menu", "atelier", "gate", "undisclosed"].forEach((key) =>
+      url.searchParams.delete(key)
+    );
     if (LAB_GATE_CODES.has(url.hash.replace(/^#/, "").toLowerCase())) {
       url.hash = "";
     }

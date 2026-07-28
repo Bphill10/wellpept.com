@@ -1055,7 +1055,7 @@ function drawLabelSpineMark(ctx, cx, cy, r) {
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.font = `800 ${Math.max(11, r * 0.85)}px Outfit, "Arial Black", sans-serif`;
-  ctx.fillText("WP", cx, cy + r * 0.04);
+  ctx.fillText("UD", cx, cy + r * 0.04);
   ctx.restore();
 }
 
@@ -1131,10 +1131,10 @@ export function drawLabelTemplate(canvas, options = {}) {
   ctx.fillStyle = "#ffffff";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const spineFont = Math.max(12, Math.min(dims.h * 0.095, spineW * 0.42));
+  const spineFont = Math.max(10, Math.min(dims.h * 0.078, spineW * 0.34));
   ctx.font = `700 ${spineFont}px Outfit, "Segoe UI", sans-serif`;
-  const spineWord = "WELLPEPT";
-  const track = spineFont * 0.2;
+  const spineWord = "UNDISCLOSED";
+  const track = spineFont * 0.12;
   let totalW = 0;
   for (const ch of spineWord) totalW += ctx.measureText(ch).width + track;
   totalW -= track;
@@ -1167,7 +1167,7 @@ export function drawLabelTemplate(canvas, options = {}) {
   ctx.textBaseline = "middle";
   const brandHeaderPx = Math.max(8, dims.h * 0.042);
   ctx.font = `600 ${brandHeaderPx}px Outfit, "Segoe UI", sans-serif`;
-  ctx.fillText("—  WELLPEPT  —", midCx, dims.h * 0.1);
+  ctx.fillText("—  UNDISCLOSED  —", midCx, dims.h * 0.1);
 
   // Product name (athletic / varsity)
   const product = String(name || "PEPTIDE").toUpperCase();

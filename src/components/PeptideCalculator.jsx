@@ -155,7 +155,7 @@ export default function PeptideCalculator({ initial = null }) {
             <div>
               <h1>Peptide calculator</h1>
               <p className="lede" style={{ marginBottom: 0 }}>
-                One form: BAC volume, syringe units, and an Wellpept brand
+                One form: BAC volume, syringe units, and an Undisclosed
                 label with QR — research use only.
               </p>
             </div>
@@ -313,7 +313,7 @@ export default function PeptideCalculator({ initial = null }) {
                 <h2>Brand vial</h2>
               </div>
               <p className="meta">
-                Printable wrap label — black WellPept spine, calc grid, and QR.
+                Printable Undisclosed wrap label — black spine, calc grid, and QR.
               </p>
               <div className="calc-vial-stage">
                 <GeneratedVial
