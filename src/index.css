@@ -1664,6 +1664,67 @@ th {
   white-space: pre-wrap;
 }
 
+.stripe-checkout {
+  display: grid;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.stripe-pay-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.stripe-pay-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.stripe-pay-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.stripe-booting {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--ink-soft);
+  padding: 1rem 0;
+}
+
+.affirm-messaging {
+  padding: 0.35rem 0 0.15rem;
+}
+
+.affirm-hint {
+  margin: 0;
+}
+
+.checkout-step-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.spin {
+  animation: ud-spin 0.9s linear infinite;
+}
+
+@keyframes ud-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .vendor-section-title {
   margin: 0.5rem 0 0.65rem;
   font-family: var(--font-display);

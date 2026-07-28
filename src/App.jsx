@@ -45,10 +45,12 @@ import {
   saveOrder,
   suggestedBacMl,
 } from "./utils/automation";
+import { fetchPaymentConfig } from "./utils/payments";
 import PeptideCalculator, {
   parseCalculatorQuery,
 } from "./components/PeptideCalculator";
 import GeneratedVial from "./components/GeneratedVial";
+import CheckoutPayment from "./components/CheckoutPayment";
 import PriceListDropzone from "./components/PriceListDropzone";
 import PriceCompare from "./components/PriceCompare";
 import { THE_LOBSTER_VENDOR } from "./data/theLobster";
@@ -112,10 +114,18 @@ export default function App() {
   const [flash, setFlash] = useState("");
   const [automation, setAutomation] = useState(() => loadAutomationSettings());
   const [orders, setOrders] = useState(() => loadOrders());
+  const [paymentConfig, setPaymentConfig] = useState({
+    enabled: false,
+    publishableKey: null,
+  });
 
   function updateAutomation(patch) {
     setAutomation((prev) => saveAutomationSettings({ ...prev, ...patch }));
   }
+
+  useEffect(() => {
+    fetchPaymentConfig().then(setPaymentConfig);
+  }, []);
 
   useEffect(() => {
     const nextProducts = persistMarketplace(vendors, submissions);
@@ -427,7 +437,7 @@ export default function App() {
     setFlash("Vendor shipping & minimum order updated");
   }
 
-  function placeOrder(customer) {
+  function placeOrder(customer, payment = null) {
     if (!cart.length) {
       setFlash("Cart is empty");
       return null;
@@ -454,9 +464,23 @@ export default function App() {
       shipping,
       total,
     });
+    if (payment) {
+      packet.payment = {
+        provider: "stripe",
+        paymentIntentId: payment.id || payment.paymentIntentId || "",
+        status: payment.status || "succeeded",
+        amountCents: payment.amount || null,
+        methods: "card_or_affirm",
+      };
+      packet.status = "paid";
+    }
     setOrders(saveOrder(packet));
     setCart([]);
-    setFlash(`Order ${packet.orderId} queued for drop-ship`);
+    setFlash(
+      payment
+        ? `Payment received · order ${packet.orderId}`
+        : `Order ${packet.orderId} queued for drop-ship`
+    );
     return packet;
   }
 
@@ -1164,6 +1188,7 @@ export default function App() {
             onUpdateQty={updateQty}
             onRemove={removeLine}
             onPlaceOrder={placeOrder}
+            paymentConfig={paymentConfig}
           />
         )}
 
@@ -1542,7 +1567,14 @@ function ProductDetail({
   );
 }
 
-function CartPage({ cart, onBack, onUpdateQty, onRemove, onPlaceOrder }) {
+function CartPage({
+  cart,
+  onBack,
+  onUpdateQty,
+  onRemove,
+  onPlaceOrder,
+  paymentConfig = { enabled: false, publishableKey: null },
+}) {
   const subtotal = cart.reduce((sum, line) => sum + line.price * line.qty, 0);
 
   const shippingByVendor = new Map();
@@ -1584,24 +1616,20 @@ function CartPage({ cart, onBack, onUpdateQty, onRemove, onPlaceOrder }) {
     state: "",
     zip: "",
   });
+  const [step, setStep] = useState("shipping"); // shipping | pay | done
+  const [draftOrderId, setDraftOrderId] = useState("");
   const [packet, setPacket] = useState(null);
   const [packetMsg, setPacketMsg] = useState("");
 
-  async function handleCheckout(e) {
-    e.preventDefault();
-    if (minOrderWarnings.length) {
-      setPacketMsg("Meet each vendor minimum before checkout.");
-      return;
-    }
-    const next = onPlaceOrder?.(customer);
-    if (!next) return;
+  function finalizePacket(next, note) {
     setPacket(next);
+    setStep("done");
     const text = formatOrderPacketText(next);
     try {
-      await navigator.clipboard.writeText(text);
-      setPacketMsg("Order queued · drop-ship packet copied.");
+      navigator.clipboard.writeText(text);
+      setPacketMsg(note || "Drop-ship packet copied.");
     } catch {
-      setPacketMsg("Order queued · download the packet below.");
+      setPacketMsg(note || "Download the packet below.");
     }
     const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -1610,6 +1638,40 @@ function CartPage({ cart, onBack, onUpdateQty, onRemove, onPlaceOrder }) {
     a.download = `${next.orderId}.txt`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function handleShippingContinue(e) {
+    e.preventDefault();
+    if (minOrderWarnings.length) {
+      setPacketMsg("Meet each vendor minimum before checkout.");
+      return;
+    }
+    if (!isValidUsZip(customer.zip)) {
+      setPacketMsg("Enter a valid US ZIP code");
+      return;
+    }
+    setDraftOrderId(createOrderId());
+    setPacketMsg("");
+    if (paymentConfig?.enabled && paymentConfig?.publishableKey) {
+      setStep("pay");
+      return;
+    }
+    // Offline fallback when Stripe keys are not configured
+    const next = onPlaceOrder?.(customer);
+    if (!next) return;
+    finalizePacket(next, "Order queued (payments offline) · packet copied.");
+  }
+
+  function handlePaid(paymentIntent) {
+    const next = onPlaceOrder?.(customer, paymentIntent);
+    if (!next) return;
+    finalizePacket(next, "Payment received · drop-ship packet copied.");
+  }
+
+  function handleOfflineQueue() {
+    const next = onPlaceOrder?.(customer);
+    if (!next) return;
+    finalizePacket(next, "Order queued without card charge · packet copied.");
   }
 
   return (
@@ -1621,8 +1683,8 @@ function CartPage({ cart, onBack, onUpdateQty, onRemove, onPlaceOrder }) {
         <div className="panel" style={{ marginTop: "1rem" }}>
           <h1>Cart</h1>
           <p className="lede">
-            Checkout builds a US drop-ship packet automatically — grouped by
-            vendor, no storefront links exposed.
+            US shipping only. Pay by card or Affirm through Stripe — then we
+            auto-build the vendor drop-ship packet.
           </p>
 
           {cart.length === 0 && !packet ? (
@@ -1681,8 +1743,8 @@ function CartPage({ cart, onBack, onUpdateQty, onRemove, onPlaceOrder }) {
                 </div>
               )}
 
-              {cart.length > 0 && (
-                <form className="checkout-form" onSubmit={handleCheckout}>
+              {cart.length > 0 && step === "shipping" && (
+                <form className="checkout-form" onSubmit={handleShippingContinue}>
                   <h2>US shipping</h2>
                   <div className="form-row">
                     <label className="field">
@@ -1791,19 +1853,77 @@ function CartPage({ cart, onBack, onUpdateQty, onRemove, onPlaceOrder }) {
                       <span>{formatMoney(total)}</span>
                     </div>
                     <button type="submit" className="primary-btn">
-                      Place order · auto drop-ship packet
+                      {paymentConfig?.enabled
+                        ? "Continue to card / Affirm"
+                        : "Place order · auto drop-ship packet"}
                     </button>
-                    <p className="meta" style={{ marginTop: "0.65rem" }}>
-                      Payment capture is still offline — this queues the order
-                      and downloads the vendor packet for ops.
-                    </p>
+                    {!paymentConfig?.enabled && (
+                      <p className="meta" style={{ marginTop: "0.65rem" }}>
+                        Stripe keys not configured yet — orders queue offline.
+                        Add keys from <code>.env.example</code> and enable Affirm
+                        in the Stripe Dashboard.
+                      </p>
+                    )}
+                    {packetMsg && (
+                      <div className="notice warn" style={{ marginTop: "0.75rem" }}>
+                        {packetMsg}
+                      </div>
+                    )}
                   </div>
                 </form>
               )}
 
+              {cart.length > 0 && step === "pay" && (
+                <div className="checkout-form">
+                  <div className="checkout-step-bar">
+                    <button
+                      type="button"
+                      className="ghost-btn"
+                      onClick={() => setStep("shipping")}
+                    >
+                      <ArrowLeft size={16} /> Edit shipping
+                    </button>
+                    <div className="cart-summary" style={{ marginTop: 0, borderTop: 0, paddingTop: 0 }}>
+                      <div className="summary-row total">
+                        <span>Total due</span>
+                        <span>{formatMoney(total)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <CheckoutPayment
+                    publishableKey={paymentConfig.publishableKey}
+                    total={total}
+                    orderId={draftOrderId}
+                    customer={customer}
+                    onPaid={handlePaid}
+                    onError={(err) =>
+                      setPacketMsg(err?.message || "Payment error")
+                    }
+                  />
+
+                  <button
+                    type="button"
+                    className="soft-btn"
+                    style={{ marginTop: "0.75rem" }}
+                    onClick={handleOfflineQueue}
+                  >
+                    Queue without payment (ops fallback)
+                  </button>
+                  {packetMsg && (
+                    <div className="notice warn" style={{ marginTop: "0.75rem" }}>
+                      {packetMsg}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {packet && (
-                <div className="notice" style={{ marginTop: "1rem" }}>
-                  <strong>{packet.orderId}</strong> queued
+                <div className="notice ok" style={{ marginTop: "1rem" }}>
+                  <strong>{packet.orderId}</strong>
+                  {packet.payment?.paymentIntentId
+                    ? ` · paid via Stripe (${packet.payment.status})`
+                    : " · queued"}
                   {packetMsg ? ` · ${packetMsg}` : ""}
                   <pre className="order-packet-preview">
                     {formatOrderPacketText(packet)}

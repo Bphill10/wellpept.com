@@ -170,6 +170,11 @@ export function formatOrderPacketText(packet) {
     lines.push("");
   }
   lines.push(packet.notes);
+  if (packet.payment?.paymentIntentId) {
+    lines.push(
+      `Payment: Stripe ${packet.payment.paymentIntentId} (${packet.payment.status})`
+    );
+  }
   return lines.join("\n");
 }
 
