@@ -3,7 +3,7 @@ import { Download } from "lucide-react";
 import {
   drawGeneratedVial,
   downloadVialPng,
-  loadBrandImage,
+  loadUdMark,
   resolveVialMl,
 } from "../utils/vialArt";
 
@@ -29,13 +29,13 @@ export default function GeneratedVial({
 }) {
   const canvasRef = useRef(null);
   const [png, setPng] = useState("");
-  const [brandImage, setBrandImage] = useState(null);
+  const [udMark, setUdMark] = useState(null);
   const resolvedMl = resolveVialMl({ form: form || subtitle, vialMl });
 
   useEffect(() => {
     let alive = true;
-    loadBrandImage().then((img) => {
-      if (alive) setBrandImage(img);
+    loadUdMark().then((img) => {
+      if (alive) setUdMark(img);
     });
     return () => {
       alive = false;
@@ -63,7 +63,7 @@ export default function GeneratedVial({
         reconstituted,
         vialMl: resolvedMl,
         form: form || subtitle,
-        brandImage,
+        udMark,
       });
       setPng(dataUrl);
     } catch (err) {
@@ -86,7 +86,7 @@ export default function GeneratedVial({
     reconstituted,
     resolvedMl,
     form,
-    brandImage,
+    udMark,
   ]);
 
   function handleDownload() {

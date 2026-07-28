@@ -219,10 +219,11 @@ img {
 .brand-logo {
   width: 3.35rem;
   height: 3.35rem;
-  border-radius: 10px;
+  border-radius: 50%;
   object-fit: cover;
   border: 1px solid rgba(196, 163, 90, 0.65);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.4);
+  background: #0a0a0a;
 }
 
 .brand-text {
@@ -497,10 +498,12 @@ img {
 .hero-brand-mark {
   width: clamp(5.5rem, 14vw, 8.5rem);
   height: clamp(5.5rem, 14vw, 8.5rem);
-  border-radius: 14px;
+  border-radius: 50%;
   object-fit: cover;
   border: 1px solid rgba(196, 163, 90, 0.75);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+  background: #0a0a0a;
+  flex-shrink: 0;
 }
 
 .hero-brand {

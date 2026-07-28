@@ -3,7 +3,7 @@ import { Download } from "lucide-react";
 import {
   drawLabelTemplate,
   downloadVialPng,
-  loadBrandImage,
+  loadUdMark,
 } from "../utils/vialArt";
 
 export default function LabelTemplate({
@@ -20,12 +20,12 @@ export default function LabelTemplate({
 }) {
   const canvasRef = useRef(null);
   const [png, setPng] = useState("");
-  const [brandImage, setBrandImage] = useState(null);
+  const [udMark, setUdMark] = useState(null);
 
   useEffect(() => {
     let alive = true;
-    loadBrandImage().then((img) => {
-      if (alive) setBrandImage(img);
+    loadUdMark().then((img) => {
+      if (alive) setUdMark(img);
     });
     return () => {
       alive = false;
@@ -45,7 +45,7 @@ export default function LabelTemplate({
         doseRange,
         sku,
         size,
-        brandImage,
+        udMark,
       });
       setPng(dataUrl);
     } catch (err) {
@@ -60,7 +60,7 @@ export default function LabelTemplate({
     doseRange,
     sku,
     size,
-    brandImage,
+    udMark,
   ]);
 
   function handleDownload() {

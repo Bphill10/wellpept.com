@@ -363,8 +363,8 @@ export default function App() {
         <div className="container header-inner">
           <button className="brand" onClick={goShop} type="button">
             <img
-              src="/undisclosed-brand.png"
-              alt="Undisclosed"
+              src="/ud-monogram.svg"
+              alt="Undisclosed UD mark"
               className="brand-logo"
               width={54}
               height={54}
@@ -495,8 +495,8 @@ export default function App() {
               <div className="container hero-content">
                 <div className="hero-brand-lockup rise">
                   <img
-                    src="/undisclosed-brand.png"
-                    alt="Undisclosed"
+                    src="/ud-monogram.svg"
+                    alt="Undisclosed UD mark — D in front of U"
                     className="hero-brand-mark"
                     width={136}
                     height={136}

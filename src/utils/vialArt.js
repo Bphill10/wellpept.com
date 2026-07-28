@@ -1,26 +1,53 @@
-/** Undisclosed brand vial art — matches /undisclosed-brand.png (gold cap, black sleeve, keyhole). */
+/** Undisclosed brand vial art — gold cap, black V-sleeve, UD monogram seal (D in front of U). */
 
 export const BRAND_IMAGE_SRC = "/undisclosed-brand.png";
+/** Circular UD seal cropped from the brand plate. */
+export const UD_MARK_SRC = "/ud-mark.png";
+/** Vector UD monogram — D layered in front of U. */
+export const UD_MONOGRAM_SRC = "/ud-monogram.svg";
 
 let brandImageCache = null;
 let brandImagePromise = null;
+let udMarkCache = null;
+let udMarkPromise = null;
 
-/** Prefetch the brand PNG for canvas compositing. */
-export function loadBrandImage() {
+function loadImage(src) {
   if (typeof Image === "undefined") return Promise.resolve(null);
-  if (brandImageCache) return Promise.resolve(brandImageCache);
-  if (brandImagePromise) return brandImagePromise;
-  brandImagePromise = new Promise((resolve) => {
+  return new Promise((resolve) => {
     const img = new Image();
     img.decoding = "async";
-    img.onload = () => {
-      brandImageCache = img;
-      resolve(img);
-    };
+    img.onload = () => resolve(img);
     img.onerror = () => resolve(null);
-    img.src = BRAND_IMAGE_SRC;
+    img.src = src;
+  });
+}
+
+/** Prefetch the full brand plate for canvas compositing. */
+export function loadBrandImage() {
+  if (brandImageCache) return Promise.resolve(brandImageCache);
+  if (brandImagePromise) return brandImagePromise;
+  brandImagePromise = loadImage(BRAND_IMAGE_SRC).then((img) => {
+    brandImageCache = img;
+    return img;
   });
   return brandImagePromise;
+}
+
+/** Prefetch the circular UD mark (preferred seal asset). */
+export function loadUdMark() {
+  if (udMarkCache) return Promise.resolve(udMarkCache);
+  if (udMarkPromise) return udMarkPromise;
+  udMarkPromise = loadImage(UD_MONOGRAM_SRC).then(async (img) => {
+    if (img) {
+      udMarkCache = img;
+      return img;
+    }
+    // Fall back to photographic seal cropped from the brand plate
+    const png = await loadImage(UD_MARK_SRC);
+    udMarkCache = png;
+    return png;
+  });
+  return udMarkPromise;
 }
 
 function hashString(str) {
@@ -116,8 +143,11 @@ function drawDarkStudio(ctx, w, h) {
   }
 }
 
-/** Gold circular seal with keyhole — Undisclosed mark from brand image. */
-function drawKeyholeSeal(ctx, cx, cy, r) {
+/**
+ * Gold circular UD monogram — letter U behind, letter D in front.
+ * Used when the brand seal image is not yet loaded.
+ */
+function drawUdMonogramSeal(ctx, cx, cy, r) {
   const gold = ctx.createRadialGradient(cx - r * 0.25, cy - r * 0.3, 1, cx, cy, r);
   gold.addColorStop(0, "#f0d78c");
   gold.addColorStop(0.35, "#d4af37");
@@ -137,16 +167,68 @@ function drawKeyholeSeal(ctx, cx, cy, r) {
   ctx.lineWidth = Math.max(1, r * 0.03);
   ctx.stroke();
 
-  ctx.fillStyle = "#0a0a0a";
-  ellipse(ctx, cx, cy - r * 0.12, r * 0.18, r * 0.18);
-  ctx.fill();
+  // U (behind)
+  ctx.strokeStyle = "#0a0a0a";
+  ctx.lineWidth = Math.max(2, r * 0.22);
+  ctx.lineCap = "butt";
+  ctx.lineJoin = "round";
   ctx.beginPath();
-  ctx.moveTo(cx - r * 0.1, cy - r * 0.02);
-  ctx.lineTo(cx + r * 0.1, cy - r * 0.02);
-  ctx.lineTo(cx + r * 0.14, cy + r * 0.42);
-  ctx.lineTo(cx - r * 0.14, cy + r * 0.42);
+  ctx.moveTo(cx - r * 0.42, cy - r * 0.48);
+  ctx.lineTo(cx - r * 0.42, cy + r * 0.12);
+  ctx.arc(cx, cy + r * 0.12, r * 0.42, Math.PI, 0, true);
+  ctx.lineTo(cx + r * 0.42, cy - r * 0.48);
+  ctx.stroke();
+
+  // D (in front of U)
+  ctx.fillStyle = "#0a0a0a";
+  ctx.beginPath();
+  ctx.moveTo(cx - r * 0.18, cy - r * 0.52);
+  ctx.lineTo(cx + r * 0.02, cy - r * 0.52);
+  ctx.bezierCurveTo(
+    cx + r * 0.55,
+    cy - r * 0.52,
+    cx + r * 0.58,
+    cy + r * 0.52,
+    cx + r * 0.02,
+    cy + r * 0.52
+  );
+  ctx.lineTo(cx - r * 0.18, cy + r * 0.52);
   ctx.closePath();
   ctx.fill();
+
+  // D counter so the letter reads clearly
+  ctx.beginPath();
+  ctx.moveTo(cx - r * 0.02, cy - r * 0.28);
+  ctx.lineTo(cx + r * 0.02, cy - r * 0.28);
+  ctx.bezierCurveTo(
+    cx + r * 0.32,
+    cy - r * 0.28,
+    cx + r * 0.34,
+    cy + r * 0.28,
+    cx + r * 0.02,
+    cy + r * 0.28
+  );
+  ctx.lineTo(cx - r * 0.02, cy + r * 0.28);
+  ctx.closePath();
+  ctx.fillStyle = gold;
+  ctx.fill();
+}
+
+/** Draw the circular UD brand mark image, or fall back to the monogram. */
+function drawUdSeal(ctx, cx, cy, r, markImage) {
+  if (markImage && markImage.width) {
+    ctx.save();
+    ellipse(ctx, cx, cy, r, r);
+    ctx.clip();
+    ctx.drawImage(markImage, cx - r, cy - r, r * 2, r * 2);
+    ctx.restore();
+    ellipse(ctx, cx, cy, r, r);
+    ctx.strokeStyle = "rgba(212, 175, 55, 0.55)";
+    ctx.lineWidth = Math.max(1, r * 0.04);
+    ctx.stroke();
+    return;
+  }
+  drawUdMonogramSeal(ctx, cx, cy, r);
 }
 
 function buildQrMatrix(seedStr, n = 21) {
@@ -260,7 +342,7 @@ function drawBrandWordmark(ctx, cx, y, maxW) {
 
 /**
  * 3 mL vial matching the Undisclosed brand image:
- * brushed gold cap · clear glass · lyophilized cake · matte black V-sleeve · gold keyhole seal.
+ * brushed gold cap · clear glass · lyophilized cake · matte black V-sleeve · gold UD seal.
  */
 function drawBrandThreeMl(ctx, dims, options) {
   const {
@@ -269,7 +351,7 @@ function drawBrandThreeMl(ctx, dims, options) {
     unit = "mg",
     sku = "",
     reconstituted = false,
-    brandImage = null,
+    udMark = null,
     bacWater = "",
     concentration = "",
     doseRange = "",
@@ -466,28 +548,10 @@ function drawBrandThreeMl(ctx, dims, options) {
   ctx.lineTo(bodyX + bodyW - 1, sleeveTop + bodyW * 0.12);
   ctx.stroke();
 
-  // Gold keyhole seal — prefer compositing from brand image if loaded
+  // Gold UD seal — D in front of U, from brand mark image
   const sealR = bodyW * 0.28;
   const sealCy = sleeveTop + sleeveH * 0.32;
-  if (brandImage && brandImage.width) {
-    // Crop the seal region from the brand plate (approx center of vial sleeve)
-    const iw = brandImage.width;
-    const ih = brandImage.height;
-    const crop = Math.min(iw, ih) * 0.22;
-    const sx = iw * 0.5 - crop / 2;
-    const sy = ih * 0.42 - crop / 2;
-    ctx.save();
-    ellipse(ctx, cx, sealCy, sealR, sealR);
-    ctx.clip();
-    ctx.drawImage(brandImage, sx, sy, crop, crop, cx - sealR, sealCy - sealR, sealR * 2, sealR * 2);
-    ctx.restore();
-    ellipse(ctx, cx, sealCy, sealR, sealR);
-    ctx.strokeStyle = "rgba(212, 175, 55, 0.55)";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-  } else {
-    drawKeyholeSeal(ctx, cx, sealCy, sealR);
-  }
+  drawUdSeal(ctx, cx, sealCy, sealR, udMark || udMarkCache);
 
   // Product name + strength + calc data + QR on sleeve
   const massNum = mass !== "" && mass != null ? mass : "";
@@ -568,7 +632,7 @@ function drawBrandTenMl(ctx, dims, options) {
     unit = "mg",
     sku = "",
     reconstituted = false,
-    brandImage = null,
+    udMark = null,
     bacWater = "",
     concentration = "",
     doseRange = "",
@@ -656,28 +720,7 @@ function drawBrandTenMl(ctx, dims, options) {
 
   const sealR = bodyW * 0.24;
   const sealCy = sleeveTop + (bodyBottom - sleeveTop) * 0.28;
-  if (brandImage && brandImage.width) {
-    const iw = brandImage.width;
-    const ih = brandImage.height;
-    const crop = Math.min(iw, ih) * 0.22;
-    ctx.save();
-    ellipse(ctx, cx, sealCy, sealR, sealR);
-    ctx.clip();
-    ctx.drawImage(
-      brandImage,
-      iw * 0.5 - crop / 2,
-      ih * 0.42 - crop / 2,
-      crop,
-      crop,
-      cx - sealR,
-      sealCy - sealR,
-      sealR * 2,
-      sealR * 2
-    );
-    ctx.restore();
-  } else {
-    drawKeyholeSeal(ctx, cx, sealCy, sealR);
-  }
+  drawUdSeal(ctx, cx, sealCy, sealR, udMark || udMarkCache);
 
   const massNum = mass !== "" && mass != null ? mass : "";
   const massLabel = massNum !== "" ? `${massNum} ${String(unit || "mg").toUpperCase()}` : "";
@@ -746,6 +789,7 @@ export function drawGeneratedVial(canvas, options = {}) {
     reconstituted = false,
     vialMl: vialMlOpt,
     form = "",
+    udMark = null,
     brandImage = null,
     bacWater = "",
     concentration = "",
@@ -779,7 +823,7 @@ export function drawGeneratedVial(canvas, options = {}) {
     unit,
     sku,
     reconstituted,
-    brandImage: brandImage || brandImageCache,
+    udMark: udMark || udMarkCache || brandImage || brandImageCache,
     bacWater,
     concentration,
     doseRange,
@@ -803,6 +847,7 @@ export function drawLabelTemplate(canvas, options = {}) {
     concentration = "",
     doseRange = "",
     sku = "",
+    udMark = null,
     brandImage = null,
     size = "md",
   } = options;
@@ -835,30 +880,14 @@ export function drawLabelTemplate(canvas, options = {}) {
   ctx.fillRect(0, 0, dims.w, Math.max(3, dims.h * 0.015));
 
   const pad = dims.w * 0.05;
-  const mark = brandImage || brandImageCache;
   const sealR = Math.min(dims.h * 0.16, dims.w * 0.08);
-  if (mark && mark.width) {
-    const iw = mark.width;
-    const ih = mark.height;
-    const crop = Math.min(iw, ih) * 0.22;
-    ctx.save();
-    ellipse(ctx, pad + sealR, pad + sealR + 4, sealR, sealR);
-    ctx.clip();
-    ctx.drawImage(
-      mark,
-      iw * 0.5 - crop / 2,
-      ih * 0.42 - crop / 2,
-      crop,
-      crop,
-      pad,
-      pad + 4,
-      sealR * 2,
-      sealR * 2
-    );
-    ctx.restore();
-  } else {
-    drawKeyholeSeal(ctx, pad + sealR, pad + sealR + 4, sealR);
-  }
+  drawUdSeal(
+    ctx,
+    pad + sealR,
+    pad + sealR + 4,
+    sealR,
+    udMark || udMarkCache || brandImage || brandImageCache
+  );
 
   ctx.fillStyle = "#ffffff";
   ctx.font = `600 ${Math.max(16, dims.h * 0.1)}px "Cormorant Garamond", "Times New Roman", serif`;
