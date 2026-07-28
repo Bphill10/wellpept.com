@@ -174,10 +174,10 @@ function drawDarkStudio(ctx, w, h) {
  */
 function drawWpMonogramSeal(ctx, cx, cy, r) {
   const cobalt = ctx.createRadialGradient(cx - r * 0.25, cy - r * 0.3, 1, cx, cy, r);
-  cobalt.addColorStop(0, "#5b87ff");
-  cobalt.addColorStop(0.4, "#0039c6");
-  cobalt.addColorStop(0.78, "#001f7a");
-  cobalt.addColorStop(1, "#000f3d");
+  cobalt.addColorStop(0, "#3d7fd6");
+  cobalt.addColorStop(0.4, "#0047ab");
+  cobalt.addColorStop(0.78, "#002f75");
+  cobalt.addColorStop(1, "#001a45");
   ellipse(ctx, cx, cy, r, r);
   ctx.fillStyle = cobalt;
   ctx.fill();

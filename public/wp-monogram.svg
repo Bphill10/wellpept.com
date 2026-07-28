@@ -1,15 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="WellPept WP monogram">
   <defs>
     <radialGradient id="g" cx="32%" cy="28%" r="75%">
-      <stop offset="0%" stop-color="#5b87ff"/>
-      <stop offset="42%" stop-color="#0039c6"/>
-      <stop offset="78%" stop-color="#001f7a"/>
-      <stop offset="100%" stop-color="#000f3d"/>
+      <stop offset="0%" stop-color="#3d7fd6"/>
+      <stop offset="40%" stop-color="#0047ab"/>
+      <stop offset="78%" stop-color="#002f75"/>
+      <stop offset="100%" stop-color="#001a45"/>
     </radialGradient>
   </defs>
   <circle cx="64" cy="64" r="62" fill="url(#g)"/>
   <circle cx="64" cy="64" r="56.5" fill="none" stroke="#9eb6ff" stroke-width="1" opacity="0.35"/>
-  <!-- Side-by-side WP — no overlap -->
   <text
     x="64"
     y="78"
