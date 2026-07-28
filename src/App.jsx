@@ -28,6 +28,7 @@ import PeptideCalculator, {
   parseCalculatorQuery,
 } from "./components/PeptideCalculator";
 import GeneratedVial from "./components/GeneratedVial";
+import { THE_LOBSTER_VENDOR } from "./data/theLobster";
 
 const VIEWS = {
   shop: "shop",
@@ -392,6 +393,63 @@ export default function App() {
               </div>
             </section>
 
+            <section className="section featured-vendor-section">
+              <div className="container">
+                <div className="featured-vendor panel">
+                  <div className="featured-vendor-copy">
+                    <span className="featured-kicker">Featured drop-ship partner</span>
+                    <h2>The Lobster · Cartman Gear</h2>
+                    <p>
+                      Your go-to for pharma-grade HGH, peptides, and Turkish
+                      pharmacy — EU/Middle East based with US &amp; EU shipping.
+                      Browse{" "}
+                      <a
+                        href={THE_LOBSTER_VENDOR.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        cartmangear.co
+                      </a>{" "}
+                      for live pricing, then upload their price list here to
+                      sync your Undisclosed catalog at +{Math.round(MARKUP * 100)}%.
+                    </p>
+                    <ul className="featured-meta">
+                      <li>Min order ~{formatMoney(THE_LOBSTER_VENDOR.minOrder)}</li>
+                      <li>Crypto · Contact to order</li>
+                      <li>{THE_LOBSTER_VENDOR.telegram}</li>
+                    </ul>
+                    <div className="hero-cta" style={{ marginTop: "0.85rem" }}>
+                      <a
+                        className="primary-btn"
+                        href={THE_LOBSTER_VENDOR.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Visit cartmangear.co
+                      </a>
+                      <button
+                        type="button"
+                        className="soft-btn"
+                        onClick={() => setView(VIEWS.vendor)}
+                      >
+                        Upload Lobster price list
+                      </button>
+                    </div>
+                  </div>
+                  <div className="featured-vendor-visual">
+                    <GeneratedVial
+                      name="The Lobster"
+                      sku="CARTMAN"
+                      mass={10}
+                      category="Growth"
+                      mixText="cartmangear.co"
+                      size="lg"
+                    />
+                  </div>
+                </div>
+              </div>
+            </section>
+
             <section className="section" id="catalog">
               <div className="container">
                 <div className="section-head">
@@ -447,12 +505,20 @@ export default function App() {
                             reviews
                           </div>
                           <div className="price-row">
-                            <span className="price">
-                              {formatMoney(product.price)}
-                            </span>
-                            <span className="compare">
-                              {formatMoney(product.compareAt)}
-                            </span>
+                            {product.externalOnly ? (
+                              <span className="price price-external">
+                                {product.priceLabel}
+                              </span>
+                            ) : (
+                              <>
+                                <span className="price">
+                                  {formatMoney(product.price)}
+                                </span>
+                                <span className="compare">
+                                  {formatMoney(product.compareAt)}
+                                </span>
+                              </>
+                            )}
                           </div>
                           <div className="meta">
                             per {product.unitLabel} · {product.vendor}
@@ -566,27 +632,59 @@ function ProductDetail({ product, onBack, onAdd, onCalculate }) {
             </div>
 
             <div className="buy-box">
-              <div className="price-row">
-                <span className="price">{formatMoney(product.price)}</span>
-                <span className="compare">{formatMoney(product.compareAt)}</span>
-              </div>
-              <div className="meta">
-                per {product.unitLabel} (vendor cost {formatMoney(product.vendorCost)} +{" "}
-                {Math.round(MARKUP * 100)}%)
-              </div>
+              {product.externalOnly ? (
+                <>
+                  <div className="price-row">
+                    <span className="price price-external">
+                      {product.priceLabel}
+                    </span>
+                  </div>
+                  <div className="meta">
+                    Pricing lives on the vendor storefront. Upload their price
+                    list in Vendors to sell through Undisclosed with markup.
+                  </div>
+                  <a
+                    className="primary-btn"
+                    href={product.externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Open cartmangear.co
+                  </a>
+                </>
+              ) : (
+                <>
+                  <div className="price-row">
+                    <span className="price">{formatMoney(product.price)}</span>
+                    <span className="compare">
+                      {formatMoney(product.compareAt)}
+                    </span>
+                  </div>
+                  <div className="meta">
+                    per {product.unitLabel} (vendor cost{" "}
+                    {formatMoney(product.vendorCost)} + {Math.round(MARKUP * 100)}
+                    %)
+                  </div>
+                  <button type="button" className="primary-btn" onClick={onAdd}>
+                    Add to cart
+                  </button>
+                </>
+              )}
               <div className="meta">
                 <Truck size={14} style={{ display: "inline", marginRight: 6 }} />
-                {product.ships}. Shipping {formatMoney(product.shippingFlat)}
-                {product.shippingNote ? ` · ${product.shippingNote}` : ""}
+                {product.ships}
+                {!product.externalOnly && (
+                  <>
+                    . Shipping {formatMoney(product.shippingFlat)}
+                    {product.shippingNote ? ` · ${product.shippingNote}` : ""}
+                  </>
+                )}
               </div>
               <div className="meta">
                 <Package size={14} style={{ display: "inline", marginRight: 6 }} />
                 Vendor minimum order {formatMoney(product.minOrder)} · Fulfilled
                 by {product.vendor}
               </div>
-              <button type="button" className="primary-btn" onClick={onAdd}>
-                Add to cart
-              </button>
               <button type="button" className="soft-btn" onClick={onCalculate}>
                 <Calculator size={16} /> Calculate reconstitution
               </button>

@@ -3,6 +3,10 @@ import {
   CHANGSHA_VENDOR,
 } from "./changshaPremium";
 import { ERP_SUBMISSIONS, ERP_VENDOR } from "./erpPeptide";
+import {
+  THE_LOBSTER_PLACEHOLDER_SUBMISSIONS,
+  THE_LOBSTER_VENDOR,
+} from "./theLobster";
 
 /** Default retail markup applied on top of vendor cost after approval. */
 export const MARKUP = 0.4;
@@ -75,13 +79,19 @@ const DEMO_PENDING_VENDOR = {
   createdAt: "2026-07-27T12:00:00.000Z",
 };
 
-/** Seed vendors: Changsha Premium, ERP Peptide, + demo pending vendor. */
-export const SEED_VENDORS = [CHANGSHA_VENDOR, ERP_VENDOR, DEMO_PENDING_VENDOR];
+/** Seed vendors: Changsha, ERP, The Lobster (featured), + demo pending. */
+export const SEED_VENDORS = [
+  CHANGSHA_VENDOR,
+  ERP_VENDOR,
+  THE_LOBSTER_VENDOR,
+  DEMO_PENDING_VENDOR,
+];
 
-/** Seed submissions: imported vendor lists + one pending demo. */
+/** Seed submissions: imported vendor lists + Lobster placeholders + demo. */
 export const SEED_SUBMISSIONS = [
   ...CHANGSHA_SUBMISSIONS,
   ...ERP_SUBMISSIONS,
+  ...THE_LOBSTER_PLACEHOLDER_SUBMISSIONS,
   {
     id: "s-pending-demo",
     vendorId: "v-demo-pending",
@@ -142,14 +152,22 @@ export function buildCatalog(vendors, submissions) {
     const vendor = vendorById[item.vendorId];
     if (!vendor || vendor.status !== "approved") continue;
     const prev = bySku.get(item.sku);
-    if (!prev || Number(item.vendorCost) < Number(prev.vendorCost)) {
+    const isExternal = Boolean(item.externalOnly);
+    if (
+      !prev ||
+      isExternal ||
+      Number(item.vendorCost) < Number(prev.vendorCost)
+    ) {
       bySku.set(item.sku, { ...item, vendor });
     }
   }
 
   return [...bySku.values()].map((item, index) => {
-    const price = retailFromVendor(item.vendorCost);
+    const isExternal = Boolean(item.externalOnly);
+    const vendorCost = Number(item.vendorCost);
+    const price = isExternal ? null : retailFromVendor(vendorCost);
     const packVials = Number(item.packVials) || 1;
+    const featured = Boolean(item.vendor.featured);
     return {
       id: `p-${item.sku.toLowerCase()}`,
       submissionId: item.id,
@@ -164,17 +182,27 @@ export function buildCatalog(vendors, submissions) {
       blurb: guessBlurb(item.name),
       vendorId: item.vendorId,
       vendor: item.vendor.name,
-      vendorCost: Number(item.vendorCost),
+      vendorCost,
       price,
-      compareAt: Math.round(price * 1.18 * 100) / 100,
+      priceLabel: isExternal ? "View on vendor site" : null,
+      compareAt: price ? Math.round(price * 1.18 * 100) / 100 : null,
+      externalOnly: isExternal,
+      externalUrl: isExternal ? item.vendor.website : null,
       minOrder: Number(item.vendor.minOrder) || 0,
       shippingFlat: Number(item.vendor.shippingFlat) || 0,
       shippingNote: item.vendor.shippingNote || "",
       rating: 4.4 + ((index * 7) % 6) / 10,
       reviews: 12 + index * 9,
       inStock: true,
-      ships: "Drop-ships in 7–15 business days",
-      badge: index < 3 ? "Best price" : null,
+      ships: featured
+        ? "Drop-ship via The Lobster · see cartmangear.co"
+        : "Drop-ships in 7–15 business days",
+      badge: featured
+        ? "Featured · The Lobster"
+        : index < 3
+          ? "Best price"
+          : null,
+      featured,
     };
   });
 }
