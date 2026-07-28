@@ -1461,9 +1461,28 @@ th {
 }
 
 .detail-blurb {
-  color: var(--muted);
+  color: var(--ink-soft);
   line-height: 1.55;
   margin: 0.75rem 0;
+  font-size: 1.02rem;
+}
+
+.detail-research-note {
+  margin: 0 0 0.85rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+}
+
+.card-blurb {
+  margin: 0.15rem 0 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .buy-box {

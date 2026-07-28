@@ -1044,6 +1044,9 @@ function ProductCard({ listing, onOpen, onAdd }) {
               : ` · SKU ${product.sku}`}
           </div>
           <h3>{listing.name}</h3>
+          <p className="card-blurb">
+            {listing.blurb || product.blurb}
+          </p>
           <div className="meta">{product.form}</div>
           <div className="meta vial-size-tag">
             {product.vialMl || 3} mL vial
@@ -1130,6 +1133,10 @@ function ProductDetail({
               {listing.reviews} ratings
             </div>
             <p className="detail-blurb">{listing.blurb || product.blurb}</p>
+            <p className="detail-research-note">
+              For laboratory research use only. Not for human consumption,
+              medical use, or household purposes.
+            </p>
             <div className="meta">
               {product.form} · Purity {product.purity}
             </div>
