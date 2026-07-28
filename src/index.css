@@ -2509,7 +2509,7 @@ body:has(.app-shell--skincare) {
   display: grid;
   grid-template-columns: 1.2fr 1fr;
   gap: 1.25rem;
-  margin: 0 0 1.75rem;
+  margin: 0 0 1.25rem;
   padding: 1rem 0;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
@@ -2541,6 +2541,57 @@ body:has(.app-shell--skincare) {
 .sk-lineup li span {
   color: var(--muted);
   text-align: right;
+}
+
+.sk-vehicle-gallery {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr 1fr;
+  gap: 0.75rem;
+  margin: 0 0 1.75rem;
+}
+
+.sk-vehicle-gallery figure {
+  margin: 0;
+  border: 1px solid rgba(0, 47, 117, 0.08);
+  background: #f3f6fa;
+  overflow: hidden;
+}
+
+.sk-vehicle-gallery img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  display: block;
+}
+
+.sk-vehicle-gallery figcaption {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.7rem 0.8rem 0.85rem;
+  background: #fff;
+}
+
+.sk-vehicle-gallery figcaption strong {
+  font-family: var(--font-brand);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.sk-vehicle-gallery figcaption span {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.sk-vehicle-gallery .is-main {
+  border-color: rgba(0, 71, 171, 0.28);
+}
+
+@media (max-width: 800px) {
+  .sk-vehicle-gallery {
+    grid-template-columns: 1fr;
+  }
 }
 
 .sk-builder {

@@ -69,7 +69,7 @@ export const PEPTIDES = [
     job: "Staple copper for a firmer, brighter look",
     amount: "1 g dry powder",
     price: 48,
-    image: "/skincare/ghk-twist-cap.png",
+    image: "/skincare/buffet-serum.png",
     packaging: "twist-cap",
     blurb:
       "The staple. Flagship copper peptide ships dry in a twist-cap so it doesn’t fade on the shelf.",
@@ -126,7 +126,7 @@ export const SERUM_BASES = [
     form: "serum",
     volume: "30 mL",
     price: 28,
-    image: "/skincare/mix-ampoules.png",
+    image: "/skincare/buffet-serum.png",
     blurb:
       "Ordinary Buffet type multi-peptide / HA / amino-acid serum. Best all-rounder face vehicle.",
     bestFor: "Face serum, daily, 1 to 4 peptides",
@@ -138,7 +138,7 @@ export const SERUM_BASES = [
     form: "cream",
     volume: "50 mL",
     price: 32,
-    image: "/skincare/cream-1.jpg",
+    image: "/skincare/peptide-cream.png",
     blurb:
       "Silken moisture cream vehicle. Mix dry peptides into a leave-on cream instead of a dropper serum.",
     bestFor: "Face cream, richer feel, day or night",
@@ -150,7 +150,7 @@ export const SERUM_BASES = [
     form: "serum",
     volume: "15 mL",
     price: 24,
-    image: "/skincare/serum-1.jpg",
+    image: "/skincare/eye-serum.png",
     blurb:
       "Cooling periocular serum. Pair with SNAP-8 or Syn-Ake for crow’s feet, or add Eyeseryl as a custom.",
     bestFor: "Under-eye, crow’s feet, expression",
@@ -317,11 +317,13 @@ export function buildSerumProduct({
     form: base.form || "serum",
     price,
     size: `${base.volume}, ${uniquePep.length} peptide${uniquePep.length > 1 ? "s" : ""}`,
-    image: hasGhk && !isCream ? "/skincare/ghk-twist-cap.png" : base.image,
+    image: hasGhk && !isCream ? "/skincare/buffet-serum.png" : base.image,
     gallery:
       hasGhk && !isCream
-        ? ["/skincare/ghk-twist-cap.png", "/skincare/ghk-twist-howto.png"]
-        : [base.image],
+        ? ["/skincare/buffet-serum.png", "/skincare/peptide-cream.png", "/skincare/eye-serum.png"]
+        : isCream
+          ? ["/skincare/peptide-cream.png", "/skincare/buffet-serum.png", "/skincare/eye-serum.png"]
+          : [base.image, "/skincare/buffet-serum.png", "/skincare/peptide-cream.png"],
     blurb: `Your mix: ${names.join(" + ")} in ${base.name}. Dry peptides stay sealed until you activate into the ${vehicleWord}.`,
     focus: uniquePep.map((p) => p.need).join(", "),
     texture,

@@ -904,7 +904,14 @@ export default function App() {
                     {skinProduct.gallery?.[1] && (
                       <img
                         src={skinProduct.gallery[1]}
-                        alt="Activation: twist cap releases dry peptide into serum"
+                        alt="Peptide cream base with top off"
+                        className="skin-product-img skin-product-img--howto"
+                      />
+                    )}
+                    {skinProduct.gallery?.[2] && (
+                      <img
+                        src={skinProduct.gallery[2]}
+                        alt="Eye serum vehicle"
                         className="skin-product-img skin-product-img--howto"
                       />
                     )}

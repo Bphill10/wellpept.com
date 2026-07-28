@@ -188,6 +188,18 @@ export default function SkincareHome({
             </div>
           </div>
 
+          <div className="sk-vehicle-gallery">
+            {SERUM_BASES.map((b, i) => (
+              <figure key={b.id} className={i === 0 ? "is-main" : undefined}>
+                <img src={b.image} alt={b.name} loading="lazy" />
+                <figcaption>
+                  <strong>{b.name}</strong>
+                  <span>{b.form === "cream" ? "Cream base" : "Serum base"}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+
           <article className="flagship-mix fade">
             <div className="flagship-mix-media-col">
               <button
@@ -201,13 +213,6 @@ export default function SkincareHome({
                   className="flagship-mix-img"
                 />
               </button>
-              {FLAGSHIP_SERUM.gallery?.[1] && (
-                <img
-                  src={FLAGSHIP_SERUM.gallery[1]}
-                  alt="Twist powder chamber on bottle; dropper rests beside until activated"
-                  className="flagship-mix-howto"
-                />
-              )}
             </div>
             <div className="flagship-mix-body">
               <p className="section-kicker">Flagship</p>
