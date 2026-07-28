@@ -255,11 +255,12 @@ export default function App() {
       vendorId: "wellpept-skin",
       shippingFlat: 8,
       minOrder: 0,
-      shippingNote: "US ground",
+      shippingNote: "US ground · cold-pack when needed",
       sku: String(product.id).toUpperCase(),
-      category: "Skincare",
+      category: product.kind === "mix" ? "Fresh Mix" : "Skincare",
       skin: true,
-      ships: "Ships in 2–4 days",
+      mix: product.kind === "mix",
+      ships: product.kind === "mix" ? "Fresh pack · 2–4 days" : "Ships in 2–4 days",
     });
   }
 
@@ -873,32 +874,75 @@ export default function App() {
                 <ArrowLeft size={16} /> Back to skincare
               </button>
               <div className="amazon-detail skin-detail" style={{ marginTop: "1rem" }}>
-                <div className="detail-visual skin-visual">
-                  <div className="skin-bottle skin-bottle--lg" aria-hidden="true">
-                    <span className="skin-bottle-cap" />
-                    <span className="skin-bottle-body" />
+                  <div className="detail-visual skin-visual">
+                    {skinProduct.image ? (
+                      <img
+                        src={skinProduct.image}
+                        alt={skinProduct.name}
+                        className="skin-product-img skin-product-img--detail"
+                      />
+                    ) : (
+                      <div className="skin-bottle skin-bottle--lg" aria-hidden="true">
+                        <span className="skin-bottle-cap" />
+                        <span className="skin-bottle-body" />
+                      </div>
+                    )}
                   </div>
-                </div>
-                <div className="detail-info">
-                  <p className="section-kicker">{skinProduct.line}</p>
-                  <h1>{skinProduct.name}</h1>
-                  <p className="lede">{skinProduct.blurb}</p>
-                  <p className="meta">
-                    {skinProduct.size} · {skinProduct.focus} · {skinProduct.texture}
-                  </p>
-                  <div className="price-row" style={{ margin: "1rem 0" }}>
-                    <strong style={{ fontSize: "1.4rem" }}>
-                      {formatMoney(skinProduct.price)}
-                    </strong>
+                  <div className="detail-info">
+                    <p className="section-kicker">{skinProduct.line}</p>
+                    <h1>{skinProduct.name}</h1>
+                    <p className="lede">{skinProduct.blurb}</p>
+                    <p className="meta">
+                      {skinProduct.size} · {skinProduct.focus} · {skinProduct.texture}
+                    </p>
+                    {skinProduct.kind === "mix" && (
+                      <div className="mix-panel">
+                        <p className="mix-lead">
+                          Fresh ingredients ship separated. You mix at home into
+                          the empty bottle — {skinProduct.mixYield}
+                          {skinProduct.shelfAfterMix
+                            ? ` · ${skinProduct.shelfAfterMix}`
+                            : ""}
+                          .
+                        </p>
+                        {Array.isArray(skinProduct.ingredients) && (
+                          <>
+                            <h3>In the kit</h3>
+                            <ul className="mix-list">
+                              {skinProduct.ingredients.map((ing) => (
+                                <li key={ing.name}>
+                                  <strong>{ing.name}</strong>
+                                  <span>{ing.amount}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </>
+                        )}
+                        {Array.isArray(skinProduct.steps) && (
+                          <>
+                            <h3>Mix steps</h3>
+                            <ol className="mix-steps">
+                              {skinProduct.steps.map((step) => (
+                                <li key={step}>{step}</li>
+                              ))}
+                            </ol>
+                          </>
+                        )}
+                      </div>
+                    )}
+                    <div className="price-row" style={{ margin: "1rem 0" }}>
+                      <strong style={{ fontSize: "1.4rem" }}>
+                        {formatMoney(skinProduct.price)}
+                      </strong>
+                    </div>
+                    <button
+                      type="button"
+                      className="primary-btn"
+                      onClick={() => addSkincareToCart(skinProduct)}
+                    >
+                      Add to bag
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    className="primary-btn"
-                    onClick={() => addSkincareToCart(skinProduct)}
-                  >
-                    Add to bag
-                  </button>
-                </div>
               </div>
             </div>
           </section>

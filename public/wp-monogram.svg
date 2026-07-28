@@ -1,31 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Wellpept WP monogram — P centered in front of W">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="WellPept WP monogram">
   <defs>
-    <radialGradient id="g" cx="30%" cy="26%" r="75%">
+    <radialGradient id="g" cx="32%" cy="28%" r="75%">
       <stop offset="0%" stop-color="#5b87ff"/>
-      <stop offset="40%" stop-color="#0039c6"/>
+      <stop offset="42%" stop-color="#0039c6"/>
       <stop offset="78%" stop-color="#001f7a"/>
       <stop offset="100%" stop-color="#000f3d"/>
     </radialGradient>
   </defs>
   <circle cx="64" cy="64" r="62" fill="url(#g)"/>
-  <circle cx="64" cy="64" r="57" fill="none" stroke="#001238" stroke-width="1.5" opacity="0.45"/>
-  <circle cx="64" cy="64" r="52" fill="none" stroke="#9eb6ff" stroke-width="1.1" opacity="0.4"/>
-  <!-- Letter W (behind), centered -->
-  <path
-    fill="none"
-    stroke="#ffffff"
-    stroke-width="11"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    d="M28 30 L42 98 L64 48 L86 98 L100 30"
-  />
-  <!-- Letter P (in front), centered on the seal -->
-  <path
+  <circle cx="64" cy="64" r="56.5" fill="none" stroke="#9eb6ff" stroke-width="1" opacity="0.35"/>
+  <!-- Side-by-side WP — no overlap -->
+  <text
+    x="64"
+    y="78"
+    text-anchor="middle"
+    font-family="Arial Black, Helvetica Neue, Arial, sans-serif"
+    font-size="44"
+    font-weight="800"
+    letter-spacing="2"
     fill="#ffffff"
-    d="M46 26h18c18 0 30 11 30 28s-12 28-30 28H58v20H46V26z"
-  />
-  <path
-    fill="url(#g)"
-    d="M58 38h8c10 0 16 6 16 16s-6 16-16 16h-8V38z"
-  />
+  >WP</text>
 </svg>

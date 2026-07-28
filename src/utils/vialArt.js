@@ -169,74 +169,29 @@ function drawDarkStudio(ctx, w, h) {
 }
 
 /**
- * Gold circular WP monogram — letter W behind, letter P in front (centered).
+ * Cobalt circular WP monogram — side-by-side letters, no overlap.
  * Used when the brand seal image is not yet loaded.
  */
 function drawWpMonogramSeal(ctx, cx, cy, r) {
-  const gold = ctx.createRadialGradient(cx - r * 0.25, cy - r * 0.3, 1, cx, cy, r);
-  gold.addColorStop(0, "#f0d78c");
-  gold.addColorStop(0.35, "#d4af37");
-  gold.addColorStop(0.7, "#a67c1a");
-  gold.addColorStop(1, "#6b4e0e");
+  const cobalt = ctx.createRadialGradient(cx - r * 0.25, cy - r * 0.3, 1, cx, cy, r);
+  cobalt.addColorStop(0, "#5b87ff");
+  cobalt.addColorStop(0.4, "#0039c6");
+  cobalt.addColorStop(0.78, "#001f7a");
+  cobalt.addColorStop(1, "#000f3d");
   ellipse(ctx, cx, cy, r, r);
-  ctx.fillStyle = gold;
+  ctx.fillStyle = cobalt;
   ctx.fill();
 
   ellipse(ctx, cx, cy, r * 0.92, r * 0.92);
-  ctx.strokeStyle = "rgba(40, 28, 6, 0.45)";
-  ctx.lineWidth = Math.max(1, r * 0.04);
+  ctx.strokeStyle = "rgba(158, 182, 255, 0.4)";
+  ctx.lineWidth = Math.max(1, r * 0.035);
   ctx.stroke();
 
-  ellipse(ctx, cx, cy, r * 0.78, r * 0.78);
-  ctx.strokeStyle = "rgba(255, 230, 160, 0.35)";
-  ctx.lineWidth = Math.max(1, r * 0.03);
-  ctx.stroke();
-
-  // W (behind), centered
-  ctx.strokeStyle = "#0a0a0a";
-  ctx.lineWidth = Math.max(2, r * 0.18);
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.beginPath();
-  ctx.moveTo(cx - r * 0.52, cy - r * 0.42);
-  ctx.lineTo(cx - r * 0.28, cy + r * 0.48);
-  ctx.lineTo(cx, cy - r * 0.12);
-  ctx.lineTo(cx + r * 0.28, cy + r * 0.48);
-  ctx.lineTo(cx + r * 0.52, cy - r * 0.42);
-  ctx.stroke();
-
-  // P (in front of W), centered on the seal
-  const pLeft = cx - r * 0.28;
-  const pTop = cy - r * 0.48;
-  const pBottom = cy + r * 0.48;
-  const pSpine = cx - r * 0.06;
-  const bowlBottom = cy + r * 0.08;
-  const pRight = cx + r * 0.36;
-  ctx.fillStyle = "#0a0a0a";
-  ctx.beginPath();
-  ctx.moveTo(pLeft, pTop);
-  ctx.lineTo(pSpine, pTop);
-  ctx.bezierCurveTo(pRight, pTop, pRight, bowlBottom, pSpine, bowlBottom);
-  ctx.lineTo(pLeft + r * 0.18, bowlBottom);
-  ctx.lineTo(pLeft + r * 0.18, pBottom);
-  ctx.lineTo(pLeft, pBottom);
-  ctx.closePath();
-  ctx.fill();
-
-  // P counter
-  const cLeft = cx - r * 0.08;
-  const cTop = cy - r * 0.3;
-  const cBottom = cy - r * 0.02;
-  const cSpine = cx - r * 0.02;
-  const cRight = cx + r * 0.2;
-  ctx.beginPath();
-  ctx.moveTo(cLeft, cTop);
-  ctx.lineTo(cSpine, cTop);
-  ctx.bezierCurveTo(cRight, cTop, cRight, cBottom, cSpine, cBottom);
-  ctx.lineTo(cLeft, cBottom);
-  ctx.closePath();
-  ctx.fillStyle = gold;
-  ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `800 ${Math.max(14, r * 0.72)}px Outfit, "Arial Black", sans-serif`;
+  ctx.fillText("WP", cx, cy + r * 0.04);
 }
 
 /** Draw the circular WP brand mark image, or fall back to the monogram. */

@@ -1,8 +1,60 @@
 import React from "react";
-import { ArrowRight, Droplets, Moon, Sparkles, Sun } from "lucide-react";
+import { ArrowRight, Droplets, FlaskConical, Moon, Sparkles } from "lucide-react";
 import { formatMoney } from "../data/products";
-import { SKINCARE_PRODUCTS, SKINCARE_RITUAL } from "../data/skincare";
+import {
+  SKINCARE_PRODUCTS,
+  SERUM_COMBOS,
+  SKINCARE_RITUAL,
+} from "../data/skincare";
 import ChargebeeCheckout from "./ChargebeeCheckout";
+
+function ProductCard({ product, onOpenProduct, onAddToCart }) {
+  return (
+    <article className="product-card skin-card" key={product.id}>
+      <button
+        type="button"
+        className="product-card-main"
+        onClick={() => onOpenProduct?.(product)}
+      >
+        <div className="product-visual skin-visual">
+          {product.image ? (
+            <img
+              src={product.image}
+              alt={product.name}
+              className="skin-product-img"
+              loading="lazy"
+            />
+          ) : (
+            <div className="skin-bottle" aria-hidden="true">
+              <span className="skin-bottle-cap" />
+              <span className="skin-bottle-body" />
+            </div>
+          )}
+          <span className="badge">{product.line}</span>
+        </div>
+        <div className="product-body">
+          <h3>{product.name}</h3>
+          <p className="card-blurb">{product.blurb}</p>
+          <div className="meta">
+            {product.size} · {product.focus}
+          </div>
+          <div className="price-row">
+            <strong>{formatMoney(product.price)}</strong>
+          </div>
+        </div>
+      </button>
+      <div className="product-actions">
+        <button
+          type="button"
+          className="cart-cta"
+          onClick={() => onAddToCart?.(product)}
+        >
+          Add to bag
+        </button>
+      </div>
+    </article>
+  );
+}
 
 export default function SkincareHome({
   onShopSkin,
@@ -26,25 +78,27 @@ export default function SkincareHome({
             <h1 className="hero-brand">WellPept</h1>
           </div>
           <div className="hero-brand-rule rise-delay" aria-hidden="true" />
-          <p className="hero-tagline rise-delay">Clinical skincare in cobalt and light.</p>
+          <p className="hero-tagline rise-delay">
+            Fresh ingredients. You mix at home.
+          </p>
           <p className="hero-copy rise-delay">
-            WellPept is a clinical atelier — silver, white, and electric blue
-            purity, with textures that stay quiet on the skin.
+            WellPept ships separated actives and a clean vehicle — combine when
+            you open for serums that stay bright, clear, and clinical.
           </p>
           <div className="hero-cta rise-delay">
-            <button type="button" className="primary-btn" onClick={onShopSkin}>
-              Shop skincare
-            </button>
             <button
               type="button"
-              className="soft-btn"
+              className="primary-btn"
               onClick={() =>
                 document
-                  .getElementById("ritual")
+                  .getElementById("fresh-mixes")
                   ?.scrollIntoView({ behavior: "smooth" })
               }
             >
-              The ritual
+              Shop Fresh Mixes
+            </button>
+            <button type="button" className="soft-btn" onClick={onShopSkin}>
+              Ready formulas
             </button>
           </div>
         </div>
@@ -53,81 +107,56 @@ export default function SkincareHome({
       <section className="trust-strip skin-trust">
         <div className="container trust-grid">
           <div className="trust-item">
-            <Sparkles size={22} />
+            <FlaskConical size={22} />
             <div>
-              <strong>Restrained formulas</strong>
-              <p>No fragrance theater. Just what the skin needs to look settled.</p>
+              <strong>Ships fresh, not pre-mixed</strong>
+              <p>Actives stay sealed until you blend them in your bottle.</p>
             </div>
           </div>
           <div className="trust-item">
             <Droplets size={22} />
             <div>
-              <strong>Texture-first</strong>
-              <p>Serums, creams, and oils built for a soft matte or quiet glow.</p>
+              <strong>Mix in under a minute</strong>
+              <p>Ampoule + vehicle + empty dropper. No tools beyond a shake.</p>
             </div>
           </div>
           <div className="trust-item">
-            <Sun size={22} />
+            <Sparkles size={22} />
             <div>
-              <strong>Day to night</strong>
-              <p>A short ritual that holds from first light through late hours.</p>
+              <strong>Clinical cobalt finish</strong>
+              <p>White light, chrome caps, and textures that stay quiet.</p>
             </div>
           </div>
           <div className="trust-item">
             <Moon size={22} />
             <div>
-              <strong>Atelier finish</strong>
-              <p>Clinical light, chrome, and cobalt — no theater, just purity.</p>
+              <strong>Use while potent</strong>
+              <p>Each kit lists how long the blend stays at its best after mixing.</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="section" id="skin-catalog">
+      <section className="section" id="fresh-mixes">
         <div className="container">
           <div className="section-head">
             <div>
-              <p className="section-kicker">Collection</p>
-              <h2>Skincare essentials</h2>
-              <p>Six quiet pieces. Enough for a complete face ritual.</p>
+              <p className="section-kicker">Fresh Mix</p>
+              <h2>Serum combos you blend at home</h2>
+              <p>
+                We send the fresh ingredients separately. You combine them when
+                you’re ready — maximum potency, minimal shelf wait.
+              </p>
             </div>
           </div>
           <div className="product-grid skin-grid">
-            {SKINCARE_PRODUCTS.map((product) => (
-              <article className="product-card skin-card" key={product.id}>
-                <button
-                  type="button"
-                  className="product-card-main"
-                  onClick={() => onOpenProduct?.(product)}
-                >
-                  <div className="product-visual skin-visual">
-                    <div className="skin-bottle" aria-hidden="true">
-                      <span className="skin-bottle-cap" />
-                      <span className="skin-bottle-body" />
-                    </div>
-                    <span className="badge">{product.line}</span>
-                  </div>
-                  <div className="product-body">
-                    <h3>{product.name}</h3>
-                    <p className="card-blurb">{product.blurb}</p>
-                    <div className="meta">
-                      {product.size} · {product.focus}
-                    </div>
-                    <div className="price-row">
-                      <strong>{formatMoney(product.price)}</strong>
-                    </div>
-                  </div>
-                </button>
-                <div className="product-actions">
-                  <button
-                    type="button"
-                    className="cart-cta"
-                    onClick={() => onAddToCart?.(product)}
-                  >
-                    Add to bag
-                  </button>
-                </div>
-              </article>
+            {SERUM_COMBOS.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onOpenProduct={onOpenProduct}
+                onAddToCart={onAddToCart}
+              />
             ))}
           </div>
         </div>
@@ -137,9 +166,9 @@ export default function SkincareHome({
         <div className="container">
           <div className="section-head">
             <div>
-              <p className="section-kicker">Ritual</p>
-              <h2>Three steps. No noise.</h2>
-              <p>A short sequence designed to feel inevitable, not complicated.</p>
+              <p className="section-kicker">How it works</p>
+              <h2>Receive. Mix. Apply.</h2>
+              <p>A short sequence — no lab bench required.</p>
             </div>
           </div>
           <div className="skin-ritual-grid">
@@ -154,22 +183,52 @@ export default function SkincareHome({
         </div>
       </section>
 
+      <section className="section" id="skin-catalog">
+        <div className="container">
+          <div className="section-head">
+            <div>
+              <p className="section-kicker">Ready</p>
+              <h2>Already-blended essentials</h2>
+              <p>Stable formulas for the rest of the ritual — cream, mist, oil.</p>
+            </div>
+          </div>
+          <div className="product-grid skin-grid">
+            {SKINCARE_PRODUCTS.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onOpenProduct={onOpenProduct}
+                onAddToCart={onAddToCart}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="section">
         <div className="container skin-about">
           <div>
             <p className="section-kicker">About</p>
             <h2>WellPept skincare</h2>
             <p>
-              We design for people who want clinical restraint — white marble
-              light, chrome precision, and a cobalt signal that earns its place
-              on the shelf.
+              Fresh Mix kits keep unstable actives sealed until you need them.
+              Ready formulas handle the rest — same clinical restraint, white
+              light, cobalt signal.
             </p>
             <p className="meta" style={{ marginTop: "1rem" }}>
-              Ships to United States addresses only.
+              Ships to United States addresses only. For external cosmetic use.
             </p>
           </div>
-          <button type="button" className="primary-btn" onClick={onShopSkin}>
-            Browse the collection <ArrowRight size={16} />
+          <button
+            type="button"
+            className="primary-btn"
+            onClick={() =>
+              document
+                .getElementById("fresh-mixes")
+                ?.scrollIntoView({ behavior: "smooth" })
+            }
+          >
+            Browse Fresh Mixes <ArrowRight size={16} />
           </button>
         </div>
       </section>
@@ -182,8 +241,8 @@ export default function SkincareHome({
                 <p className="section-kicker">Membership</p>
                 <h2>Subscribe to the ritual</h2>
                 <p>
-                  A Chargebee plan for recurring skincare — manage billing in the
-                  customer portal after checkout.
+                  Recurring Fresh Mix deliveries — manage billing in the customer
+                  portal after checkout.
                 </p>
               </div>
             </div>
@@ -192,9 +251,7 @@ export default function SkincareHome({
               mode="subscription"
               total={0}
               buttonLabel="Subscribe with Chargebee"
-              onPaid={() => {
-                /* Hosted checkout success — Chargebee owns the subscription */
-              }}
+              onPaid={() => {}}
             />
           </div>
         </section>
