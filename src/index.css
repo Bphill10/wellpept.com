@@ -595,6 +595,58 @@ img {
   font-weight: 600;
 }
 
+.value-thesis {
+  padding-top: 2.25rem;
+}
+
+.thesis-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.thesis-card h3 {
+  margin: 0 0 0.55rem;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+}
+
+.thesis-card p {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  font-size: 0.95rem;
+}
+
+.thesis-card-accent {
+  background: linear-gradient(
+    160deg,
+    rgba(12, 35, 64, 0.96),
+    rgba(18, 122, 134, 0.9)
+  );
+  border-color: transparent;
+  color: #f4f7fb;
+}
+
+.thesis-card-accent .section-kicker {
+  color: rgba(240, 180, 41, 0.95);
+}
+
+.thesis-card-accent h3 {
+  color: #fff;
+}
+
+.thesis-card-accent p {
+  color: rgba(244, 247, 251, 0.88);
+}
+
+.mission-band em {
+  font-style: italic;
+  color: rgba(240, 180, 41, 0.95);
+}
+
 /* ---------- Marketplace ---------- */
 .section {
   padding: 2.5rem 0;
@@ -1444,6 +1496,10 @@ th {
 
   .trust-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .thesis-grid {
+    grid-template-columns: 1fr;
   }
 
   .grid-2,

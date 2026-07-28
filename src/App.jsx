@@ -438,12 +438,12 @@ export default function App() {
               <div className="container hero-content">
                 <h1 className="hero-brand rise">Undisclosed</h1>
                 <p className="hero-tagline rise-delay">
-                  Precision. Quality. Reliability.
+                  The research equivalent — same compound, clearer path.
                 </p>
                 <p className="hero-copy rise-delay">
-                  Research-grade peptides from approved vendors — Amazon-style
-                  shopping, transparent +{Math.round(MARKUP * 100)}% markup,
-                  drop-shipped to your lab.
+                  Most research peptides share the same synthesis pipeline.
+                  Undisclosed sources approved manufacturers directly so labs
+                  pay for the molecule — not the pharmacy markup.
                 </p>
                 <div className="hero-cta rise-delay">
                   <button
@@ -526,27 +526,85 @@ export default function App() {
             <section className="mission-band">
               <div className="container mission-inner">
                 <div>
-                  <p className="section-kicker">About Undisclosed</p>
-                  <h2>Your marketplace for research-grade peptides</h2>
+                  <p className="section-kicker">Why Undisclosed</p>
+                  <h2>Research equivalent. Not retail theater.</h2>
                   <p>
-                    Vendors submit price lists. You approve. The catalog updates
-                    with transparent retail pricing — then orders drop-ship to
-                    researchers. Built like a modern peptide shop, shoppable
-                    like Amazon.
+                    If a compound isn’t coming straight from a branded pharmacy
+                    line, it’s almost always made in the same research-chemical
+                    manufacturing corridors — largely China — then marked up
+                    through middlemen. If it{" "}
+                    <em>is</em> pharma-sourced, you’re often paying a premium for
+                    packaging and distribution of the same active structure.
+                    Undisclosed is the lab’s generic path: approved vendors,
+                    published costs, and a transparent +
+                    {Math.round(MARKUP * 100)}% catalog so researchers fund the
+                    assay — not the brand story.
                   </p>
                 </div>
                 <ul className="mission-points">
                   <li>
-                    <FlaskConical size={18} /> Lowest approved vendor cost wins
-                    each SKU
+                    <FlaskConical size={18} /> Same compound identity — research
+                    purity, not pharmacy branding
                   </li>
                   <li>
-                    <ShieldCheck size={18} /> Admin desk for vendors &amp; lines
+                    <ShieldCheck size={18} /> Source closer to manufacture —
+                    fewer markups between plant and bench
                   </li>
                   <li>
-                    <Calculator size={18} /> Shareable reconstitution calculator
+                    <Microscope size={18} /> Compare COAs &amp; vendor cost before
+                    you commit inventory
                   </li>
                 </ul>
+              </div>
+            </section>
+
+            <section className="value-thesis section">
+              <div className="container">
+                <div className="section-head">
+                  <div>
+                    <p className="section-kicker">The thesis</p>
+                    <h2>Two supply stories. One molecule.</h2>
+                    <p>
+                      Either way, the structure on the vial is what matters for
+                      research — Undisclosed makes the economics honest.
+                    </p>
+                  </div>
+                </div>
+                <div className="thesis-grid">
+                  <article className="thesis-card panel">
+                    <p className="section-kicker">Not pharmacy-direct?</p>
+                    <h3>It’s already China-sourced research supply</h3>
+                    <p>
+                      Most “research peptide” inventory traces back to the same
+                      manufacturing hubs. Paying a domestic storefront premium
+                      doesn’t change the synthesis origin — it only changes who
+                      pockets the margin. We surface approved manufacturer price
+                      lists so your lab can buy closer to source.
+                    </p>
+                  </article>
+                  <article className="thesis-card panel">
+                    <p className="section-kicker">Pharma-sourced?</p>
+                    <h3>Why pay brand tax for the same compound</h3>
+                    <p>
+                      When the active is the same sequence or small molecule,
+                      the research question is purity, fill, and documentation —
+                      not the logo on the box. Undisclosed lists research-grade
+                      equivalents beside vendor cost so you can see what the
+                      compound actually clears for.
+                    </p>
+                  </article>
+                  <article className="thesis-card panel thesis-card-accent">
+                    <p className="section-kicker">Undisclosed</p>
+                    <h3>Your generic research lane</h3>
+                    <p>
+                      Admin-vetted vendors. Lowest approved cost wins each SKU.
+                      Catalog retail is vendor cost +{" "}
+                      {Math.round(MARKUP * 100)}% — explicit, not mysterious.
+                      For laboratory research use only; not for human
+                      consumption or medical use.
+                    </p>
+                  </article>
+                </div>
               </div>
             </section>
 
@@ -685,17 +743,19 @@ export default function App() {
             <section className="lab-band">
               <div className="container lab-inner">
                 <div>
-                  <p className="section-kicker">Quality</p>
-                  <h2>Third-party lab tested</h2>
+                  <p className="section-kicker">Documentation</p>
+                  <h2>Judge the molecule — not the markup</h2>
                   <p>
-                    Independent testing gives researchers a neutral view of
-                    purity and fill — not just a vendor’s in-house claim.
+                    Research equivalents earn trust with verifiable purity and
+                    fill data. Independent COAs let your lab compare batches the
+                    same way you’d compare any analytical standard — without
+                    paying for a pharmacy label.
                   </p>
                 </div>
                 <ul className="lab-points">
-                  <li>Consumer transparency</li>
-                  <li>Unbiased independent reports</li>
-                  <li>Safety &amp; batch assurance</li>
+                  <li>Batch transparency for the bench</li>
+                  <li>Unbiased third-party reports</li>
+                  <li>Purity &amp; fill over packaging</li>
                 </ul>
               </div>
             </section>
@@ -761,7 +821,7 @@ export default function App() {
         <div className="container footer-inner">
           <div>
             <strong>Undisclosed</strong>
-            <div>Curated research peptide marketplace</div>
+            <div>Research equivalents — same compounds, clearer economics</div>
           </div>
           <p className="disclaimer">
             For laboratory research use only. Not for human consumption, medical
