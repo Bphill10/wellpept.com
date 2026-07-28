@@ -320,10 +320,12 @@ export function buildSerumProduct({
     image: hasGhk && !isCream ? "/skincare/buffet-serum.png" : base.image,
     gallery:
       hasGhk && !isCream
-        ? ["/skincare/buffet-serum.png", "/skincare/peptide-cream.png", "/skincare/eye-serum.png"]
+        ? ["/skincare/buffet-serum.png", "/skincare/buffet-serum-mixed.png"]
         : isCream
-          ? ["/skincare/peptide-cream.png", "/skincare/buffet-serum.png", "/skincare/eye-serum.png"]
-          : [base.image, "/skincare/buffet-serum.png", "/skincare/peptide-cream.png"],
+          ? ["/skincare/peptide-cream.png", "/skincare/buffet-serum-mixed.png"]
+          : [base.image, "/skincare/buffet-serum-mixed.png"],
+    video: hasGhk && !isCream ? "/skincare/mix-activation.mp4" : null,
+    videoPoster: hasGhk && !isCream ? "/skincare/buffet-serum-mixing.png" : null,
     blurb: `Your mix: ${names.join(" + ")} in ${base.name}. Dry peptides stay sealed until you activate into the ${vehicleWord}.`,
     focus: uniquePep.map((p) => p.need).join(", "),
     texture,

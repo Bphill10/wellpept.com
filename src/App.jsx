@@ -904,16 +904,22 @@ export default function App() {
                     {skinProduct.gallery?.[1] && (
                       <img
                         src={skinProduct.gallery[1]}
-                        alt="Peptide cream base with top off"
+                        alt="After mixing: peptide activated into the base"
                         className="skin-product-img skin-product-img--howto"
                       />
                     )}
-                    {skinProduct.gallery?.[2] && (
-                      <img
-                        src={skinProduct.gallery[2]}
-                        alt="Eye serum vehicle"
-                        className="skin-product-img skin-product-img--howto"
-                      />
+                    {skinProduct.video && (
+                      <video
+                        className="skin-product-video"
+                        controls
+                        muted
+                        playsInline
+                        loop
+                        preload="metadata"
+                        poster={skinProduct.videoPoster || skinProduct.gallery?.[1]}
+                      >
+                        <source src={skinProduct.video} type="video/mp4" />
+                      </video>
                     )}
                   </div>
                   <div className="detail-info">

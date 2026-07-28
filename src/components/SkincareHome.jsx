@@ -208,11 +208,28 @@ export default function SkincareHome({
                 onClick={() => onOpenProduct?.(FLAGSHIP_SERUM)}
               >
                 <img
-                  src={FLAGSHIP_SERUM.image}
+                  src="/skincare/buffet-serum.png"
                   alt={FLAGSHIP_SERUM.name}
                   className="flagship-mix-img"
                 />
               </button>
+              <img
+                src="/skincare/buffet-serum-mixed.png"
+                alt="After activation: GHK-Cu mixed into the serum, dropper seated"
+                className="flagship-mix-howto"
+              />
+              <video
+                className="flagship-mix-video"
+                controls
+                muted
+                playsInline
+                loop
+                preload="metadata"
+                poster="/skincare/buffet-serum-mixing.png"
+              >
+                <source src="/skincare/mix-activation.mp4" type="video/mp4" />
+              </video>
+              <p className="flagship-mix-video-caption">Twist. Mix. Ready.</p>
             </div>
             <div className="flagship-mix-body">
               <p className="section-kicker">Flagship</p>
