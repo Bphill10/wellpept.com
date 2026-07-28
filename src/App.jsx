@@ -5,6 +5,7 @@ import {
   Store,
   ShieldCheck,
   ArrowLeft,
+  ArrowRight,
   Plus,
   Minus,
   Check,
@@ -16,6 +17,9 @@ import {
   Headset,
   BadgeCheck,
   Microscope,
+  ClipboardCheck,
+  Tag,
+  Factory,
 } from "lucide-react";
 import {
   CATEGORIES,
@@ -579,6 +583,121 @@ export default function App() {
                     you commit inventory
                   </li>
                 </ul>
+              </div>
+            </section>
+
+            <section className="section supply-chain" id="supply-chain">
+              <div className="container">
+                <div className="section-head">
+                  <div>
+                    <p className="section-kicker">How supply works</p>
+                    <h2>From vendor list to your bench</h2>
+                    <p>
+                      One transparent chain: approved cost in, catalog retail
+                      out, vendor drop-ships. You never get sent to a third-party
+                      storefront.
+                    </p>
+                  </div>
+                </div>
+
+                <ol className="supply-flow">
+                  <li className="supply-step">
+                    <span className="supply-step-icon" aria-hidden="true">
+                      <Factory size={22} />
+                    </span>
+                    <span className="supply-step-num">1</span>
+                    <strong>Vendor lists cost</strong>
+                    <p>Approved sellers submit kit prices from near-source supply.</p>
+                  </li>
+                  <li className="supply-flow-arrow" aria-hidden="true">
+                    <ArrowRight size={20} />
+                  </li>
+                  <li className="supply-step">
+                    <span className="supply-step-icon" aria-hidden="true">
+                      <ClipboardCheck size={22} />
+                    </span>
+                    <span className="supply-step-num">2</span>
+                    <strong>Admin approves</strong>
+                    <p>Listings only publish after review — no open dump of SKUs.</p>
+                  </li>
+                  <li className="supply-flow-arrow" aria-hidden="true">
+                    <ArrowRight size={20} />
+                  </li>
+                  <li className="supply-step">
+                    <span className="supply-step-icon" aria-hidden="true">
+                      <Tag size={22} />
+                    </span>
+                    <span className="supply-step-num">3</span>
+                    <strong>Catalog +{Math.round(MARKUP * 100)}%</strong>
+                    <p>
+                      Retail is always vendor cost +{" "}
+                      {Math.round(MARKUP * 100)}%. No mystery padding.
+                    </p>
+                  </li>
+                  <li className="supply-flow-arrow" aria-hidden="true">
+                    <ArrowRight size={20} />
+                  </li>
+                  <li className="supply-step">
+                    <span className="supply-step-icon" aria-hidden="true">
+                      <ShoppingCart size={22} />
+                    </span>
+                    <span className="supply-step-num">4</span>
+                    <strong>You order here</strong>
+                    <p>Checkout on Undisclosed only — vendor sites stay hidden.</p>
+                  </li>
+                  <li className="supply-flow-arrow" aria-hidden="true">
+                    <ArrowRight size={20} />
+                  </li>
+                  <li className="supply-step">
+                    <span className="supply-step-icon" aria-hidden="true">
+                      <Truck size={22} />
+                    </span>
+                    <span className="supply-step-num">5</span>
+                    <strong>Vendor drop-ships</strong>
+                    <p>Stock ships from the seller’s warehouse to your lab.</p>
+                  </li>
+                </ol>
+
+                <div className="supply-example">
+                  <div className="supply-example-copy">
+                    <p className="section-kicker">Worked example</p>
+                    <h3>Tirzepatide 10mg kit · The Lobster</h3>
+                    <p>
+                      Same kit, same drop-ship — the only markup you pay is the
+                      published catalog fee.
+                    </p>
+                  </div>
+                  <div className="supply-math" role="list">
+                    <div className="supply-math-row" role="listitem">
+                      <span>Lobster vendor cost</span>
+                      <strong>{formatMoney(80)}</strong>
+                    </div>
+                    <div className="supply-math-row" role="listitem">
+                      <span>
+                        Undisclosed +{Math.round(MARKUP * 100)}% markup
+                      </span>
+                      <strong>{formatMoney(80 * MARKUP)}</strong>
+                    </div>
+                    <div className="supply-math-row supply-math-total" role="listitem">
+                      <span>What you see in catalog</span>
+                      <strong>{formatMoney(80 * (1 + MARKUP))}</strong>
+                    </div>
+                  </div>
+                  <ul className="supply-example-notes">
+                    <li>
+                      <Package size={16} />
+                      Meet featured min order {formatMoney(THE_LOBSTER_VENDOR.minOrder)}
+                    </li>
+                    <li>
+                      <Truck size={16} />
+                      Allow up to 4 weeks for shipping
+                    </li>
+                    <li>
+                      <ShieldCheck size={16} />
+                      Lobster fulfills; you never leave this site
+                    </li>
+                  </ul>
+                </div>
               </div>
             </section>
 
