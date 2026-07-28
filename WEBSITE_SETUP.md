@@ -60,12 +60,27 @@ Until Crisp is configured, the site still shows **info@wellpept.com** and a Mess
 3. Optional: enable Affirm under Stripe payment methods
 4. Switch to live keys (`pk_live_` / `sk_live_`) when you are ready to take real payments
 
-## F. Go-live checklist
+## G. Customer accounts (required to shop)
+
+The site is locked behind an account gate:
+
+- Email address required
+- User ID required
+- Password required (8+ characters, letter + number)
+- Must confirm **18 or older**
+
+Create account or sign in before browsing. Sign out is in the header.
+
+Accounts are stored in the browser for now (device local). For multi-device
+accounts later, we can connect Clerk, Auth0, or Supabase.
+
+## H. Go-live checklist
 
 - [ ] New WellPept GitHub repo (resume untouched)
 - [ ] Vercel project deployed
 - [ ] Domain DNS pointed at Vercel
-- [ ] `info@wellpept.com` mailbox working (create at your email host / Google Workspace / etc.)
+- [ ] `info@wellpept.com` mailbox working
 - [ ] Crisp Website ID set + phone app installed
 - [ ] Stripe test checkout works
+- [ ] Create account / 18+ gate tested
 - [ ] Legal notices still visible on Fresh Mix products

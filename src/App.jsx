@@ -56,7 +56,9 @@ import ChargebeeCheckout from "./components/ChargebeeCheckout";
 import SkincareHome from "./components/SkincareHome";
 import PriceListDropzone from "./components/PriceListDropzone";
 import PriceCompare from "./components/PriceCompare";
-import { openLiveChat, contactEmail } from "./components/LiveChat";
+import LiveChat, { openLiveChat, contactEmail } from "./components/LiveChat";
+import AuthGate from "./components/AuthGate";
+import { getSession, logout as logoutAccount } from "./utils/auth";
 import { THE_LOBSTER_VENDOR } from "./data/theLobster";
 import {
   LYOPHILIZED_QC,
@@ -157,9 +159,16 @@ export default function App() {
     publishableKey: null,
     skincarePlanPriceId: null,
   });
+  const [session, setSession] = useState(() => getSession());
 
   function updateAutomation(patch) {
     setAutomation((prev) => saveAutomationSettings({ ...prev, ...patch }));
+  }
+
+  function handleLogout() {
+    logoutAccount();
+    setSession(null);
+    setFlash("Signed out");
   }
 
   useEffect(() => {
@@ -650,6 +659,9 @@ export default function App() {
 
   return (
     <div className={`app-shell ${labUnlocked ? "app-shell--undisclosed" : "app-shell--skincare"}`}>
+      {!session && <AuthGate onAuthed={setSession} />}
+      {session && (
+      <>
       <header className="site-header">
         <div className="header-top">
           <div className="container header-top-inner">
@@ -820,6 +832,16 @@ export default function App() {
                   <span>Approve</span>
                 </button>
               </>
+            )}
+            {session && (
+              <div className="header-account">
+                <span className="header-account-id" title={session.email}>
+                  @{session.userId}
+                </span>
+                <button type="button" className="ghost-btn" onClick={handleLogout}>
+                  Sign out
+                </button>
+              </div>
             )}
             <button
               type="button"
@@ -1665,6 +1687,9 @@ export default function App() {
           </p>
         </div>
       </footer>
+      <LiveChat />
+      </>
+      )}
     </div>
   );
 }
