@@ -10,7 +10,7 @@ import ChargebeeCheckout from "./ChargebeeCheckout";
 
 function ProductCard({ product, onOpenProduct, onAddToCart }) {
   return (
-    <article className="product-card skin-card" key={product.id}>
+    <article className="product-card skin-card">
       <button
         type="button"
         className="product-card-main"
