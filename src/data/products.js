@@ -2,6 +2,7 @@ import {
   CHANGSHA_SUBMISSIONS,
   CHANGSHA_VENDOR,
 } from "./changshaPremium";
+import { ERP_SUBMISSIONS, ERP_VENDOR } from "./erpPeptide";
 
 /** Default retail markup applied on top of vendor cost after approval. */
 export const MARKUP = 0.4;
@@ -74,12 +75,13 @@ const DEMO_PENDING_VENDOR = {
   createdAt: "2026-07-27T12:00:00.000Z",
 };
 
-/** Seed vendors: Changsha Premium (imported price list) + optional demo queue item. */
-export const SEED_VENDORS = [CHANGSHA_VENDOR, DEMO_PENDING_VENDOR];
+/** Seed vendors: Changsha Premium, ERP Peptide, + demo pending vendor. */
+export const SEED_VENDORS = [CHANGSHA_VENDOR, ERP_VENDOR, DEMO_PENDING_VENDOR];
 
-/** Seed submissions: 182 approved Changsha lines + one pending demo. */
+/** Seed submissions: imported vendor lists + one pending demo. */
 export const SEED_SUBMISSIONS = [
   ...CHANGSHA_SUBMISSIONS,
+  ...ERP_SUBMISSIONS,
   {
     id: "s-pending-demo",
     vendorId: "v-demo-pending",

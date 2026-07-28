@@ -714,8 +714,8 @@ function VendorPortal({
 
           <div className="notice">
             Catalog is loaded from approved vendor price lists. Changsha Premium
-            July 2026 (182 SKUs) is pre-imported. New vendors submit here;
-            nothing goes live until you approve it.
+            (182 SKUs) and ERP Peptide (151 SKUs) are pre-imported. New vendors
+            submit here; nothing goes live until you approve it.
           </div>
 
           <div className="tabs">
