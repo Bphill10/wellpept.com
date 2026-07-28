@@ -2437,11 +2437,11 @@ th {
 
 .label-template {
   width: 100%;
-  max-width: 700px;
+  max-width: 760px;
   height: auto;
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
-  border: 1px solid rgba(10, 10, 10, 0.12);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+  border: 1px solid rgba(10, 10, 10, 0.1);
   background: #fff;
 }
 
