@@ -28,6 +28,7 @@ import {
   formatStrengthLabel,
   groupCatalog,
   guessCategory,
+  retailFromVendor,
 } from "./data/products";
 import {
   getInitialMarketplace,
@@ -630,8 +631,9 @@ export default function App() {
                     <span className="supply-step-num">3</span>
                     <strong>Catalog +{Math.round(MARKUP * 100)}%</strong>
                     <p>
-                      Retail is always vendor cost +{" "}
-                      {Math.round(MARKUP * 100)}%. No mystery padding.
+                      Retail is vendor cost +{" "}
+                      {Math.round(MARKUP * 100)}%, then rounded up to the
+                      nearest $5.
                     </p>
                   </li>
                   <li className="supply-flow-arrow" aria-hidden="true">
@@ -674,13 +676,13 @@ export default function App() {
                     </div>
                     <div className="supply-math-row" role="listitem">
                       <span>
-                        Undisclosed +{Math.round(MARKUP * 100)}% markup
+                        After +{Math.round(MARKUP * 100)}% markup
                       </span>
-                      <strong>{formatMoney(80 * MARKUP)}</strong>
+                      <strong>{formatMoney(80 * (1 + MARKUP))}</strong>
                     </div>
                     <div className="supply-math-row supply-math-total" role="listitem">
-                      <span>What you see in catalog</span>
-                      <strong>{formatMoney(80 * (1 + MARKUP))}</strong>
+                      <span>Catalog (round up to $5)</span>
+                      <strong>{formatMoney(retailFromVendor(80))}</strong>
                     </div>
                   </div>
                   <ul className="supply-example-notes">
@@ -742,7 +744,8 @@ export default function App() {
                     <p>
                       Admin-vetted vendors. Lowest approved cost wins each SKU.
                       Catalog retail is vendor cost +{" "}
-                      {Math.round(MARKUP * 100)}% — explicit, not mysterious.
+                      {Math.round(MARKUP * 100)}%, rounded up to the nearest
+                      $5 — explicit, not mysterious.
                       For laboratory research use only; not for human
                       consumption or medical use.
                     </p>
@@ -834,7 +837,8 @@ export default function App() {
                       {filtered.length === 1 ? "" : "s"}
                       {category !== "All" ? ` in ${category}` : ""}
                       {query.trim() ? ` for “${query.trim()}”` : ""}. Retail =
-                      vendor cost + {Math.round(MARKUP * 100)}%.
+                      vendor cost + {Math.round(MARKUP * 100)}%, rounded up to
+                      the nearest $5.
                     </p>
                   </div>
                 </div>
@@ -1118,7 +1122,7 @@ function ProductDetail({
               <div className="meta">
                 {formatStrengthLabel(product)} · per {product.unitLabel}{" "}
                 (vendor cost {formatMoney(product.vendorCost)} +{" "}
-                {Math.round(MARKUP * 100)}%)
+                {Math.round(MARKUP * 100)}%, round up $5)
               </div>
               <div className="buy-stock ok">In Stock</div>
               <button type="button" className="cart-cta" onClick={onAdd}>
@@ -1332,7 +1336,8 @@ function VendorPortal({
           <p className="lede">
             Drop your price list here. Undisclosed reviews each line, then
             publishes approved items to the live catalog with a{" "}
-            {Math.round(MARKUP * 100)}% retail markup. You set minimum order and
+            {Math.round(MARKUP * 100)}% retail markup (then round up to the
+            nearest $5). You set minimum order and
             US shipping terms — we fulfill to United States addresses only.
           </p>
 
@@ -1653,7 +1658,7 @@ function PriceListEditor({ lines, onChange }) {
           <div className="meta" style={{ marginTop: "0.35rem" }}>
             Buyer price after approval:{" "}
             {line.vendorCost
-              ? formatMoney(Number(line.vendorCost) * (1 + MARKUP))
+              ? formatMoney(retailFromVendor(line.vendorCost))
               : "—"}
           </div>
         </div>
@@ -1689,7 +1694,8 @@ function AdminPanel({
           <h1>Approval desk</h1>
           <p className="lede">
             Nothing reaches the public catalog until you approve it. Approved
-            items publish immediately with a {Math.round(MARKUP * 100)}% markup.
+            items publish immediately with a {Math.round(MARKUP * 100)}% markup,
+            rounded up to the nearest $5.
           </p>
 
           <div className="notice warn">
@@ -1786,7 +1792,7 @@ function AdminPanel({
                       <td>
                         {formatMoney(s.vendorCost)} →{" "}
                         <strong>
-                          {formatMoney(Number(s.vendorCost) * (1 + MARKUP))}
+                          {formatMoney(retailFromVendor(s.vendorCost))}
                         </strong>
                       </td>
                       <td>

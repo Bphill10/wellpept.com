@@ -8,11 +8,15 @@ import {
   THE_LOBSTER_VENDOR,
 } from "./theLobster";
 
-/** Default retail markup applied on top of vendor cost after approval. */
+/** Default retail markup applied on top of vendor cost after approval.
+ *  Final catalog price is marked up, then rounded UP to the nearest $5.
+ */
 export const MARKUP = 0.4;
 
 export function retailFromVendor(vendorCost) {
-  return Math.round(Number(vendorCost) * (1 + MARKUP) * 100) / 100;
+  const marked = Number(vendorCost) * (1 + MARKUP);
+  if (!Number.isFinite(marked) || marked <= 0) return 0;
+  return Math.ceil(marked / 5) * 5;
 }
 
 export function formatMoney(n) {
