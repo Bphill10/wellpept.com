@@ -37,7 +37,8 @@ function ProductCard({ product, onOpenProduct, onAddToCart }) {
           <h3>{product.name}</h3>
           <p className="card-blurb">{product.blurb}</p>
           <div className="meta">
-            {product.size} · {product.focus}
+            {product.need ? `${product.need} · ` : ""}
+            {product.size}
           </div>
           <div className="price-row">
             <strong>{formatMoney(product.price)}</strong>
@@ -115,22 +116,24 @@ export default function SkincareHome({
           <div className="trust-item">
             <FlaskConical size={22} />
             <div>
-              <strong>Ships fresh, not pre-mixed</strong>
-              <p>Actives stay sealed until you blend them in your bottle.</p>
+              <strong>Peptides that don’t sit degrading</strong>
+              <p>
+                Store serums lose punch on the shelf. Ours stay dry until you mix.
+              </p>
             </div>
           </div>
           <div className="trust-item">
             <Droplets size={22} />
             <div>
               <strong>Mix in under a minute</strong>
-              <p>Ampoule + vehicle + empty dropper. No tools beyond a shake.</p>
+              <p>Peptide vial + stable base + empty dropper. Shake and go.</p>
             </div>
           </div>
           <div className="trust-item">
             <Sparkles size={22} />
             <div>
-              <strong>Clinical cobalt finish</strong>
-              <p>White light, chrome caps, and textures that stay quiet.</p>
+              <strong>Built for real needs</strong>
+              <p>Firmness, lines, expression zones, under-eyes — or one multi kit.</p>
             </div>
           </div>
           <div className="trust-item">
@@ -148,11 +151,12 @@ export default function SkincareHome({
           <div className="section-head">
             <div>
               <p className="section-kicker">Fresh Mix</p>
-              <h2>Serum combos you blend at home</h2>
+              <h2>Topical peptides, mixed when you’re ready</h2>
               <p>
-                Flagship is <strong>1 g fresh GHK-Cu</strong> into a Buffet-style
-                multi-peptide serum base. Other kits follow the same idea —
-                actives sealed fresh until you mix.
+                Pre-mixed store peptides lose potency on the shelf. WellPept
+                ships them fresh and dry — you blend into the base at home.
+                Flagship is <strong>1 g GHK-Cu</strong>; the rest cover lines,
+                expression zones, eyes, or an all-rounder.
               </p>
             </div>
           </div>
