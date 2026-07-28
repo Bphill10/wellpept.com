@@ -11,7 +11,7 @@ import {
 /** Default retail markup applied on top of vendor cost after approval.
  *  Final catalog price is marked up, then rounded UP to the nearest $5.
  */
-export const MARKUP = 0.4;
+export const MARKUP = 0.5;
 
 export function retailFromVendor(vendorCost) {
   const marked =
