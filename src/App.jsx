@@ -635,54 +635,47 @@ export default function App() {
       <header className="site-header">
         <div className="header-top">
           <div className="container header-top-inner">
-            <span>
+            <span className="header-top-msg">
               {labUnlocked
-                ? "Undisclosed · Research peptides · Multi-vendor"
-                : "WellPept · Clinical skincare · Cobalt purity · US shipping"}
+                ? "Undisclosed · Research peptides · US only"
+                : "Fresh topical peptides · Twist-cap activation · US shipping"}
             </span>
             <span className="header-top-links">
               {labUnlocked ? (
-                <>
-                  <button type="button" onClick={() => setView(VIEWS.calculator)}>
-                    Peptide calculator
-                  </button>
-                  <button type="button" onClick={() => setView(VIEWS.vendor)}>
-                    Sell on Undisclosed
-                  </button>
-                  <button type="button" onClick={lockLabMenu}>
-                    Back to WellPept
-                  </button>
-                </>
+                <button type="button" onClick={lockLabMenu}>
+                  Exit to WellPept
+                </button>
               ) : (
                 <button
                   type="button"
                   onClick={() =>
                     document
-                      .getElementById("ritual")
+                      .getElementById("fresh-mixes")
                       ?.scrollIntoView({ behavior: "smooth" })
                   }
                 >
-                  The ritual
+                  Shop Fresh Mix
                 </button>
               )}
             </span>
           </div>
         </div>
+
         <div className="container header-inner">
           <button className="brand" onClick={handleBrandClick} type="button">
             <img
               src={labUnlocked ? "/ud-monogram.svg" : "/wp-monogram.svg"}
               alt={labUnlocked ? "Undisclosed" : "WellPept"}
               className="brand-logo"
-              width={54}
-              height={54}
+              width={44}
+              height={44}
             />
             <span className="brand-text">
               <span className="brand-mark">
                 {labUnlocked ? "Undisclosed" : "WellPept"}
               </span>
               <span className="brand-sub">
-                {labUnlocked ? "Research lab" : "Skincare"}
+                {labUnlocked ? "Research lab" : "Clinical skincare"}
               </span>
             </span>
           </button>
@@ -728,10 +721,22 @@ export default function App() {
               </button>
             </div>
           ) : (
-            <div className="search-wrap skin-nav-links">
+            <nav className="header-nav" aria-label="WellPept">
               <button
                 type="button"
-                className="ghost-btn"
+                className="header-nav-link"
+                onClick={() => {
+                  setView(VIEWS.skincare);
+                  document
+                    .getElementById("fresh-mixes")
+                    ?.scrollIntoView({ behavior: "smooth" });
+                }}
+              >
+                Fresh Mix
+              </button>
+              <button
+                type="button"
+                className="header-nav-link"
                 onClick={() => {
                   setView(VIEWS.skincare);
                   document
@@ -739,20 +744,20 @@ export default function App() {
                     ?.scrollIntoView({ behavior: "smooth" });
                 }}
               >
-                Shop
+                Ready
               </button>
               <button
                 type="button"
-                className="ghost-btn"
+                className="header-nav-link"
                 onClick={() =>
                   document
                     .getElementById("ritual")
                     ?.scrollIntoView({ behavior: "smooth" })
                 }
               >
-                Ritual
+                How it works
               </button>
-            </div>
+            </nav>
           )}
 
           <div className="header-actions">
@@ -789,11 +794,11 @@ export default function App() {
             )}
             <button
               type="button"
-              className="icon-btn cart-btn"
+              className="header-bag"
               onClick={() => setView(VIEWS.cart)}
-              aria-label="Open cart"
+              aria-label="Open bag"
             >
-              <ShoppingCart size={18} />
+              <ShoppingCart size={17} />
               <span className="cart-label">{labUnlocked ? "Cart" : "Bag"}</span>
               {cartCount > 0 && (
                 <span className={`cart-count ${cartPulse ? "pulse" : ""}`}>
@@ -803,7 +808,8 @@ export default function App() {
             </button>
           </div>
         </div>
-        {labUnlocked ? (
+
+        {labUnlocked && (
           <nav className="dept-bar" aria-label="Categories">
             <div className="container dept-bar-inner">
               {CATEGORIES.map((c) => (
@@ -822,15 +828,6 @@ export default function App() {
                   {c}
                 </button>
               ))}
-            </div>
-          </nav>
-        ) : (
-          <nav className="dept-bar skin-dept" aria-label="Skincare">
-            <div className="container dept-bar-inner">
-              <span className="dept-link active">Skincare</span>
-              <span className="dept-link quiet">Serums</span>
-              <span className="dept-link quiet">Creams</span>
-              <span className="dept-link quiet">Ritual</span>
             </div>
           </nav>
         )}
