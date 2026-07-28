@@ -385,11 +385,10 @@ export default function App() {
                         </div>
                         <div className="product-body">
                           <div className="meta">
-                            {product.category} · {product.mg}mg ·{" "}
-                            {product.purity}
+                            {product.category} · SKU {product.sku}
                           </div>
                           <h3>{product.name}</h3>
-                          <div className="meta">Sold by {product.vendor}</div>
+                          <div className="meta">{product.form}</div>
                           <div className="rating">
                             ★ {product.rating.toFixed(1)} · {product.reviews}{" "}
                             reviews
@@ -401,6 +400,9 @@ export default function App() {
                             <span className="compare">
                               {formatMoney(product.compareAt)}
                             </span>
+                          </div>
+                          <div className="meta">
+                            per {product.unitLabel} · {product.vendor}
                           </div>
                         </div>
                       </button>
@@ -489,7 +491,7 @@ function ProductDetail({ product, onBack, onAdd }) {
               {product.blurb}
             </p>
             <div className="meta" style={{ marginTop: "0.75rem" }}>
-              {product.form} · {product.mg}mg · Purity {product.purity}
+              {product.form} · Purity {product.purity}
             </div>
             <div className="rating" style={{ marginTop: "0.35rem" }}>
               ★ {product.rating.toFixed(1)} · {product.reviews} reviews
@@ -501,8 +503,8 @@ function ProductDetail({ product, onBack, onAdd }) {
                 <span className="compare">{formatMoney(product.compareAt)}</span>
               </div>
               <div className="meta">
-                Vendor cost {formatMoney(product.vendorCost)} → retail includes{" "}
-                {Math.round(MARKUP * 100)}% markup
+                per {product.unitLabel} (vendor cost {formatMoney(product.vendorCost)} +{" "}
+                {Math.round(MARKUP * 100)}%)
               </div>
               <div className="meta">
                 <Truck size={14} style={{ display: "inline", marginRight: 6 }} />
@@ -583,7 +585,7 @@ function CartPage({ cart, onBack, onUpdateQty, onRemove }) {
                     <div>
                       <strong>{line.name}</strong>
                       <div className="meta">
-                        {line.mg}mg · {line.vendor}
+                        {line.form} · {line.vendor}
                       </div>
                       <div className="qty-controls">
                         <button
@@ -711,8 +713,9 @@ function VendorPortal({
           </p>
 
           <div className="notice">
-            No Telegram scraping. Vendors submit lists in this portal; nothing
-            goes live until you approve it in the Approve panel.
+            Catalog is loaded from approved vendor price lists. Changsha Premium
+            July 2026 (182 SKUs) is pre-imported. New vendors submit here;
+            nothing goes live until you approve it.
           </div>
 
           <div className="tabs">

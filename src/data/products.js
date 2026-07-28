@@ -1,3 +1,8 @@
+import {
+  CHANGSHA_SUBMISSIONS,
+  CHANGSHA_VENDOR,
+} from "./changshaPremium";
+
 /** Default retail markup applied on top of vendor cost after approval. */
 export const MARKUP = 0.4;
 
@@ -57,192 +62,35 @@ const BLURBS = {
     "Tetrapeptide associated with telomerase and aging-pathway research.",
 };
 
-/** Seed vendors shown before any local submissions exist. */
-export const SEED_VENDORS = [
-  {
-    id: "v-northlab",
-    name: "NorthLab Research",
-    email: "supply@northlab.example",
-    status: "approved",
-    minOrder: 150,
-    shippingFlat: 18,
-    shippingNote: "Cold-pack USPS Priority",
-    createdAt: "2026-07-10T12:00:00.000Z",
-  },
-  {
-    id: "v-apex",
-    name: "Apex Peptide Supply",
-    email: "desk@apex.example",
-    status: "approved",
-    minOrder: 200,
-    shippingFlat: 22,
-    shippingNote: "2-day insulated",
-    createdAt: "2026-07-12T12:00:00.000Z",
-  },
-  {
-    id: "v-clearwater",
-    name: "Clearwater Bio",
-    email: "orders@clearwater.example",
-    status: "approved",
-    minOrder: 100,
-    shippingFlat: 15,
-    shippingNote: "Ground with ice pack",
-    createdAt: "2026-07-14T12:00:00.000Z",
-  },
-];
+/** Demo vendor kept pending so the approval queue still has an example. */
+const DEMO_PENDING_VENDOR = {
+  id: "v-demo-pending",
+  name: "Demo Vendor (pending)",
+  email: "demo@example.com",
+  status: "pending",
+  minOrder: 100,
+  shippingFlat: 20,
+  shippingNote: "Example submission only",
+  createdAt: "2026-07-27T12:00:00.000Z",
+};
 
-/** Seed price-list lines awaiting/approved in the catalog pipeline. */
+/** Seed vendors: Changsha Premium (imported price list) + optional demo queue item. */
+export const SEED_VENDORS = [CHANGSHA_VENDOR, DEMO_PENDING_VENDOR];
+
+/** Seed submissions: 182 approved Changsha lines + one pending demo. */
 export const SEED_SUBMISSIONS = [
-  {
-    id: "s-bpc",
-    vendorId: "v-northlab",
-    sku: "BPC-157-5MG",
-    name: "BPC-157",
-    form: "Lyophilized vial",
-    purity: "99.1%",
-    mg: 5,
-    vendorCost: 28,
-    category: "Recovery",
-    status: "approved",
-    submittedAt: "2026-07-20T10:00:00.000Z",
-    reviewedAt: "2026-07-20T16:00:00.000Z",
-  },
-  {
-    id: "s-tb500",
-    vendorId: "v-northlab",
-    sku: "TB500-5MG",
-    name: "TB-500",
-    form: "Lyophilized vial",
-    purity: "98.9%",
-    mg: 5,
-    vendorCost: 32,
-    category: "Recovery",
-    status: "approved",
-    submittedAt: "2026-07-20T10:00:00.000Z",
-    reviewedAt: "2026-07-20T16:00:00.000Z",
-  },
-  {
-    id: "s-ghk",
-    vendorId: "v-northlab",
-    sku: "GHK-CU-50MG",
-    name: "GHK-Cu",
-    form: "Lyophilized vial",
-    purity: "99.0%",
-    mg: 50,
-    vendorCost: 24,
-    category: "Cellular",
-    status: "approved",
-    submittedAt: "2026-07-20T10:00:00.000Z",
-    reviewedAt: "2026-07-20T16:00:00.000Z",
-  },
-  {
-    id: "s-cjc",
-    vendorId: "v-apex",
-    sku: "CJC-2MG",
-    name: "CJC-1295 (no DAC)",
-    form: "Lyophilized vial",
-    purity: "98.7%",
-    mg: 2,
-    vendorCost: 36,
-    category: "Growth",
-    status: "approved",
-    submittedAt: "2026-07-22T11:00:00.000Z",
-    reviewedAt: "2026-07-22T17:00:00.000Z",
-  },
-  {
-    id: "s-ipa",
-    vendorId: "v-apex",
-    sku: "IPA-5MG",
-    name: "Ipamorelin",
-    form: "Lyophilized vial",
-    purity: "99.2%",
-    mg: 5,
-    vendorCost: 30,
-    category: "Growth",
-    status: "approved",
-    submittedAt: "2026-07-22T11:00:00.000Z",
-    reviewedAt: "2026-07-22T17:00:00.000Z",
-  },
-  {
-    id: "s-nad",
-    vendorId: "v-apex",
-    sku: "NAD-500MG",
-    name: "NAD+",
-    form: "Lyophilized vial",
-    purity: "99.4%",
-    mg: 500,
-    vendorCost: 42,
-    category: "Cellular",
-    status: "approved",
-    submittedAt: "2026-07-22T11:00:00.000Z",
-    reviewedAt: "2026-07-22T17:00:00.000Z",
-  },
-  {
-    id: "s-selank",
-    vendorId: "v-clearwater",
-    sku: "SEL-5MG",
-    name: "Selank",
-    form: "Lyophilized vial",
-    purity: "98.8%",
-    mg: 5,
-    vendorCost: 26,
-    category: "Cognitive",
-    status: "approved",
-    submittedAt: "2026-07-25T09:00:00.000Z",
-    reviewedAt: "2026-07-25T15:00:00.000Z",
-  },
-  {
-    id: "s-semax",
-    vendorId: "v-clearwater",
-    sku: "SEM-5MG",
-    name: "Semax",
-    form: "Lyophilized vial",
-    purity: "99.0%",
-    mg: 5,
-    vendorCost: 27,
-    category: "Cognitive",
-    status: "approved",
-    submittedAt: "2026-07-25T09:00:00.000Z",
-    reviewedAt: "2026-07-25T15:00:00.000Z",
-  },
-  {
-    id: "s-mots",
-    vendorId: "v-clearwater",
-    sku: "MOTS-10MG",
-    name: "MOTS-c",
-    form: "Lyophilized vial",
-    purity: "98.6%",
-    mg: 10,
-    vendorCost: 48,
-    category: "Metabolic",
-    status: "approved",
-    submittedAt: "2026-07-25T09:00:00.000Z",
-    reviewedAt: "2026-07-25T15:00:00.000Z",
-  },
-  {
-    id: "s-epit",
-    vendorId: "v-clearwater",
-    sku: "EPIT-20MG",
-    name: "Epithalon",
-    form: "Lyophilized vial",
-    purity: "99.1%",
-    mg: 20,
-    vendorCost: 34,
-    category: "Longevity",
-    status: "approved",
-    submittedAt: "2026-07-25T09:00:00.000Z",
-    reviewedAt: "2026-07-25T15:00:00.000Z",
-  },
+  ...CHANGSHA_SUBMISSIONS,
   {
     id: "s-pending-demo",
-    vendorId: "v-apex",
-    sku: "AOD-5MG",
-    name: "AOD-9604",
-    form: "Lyophilized vial",
-    purity: "98.5%",
+    vendorId: "v-demo-pending",
+    sku: "DEMO-5MG",
+    name: "Demo peptide",
+    form: "Lyophilized vial · 5mg*10vials",
+    purity: "≥98%",
     mg: 5,
-    vendorCost: 29,
-    category: "Metabolic",
+    vendorCost: 50,
+    category: "Research",
+    packVials: 10,
     status: "pending",
     submittedAt: "2026-07-27T14:30:00.000Z",
     reviewedAt: null,
@@ -250,14 +98,33 @@ export const SEED_SUBMISSIONS = [
 ];
 
 export function guessCategory(name) {
-  return CATEGORY_MAP[name] || "Research";
+  if (CATEGORY_MAP[name]) return CATEGORY_MAP[name];
+  const n = name.toUpperCase();
+  if (n.includes("BPC") || n.includes("TB ") || n.includes("KPV")) return "Recovery";
+  if (n.includes("SEMAX") || n.includes("SELANK") || n.includes("DIHEXA")) return "Cognitive";
+  if (n.includes("CJC") || n.includes("IPAM") || n.includes("IGF") || n.includes("MGF") || n.includes("GH ")) return "Growth";
+  if (n.includes("NAD") || n.includes("GHK") || n.includes("LL37")) return "Cellular";
+  if (n.includes("MOTS") || n.includes("AOD") || n.includes("TIRZ") || n.includes("SEMA") || n.includes("LIRA")) return "Metabolic";
+  if (n.includes("EPITHAL")) return "Longevity";
+  return "Research";
 }
 
 export function guessBlurb(name) {
-  return (
-    BLURBS[name] ||
-    "Research peptide for laboratory use only. Not for human consumption."
-  );
+  if (BLURBS[name]) return BLURBS[name];
+  const n = name.toUpperCase();
+  if (n.includes("BPC")) {
+    return "Pentadecapeptide studied for tissue signaling and recovery pathways in research models.";
+  }
+  if (n.includes("TB") || n.includes("THYMOSIN")) {
+    return "Thymosin-related peptide used in cytoskeletal and mobility research.";
+  }
+  if (n.includes("SEMAX") || n.includes("SELANK")) {
+    return "Nootropic peptide examined in cognitive and neuroprotection research.";
+  }
+  if (n.includes("TIRZ") || n.includes("SEMA") || n.includes("LIRA")) {
+    return "GLP-related peptide studied in metabolic and appetite research models.";
+  }
+  return "Research peptide for laboratory use only. Not for human consumption.";
 }
 
 /**
@@ -280,6 +147,7 @@ export function buildCatalog(vendors, submissions) {
 
   return [...bySku.values()].map((item, index) => {
     const price = retailFromVendor(item.vendorCost);
+    const packVials = Number(item.packVials) || 1;
     return {
       id: `p-${item.sku.toLowerCase()}`,
       submissionId: item.id,
@@ -288,6 +156,8 @@ export function buildCatalog(vendors, submissions) {
       form: item.form,
       purity: item.purity,
       mg: item.mg,
+      packVials,
+      unitLabel: packVials > 1 ? `${packVials}-pack` : "each",
       category: item.category || guessCategory(item.name),
       blurb: guessBlurb(item.name),
       vendorId: item.vendorId,
@@ -301,7 +171,7 @@ export function buildCatalog(vendors, submissions) {
       rating: 4.4 + ((index * 7) % 6) / 10,
       reviews: 12 + index * 9,
       inStock: true,
-      ships: "Drop-ships in 2–4 business days",
+      ships: "Drop-ships in 7–15 business days",
       badge: index < 3 ? "Best price" : null,
     };
   });

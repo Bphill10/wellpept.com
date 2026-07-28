@@ -4,7 +4,7 @@ import {
   buildCatalog,
 } from "./products";
 
-const STORAGE_KEY = "undisclosed-marketplace-v1";
+const STORAGE_KEY = "undisclosed-marketplace-v2";
 
 function loadState() {
   try {
