@@ -406,6 +406,8 @@ export function normalizeCompoundKey(name) {
   return String(name || "")
     .toLowerCase()
     .replace(/[–—]/g, "-")
+    .replace(/\([^)]*\)/g, " ")
+    .replace(/^\+\s*/, "")
     .replace(/[^a-z0-9]+/g, " ")
     .replace(/\b(\d+(?:\.\d+)?)\s*mgs?\b/g, "")
     .replace(/\s+/g, " ")

@@ -39,6 +39,7 @@ import PeptideCalculator, {
 } from "./components/PeptideCalculator";
 import GeneratedVial from "./components/GeneratedVial";
 import PriceListDropzone from "./components/PriceListDropzone";
+import PriceCompare from "./components/PriceCompare";
 import { THE_LOBSTER_VENDOR } from "./data/theLobster";
 import {
   LYOPHILIZED_QC,
@@ -1107,11 +1108,9 @@ function ProductCard({ listing, onOpen, onAdd }) {
         },
       ];
   const [offerId, setOfferId] = useState(listing.defaultVariantId);
-  const [showCompare, setShowCompare] = useState(false);
 
   useEffect(() => {
     setOfferId(listing.defaultVariantId);
-    setShowCompare(false);
   }, [listing.id, listing.defaultVariantId]);
 
   const strength =
@@ -1121,6 +1120,9 @@ function ProductCard({ listing, onOpen, onAdd }) {
   const product = offers.find((o) => o.id === offerId) || offers[0];
   const multiStrength = strengths.length > 1;
   const multiVendor = offers.length > 1;
+  const listingFrom = [...(listing.variants || [])]
+    .filter((v) => v.price != null)
+    .sort((a, b) => Number(a.price) - Number(b.price))[0]?.price;
 
   if (!product) return null;
 
@@ -1163,9 +1165,9 @@ function ProductCard({ listing, onOpen, onAdd }) {
             ) : (
               <>
                 <span className="price">{formatMoney(product.price)}</span>
-                {multiVendor && strength.lowestPrice != null && (
+                {listingFrom != null && listing.variants.length > 1 && (
                   <span className="price-from">
-                    from {formatMoney(strength.lowestPrice)}
+                    from {formatMoney(listingFrom)}
                   </span>
                 )}
               </>
@@ -1214,58 +1216,14 @@ function ProductCard({ listing, onOpen, onAdd }) {
         </label>
       )}
 
-      {multiVendor && (
-        <div className="compare-actions" onClick={(e) => e.stopPropagation()}>
-          <button
-            type="button"
-            className="ghost-btn compare-toggle"
-            onClick={() => setShowCompare((v) => !v)}
-          >
-            {showCompare ? "Hide compare" : "Compare prices"}
-          </button>
-        </div>
-      )}
-
-      {showCompare && multiVendor && (
-        <div className="compare-panel" onClick={(e) => e.stopPropagation()}>
-          <table className="compare-table">
-            <thead>
-              <tr>
-                <th>Vendor</th>
-                <th>Price</th>
-                <th>Ship</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {offers.map((o, i) => (
-                <tr
-                  key={o.id}
-                  className={o.id === product.id ? "is-selected" : ""}
-                >
-                  <td>
-                    {o.vendor}
-                    {i === 0 && o.price != null ? (
-                      <span className="best-price-tag">Best</span>
-                    ) : null}
-                  </td>
-                  <td>{o.price == null ? "—" : formatMoney(o.price)}</td>
-                  <td>{formatMoney(o.shippingFlat || 0)}</td>
-                  <td>
-                    <button
-                      type="button"
-                      className="soft-btn compare-select"
-                      onClick={() => setOfferId(o.id)}
-                    >
-                      {o.id === product.id ? "Selected" : "Select"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <PriceCompare
+        listing={listing}
+        product={product}
+        onSelect={setOfferId}
+        defaultOpen={false}
+        defaultScope={listing.vendorCount > 1 ? "all" : "strength"}
+        compact
+      />
 
       <button
         type="button"
@@ -1290,7 +1248,6 @@ function ProductDetail({
   onAdd,
   onCalculate,
 }) {
-  const [showCompare, setShowCompare] = useState(true);
   const strengths = listing.strengths?.length
     ? listing.strengths
     : [
@@ -1310,6 +1267,9 @@ function ProductDetail({
   const offers = strength?.offers || [product];
   const multiStrength = strengths.length > 1;
   const multiVendor = offers.length > 1;
+  const listingFrom = [...(listing.variants || [])]
+    .filter((v) => v.price != null)
+    .sort((a, b) => Number(a.price) - Number(b.price))[0]?.price;
 
   return (
     <section className="panel-page fade">
@@ -1355,70 +1315,16 @@ function ProductDetail({
               Undisclosed marketplace
             </div>
 
-            {multiVendor && (
-              <div className="detail-compare">
-                <div className="detail-compare-head">
-                  <h2 className="detail-summary-label">Compare prices</h2>
-                  <button
-                    type="button"
-                    className="ghost-btn compare-toggle"
-                    onClick={() => setShowCompare((v) => !v)}
-                  >
-                    {showCompare ? "Hide" : "Show"} {offers.length} vendors
-                  </button>
-                </div>
-                {showCompare && (
-                  <table className="compare-table compare-table--detail">
-                    <thead>
-                      <tr>
-                        <th>Vendor</th>
-                        <th>Price</th>
-                        <th>Shipping</th>
-                        <th>Min order</th>
-                        <th />
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {offers.map((o, i) => (
-                        <tr
-                          key={o.id}
-                          className={o.id === product.id ? "is-selected" : ""}
-                        >
-                          <td>
-                            {o.vendor}
-                            {o.featured ? (
-                              <span className="best-price-tag">Featured</span>
-                            ) : null}
-                            {i === 0 && o.price != null && !o.featured ? (
-                              <span className="best-price-tag">Best</span>
-                            ) : null}
-                          </td>
-                          <td>
-                            {o.price == null ? "—" : formatMoney(o.price)}
-                          </td>
-                          <td>
-                            {formatMoney(o.shippingFlat || 0)}
-                            {o.shippingNote ? (
-                              <div className="compare-note">{o.shippingNote}</div>
-                            ) : null}
-                          </td>
-                          <td>{formatMoney(o.minOrder || 0)}</td>
-                          <td>
-                            <button
-                              type="button"
-                              className="soft-btn compare-select"
-                              onClick={() => onSelectVariant(o.id)}
-                            >
-                              {o.id === product.id ? "Selected" : "Select"}
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            )}
+            <div className="detail-compare">
+              <h2 className="detail-summary-label">Compare prices</h2>
+              <PriceCompare
+                listing={listing}
+                product={product}
+                onSelect={onSelectVariant}
+                defaultOpen
+                defaultScope="all"
+              />
+            </div>
           </div>
           <div className="buy-box panel">
             {multiStrength && (
@@ -1463,9 +1369,9 @@ function ProductDetail({
             <>
               <div className="price-row">
                 <span className="price">{formatMoney(product.price)}</span>
-                {multiVendor && strength?.lowestPrice != null && (
+                {listingFrom != null && listing.variants.length > 1 && (
                   <span className="price-from">
-                    from {formatMoney(strength.lowestPrice)}
+                    from {formatMoney(listingFrom)}
                   </span>
                 )}
               </div>
@@ -1493,15 +1399,6 @@ function ProductDetail({
               Vendor minimum order {formatMoney(product.minOrder)} · Fulfilled by{" "}
               {product.vendor}
             </div>
-            {multiVendor && (
-              <button
-                type="button"
-                className="soft-btn"
-                onClick={() => setShowCompare(true)}
-              >
-                Compare {offers.length} vendor prices
-              </button>
-            )}
             <button type="button" className="soft-btn" onClick={onCalculate}>
               <Calculator size={16} /> Calculate reconstitution
             </button>

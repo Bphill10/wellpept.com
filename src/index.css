@@ -1363,6 +1363,69 @@ a.cart-cta {
   margin-bottom: 0.5rem;
 }
 
+.price-compare {
+  margin: 0 0.85rem 0.65rem;
+}
+
+.price-compare--compact {
+  margin-top: 0.15rem;
+}
+
+.buy-box .price-compare,
+.detail-compare .price-compare {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.price-compare-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.price-compare-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: auto;
+  border-radius: 999px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+.price-compare-count {
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: 0.72rem;
+}
+
+.price-compare-body {
+  margin-top: 0.55rem;
+}
+
+.price-compare-scopes {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.45rem;
+}
+
+.price-compare-scopes button {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink-soft);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.price-compare-scopes button.is-active {
+  border-color: var(--gold, #c9a227);
+  background: rgba(201, 162, 39, 0.12);
+  color: var(--ink);
+}
+
 .compare-table--detail {
   border: 1px solid var(--line);
   border-radius: 10px;
