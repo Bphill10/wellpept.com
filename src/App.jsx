@@ -243,11 +243,19 @@ export default function App() {
   }
 
   function addSkincareToCart(product) {
+    const mixLabel =
+      product.kind === "mix" && product.buildSummary
+        ? `${product.buildSummary.base} · ${product.buildSummary.peptides.join(" + ")}${
+            product.buildSummary.customs?.length
+              ? ` · +${product.buildSummary.customs.join(", ")}`
+              : ""
+          }`
+        : product.size;
     addToCart({
       id: product.id,
       name: product.name,
       price: product.price,
-      form: product.size,
+      form: mixLabel,
       mg: 0,
       unit: "",
       unitLabel: product.size,
@@ -256,12 +264,21 @@ export default function App() {
       shippingFlat: 8,
       minOrder: 0,
       shippingNote: "US ground · cold-pack when needed",
-      sku: String(product.id).toUpperCase(),
+      sku: String(product.id).toUpperCase().slice(0, 48),
       category: product.kind === "mix" ? "Fresh Mix" : "Skincare",
       skin: true,
       mix: product.kind === "mix",
       ships: product.kind === "mix" ? "Fresh pack · 2–4 days" : "Ships in 2–4 days",
+      legalNote:
+        product.kind === "mix"
+          ? "Cosmetic topical peptides only — not for injection or medical use."
+          : undefined,
     });
+    setFlash(
+      product.kind === "mix"
+        ? `Added ${product.name} — cosmetic use only`
+        : `Added ${product.name}`
+    );
   }
 
   useEffect(() => {
@@ -650,11 +667,11 @@ export default function App() {
                   type="button"
                   onClick={() =>
                     document
-                      .getElementById("fresh-mixes")
+                      .getElementById("build")
                       ?.scrollIntoView({ behavior: "smooth" })
                   }
                 >
-                  Shop Fresh Mix
+                  Build your serum
                 </button>
               )}
             </span>
@@ -728,11 +745,11 @@ export default function App() {
                 onClick={() => {
                   setView(VIEWS.skincare);
                   document
-                    .getElementById("fresh-mixes")
+                    .getElementById("build")
                     ?.scrollIntoView({ behavior: "smooth" });
                 }}
               >
-                Fresh Mix
+                Build serum
               </button>
               <button
                 type="button"
@@ -944,6 +961,18 @@ export default function App() {
                         {formatMoney(skinProduct.price)}
                       </strong>
                     </div>
+                    {skinProduct.kind === "mix" && skinProduct.legal && (
+                      <div className="sk-legal-box sk-legal-box--pdp">
+                        <p className="sk-legal-title">Peptide acknowledgment</p>
+                        <p>{skinProduct.legal.medium}</p>
+                        <ul className="sk-legal-long sk-legal-long--compact">
+                          {skinProduct.legal.long.map((line) => (
+                            <li key={line.slice(0, 28)}>{line}</li>
+                          ))}
+                        </ul>
+                        <p className="meta">{skinProduct.legal.short}</p>
+                      </div>
+                    )}
                     <button
                       type="button"
                       className="primary-btn"
@@ -1583,8 +1612,11 @@ export default function App() {
               </>
             ) : (
               <>
-                WellPept skincare ships to United States addresses only. For
-                external cosmetic use as directed on each product.
+                WellPept Fresh Mix products contain topical cosmetic peptides for
+                external use on intact skin only. Not for injection, ingestion, or
+                medical use. Not evaluated by the FDA. Not intended to diagnose,
+                treat, cure, or prevent any disease. Ships to United States
+                addresses only. See full peptide notices on product pages.
               </>
             )}
           </p>

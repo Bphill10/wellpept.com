@@ -2,10 +2,13 @@ import React from "react";
 import { ArrowRight, Droplets, FlaskConical, Moon, Sparkles } from "lucide-react";
 import {
   SKINCARE_PRODUCTS,
-  SERUM_COMBOS,
   SKINCARE_RITUAL,
   FLAGSHIP_SERUM,
+  PEPTIDE_LEGAL,
+  PEPTIDES,
+  SERUM_BASES,
 } from "../data/skincare";
+import SerumBuilder from "./SerumBuilder";
 import ChargebeeCheckout from "./ChargebeeCheckout";
 import { formatMoney } from "../data/products";
 
@@ -81,31 +84,28 @@ export default function SkincareHome({
           </div>
           <div className="hero-brand-rule rise-delay" aria-hidden="true" />
           <p className="hero-tagline rise-delay">
-            Dry GHK-Cu in the cap. Twist. Activate.
+            Four peptides. Three bases. One serum.
           </p>
           <p className="hero-copy rise-delay">
-            Flagship packaging: 1 g copper peptide powder locked in a twist-on
-            cap that breaks into the Buffet-style serum — fresh the moment you
-            open it, not months on a shelf.
+            Mix and match — add 1, 2, 3, or all four peptides to a single base.
+            Dry powder stays sealed until you twist and activate.
           </p>
           <div className="hero-cta rise-delay">
             <button
               type="button"
               className="primary-btn"
-              onClick={() => onOpenProduct?.(FLAGSHIP_SERUM)}
+              onClick={() =>
+                document.getElementById("build")?.scrollIntoView({ behavior: "smooth" })
+              }
             >
-              Shop GHK-Cu Fresh Mix
+              Build your serum
             </button>
             <button
               type="button"
               className="soft-btn"
-              onClick={() =>
-                document
-                  .getElementById("fresh-mixes")
-                  ?.scrollIntoView({ behavior: "smooth" })
-              }
+              onClick={() => onOpenProduct?.(FLAGSHIP_SERUM)}
             >
-              All Fresh Mixes
+              Flagship GHK-Cu
             </button>
           </div>
         </div>
@@ -116,31 +116,29 @@ export default function SkincareHome({
           <div className="trust-item">
             <FlaskConical size={22} />
             <div>
-              <strong>Peptides that don’t sit degrading</strong>
-              <p>
-                Store serums lose punch on the shelf. Ours stay dry until you mix.
-              </p>
+              <strong>4 peptides · mix freely</strong>
+              <p>GHK-Cu, Matrixyl 3000, Argireline, Eyeseryl — any combination in one bottle.</p>
             </div>
           </div>
           <div className="trust-item">
             <Droplets size={22} />
             <div>
-              <strong>Mix in under a minute</strong>
-              <p>Peptide vial + stable base + empty dropper. Shake and go.</p>
+              <strong>3 bases</strong>
+              <p>Buffet-style, light HA, or eye vehicle — pick the feel, then load peptides.</p>
             </div>
           </div>
           <div className="trust-item">
             <Sparkles size={22} />
             <div>
-              <strong>Built for real needs</strong>
-              <p>Firmness, lines, expression zones, under-eyes — or one multi kit.</p>
+              <strong>Custom add-ons</strong>
+              <p>Optional Syn-Coll, SNAP-8, or extra GHK-Cu on the same order.</p>
             </div>
           </div>
           <div className="trust-item">
             <Moon size={22} />
             <div>
-              <strong>Use while potent</strong>
-              <p>Each kit lists how long the blend stays at its best after mixing.</p>
+              <strong>Fresh until you mix</strong>
+              <p>Dry chambers and vials — activate when you’re ready, not months on a shelf.</p>
             </div>
           </div>
         </div>
@@ -151,13 +149,37 @@ export default function SkincareHome({
           <div className="section-head">
             <div>
               <p className="section-kicker">Fresh Mix</p>
-              <h2>Topical peptides, mixed when you’re ready</h2>
+              <h2>Your peptides. Your base. One bottle.</h2>
               <p>
-                Flagship uses a <strong>twist-cap powder chamber</strong> — dry
-                GHK-Cu loads in the cap, then breaks into the serum when you
-                twist. Other kits follow the same freshness idea for Matrixyl,
-                Argireline, eyes, and a multi all-rounder.
+                Choose one of three vehicles, then add any combination of our four core
+                topical peptides — or all four. Optional custom peptides ship as extra dry
+                vials on the same order.
               </p>
+            </div>
+          </div>
+
+          <div className="sk-lineup">
+            <div>
+              <p className="sk-lineup-label">Peptides</p>
+              <ul>
+                {PEPTIDES.map((p) => (
+                  <li key={p.id}>
+                    <strong>{p.name}</strong>
+                    <span>{p.need}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="sk-lineup-label">Bases</p>
+              <ul>
+                {SERUM_BASES.map((b) => (
+                  <li key={b.id}>
+                    <strong>{b.name}</strong>
+                    <span>{b.volume}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
 
@@ -189,9 +211,9 @@ export default function SkincareHome({
               <p>{FLAGSHIP_SERUM.blurb}</p>
               <ul className="flagship-mix-points">
                 <li>1 g dry GHK-Cu powder sealed in the twist-on cap</li>
-                <li>30 mL Buffet-style multi-peptide serum in the bottle</li>
-                <li>Twist to break the chamber — powder drops into serum</li>
-                <li>Shake until blue-green · ~3% once activated</li>
+                <li>30 mL Buffet-style base in the bottle</li>
+                <li>Or build your own — swap peptides and base below</li>
+                <li>Cosmetic use only · see peptide acknowledgment at checkout</li>
               </ul>
               <div className="price-row" style={{ margin: "0.85rem 0 1rem" }}>
                 <strong>{formatMoney(FLAGSHIP_SERUM.price)}</strong>
@@ -201,41 +223,36 @@ export default function SkincareHome({
                 <button
                   type="button"
                   className="primary-btn"
-                  onClick={() => onAddToCart?.(FLAGSHIP_SERUM)}
+                  onClick={() =>
+                    document.getElementById("build")?.scrollIntoView({ behavior: "smooth" })
+                  }
                 >
-                  Add flagship to bag
+                  Customize this mix
                 </button>
                 <button
                   type="button"
                   className="soft-btn"
-                  onClick={() => onOpenProduct?.(FLAGSHIP_SERUM)}
+                  onClick={() => onAddToCart?.(FLAGSHIP_SERUM)}
                 >
-                  Activation steps
+                  Add flagship to bag
                 </button>
               </div>
             </div>
           </article>
-
-          <div className="product-grid skin-grid" style={{ marginTop: "1.75rem" }}>
-            {SERUM_COMBOS.filter((p) => !p.featured).map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onOpenProduct={onOpenProduct}
-                onAddToCart={onAddToCart}
-              />
-            ))}
-          </div>
         </div>
       </section>
+
+      <div className="container">
+        <SerumBuilder onAdd={onAddToCart} onOpenProduct={onOpenProduct} />
+      </div>
 
       <section className="section section-tight" id="ritual">
         <div className="container">
           <div className="section-head">
             <div>
               <p className="section-kicker">How it works</p>
-              <h2>Twist. Activate. Apply.</h2>
-              <p>Dry peptide in the cap — released into serum only when you twist.</p>
+              <h2>Pick. Mix. Activate.</h2>
+              <p>One base, up to four peptides, optional customs — then twist when you’re ready.</p>
             </div>
           </div>
           <div className="skin-ritual-grid">
@@ -272,30 +289,43 @@ export default function SkincareHome({
         </div>
       </section>
 
+      <section className="section" id="peptide-legal">
+        <div className="container sk-legal-page">
+          <p className="section-kicker">Important</p>
+          <h2>Peptide product notices</h2>
+          <p className="sk-legal-lead">{PEPTIDE_LEGAL.medium}</p>
+          <ul className="sk-legal-long">
+            {PEPTIDE_LEGAL.long.map((line) => (
+              <li key={line.slice(0, 24)}>{line}</li>
+            ))}
+          </ul>
+          <p className="meta">{PEPTIDE_LEGAL.short}</p>
+        </div>
+      </section>
+
       <section className="section">
         <div className="container skin-about">
           <div>
             <p className="section-kicker">About</p>
             <h2>WellPept skincare</h2>
             <p>
-              Fresh Mix kits keep unstable actives sealed until you need them.
-              Ready formulas handle the rest — same clinical restraint, white
-              light, cobalt signal.
+              Fresh Mix keeps topical peptides dry until you activate them into your chosen
+              base. Ready formulas handle the rest — same clinical restraint, white light,
+              cobalt signal.
             </p>
             <p className="meta" style={{ marginTop: "1rem" }}>
-              Ships to United States addresses only. For external cosmetic use.
+              Ships to United States addresses only. For external cosmetic use. Not for
+              injection or medical use.
             </p>
           </div>
           <button
             type="button"
             className="primary-btn"
             onClick={() =>
-              document
-                .getElementById("fresh-mixes")
-                ?.scrollIntoView({ behavior: "smooth" })
+              document.getElementById("build")?.scrollIntoView({ behavior: "smooth" })
             }
           >
-            Browse Fresh Mixes <ArrowRight size={16} />
+            Build a serum <ArrowRight size={16} />
           </button>
         </div>
       </section>
@@ -308,8 +338,8 @@ export default function SkincareHome({
                 <p className="section-kicker">Membership</p>
                 <h2>Subscribe to the ritual</h2>
                 <p>
-                  Recurring Fresh Mix deliveries — manage billing in the customer
-                  portal after checkout.
+                  Recurring Fresh Mix deliveries — manage billing in the customer portal
+                  after checkout.
                 </p>
               </div>
             </div>
