@@ -14,7 +14,8 @@ import {
 export const MARKUP = 0.4;
 
 export function retailFromVendor(vendorCost) {
-  const marked = Number(vendorCost) * (1 + MARKUP);
+  const marked =
+    Math.round(Number(vendorCost) * (1 + MARKUP) * 100) / 100;
   if (!Number.isFinite(marked) || marked <= 0) return 0;
   return Math.ceil(marked / 5) * 5;
 }
