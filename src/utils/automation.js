@@ -55,6 +55,64 @@ export function buildCalculatorShareUrl({
   return `${origin}${pathname}?${params.toString()}`;
 }
 
+/** Suggested BAC / concentration / dose fields — same math as the calculator. */
+export function resolveCalculatorLabelFields({
+  name = "",
+  mass = "",
+  unit = "mg",
+  sku = "",
+  bacWater = "",
+  concentration = "",
+  doseRange = "",
+  qrPayload = "",
+} = {}) {
+  const massN = Number(mass);
+  const vialUnit = unit || "mg";
+  let dose;
+  let doseUnit;
+  if (vialUnit === "IU") {
+    dose = massN >= 100 ? 5 : 2;
+    doseUnit = "IU";
+  } else if (massN >= 10) {
+    dose = 1;
+    doseUnit = "mg";
+  } else {
+    dose = 250;
+    doseUnit = "mcg";
+  }
+
+  const bac = suggestedBacMl(massN, dose, doseUnit, 10);
+  const bacNum = bac != null ? Number(bac.toFixed(2)) : null;
+  const bacStr = bacNum != null ? `${bacNum} mL` : "";
+  const conc =
+    bacNum > 0
+      ? vialUnit === "IU"
+        ? `${Number((massN / bacNum).toFixed(2))} IU/mL`
+        : `${Number((massN / bacNum).toFixed(2))} mg/mL`
+      : "";
+  const doseText =
+    doseUnit === "mcg" ? `${dose} mcg (10 u)` : `${dose} ${doseUnit} (10 u)`;
+
+  return {
+    bacWater: bacWater || bacStr,
+    concentration: concentration || conc,
+    doseRange: doseRange || doseText,
+    dose,
+    doseUnit,
+    solution: bacNum != null ? String(bacNum) : "",
+    qrPayload:
+      qrPayload ||
+      buildCalculatorShareUrl({
+        name,
+        mass,
+        solution: bacNum != null ? String(bacNum) : "",
+        dose,
+        doseUnit,
+        unit: vialUnit,
+      }),
+  };
+}
+
 /** Suggested BAC so dose lands on `units` on a U-100 syringe. */
 export function suggestedBacMl(massMg, dose, doseUnit, units = 10) {
   const massN = Number(massMg);

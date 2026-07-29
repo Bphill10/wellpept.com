@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Download } from "lucide-react";
 import {
   drawGeneratedVial,
@@ -7,6 +7,7 @@ import {
   loadBrandVial,
   loadBrandVial10,
 } from "../utils/vialArt";
+import { resolveCalculatorLabelFields } from "../utils/automation";
 
 // Warm the photoreal vial photos so first paint is fast.
 if (typeof window !== "undefined") {
@@ -39,6 +40,22 @@ export default function GeneratedVial({
   const [png, setPng] = useState("");
   const resolvedMl = resolveVialMl({ form: form || subtitle, vialMl });
 
+  // Same calculator label fields used on the printable wrap / share link.
+  const labelFields = useMemo(
+    () =>
+      resolveCalculatorLabelFields({
+        name,
+        mass,
+        unit,
+        sku,
+        bacWater,
+        concentration,
+        doseRange,
+        qrPayload,
+      }),
+    [name, mass, unit, sku, bacWater, concentration, doseRange, qrPayload]
+  );
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -54,15 +71,15 @@ export default function GeneratedVial({
           category,
           mixText,
           doseRef,
-          bacWater,
-          concentration,
-          doseRange,
+          bacWater: labelFields.bacWater,
+          concentration: labelFields.concentration,
+          doseRange: labelFields.doseRange,
           summary,
           size,
-          reconstituted,
+          reconstituted: reconstituted || Boolean(labelFields.bacWater),
           vialMl: resolvedMl,
           form: form || subtitle,
-          qrPayload,
+          qrPayload: labelFields.qrPayload,
         });
         if (!cancelled) setPng(dataUrl);
       } catch (err) {
@@ -81,15 +98,12 @@ export default function GeneratedVial({
     category,
     mixText,
     doseRef,
-    bacWater,
-    concentration,
-    doseRange,
+    labelFields,
     summary,
     size,
     reconstituted,
     resolvedMl,
     form,
-    qrPayload,
   ]);
 
   function handleDownload() {

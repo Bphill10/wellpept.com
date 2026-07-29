@@ -881,91 +881,8 @@ function drawCoverImage(ctx, img, w, h) {
   ctx.drawImage(img, dx, dy, dw, dh);
 }
 
-/** Compact white clinical sticker bitmap for wrapping onto glass. */
-function createCompactSticker(options) {
-  const {
-    name = "Peptide",
-    mass = "",
-    unit = "mg",
-    sku = "",
-  } = options;
-  const dims = { w: 420, h: 210 };
-  const c =
-    typeof document !== "undefined" ? document.createElement("canvas") : null;
-  if (!c) return null;
-  c.width = dims.w;
-  c.height = dims.h;
-  const ctx = c.getContext("2d");
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-
-  // Matte paper face
-  roundRect(ctx, 0, 0, dims.w, dims.h, 10);
-  const paper = ctx.createLinearGradient(0, 0, dims.w, 0);
-  paper.addColorStop(0, "#f2f2f0");
-  paper.addColorStop(0.5, "#fafaf8");
-  paper.addColorStop(1, "#ecece8");
-  ctx.fillStyle = paper;
-  ctx.fill();
-
-  // Soft edge shadow / paper thickness
-  ctx.strokeStyle = "rgba(0,0,0,0.12)";
-  ctx.lineWidth = 2;
-  roundRect(ctx, 1, 1, dims.w - 2, dims.h - 2, 9);
-  ctx.stroke();
-
-  // Black left spine stripe
-  ctx.fillStyle = "#0a0a0a";
-  ctx.fillRect(0, 0, dims.w * 0.08, dims.h);
-
-  const left = dims.w * 0.12;
-  const maxW = dims.w * 0.76;
-
-  ctx.fillStyle = "#666";
-  ctx.font = `600 ${Math.max(11, dims.h * 0.09)}px Outfit, "Segoe UI", sans-serif`;
-  ctx.textAlign = "left";
-  ctx.textBaseline = "top";
-  ctx.fillText("UNDISCLOSED", left, dims.h * 0.08);
-  ctx.fillStyle = "#888";
-  ctx.font = `600 ${Math.max(9, dims.h * 0.07)}px Outfit, "Segoe UI", sans-serif`;
-  ctx.fillText("BROUGHT TO YOU BY WELLPEPT", left, dims.h * 0.2);
-
-  const shortName = String(name || "Peptide")
-    .replace(/\(.*?\)/g, "")
-    .trim()
-    .slice(0, 28);
-  ctx.fillStyle = "#0a0a0a";
-  let namePx = Math.max(16, dims.h * 0.18);
-  ctx.font = `700 ${namePx}px Outfit, "Segoe UI", sans-serif`;
-  while (namePx > 12 && ctx.measureText(shortName).width > maxW) {
-    namePx -= 1;
-    ctx.font = `700 ${namePx}px Outfit, "Segoe UI", sans-serif`;
-  }
-  ctx.fillText(shortName, left, dims.h * 0.38);
-
-  const strength =
-    mass !== "" && mass != null
-      ? `${mass} ${unit || "mg"}`
-      : "";
-  if (strength) {
-    ctx.fillStyle = "#1a1a1a";
-    ctx.font = `600 ${Math.max(13, dims.h * 0.12)}px Outfit, "Segoe UI", sans-serif`;
-    ctx.fillText(strength, left, dims.h * 0.6);
-  }
-
-  ctx.fillStyle = "#888";
-  ctx.font = `500 ${Math.max(9, dims.h * 0.07)}px Outfit, "Segoe UI", sans-serif`;
-  ctx.fillText(
-    sku ? `${sku} · RESEARCH ONLY` : "RESEARCH ONLY",
-    left,
-    dims.h * 0.8
-  );
-
-  return c;
-}
-
 /**
- * Photoreal vial + compact curved sticker on the cylinder.
+ * Photoreal vial + full calculator clinical wrap label on the cylinder.
  */
 function drawPhotorealVial(ctx, dims, options) {
   const {
@@ -974,6 +891,10 @@ function drawPhotorealVial(ctx, dims, options) {
     mass = "",
     unit = "mg",
     sku = "",
+    bacWater = "",
+    concentration = "",
+    doseRange = "",
+    qrPayload = "",
     isTen = false,
   } = options;
 
@@ -993,14 +914,23 @@ function drawPhotorealVial(ctx, dims, options) {
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, dims.w, dims.h);
 
-  // Label placement tuned to the studio photos (mid body of glass)
-  const bodyW = dims.w * (isTen ? 0.28 : 0.26);
+  // Wrap band on the glass body — sized for the full calculator label
+  const bodyW = dims.w * (isTen ? 0.3 : 0.28);
   const bodyX = dims.w / 2 - bodyW / 2;
-  const sleeveTop = dims.h * (isTen ? 0.42 : 0.4);
-  const sleeveH = dims.h * (isTen ? 0.2 : 0.18);
+  const sleeveTop = dims.h * (isTen ? 0.38 : 0.36);
+  const sleeveH = dims.h * (isTen ? 0.28 : 0.26);
 
-  const sticker = createCompactSticker({ name, mass, unit, sku });
-  drawCylindricalLabelWrap(ctx, sticker, {
+  const labelBmp = createWrapLabelBitmap({
+    name,
+    mass,
+    unit,
+    bacWater,
+    concentration,
+    doseRange,
+    sku,
+    qrPayload,
+  });
+  drawCylindricalLabelWrap(ctx, labelBmp, {
     cx: dims.w / 2,
     bodyX,
     bodyW,
@@ -1625,7 +1555,10 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   ctx.textBaseline = "middle";
   const brandHeaderPx = Math.max(8, dims.h * 0.042);
   ctx.font = `600 ${brandHeaderPx}px Outfit, "Segoe UI", sans-serif`;
-  ctx.fillText("—  UNDISCLOSED  —", midCx, dims.h * 0.1);
+  ctx.fillText("—  UNDISCLOSED  —", midCx, dims.h * 0.085);
+  ctx.fillStyle = muted;
+  ctx.font = `600 ${Math.max(7, dims.h * 0.032)}px Outfit, "Segoe UI", sans-serif`;
+  ctx.fillText("BROUGHT TO YOU BY WELLPEPT", midCx, dims.h * 0.145);
 
   const product = String(name || "PEPTIDE").toUpperCase();
   const nameFamily = '"Bebas Neue", "Arial Black", Impact, sans-serif';
@@ -1633,7 +1566,7 @@ function paintLabelTemplate(ctx, dims, options = {}) {
     ctx,
     product,
     contentW,
-    Math.max(30, dims.h * 0.2),
+    Math.max(28, dims.h * 0.175),
     nameFamily
   );
   ctx.font = `400 ${nameSize}px ${nameFamily}`;
