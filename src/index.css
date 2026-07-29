@@ -5379,7 +5379,11 @@ body:has(.app-shell--undisclosed)::before {
     justify-content: center;
   }
 
-  .product-grid,
+  .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
   .skin-grid {
     grid-template-columns: 1fr;
   }
