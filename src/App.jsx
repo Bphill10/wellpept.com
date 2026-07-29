@@ -780,7 +780,7 @@ export default function App() {
                 {labUnlocked ? "Undisclosed" : "WellPept"}
               </span>
               <span className="brand-sub">
-                {labUnlocked ? "Research lab" : "Renew skincare"}
+                {labUnlocked ? "Brought to you by WellPept" : "Renew skincare"}
               </span>
             </span>
           </button>
@@ -1152,13 +1152,12 @@ export default function App() {
                 <p className="hero-tagline rise-delay">
                   Research peptides. Same molecule. Darker mirror of WellPept.
                 </p>
-                <p className="hero-copy rise-delay">
-                  An alternate universe for the bench: approved near-source
-                  vendors, COAs, and catalog tools — inverse of the white-and-cobalt
-                  storefront, brought to you by WellPept.
-                </p>
                 <p className="ud-brought-by rise-delay">
-                  Brought to you by <strong>WellPept</strong>
+                  An alternate universe · brought to you by <strong>WellPept</strong>
+                </p>
+                <p className="hero-copy rise-delay">
+                  Approved near-source vendors, COAs, and catalog tools — the inverse
+                  of the white-and-cobalt storefront.
                 </p>
                 <div className="hero-cta rise-delay">
                   <button
@@ -1747,7 +1746,7 @@ export default function App() {
             <strong>{labUnlocked ? "Undisclosed" : "WellPept"}</strong>
             <div>
               {labUnlocked
-                ? "Research peptides for laboratory use · brought to you by WellPept"
+                ? "Brought to you by WellPept · research peptides for laboratory use"
                 : "Renew skincare. White light, cobalt signal"}
             </div>
             <p className="footer-contact">
@@ -1768,9 +1767,9 @@ export default function App() {
           <p className="disclaimer">
             {labUnlocked ? (
               <>
-                Undisclosed items are for laboratory research use only. Not for human
-                consumption, medical use, or household purposes. Ships to United
-                States addresses only.
+                Undisclosed is brought to you by WellPept. Items are for laboratory
+                research use only. Not for human consumption, medical use, or
+                household purposes. Ships to United States addresses only.
               </>
             ) : (
               <>
