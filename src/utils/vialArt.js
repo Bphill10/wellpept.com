@@ -1209,7 +1209,7 @@ function drawPhotorealVial(ctx, dims, options) {
     isTen = false,
   } = options;
 
-  // Black marble with white streaks, then cut the vial out of the studio plate
+  // Black marble with cobalt veins, then cut the vial out of the studio plate
   const seed = hashString(String(name || "vial")) || 42;
   drawBlackMarbleBackground(ctx, dims.w, dims.h, seed);
 
