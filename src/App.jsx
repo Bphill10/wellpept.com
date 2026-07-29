@@ -1474,6 +1474,9 @@ export default function App() {
                       <li>
                         Min order {formatMoney(THE_LOBSTER_VENDOR.minOrder)}
                       </li>
+                      <li>
+                        Flat shipping {formatMoney(THE_LOBSTER_VENDOR.shippingFlat)}
+                      </li>
                       <li>Request first · pay after supply check</li>
                       <li>US shipping only · up to 4 weeks after payment</li>
                     </ul>
