@@ -144,17 +144,23 @@ export default function App() {
   const [submissions, setSubmissions] = useState(initial.submissions);
   const [products, setProducts] = useState(initial.products);
 
-  const urlWantsLab = useMemo(
+  const urlWantsLabQuery = useMemo(
     () =>
+      // Query/hash only — pathname is tracked via routePath so Exit can clear it.
       labUnlockFromUrl(
         window.location.search,
         window.location.hash,
-        window.location.pathname
+        "/"
       ),
     []
   );
   const [labUnlocked, setLabUnlockedState] = useState(
-    () => urlWantsLab || isLabUnlocked()
+    () =>
+      urlWantsLabQuery ||
+      labUnlockFromPath(
+        typeof window !== "undefined" ? window.location.pathname : "/"
+      ) ||
+      isLabUnlocked()
   );
   const [routePath, setRoutePath] = useState(
     () => (typeof window !== "undefined" ? window.location.pathname : "/")
@@ -166,8 +172,14 @@ export default function App() {
   const lastBrandTapRef = useRef(0);
   const [skinProduct, setSkinProduct] = useState(null);
   const [view, setView] = useState(() => {
-    if (calcFromUrl && (urlWantsLab || isLabUnlocked())) return VIEWS.calculator;
-    if (urlWantsLab || isLabUnlocked()) return VIEWS.shop;
+    const openLab =
+      urlWantsLabQuery ||
+      labUnlockFromPath(
+        typeof window !== "undefined" ? window.location.pathname : "/"
+      ) ||
+      isLabUnlocked();
+    if (calcFromUrl && openLab) return VIEWS.calculator;
+    if (openLab) return VIEWS.shop;
     return VIEWS.skincare;
   });
   const [calcInitial, setCalcInitial] = useState(calcFromUrl);
@@ -221,7 +233,7 @@ export default function App() {
   }, []);
 
   useLayoutEffect(() => {
-    if (!onUndisclosedRoute && !urlWantsLab) return;
+    if (!onUndisclosedRoute) return;
     setLabUnlocked(true);
     setLabUnlockedState(true);
     setView((current) =>
@@ -229,7 +241,7 @@ export default function App() {
         ? VIEWS.shop
         : current
     );
-  }, [onUndisclosedRoute, urlWantsLab]);
+  }, [onUndisclosedRoute]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -260,12 +272,15 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!urlWantsLab) return;
+    if (!urlWantsLabQuery) return;
     setLabUnlocked(true);
     setLabUnlockedState(true);
     cleanLabUnlockUrl({ promotePath: true });
+    setRoutePath(
+      typeof window !== "undefined" ? window.location.pathname : "/undisclosed"
+    );
     setFlash("Undisclosed unlocked");
-  }, [urlWantsLab]);
+  }, [urlWantsLabQuery]);
 
   useEffect(() => {
     if (labVisible) return;
@@ -291,6 +306,10 @@ export default function App() {
     setLabUnlocked(true);
     setLabUnlockedState(true);
     cleanLabUnlockUrl({ promotePath: true });
+    // replaceState does not fire popstate — keep routePath in sync
+    setRoutePath(
+      typeof window !== "undefined" ? window.location.pathname : "/undisclosed"
+    );
     setFlash(message);
     setView(VIEWS.shop);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -300,6 +319,9 @@ export default function App() {
     setLabUnlocked(false);
     setLabUnlockedState(false);
     cleanPublicEntryUrl();
+    // replaceState does not fire popstate — clear Undisclosed route or
+    // labVisible stays true and the layout effect re-opens the lab.
+    setRoutePath("/");
     setView(VIEWS.skincare);
     setSelectedId(null);
     setSelectedVariantId(null);
