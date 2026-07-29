@@ -818,17 +818,32 @@ svg {
   z-index: 1;
   display: grid;
   place-items: center;
-  width: min(42vw, 420px);
+  width: min(46vw, 460px);
   max-width: 100%;
+}
+
+.hero-vial-stage > * {
+  grid-area: 1 / 1;
+}
+
+.hero-vial-fallback {
+  display: block;
+  width: min(100%, 400px);
+  max-height: min(68vh, 620px);
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
 }
 
 .hero-generated-vial.generated-vial-wrap {
   width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .hero-generated-vial .generated-vial--lg {
-  max-width: min(100%, 360px);
-  max-height: min(62vh, 560px);
+  max-width: min(100%, 400px);
+  max-height: min(68vh, 620px);
   width: 100%;
 }
 

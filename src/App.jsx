@@ -1192,6 +1192,14 @@ export default function App() {
             <section className="hero hero--undisclosed">
               <div className="hero-media hero-media--undisclosed">
                 <div className="hero-vial-stage" aria-hidden="true">
+                  <img
+                    src="/undisclosed-brand.png"
+                    alt=""
+                    className="hero-vial-fallback"
+                    width={720}
+                    height={1080}
+                    decoding="async"
+                  />
                   <GeneratedVial
                     name="HGH"
                     category="Growth"

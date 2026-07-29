@@ -1176,14 +1176,13 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   const lh = labelCanvas.height;
   const slices = 120;
 
-  // ~12.5° left yaw: camera sees more of the left spine; right edge cuts QR
-  const yaw = (-12.5 * Math.PI) / 180;
-  // Visible wrap ≈ 80% of cylinder front arc
-  const visibleArc = Math.PI * 0.92;
-  // Label U range: spine at 0 → cut through QR (~74–100% of art). Ending at
-  // 0.90 leaves ~35% of the QR band past the right silhouette.
+  // ~18° left yaw: left spine faces camera; right edge clearly crops the QR
+  const yaw = (-18 * Math.PI) / 180;
+  // Visible wrap ≈ front cylinder arc
+  const visibleArc = Math.PI * 0.95;
+  // Label U range: spine at 0 → cut through QR (~30–40% of QR past the rim)
   const uStart = 0.0;
-  const uEnd = 0.9;
+  const uEnd = 0.86;
 
   ctx.save();
   roundRect(ctx, bodyX - 0.5, sleeveTop - 0.5, bodyW + 1, sleeveH + 1, radius);
