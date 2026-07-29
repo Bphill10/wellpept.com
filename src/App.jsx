@@ -1692,8 +1692,19 @@ export default function App() {
             onAdd={() => addToCart(selectedVariant)}
             onCalculate={() => {
               const mass = selectedVariant.mg || 10;
-              const dose = mass >= 10 ? 1 : 250;
-              const doseUnit = mass >= 10 ? "mg" : "mcg";
+              const unit = selectedVariant.unit || "mg";
+              let dose;
+              let doseUnit;
+              if (unit === "IU") {
+                dose = mass >= 100 ? 5 : 2;
+                doseUnit = "IU";
+              } else if (mass >= 10) {
+                dose = 1;
+                doseUnit = "mg";
+              } else {
+                dose = 250;
+                doseUnit = "mcg";
+              }
               const autoBac = automation.autoSuggestBacFromProduct;
               const bac = autoBac
                 ? suggestedBacMl(mass, dose, doseUnit, 10)
@@ -1701,6 +1712,8 @@ export default function App() {
               setCalcInitial({
                 name: selectedVariant.name,
                 mass,
+                unit,
+                vialMl: selectedVariant.vialMl,
                 dose,
                 doseUnit,
                 desiredUnits: 10,
@@ -1725,7 +1738,11 @@ export default function App() {
         )}
 
         {view === VIEWS.calculator && labUnlocked && (
-          <PeptideCalculator initial={calcInitial} />
+          <PeptideCalculator
+            initial={calcInitial}
+            listings={listings}
+            autoSuggestBac={automation.autoSuggestBacFromProduct}
+          />
         )}
 
         {view === VIEWS.vendor && labUnlocked && opsUnlocked && (

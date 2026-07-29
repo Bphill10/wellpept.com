@@ -542,6 +542,88 @@ export function groupCatalog(products) {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
+/**
+ * Peptide + dosage options for the reconstitution calculator,
+ * derived from the live Undisclosed catalog.
+ */
+export function calculatorOptionsFromListings(listings = []) {
+  return (listings || [])
+    .filter((listing) => listing?.strengths?.length)
+    .map((listing) => {
+      const strengths = listing.strengths
+        .filter((s) => Number(s.mg) > 0)
+        .map((s) => ({
+          key: s.key,
+          mg: Number(s.mg),
+          unit: s.unit || "mg",
+          packVials: Number(s.packVials) || 1,
+          vialMl: Number(s.vialMl) || 3,
+          label: s.label || formatStrengthLabel({
+            mg: s.mg,
+            unit: s.unit,
+            packVials: s.packVials,
+            vialMl: s.vialMl,
+          }),
+        }));
+      if (!strengths.length) return null;
+      return {
+        id: listing.id,
+        name: listing.name,
+        category: listing.category || "Research",
+        key: listing.key || normalizeCompoundKey(listing.name),
+        strengths,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** Match a calculator seed (URL / product CTA) to a catalog option. */
+export function matchCalculatorOption(options, seed) {
+  if (!options?.length) return null;
+  if (!seed?.name && seed?.mass == null) {
+    return { option: options[0], strength: options[0].strengths[0] };
+  }
+
+  const needle = normalizeCompoundKey(seed?.name || "");
+  let option =
+    (needle &&
+      options.find(
+        (o) =>
+          o.key === needle ||
+          normalizeCompoundKey(o.name) === needle ||
+          o.key.includes(needle) ||
+          needle.includes(o.key)
+      )) ||
+    null;
+
+  if (!option && seed?.name) {
+    const raw = String(seed.name).toLowerCase();
+    option =
+      options.find((o) => o.name.toLowerCase() === raw) ||
+      options.find((o) => o.name.toLowerCase().includes(raw)) ||
+      options.find((o) => raw.includes(o.name.toLowerCase())) ||
+      null;
+  }
+
+  if (!option) option = options[0];
+
+  const mass = Number(seed?.mass);
+  const unit = String(seed?.unit || "").toUpperCase();
+  let strength =
+    (Number.isFinite(mass) &&
+      option.strengths.find(
+        (s) =>
+          Number(s.mg) === mass &&
+          (!unit || String(s.unit || "mg").toUpperCase() === unit)
+      )) ||
+    (Number.isFinite(mass) &&
+      option.strengths.find((s) => Number(s.mg) === mass)) ||
+    option.strengths[0];
+
+  return { option, strength };
+}
+
 /** Offers for the same strength as the given product within a listing. */
 export function offersForStrength(listing, product) {
   if (!listing?.strengths?.length) {

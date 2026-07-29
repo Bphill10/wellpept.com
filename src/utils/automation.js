@@ -40,6 +40,7 @@ export function buildCalculatorShareUrl({
   solution = "",
   dose = "",
   doseUnit = "mcg",
+  unit = "",
 } = {}) {
   const params = new URLSearchParams({
     view: "calculator",
@@ -47,8 +48,10 @@ export function buildCalculatorShareUrl({
     mass: String(mass || ""),
     solution: String(solution || ""),
     dose: String(dose || ""),
-    doseUnit: doseUnit === "mg" ? "mg" : "mcg",
+    doseUnit:
+      doseUnit === "mg" ? "mg" : doseUnit === "IU" ? "IU" : "mcg",
   });
+  if (unit) params.set("unit", String(unit));
   return `${origin}${pathname}?${params.toString()}`;
 }
 
@@ -58,6 +61,14 @@ export function suggestedBacMl(massMg, dose, doseUnit, units = 10) {
   const doseN = Number(dose);
   const unitsN = Number(units);
   if (!(massN > 0 && doseN > 0 && unitsN > 0)) return null;
+
+  // IU vials: mass and dose are both in IU (e.g. HGH).
+  if (doseUnit === "IU") {
+    const iuPerUnit = doseN / unitsN;
+    if (!(iuPerUnit > 0)) return null;
+    return massN / iuPerUnit / 100;
+  }
+
   const doseMcg = doseUnit === "mg" ? doseN * 1000 : doseN;
   if (!(doseMcg > 0)) return null;
   const mcgPerUnit = doseMcg / unitsN;

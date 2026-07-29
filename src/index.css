@@ -4131,6 +4131,16 @@ body:has(.app-shell--undisclosed)::before {
   font-size: 0.8rem;
 }
 
+.calc-example.is-active {
+  border-color: color-mix(in srgb, var(--teal-deep) 45%, var(--line));
+  background: color-mix(in srgb, var(--teal-deep) 10%, transparent);
+}
+
+.calc-card input[readonly] {
+  opacity: 0.85;
+  cursor: default;
+}
+
 .calc-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
