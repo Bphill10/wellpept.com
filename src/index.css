@@ -791,13 +791,13 @@ svg {
   background:
     linear-gradient(
       105deg,
-      rgba(0, 0, 0, 0.82) 0%,
-      rgba(0, 0, 0, 0.55) 36%,
-      rgba(0, 0, 0, 0.18) 58%,
-      rgba(0, 0, 0, 0.04) 100%
+      rgba(0, 0, 0, 0.78) 0%,
+      rgba(0, 0, 0, 0.48) 36%,
+      rgba(0, 0, 0, 0.14) 58%,
+      rgba(0, 0, 0, 0.02) 100%
     ),
     url("/undisclosed-brand.png") right center / contain no-repeat,
-    url("/black-marble.svg") center / cover no-repeat,
+    url("/black-marble.jpg") center / cover no-repeat,
     #000;
   background-color: #000;
 }
@@ -2245,15 +2245,15 @@ body:has(.app-shell--skincare) {
   --accent: #ffffff;
   color: var(--ink);
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.55) 100%),
-    url("/black-marble.svg") center top / cover fixed no-repeat,
+    linear-gradient(180deg, rgba(0, 0, 0, 0.32) 0%, rgba(0, 0, 0, 0.52) 100%),
+    url("/black-marble.jpg") center top / cover fixed no-repeat,
     #000;
 }
 
 body:has(.app-shell--undisclosed) {
   color: #f4f6f8;
   background:
-    url("/black-marble.svg") center top / cover fixed no-repeat,
+    url("/black-marble.jpg") center top / cover fixed no-repeat,
     #000;
 }
 
