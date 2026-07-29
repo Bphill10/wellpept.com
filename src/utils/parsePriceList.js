@@ -62,14 +62,23 @@ function parseMoney(v) {
   return Number.isFinite(n) ? n : null;
 }
 
-function parseMgFromText(text) {
+function parseMgFromText(text, name = "") {
   const t = String(text || "");
+  const combined = `${name || ""} ${t}`;
   const iu = t.match(/(\d+(?:\.\d+)?)\s*iu\b/i);
-  if (iu) return { mg: Number(iu[1]), unit: "IU" };
+  if (
+    iu &&
+    (/\bhgh\b/i.test(combined) || /\bgrowth hormone\b/i.test(combined))
+  ) {
+    return { mg: Number(iu[1]), unit: "IU" };
+  }
   const mg = t.match(/(\d+(?:\.\d+)?)\s*mg\b/i);
   if (mg) return { mg: Number(mg[1]), unit: "mg" };
+  // Legacy mcg → mg mass; never expose mcg as a unit
   const mcg = t.match(/(\d+(?:\.\d+)?)\s*(?:mcg|ug)\b/i);
   if (mcg) return { mg: Number(mcg[1]) / 1000, unit: "mg" };
+  // Bare IU number without HGH name still stored as mg mass value
+  if (iu) return { mg: Number(iu[1]), unit: "mg" };
   return { mg: null, unit: "mg" };
 }
 
@@ -82,10 +91,24 @@ function slugSku(name, mg) {
   return mg ? `${base}-${mg}` : base || `ITEM-${Date.now().toString(36)}`;
 }
 
-function detectVialMl(text) {
-  const t = String(text || "");
-  if (/\b10\s*ml\b/i.test(t) || /\b10ml\b/i.test(t)) return "10";
+function detectVialMl(name, form = "") {
+  // Only NAD / Glutathione are 10 mL; everything else is 3 mL
+  const text = `${name || ""} ${form || ""}`;
+  if (
+    /\bglutathione\b/i.test(text) ||
+    /\bgluta\b/i.test(text) ||
+    /\bnad\+?\b/i.test(text)
+  ) {
+    return "10";
+  }
   return "3";
+}
+
+function detectUnit(name, mgRaw = "", form = "") {
+  const text = `${name || ""} ${form || ""}`;
+  if (/\bhgh\b/i.test(text) || /\bgrowth hormone\b/i.test(text)) return "IU";
+  void mgRaw;
+  return "mg";
 }
 
 function rowToLine(cells, headerMap, rowIndex) {
@@ -101,7 +124,7 @@ function rowToLine(cells, headerMap, rowIndex) {
   let vendorCost = parseMoney(get("vendorCost"));
   let mgRaw = get("mg");
   let mg = parseMoney(mgRaw);
-  let unit = /iu/i.test(String(mgRaw || "")) ? "IU" : "mg";
+  let unit = "mg";
 
   // Fallback: treat first text-ish cell as name, last money-ish as cost
   if (!name || vendorCost == null) {
@@ -126,12 +149,12 @@ function rowToLine(cells, headerMap, rowIndex) {
   if (!name || vendorCost == null || vendorCost <= 0) return null;
 
   if (mg == null) {
-    const parsed = parseMgFromText(`${name} ${form} ${mgRaw || ""}`);
+    const parsed = parseMgFromText(`${name} ${form} ${mgRaw || ""}`, name);
     mg = parsed.mg;
-    unit = parsed.unit;
   }
+  unit = detectUnit(name, mgRaw, form);
 
-  const vialMl = detectVialMl(`${form} ${name}`);
+  const vialMl = detectVialMl(name, form);
   const packMatch = String(form || name).match(/(\d+)\s*(?:vials?|pack|kit)/i);
   const packVials = packMatch ? packMatch[1] : "10";
 
@@ -143,6 +166,8 @@ function rowToLine(cells, headerMap, rowIndex) {
         : `Lyophilized vial · ${vialMl}ml`;
   } else if (!/\b\d+\s*ml\b/i.test(form)) {
     form = `${form} · ${vialMl}ml`;
+  } else {
+    form = form.replace(/\b\d+(?:\.\d+)?\s*ml\b/gi, `${vialMl}ml`);
   }
 
   return {
@@ -151,6 +176,7 @@ function rowToLine(cells, headerMap, rowIndex) {
     form,
     purity,
     mg: mg != null ? String(mg) : "",
+    unit,
     vendorCost: String(vendorCost),
     category: guessCategory(name),
     vialMl,
@@ -216,12 +242,14 @@ function parseLooseText(text) {
     if (!left || left.length < 2) continue;
     if (/^(price|cost|total|subtotal|sku|product|name)$/i.test(left)) continue;
 
-    const { mg, unit } = parseMgFromText(left);
-    const vialMl = detectVialMl(left);
-    const name = left
-      .replace(/\b\d+(?:\.\d+)?\s*(?:mg|iu|mcg|ug|ml)\b/gi, "")
-      .replace(/\s{2,}/g, " ")
-      .trim() || left;
+    const { mg } = parseMgFromText(left);
+    const name =
+      left
+        .replace(/\b\d+(?:\.\d+)?\s*(?:mg|iu|mcg|ug|ml)\b/gi, "")
+        .replace(/\s{2,}/g, " ")
+        .trim() || left;
+    const unit = detectUnit(name, left, left);
+    const vialMl = detectVialMl(name, left);
 
     lines.push({
       sku: slugSku(name, mg || i + 1),
@@ -235,6 +263,7 @@ function parseLooseText(text) {
       vendorCost: String(vendorCost),
       category: guessCategory(name),
       vialMl,
+      unit,
     });
   }
   return lines;

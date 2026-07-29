@@ -7,9 +7,9 @@ import {
   THE_LOBSTER_VENDOR,
 } from "./theLobster";
 import { isChangshaFocused, isLobsterFocused } from "./catalogFocus";
-import { resolveVialMl } from "../utils/vialArt";
+import { resolveVialMl, resolveVialUnit } from "../utils/vialArt";
 
-export { resolveVialMl };
+export { resolveVialMl, resolveVialUnit };
 
 /** Default retail markup applied on top of vendor cost after approval.
  *  100% markup = 2× vendor cost. Then rounded UP to the nearest $5.
@@ -585,19 +585,34 @@ export function calculatorOptionsFromListings(listings = []) {
     .map((listing) => {
       const strengths = listing.strengths
         .filter((s) => Number(s.mg) > 0)
-        .map((s) => ({
-          key: s.key,
-          mg: Number(s.mg),
-          unit: s.unit || "mg",
-          packVials: Number(s.packVials) || 1,
-          vialMl: Number(s.vialMl) || 3,
-          label: s.label || formatStrengthLabel({
+        .map((s) => {
+          const sample = {
+            name: listing.name,
             mg: s.mg,
             unit: s.unit,
             packVials: s.packVials,
             vialMl: s.vialMl,
-          }),
-        }));
+            form: s.form,
+          };
+          const unit = resolveVialUnit(sample);
+          const vialMl = resolveVialMl(sample);
+          return {
+            key: s.key,
+            mg: Number(s.mg),
+            unit,
+            packVials: Number(s.packVials) || 1,
+            vialMl,
+            label:
+              s.label ||
+              formatStrengthLabel({
+                name: listing.name,
+                mg: s.mg,
+                unit,
+                packVials: s.packVials,
+                vialMl,
+              }),
+          };
+        });
       if (!strengths.length) return null;
       return {
         id: listing.id,
@@ -724,7 +739,7 @@ export function buildCatalog(vendors, submissions) {
       form: item.form,
       purity: item.purity,
       mg: item.mg,
-      unit: item.unit || (/\bIU\b/i.test(item.form || "") ? "IU" : "mg"),
+      unit: resolveVialUnit(item),
       packVials,
       vialMl,
       unitLabel: packVials > 1 ? `${packVials}-pack` : "each",

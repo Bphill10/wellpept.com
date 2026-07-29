@@ -30,6 +30,8 @@ import {
   guessCategory,
   retailFromVendor,
   strengthForProduct,
+  resolveVialMl,
+  resolveVialUnit,
 } from "./data/products";
 import {
   getInitialMarketplace,
@@ -561,21 +563,24 @@ export default function App() {
     const lines = payload.lines
       .filter((line) => line.name.trim() && line.sku.trim() && line.vendorCost)
       .map((line) => {
-        const vialMl = Number(line.vialMl) === 10 ? 10 : 3;
+        const name = line.name.trim();
+        const vialMl = resolveVialMl({ name, form: line.form });
+        const unit = resolveVialUnit({ name, form: line.form, unit: line.unit });
         const baseForm = line.form.trim() || "Lyophilized vial";
         const form = /\b\d+\s*ml\b/i.test(baseForm)
-          ? baseForm
+          ? baseForm.replace(/\b\d+(?:\.\d+)?\s*ml\b/gi, `${vialMl}ml`)
           : `${baseForm} · ${vialMl}ml`;
         return {
           id: uid("s"),
           vendorId,
           sku: line.sku.trim().toUpperCase(),
-          name: line.name.trim(),
+          name,
           form,
           purity: line.purity.trim() || "—",
           mg: Number(line.mg) || 0,
+          unit,
           vendorCost: Number(line.vendorCost),
-          category: line.category || guessCategory(line.name.trim()),
+          category: line.category || guessCategory(name),
           vialMl,
           packVials: 10,
           status: "pending",
@@ -603,21 +608,24 @@ export default function App() {
     const lines = linesInput
       .filter((line) => line.name.trim() && line.sku.trim() && line.vendorCost)
       .map((line) => {
-        const vialMl = Number(line.vialMl) === 10 ? 10 : 3;
+        const name = line.name.trim();
+        const vialMl = resolveVialMl({ name, form: line.form });
+        const unit = resolveVialUnit({ name, form: line.form, unit: line.unit });
         const baseForm = line.form.trim() || "Lyophilized vial";
         const form = /\b\d+\s*ml\b/i.test(baseForm)
-          ? baseForm
+          ? baseForm.replace(/\b\d+(?:\.\d+)?\s*ml\b/gi, `${vialMl}ml`)
           : `${baseForm} · ${vialMl}ml`;
         return {
           id: uid("s"),
           vendorId,
           sku: line.sku.trim().toUpperCase(),
-          name: line.name.trim(),
+          name,
           form,
           purity: line.purity.trim() || "—",
           mg: Number(line.mg) || 0,
+          unit,
           vendorCost: Number(line.vendorCost),
-          category: line.category || guessCategory(line.name.trim()),
+          category: line.category || guessCategory(name),
           vialMl,
           packVials: 10,
           status: autoPublish ? "approved" : "pending",
@@ -1697,17 +1705,21 @@ export default function App() {
             onAdd={() => addToCart(selectedVariant)}
             onCalculate={() => {
               const mass = selectedVariant.mg || 10;
-              const unit = selectedVariant.unit || "mg";
-              const { dose, doseUnit } = defaultResearchDose(mass, unit);
+              const unit = resolveVialUnit(selectedVariant);
+              const { dose, doseUnit } = defaultResearchDose(
+                mass,
+                unit,
+                selectedVariant.name
+              );
               const autoBac = automation.autoSuggestBacFromProduct;
               const bac = autoBac
-                ? suggestedBacMl(mass, dose, doseUnit, 10)
+                ? suggestedBacMl(mass, dose, doseUnit, 10, selectedVariant.name)
                 : null;
               setCalcInitial({
                 name: selectedVariant.name,
                 mass,
                 unit,
-                vialMl: selectedVariant.vialMl,
+                vialMl: resolveVialMl(selectedVariant),
                 dose,
                 doseUnit,
                 desiredUnits: 10,
@@ -2829,7 +2841,36 @@ function VendorPortal({
 function PriceListEditor({ lines, onChange }) {
   function updateLine(index, key, value) {
     onChange(
-      lines.map((line, i) => (i === index ? { ...line, [key]: value } : line))
+      lines.map((line, i) => {
+        if (i !== index) return line;
+        const next = { ...line, [key]: value };
+        if (key === "name" || key === "form") {
+          const vialMl = resolveVialMl({
+            name: next.name,
+            form: next.form,
+          });
+          const unit = resolveVialUnit({
+            name: next.name,
+            form: next.form,
+            unit: next.unit,
+          });
+          const base = String(next.form || "Lyophilized vial").replace(
+            /\s*·\s*\d+\s*ml/gi,
+            ""
+          );
+          next.vialMl = String(vialMl);
+          next.unit = unit;
+          if (key === "name" || !/\b\d+\s*ml\b/i.test(String(line.form || ""))) {
+            next.form = `${base} · ${vialMl}ml`;
+          } else if (key === "form") {
+            next.form = String(value).replace(
+              /\b\d+(?:\.\d+)?\s*ml\b/gi,
+              `${vialMl}ml`
+            );
+          }
+        }
+        return next;
+      })
     );
   }
 
@@ -2925,28 +2966,14 @@ function PriceListEditor({ lines, onChange }) {
             <label className="field">
               Vial size
               <select
-                value={line.vialMl === "10" || line.vialMl === 10 ? "10" : "3"}
-                onChange={(e) => {
-                  const vialMl = e.target.value;
-                  const base = String(line.form || "Lyophilized vial").replace(
-                    /\s*·\s*\d+\s*ml/gi,
-                    ""
-                  );
-                  onChange(
-                    lines.map((row, i) =>
-                      i === index
-                        ? {
-                            ...row,
-                            vialMl,
-                            form: `${base} · ${vialMl}ml`,
-                          }
-                        : row
-                    )
-                  );
-                }}
+                value={String(
+                  resolveVialMl({ name: line.name, form: line.form })
+                )}
+                disabled
+                title="3 mL default · 10 mL only for NAD / Glutathione"
               >
-                <option value="3">3 mL (standard)</option>
-                <option value="10">10 mL</option>
+                <option value="3">3 mL (default)</option>
+                <option value="10">10 mL (NAD / Glutathione)</option>
               </select>
             </label>
             <label className="field">

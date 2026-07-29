@@ -26,17 +26,18 @@ function formatDoseText(dose, unit) {
   return `${formatNum(n, 2)} mg`;
 }
 
-function defaultDoseForStrength(strength) {
+function defaultDoseForStrength(strength, name = "") {
   const { dose, doseUnit } = defaultResearchDose(
     strength?.mg,
-    strength?.unit || "mg"
+    strength?.unit || "mg",
+    name || strength?.name || ""
   );
   return { dose: String(dose), doseUnit };
 }
 
 /** Suggested BAC water so the chosen dose lands on `units` on a U-100 syringe. */
-function suggestedBacMl(mass, dose, doseUnit, units = 10) {
-  return suggestedBacFromAutomation(mass, dose, doseUnit, units);
+function suggestedBacMl(mass, dose, doseUnit, units = 10, name = "") {
+  return suggestedBacFromAutomation(mass, dose, doseUnit, units, name);
 }
 
 const QUICK_PREF = [
@@ -61,7 +62,7 @@ function buildQuickPicks(options) {
     used.add(opt.id);
     const strength =
       opt.strengths.find((s) => Number(s.mg) >= 10) || opt.strengths[0];
-    const { dose, doseUnit } = defaultDoseForStrength(strength);
+    const { dose, doseUnit } = defaultDoseForStrength(strength, opt.name);
     picks.push({
       id: `${opt.id}-${strength.key}`,
       label: `${opt.name.split("(")[0].trim()} ${formatNum(strength.mg, 2)} ${
@@ -82,7 +83,7 @@ function buildQuickPicks(options) {
     for (const opt of options) {
       if (used.has(opt.id)) continue;
       const strength = opt.strengths[0];
-      const { dose, doseUnit } = defaultDoseForStrength(strength);
+      const { dose, doseUnit } = defaultDoseForStrength(strength, opt.name);
       picks.push({
         id: `${opt.id}-${strength.key}`,
         label: `${opt.name.split("(")[0].trim()} ${formatNum(strength.mg, 2)} ${
@@ -170,10 +171,14 @@ export default function PeptideCalculator({
     setVialUnit(strength.unit || "mg");
     setVialMl(strength.vialMl || 3);
 
-    const defaults = defaultDoseForStrength(strength);
+    const defaults = defaultDoseForStrength(strength, option.name);
     const seeded =
       seed?.dose != null
-        ? normalizeDoseUnit(seed.dose, seed.doseUnit || defaults.doseUnit)
+        ? normalizeDoseUnit(
+            seed.dose,
+            seed.doseUnit || defaults.doseUnit,
+            option.name
+          )
         : { dose: Number(defaults.dose), doseUnit: defaults.doseUnit };
     // Keep dose unit coherent with vial unit — only IU or mg
     const coherentUnit =
@@ -198,7 +203,8 @@ export default function PeptideCalculator({
         strength.mg,
         nextDose,
         coherentUnit,
-        seed?.desiredUnits || 10
+        seed?.desiredUnits || 10,
+        option.name
       );
       if (bac != null) setSolution(formatNum(bac, 2));
     }
@@ -235,8 +241,8 @@ export default function PeptideCalculator({
   );
 
   const suggested = useMemo(
-    () => suggestedBacMl(mass, dose, doseUnit, 10),
-    [mass, dose, doseUnit]
+    () => suggestedBacMl(mass, dose, doseUnit, 10, name),
+    [mass, dose, doseUnit, name]
   );
 
   const result = useMemo(() => {
@@ -260,7 +266,7 @@ export default function PeptideCalculator({
     }
 
     const doseMg = Number(
-      normalizeDoseUnit(doseN, doseUnit).dose
+      normalizeDoseUnit(doseN, doseUnit, name).dose
     );
     const mgPerMl = massN / solutionN;
     const mgPerUnit = mgPerMl / 100;
@@ -274,7 +280,7 @@ export default function PeptideCalculator({
       perUnitLabel: `${formatNum(mgPerUnit, 3)} mg`,
       doseText: formatDoseText(doseMg, "mg"),
     };
-  }, [mass, solution, dose, doseUnit, vialUnit]);
+  }, [mass, solution, dose, doseUnit, vialUnit, name]);
 
   function onPeptideChange(id) {
     const option = options.find((o) => o.id === id);
@@ -604,12 +610,14 @@ export default function PeptideCalculator({
 export function parseCalculatorQuery(search = "") {
   const params = new URLSearchParams(search);
   if (params.get("view") !== "calculator") return null;
+  const name = params.get("name") || "";
   const normalized = normalizeDoseUnit(
     params.get("dose") || "",
-    params.get("doseUnit") || "mg"
+    params.get("doseUnit") || "mg",
+    name
   );
   return {
-    name: params.get("name") || "",
+    name,
     mass: params.get("mass") || "",
     solution: params.get("solution") || "",
     dose:

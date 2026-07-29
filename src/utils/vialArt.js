@@ -161,18 +161,40 @@ function ellipse(ctx, cx, cy, rx, ry) {
   ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
 }
 
-/** Parse vial volume from vendor form text / compound defaults.
- *  Default 3 mL; 10 mL when listed, large bottle, or NAD / Glutathione.
+/** True for NAD / Glutathione — the only 10 mL bottles. */
+export function isTenMlCompound(name = "", form = "") {
+  const text = `${name || ""} ${form || ""}`;
+  return (
+    /\bglutathione\b/i.test(text) ||
+    /\bgluta\b/i.test(text) ||
+    /\bnad\+?\b/i.test(text)
+  );
+}
+
+/** True for HGH lines — the only IU products. */
+export function isHghCompound(name = "", form = "") {
+  const text = `${name || ""} ${form || ""}`;
+  return /\bhgh\b/i.test(text) || /\bgrowth hormone\b/i.test(text);
+}
+
+/**
+ * Vial volume: default 3 mL. Only NAD and Glutathione are 10 mL.
+ * Ignores stale form text / vialMl on other compounds.
  */
 export function resolveVialMl({ form = "", name = "", vialMl } = {}) {
-  if (vialMl != null && Number(vialMl) > 0) return Number(vialMl);
-  const text = `${form || ""} ${name || ""}`;
-  if (/\b10\s*ml\b/i.test(text) || /\b10ml\b/i.test(text)) return 10;
-  if (/\blarge bottle\b/i.test(text)) return 10;
-  // These research lines ship in 10 mL bottles
-  if (/\bglutathione\b/i.test(text) || /\bgluta\b/i.test(text)) return 10;
-  if (/\bnad\+?\b/i.test(text)) return 10;
+  void vialMl;
+  if (isTenMlCompound(name, form)) return 10;
   return 3;
+}
+
+/**
+ * Strength unit: default mg. Only HGH is IU.
+ * Legacy mcg/ug and IU on non-HGH lines normalize to mg.
+ */
+export function resolveVialUnit({ name = "", form = "", unit } = {}) {
+  if (isHghCompound(name, form)) return "IU";
+  void unit;
+  return "mg";
 }
 
 function drawDarkStudio(ctx, w, h) {

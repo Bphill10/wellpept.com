@@ -1,5 +1,10 @@
 /** Marketplace automation helpers — keep human gates only where required. */
 
+import {
+  isHghCompound,
+  resolveVialUnit,
+} from "./vialArt";
+
 const SETTINGS_KEY = "wellpept-automation-v1";
 
 export const DEFAULT_AUTOMATION = {
@@ -32,21 +37,26 @@ export function isValidUsZip(zip) {
   return /^\d{5}(-\d{4})?$/.test(String(zip || "").trim());
 }
 
-/** Public dose units: mg, or IU for HGH. Legacy mcg/ug → mg. */
-export function normalizeDoseUnit(dose, doseUnit) {
+/** Public dose units: mg, or IU for HGH only. Legacy mcg/ug → mg. */
+export function normalizeDoseUnit(dose, doseUnit, name = "") {
   const raw = String(doseUnit || "mg").trim();
-  if (/^iu$/i.test(raw)) {
-    return { dose: Number(dose), doseUnit: "IU" };
-  }
   if (/^(mcg|ug|µg)$/i.test(raw)) {
     return { dose: Number(dose) / 1000, doseUnit: "mg" };
+  }
+  if (/^iu$/i.test(raw)) {
+    // IU only for HGH; empty name trusts an already-resolved IU from catalog
+    if (!name || isHghCompound(name)) {
+      return { dose: Number(dose), doseUnit: "IU" };
+    }
+    return { dose: Number(dose), doseUnit: "mg" };
   }
   return { dose: Number(dose), doseUnit: "mg" };
 }
 
-export function defaultResearchDose(mass, unit = "mg") {
+export function defaultResearchDose(mass, unit = "mg", name = "") {
   const massN = Number(mass) || 0;
-  if (String(unit || "mg").toUpperCase() === "IU") {
+  const resolved = resolveVialUnit({ name, unit });
+  if (resolved === "IU") {
     return { dose: massN >= 100 ? 5 : 2, doseUnit: "IU" };
   }
   if (massN >= 10) return { dose: 1, doseUnit: "mg" };
@@ -63,7 +73,8 @@ export function buildCalculatorShareUrl({
   doseUnit = "mg",
   unit = "",
 } = {}) {
-  const normalized = normalizeDoseUnit(dose, doseUnit);
+  const normalized = normalizeDoseUnit(dose, doseUnit, name);
+  const resolvedUnit = resolveVialUnit({ name, unit });
   const params = new URLSearchParams({
     view: "calculator",
     name: String(name || ""),
@@ -72,7 +83,7 @@ export function buildCalculatorShareUrl({
     dose: String(normalized.dose ?? ""),
     doseUnit: normalized.doseUnit,
   });
-  if (unit) params.set("unit", String(unit));
+  if (resolvedUnit) params.set("unit", resolvedUnit);
   return `${origin}${pathname}?${params.toString()}`;
 }
 
@@ -88,10 +99,10 @@ export function resolveCalculatorLabelFields({
   qrPayload = "",
 } = {}) {
   const massN = Number(mass);
-  const vialUnit = unit || "mg";
-  const { dose, doseUnit } = defaultResearchDose(massN, vialUnit);
+  const vialUnit = resolveVialUnit({ name, unit });
+  const { dose, doseUnit } = defaultResearchDose(massN, vialUnit, name);
 
-  const bac = suggestedBacMl(massN, dose, doseUnit, 10);
+  const bac = suggestedBacMl(massN, dose, doseUnit, 10, name);
   const bacNum = bac != null ? Number(bac.toFixed(2)) : null;
   const bacStr = bacNum != null ? `${bacNum} mL` : "";
   const conc =
@@ -123,10 +134,14 @@ export function resolveCalculatorLabelFields({
 }
 
 /** Suggested BAC so dose lands on `units` on a U-100 syringe. */
-export function suggestedBacMl(massMg, dose, doseUnit, units = 10) {
+export function suggestedBacMl(massMg, dose, doseUnit, units = 10, name = "") {
   const massN = Number(massMg);
   const unitsN = Number(units);
-  const { dose: doseN, doseUnit: unit } = normalizeDoseUnit(dose, doseUnit);
+  const { dose: doseN, doseUnit: unit } = normalizeDoseUnit(
+    dose,
+    doseUnit,
+    name
+  );
   if (!(massN > 0 && doseN > 0 && unitsN > 0)) return null;
 
   // IU vials: mass and dose are both in IU (e.g. HGH).
