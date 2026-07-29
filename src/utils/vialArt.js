@@ -1071,7 +1071,7 @@ function drawBrandTenMl(ctx, dims, options) {
 }
 
 /**
- * Draw a photoreal vial photo with a compact clinical sticker on the glass.
+ * Draw a photoreal unlabeled vial on black marble.
  * Async — waits for the studio vial image to load.
  */
 export async function drawGeneratedVial(canvas, options = {}) {
@@ -1180,21 +1180,12 @@ function drawCoverImage(ctx, img, w, h) {
 }
 
 /**
- * Photoreal vial + clinical wrap sticker matching the KLOW reference screenshot.
- * Blank studio vial → attach flat label mock → product shot.
+ * Photoreal unlabeled vial on black marble — no wrap sticker (labels were reversed).
  */
 function drawPhotorealVial(ctx, dims, options) {
   const {
     photo,
     name = "Peptide",
-    mass = "",
-    unit = "mg",
-    sku = "",
-    bacWater = "",
-    concentration = "",
-    doseRange = "",
-    qrPayload = "",
-    coaUrl = "",
     isTen = false,
   } = options;
 
@@ -1217,11 +1208,6 @@ function drawPhotorealVial(ctx, dims, options) {
     drawZoomedVialPhoto(ctx, photo, dims.w, dims.h, isTen ? 1.42 : 1.58);
   }
 
-  const bodyW = dims.w * (isTen ? 0.37 : 0.35);
-  const bodyX = dims.w / 2 - bodyW / 2;
-  const sleeveTop = dims.h * (isTen ? 0.315 : 0.305);
-  const sleeveH = dims.h * (isTen ? 0.34 : 0.33);
-
   // Soft marble vignette — keep center readable without hiding veins
   const vignette = ctx.createRadialGradient(
     dims.w * 0.5,
@@ -1235,35 +1221,6 @@ function drawPhotorealVial(ctx, dims, options) {
   vignette.addColorStop(1, "rgba(0,0,0,0.12)");
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, dims.w, dims.h);
-
-  const wrapBmp = createWrapLabelBitmap({
-    name,
-    mass,
-    unit,
-    bacWater,
-    concentration,
-    doseRange,
-    sku,
-    qrPayload,
-    coaUrl,
-  });
-  drawReferenceWrapOnVial(ctx, wrapBmp, {
-    bodyX,
-    bodyW,
-    sleeveTop,
-    sleeveH,
-    radius: Math.max(3, bodyW * 0.045),
-  });
-
-  const gloss = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW, 0);
-  gloss.addColorStop(0, "rgba(255,255,255,0)");
-  gloss.addColorStop(0.14, "rgba(255,255,255,0.12)");
-  gloss.addColorStop(0.3, "rgba(255,255,255,0)");
-  gloss.addColorStop(0.72, "rgba(255,255,255,0)");
-  gloss.addColorStop(0.88, "rgba(255,255,255,0.09)");
-  gloss.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = gloss;
-  ctx.fillRect(bodyX, sleeveTop, bodyW, sleeveH);
 }
 
 /** Cover-fit with zoom so the vial reads like a close product shot. */
@@ -1579,29 +1536,6 @@ function drawLabeledThreeMl(ctx, dims, options) {
   ctx.fillStyle = "rgba(255,255,255,0.35)";
   ctx.fillRect(bodyX + bodyW * 0.12, bodyY + shoulderH, bodyW * 0.1, bodyH * 0.35);
 
-  // Clinical front label on mid body
-  const sleeveTop = bodyY + bodyH * 0.34;
-  const sleeveH = bodyBottom - sleeveTop - radius * 0.15;
-  const labelBmp = createWrapLabelBitmap({
-    name,
-    mass,
-    unit,
-    bacWater,
-    concentration,
-    doseRange,
-    sku,
-    qrPayload,
-    coaUrl,
-  });
-  drawCylindricalLabelWrap(ctx, labelBmp, {
-    cx,
-    bodyX,
-    bodyW,
-    sleeveTop,
-    sleeveH,
-    radius: radius * 0.6,
-  });
-
   ctx.strokeStyle = "rgba(180, 190, 200, 0.35)";
   ctx.lineWidth = 1.2;
   roundRect(ctx, bodyX, bodyY + shoulderH * 0.85, bodyW, bodyH - shoulderH * 0.85, radius);
@@ -1699,46 +1633,12 @@ function drawLabeledTenMl(ctx, dims, options) {
   }
   ctx.restore();
 
-  const sleeveTop = bodyY + bodyH * 0.28;
-  const sleeveH = bodyBottom - sleeveTop - 4;
-  const labelBmp = createWrapLabelBitmap({
-    name,
-    mass,
-    unit,
-    bacWater,
-    concentration,
-    doseRange,
-    sku,
-    qrPayload,
-    coaUrl,
-  });
-  drawCylindricalLabelWrap(ctx, labelBmp, {
-    cx,
-    bodyX,
-    bodyW,
-    sleeveTop,
-    sleeveH,
-    radius: radius * 0.5,
-  });
-
   drawBrandWordmark(ctx, cx, bodyBottom + dims.h * 0.05, dims.w * 0.72);
 }
 
 /** Cover-fit helper kept for any legacy photo paths (unused by default). */
 function drawPhotoVial(ctx, dims, options) {
-  const {
-    photo,
-    name = "Peptide",
-    mass = "",
-    unit = "mg",
-    sku = "",
-    bacWater = "",
-    concentration = "",
-    doseRange = "",
-    qrPayload = "",
-    vialMl = 3,
-    isTen = false,
-  } = options;
+  const { photo } = options;
 
   ctx.fillStyle = "#0a0a0a";
   ctx.fillRect(0, 0, dims.w, dims.h);
@@ -1751,30 +1651,6 @@ function drawPhotoVial(ctx, dims, options) {
   const dx = (dims.w - dw) / 2;
   const dy = (dims.h - dh) / 2;
   ctx.drawImage(photo, dx, dy, dw, dh);
-
-  // Prefer clinical wrap over photo sleeve text overlay
-  const bodyW = dims.w * (isTen ? 0.36 : 0.3);
-  const bodyX = dims.w / 2 - bodyW / 2;
-  const sleeveTop = dims.h * 0.48;
-  const sleeveH = dims.h * 0.28;
-  const labelBmp = createWrapLabelBitmap({
-    name,
-    mass,
-    unit,
-    bacWater,
-    concentration,
-    doseRange,
-    sku,
-    qrPayload,
-  });
-  drawCylindricalLabelWrap(ctx, labelBmp, {
-    cx: dims.w / 2,
-    bodyX,
-    bodyW,
-    sleeveTop,
-    sleeveH,
-    radius: 6,
-  });
 }
 
 /** Clean BAC volume text for the label grid (drop redundant "BAC"). */
