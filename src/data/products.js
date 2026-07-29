@@ -726,7 +726,7 @@ export function buildCatalog(vendors, submissions) {
     }
   }
 
-  return [...byOffer.values()].map((item, index) => {
+  return [...byOffer.values()].map((item) => {
     const isExternal = Boolean(item.externalOnly);
     const vendorCost = Number(item.vendorCost);
     const price = isExternal ? null : retailFromVendor(vendorCost);
