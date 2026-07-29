@@ -1296,8 +1296,8 @@ export default function App() {
                       src="/undisclosed-hero-kit.png"
                       alt="Undisclosed KLOW 80 MG research kit"
                       className="featured-product-photo"
-                      width={899}
-                      height={1750}
+                      width={1536}
+                      height={1024}
                       decoding="async"
                     />
                   </div>
