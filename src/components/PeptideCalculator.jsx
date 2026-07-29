@@ -9,6 +9,8 @@ import {
 } from "../data/products";
 import {
   buildCalculatorShareUrl,
+  defaultResearchDose,
+  normalizeDoseUnit,
   suggestedBacMl as suggestedBacFromAutomation,
 } from "../utils/automation";
 
@@ -18,26 +20,18 @@ function formatNum(v, digits = 2) {
   return parseFloat(n.toFixed(digits)).toString();
 }
 
-function toMcg(dose, unit) {
-  if (unit === "mg") return Number(dose) * 1000;
-  return Number(dose);
-}
-
 function formatDoseText(dose, unit) {
   const n = Number(dose);
   if (unit === "IU") return `${formatNum(n, 2)} IU`;
-  if (unit === "mg") return `${formatNum(n, 2)} mg`;
-  return `${formatNum(n, 0)} mcg`;
+  return `${formatNum(n, 2)} mg`;
 }
 
 function defaultDoseForStrength(strength) {
-  const unit = strength?.unit || "mg";
-  const mass = Number(strength?.mg) || 0;
-  if (unit === "IU") {
-    return { dose: mass >= 100 ? "5" : "2", doseUnit: "IU" };
-  }
-  if (mass >= 10) return { dose: "1", doseUnit: "mg" };
-  return { dose: "250", doseUnit: "mcg" };
+  const { dose, doseUnit } = defaultResearchDose(
+    strength?.mg,
+    strength?.unit || "mg"
+  );
+  return { dose: String(dose), doseUnit };
 }
 
 /** Suggested BAC water so the chosen dose lands on `units` on a U-100 syringe. */
@@ -177,16 +171,23 @@ export default function PeptideCalculator({
     setVialMl(strength.vialMl || 3);
 
     const defaults = defaultDoseForStrength(strength);
-    const nextDose =
-      seed?.dose != null ? String(seed.dose) : defaults.dose;
-    const nextDoseUnit = seed?.doseUnit || defaults.doseUnit;
-    // Keep dose unit coherent with vial unit
+    const seeded =
+      seed?.dose != null
+        ? normalizeDoseUnit(seed.dose, seed.doseUnit || defaults.doseUnit)
+        : { dose: Number(defaults.dose), doseUnit: defaults.doseUnit };
+    // Keep dose unit coherent with vial unit — only IU or mg
     const coherentUnit =
       (strength.unit || "mg") === "IU"
         ? "IU"
-        : nextDoseUnit === "IU"
+        : seeded.doseUnit === "IU"
           ? defaults.doseUnit
-          : nextDoseUnit;
+          : "mg";
+    const nextDose =
+      coherentUnit === "IU" && seeded.doseUnit === "IU"
+        ? String(seeded.dose)
+        : coherentUnit === "mg" && seeded.doseUnit === "mg"
+          ? String(seeded.dose)
+          : defaults.dose;
     setDose(nextDose);
     setDoseUnit(coherentUnit);
 
@@ -253,27 +254,25 @@ export default function PeptideCalculator({
         doses,
         mgPerMl: iuPerMl,
         concLabel: `${formatNum(iuPerMl, 2)} IU/mL`,
-        mcgPerUnit: iuPerMl / 100,
         perUnitLabel: `${formatNum(iuPerMl / 100, 2)} IU`,
         doseText: formatDoseText(doseN, "IU"),
       };
     }
 
-    const doseMcg = toMcg(doseN, doseUnit);
-    const totalMcg = massN * 1000;
-    const mcgPerMl = totalMcg / solutionN;
+    const doseMg = Number(
+      normalizeDoseUnit(doseN, doseUnit).dose
+    );
     const mgPerMl = massN / solutionN;
-    const mcgPerUnit = mcgPerMl / 100;
-    const units = (doseMcg / mcgPerMl) * 100;
-    const doses = totalMcg / doseMcg;
+    const mgPerUnit = mgPerMl / 100;
+    const units = (doseMg / mgPerMl) * 100;
+    const doses = massN / doseMg;
     return {
       units,
       doses,
       mgPerMl,
       concLabel: `${formatNum(mgPerMl, 2)} mg/mL`,
-      mcgPerUnit,
-      perUnitLabel: `${formatNum(mcgPerUnit, 1)} mcg`,
-      doseText: formatDoseText(doseN, doseUnit),
+      perUnitLabel: `${formatNum(mgPerUnit, 3)} mg`,
+      doseText: formatDoseText(doseMg, "mg"),
     };
   }, [mass, solution, dose, doseUnit, vialUnit]);
 
@@ -314,8 +313,8 @@ export default function PeptideCalculator({
     }
     setName("");
     setMass("");
-    setDose("250");
-    setDoseUnit("mcg");
+    setDose("0.25");
+    setDoseUnit("mg");
     setSolution("2");
     setShareMsg("");
   }
@@ -340,10 +339,7 @@ export default function PeptideCalculator({
   const doseUnitOptions =
     vialUnit === "IU"
       ? [{ value: "IU", label: "IU" }]
-      : [
-          { value: "mg", label: "mg" },
-          { value: "mcg", label: "mcg" },
-        ];
+      : [{ value: "mg", label: "mg" }];
 
   return (
     <section className="panel-page fade">
@@ -470,7 +466,7 @@ export default function PeptideCalculator({
                   <label className="field">
                     Unit
                     <select
-                      value={doseUnit}
+                      value={doseUnit === "IU" ? "IU" : "mg"}
                       onChange={(e) => setDoseUnit(e.target.value)}
                     >
                       {doseUnitOptions.map((u) => (
@@ -608,17 +604,19 @@ export default function PeptideCalculator({
 export function parseCalculatorQuery(search = "") {
   const params = new URLSearchParams(search);
   if (params.get("view") !== "calculator") return null;
+  const normalized = normalizeDoseUnit(
+    params.get("dose") || "",
+    params.get("doseUnit") || "mg"
+  );
   return {
     name: params.get("name") || "",
     mass: params.get("mass") || "",
     solution: params.get("solution") || "",
-    dose: params.get("dose") || "",
-    doseUnit:
-      params.get("doseUnit") === "mg"
-        ? "mg"
-        : params.get("doseUnit") === "IU"
-          ? "IU"
-          : "mcg",
+    dose:
+      Number.isFinite(normalized.dose) && params.get("dose")
+        ? String(normalized.dose)
+        : params.get("dose") || "",
+    doseUnit: normalized.doseUnit,
     unit: params.get("unit") || "",
     desiredUnits: params.get("units") || "10",
   };

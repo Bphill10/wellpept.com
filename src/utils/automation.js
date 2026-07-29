@@ -32,6 +32,27 @@ export function isValidUsZip(zip) {
   return /^\d{5}(-\d{4})?$/.test(String(zip || "").trim());
 }
 
+/** Public dose units: mg, or IU for HGH. Legacy mcg/ug → mg. */
+export function normalizeDoseUnit(dose, doseUnit) {
+  const raw = String(doseUnit || "mg").trim();
+  if (/^iu$/i.test(raw)) {
+    return { dose: Number(dose), doseUnit: "IU" };
+  }
+  if (/^(mcg|ug|µg)$/i.test(raw)) {
+    return { dose: Number(dose) / 1000, doseUnit: "mg" };
+  }
+  return { dose: Number(dose), doseUnit: "mg" };
+}
+
+export function defaultResearchDose(mass, unit = "mg") {
+  const massN = Number(mass) || 0;
+  if (String(unit || "mg").toUpperCase() === "IU") {
+    return { dose: massN >= 100 ? 5 : 2, doseUnit: "IU" };
+  }
+  if (massN >= 10) return { dose: 1, doseUnit: "mg" };
+  return { dose: 0.25, doseUnit: "mg" };
+}
+
 export function buildCalculatorShareUrl({
   origin = typeof window !== "undefined" ? window.location.origin : "",
   pathname = typeof window !== "undefined" ? window.location.pathname : "/",
@@ -39,17 +60,17 @@ export function buildCalculatorShareUrl({
   mass = "",
   solution = "",
   dose = "",
-  doseUnit = "mcg",
+  doseUnit = "mg",
   unit = "",
 } = {}) {
+  const normalized = normalizeDoseUnit(dose, doseUnit);
   const params = new URLSearchParams({
     view: "calculator",
     name: String(name || ""),
     mass: String(mass || ""),
     solution: String(solution || ""),
-    dose: String(dose || ""),
-    doseUnit:
-      doseUnit === "mg" ? "mg" : doseUnit === "IU" ? "IU" : "mcg",
+    dose: String(normalized.dose ?? ""),
+    doseUnit: normalized.doseUnit,
   });
   if (unit) params.set("unit", String(unit));
   return `${origin}${pathname}?${params.toString()}`;
@@ -68,18 +89,7 @@ export function resolveCalculatorLabelFields({
 } = {}) {
   const massN = Number(mass);
   const vialUnit = unit || "mg";
-  let dose;
-  let doseUnit;
-  if (vialUnit === "IU") {
-    dose = massN >= 100 ? 5 : 2;
-    doseUnit = "IU";
-  } else if (massN >= 10) {
-    dose = 1;
-    doseUnit = "mg";
-  } else {
-    dose = 250;
-    doseUnit = "mcg";
-  }
+  const { dose, doseUnit } = defaultResearchDose(massN, vialUnit);
 
   const bac = suggestedBacMl(massN, dose, doseUnit, 10);
   const bacNum = bac != null ? Number(bac.toFixed(2)) : null;
@@ -90,8 +100,7 @@ export function resolveCalculatorLabelFields({
         ? `${Number((massN / bacNum).toFixed(2))} IU/mL`
         : `${Number((massN / bacNum).toFixed(2))} mg/mL`
       : "";
-  const doseText =
-    doseUnit === "mcg" ? `${dose} mcg (10 u)` : `${dose} ${doseUnit} (10 u)`;
+  const doseText = `${dose} ${doseUnit} (10 u)`;
 
   return {
     bacWater: bacWater || bacStr,
@@ -116,18 +125,18 @@ export function resolveCalculatorLabelFields({
 /** Suggested BAC so dose lands on `units` on a U-100 syringe. */
 export function suggestedBacMl(massMg, dose, doseUnit, units = 10) {
   const massN = Number(massMg);
-  const doseN = Number(dose);
   const unitsN = Number(units);
+  const { dose: doseN, doseUnit: unit } = normalizeDoseUnit(dose, doseUnit);
   if (!(massN > 0 && doseN > 0 && unitsN > 0)) return null;
 
   // IU vials: mass and dose are both in IU (e.g. HGH).
-  if (doseUnit === "IU") {
+  if (unit === "IU") {
     const iuPerUnit = doseN / unitsN;
     if (!(iuPerUnit > 0)) return null;
     return massN / iuPerUnit / 100;
   }
 
-  const doseMcg = doseUnit === "mg" ? doseN * 1000 : doseN;
+  const doseMcg = doseN * 1000;
   if (!(doseMcg > 0)) return null;
   const mcgPerUnit = doseMcg / unitsN;
   const totalUnits = (massN * 1000) / mcgPerUnit;

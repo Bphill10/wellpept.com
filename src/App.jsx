@@ -46,6 +46,7 @@ import {
   saveOrder,
   notifyOrderRequest,
   suggestedBacMl,
+  defaultResearchDose,
 } from "./utils/automation";
 import { fetchChargebeeConfig } from "./utils/chargebeeClient";
 import PeptideCalculator, {
@@ -1697,18 +1698,7 @@ export default function App() {
             onCalculate={() => {
               const mass = selectedVariant.mg || 10;
               const unit = selectedVariant.unit || "mg";
-              let dose;
-              let doseUnit;
-              if (unit === "IU") {
-                dose = mass >= 100 ? 5 : 2;
-                doseUnit = "IU";
-              } else if (mass >= 10) {
-                dose = 1;
-                doseUnit = "mg";
-              } else {
-                dose = 250;
-                doseUnit = "mcg";
-              }
+              const { dose, doseUnit } = defaultResearchDose(mass, unit);
               const autoBac = automation.autoSuggestBacFromProduct;
               const bac = autoBac
                 ? suggestedBacMl(mass, dose, doseUnit, 10)
