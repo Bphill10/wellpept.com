@@ -1030,25 +1030,25 @@ function drawPhotorealVial(ctx, dims, options) {
   drawCoverImage(ctx, photo, dims.w, dims.h);
 
   // Geometry matched to studio vial photos (3 mL / 10 mL)
-  const bodyW = dims.w * (isTen ? 0.3 : 0.28);
+  const bodyW = dims.w * (isTen ? 0.24 : 0.22);
   const bodyX = dims.w / 2 - bodyW / 2;
-  const glassBottom = dims.h * (isTen ? 0.78 : 0.76);
-  const sleeveTop = dims.h * (isTen ? 0.34 : 0.33);
-  const sleeveH = dims.h * (isTen ? 0.28 : 0.26);
+  const glassBottom = dims.h * (isTen ? 0.775 : 0.755);
+  const sleeveTop = dims.h * (isTen ? 0.335 : 0.325);
+  const sleeveH = dims.h * (isTen ? 0.27 : 0.255);
   const powderColor = resolvePowderColor({ name });
 
   // Tint / replace cake on the raw photo before vignette / sticker
   if (!reconstituted && powderColor === "blue") {
     // Cover the full photo plug so no white cake peeks around KLOW blue
-    const cakeTop = dims.h * (isTen ? 0.58 : 0.56);
-    const cakeH = Math.max(14, glassBottom - cakeTop - dims.h * 0.008);
+    const cakeTop = dims.h * (isTen ? 0.6 : 0.585);
+    const cakeH = Math.max(14, glassBottom - cakeTop - dims.h * 0.006);
     drawPowderCake(
       ctx,
-      bodyX + bodyW * 0.1,
+      bodyX + bodyW * 0.08,
       cakeTop,
-      bodyW * 0.8,
+      bodyW * 0.84,
       cakeH,
-      bodyW * 0.2,
+      bodyW * 0.22,
       "blue"
     );
   }
