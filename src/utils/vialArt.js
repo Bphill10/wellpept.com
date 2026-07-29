@@ -416,13 +416,13 @@ function drawBrandThreeMl(ctx, dims, options) {
 
   // —— Brushed gold flat cap (brand) ——
   const capW = neckW * 1.22;
-  const goldSide = ctx.createLinearGradient(cx - capW / 2, 0, cx + capW / 2, 0);
-  goldSide.addColorStop(0, "#6b4e0e");
-  goldSide.addColorStop(0.25, "#d4af37");
-  goldSide.addColorStop(0.5, "#f0d78c");
-  goldSide.addColorStop(0.75, "#b8922a");
-  goldSide.addColorStop(1, "#5a4010");
-  ctx.fillStyle = goldSide;
+  const silverSide = ctx.createLinearGradient(cx - capW / 2, 0, cx + capW / 2, 0);
+  silverSide.addColorStop(0, "#4a5058");
+  silverSide.addColorStop(0.25, "#c5ccd4");
+  silverSide.addColorStop(0.5, "#f2f4f6");
+  silverSide.addColorStop(0.75, "#9aa3ad");
+  silverSide.addColorStop(1, "#3d434a");
+  ctx.fillStyle = silverSide;
   roundRect(ctx, cx - capW / 2, capY + capH * 0.28, capW, capH * 0.72, 2);
   ctx.fill();
   // vertical brush lines
@@ -444,9 +444,9 @@ function drawBrandThreeMl(ctx, dims, options) {
     capY + capH * 0.3,
     capW * 0.55
   );
-  goldTop.addColorStop(0, "#f5e6b8");
-  goldTop.addColorStop(0.45, "#d4af37");
-  goldTop.addColorStop(1, "#7a5a12");
+  goldTop.addColorStop(0, "#ffffff");
+  goldTop.addColorStop(0.45, "#c8d0d8");
+  goldTop.addColorStop(1, "#5a616a");
   ctx.fillStyle = goldTop;
   ctx.fill();
 
@@ -596,7 +596,7 @@ function drawBrandThreeMl(ctx, dims, options) {
 
   let metaY = titleY + titleLines.length * bodyW * 0.12 + bodyW * 0.02;
   if (massLabel) {
-    ctx.fillStyle = "#d4af37";
+    ctx.fillStyle = "#c8d0d8";
     ctx.font = `700 ${Math.max(10, bodyW * 0.13)}px Outfit, "Segoe UI", sans-serif`;
     ctx.fillText(massLabel, cx, metaY + bodyW * 0.06);
     metaY += bodyW * 0.14;
@@ -690,11 +690,11 @@ function drawBrandTenMl(ctx, dims, options) {
   ctx.fill();
 
   const capW = neckW * 1.2;
-  const goldSide = ctx.createLinearGradient(cx - capW / 2, 0, cx + capW / 2, 0);
-  goldSide.addColorStop(0, "#6b4e0e");
-  goldSide.addColorStop(0.5, "#f0d78c");
-  goldSide.addColorStop(1, "#5a4010");
-  ctx.fillStyle = goldSide;
+  const silverSide = ctx.createLinearGradient(cx - capW / 2, 0, cx + capW / 2, 0);
+  silverSide.addColorStop(0, "#4a5058");
+  silverSide.addColorStop(0.5, "#f2f4f6");
+  silverSide.addColorStop(1, "#3d434a");
+  ctx.fillStyle = silverSide;
   roundRect(ctx, cx - capW / 2, capY + capH * 0.28, capW, capH * 0.72, 2);
   ctx.fill();
   ellipse(ctx, cx, capY + capH * 0.3, capW / 2, capH * 0.2);
@@ -762,7 +762,7 @@ function drawBrandTenMl(ctx, dims, options) {
     y += bodyW * 0.12;
   });
   if (massLabel) {
-    ctx.fillStyle = "#d4af37";
+    ctx.fillStyle = "#c8d0d8";
     ctx.font = `700 ${Math.max(12, bodyW * 0.14)}px Outfit, "Segoe UI", sans-serif`;
     ctx.fillText(massLabel, cx, y + bodyW * 0.02);
     y += bodyW * 0.16;
@@ -1381,11 +1381,11 @@ function drawLabeledTenMl(ctx, dims, options) {
   ctx.fill();
 
   const capW = neckW * 1.2;
-  const goldSide = ctx.createLinearGradient(cx - capW / 2, 0, cx + capW / 2, 0);
-  goldSide.addColorStop(0, "#6b4e0e");
-  goldSide.addColorStop(0.5, "#f0d78c");
-  goldSide.addColorStop(1, "#5a4010");
-  ctx.fillStyle = goldSide;
+  const silverSide = ctx.createLinearGradient(cx - capW / 2, 0, cx + capW / 2, 0);
+  silverSide.addColorStop(0, "#4a5058");
+  silverSide.addColorStop(0.5, "#f2f4f6");
+  silverSide.addColorStop(1, "#3d434a");
+  ctx.fillStyle = silverSide;
   roundRect(ctx, cx - capW / 2, capY + capH * 0.28, capW, capH * 0.72, 2);
   ctx.fill();
   ellipse(ctx, cx, capY + capH * 0.3, capW / 2, capH * 0.2);
