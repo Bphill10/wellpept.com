@@ -1496,7 +1496,12 @@ svg {
 }
 
 .featured-vendor-section {
-  padding-top: 0;
+  padding-top: 1.5rem;
+  padding-bottom: 1rem;
+}
+
+.app-shell--undisclosed .featured-vendor-section {
+  padding-top: 1.75rem;
 }
 
 .featured-vendor {
