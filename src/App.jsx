@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Search,
   ShoppingCart,
@@ -75,6 +75,7 @@ import {
   isLabUnlocked,
   setLabUnlocked,
   labUnlockFromUrl,
+  labUnlockFromPath,
   cleanLabUnlockUrl,
   cleanPublicEntryUrl,
 } from "./utils/secretMenu";
@@ -152,6 +153,11 @@ export default function App() {
   const [labUnlocked, setLabUnlockedState] = useState(
     () => urlWantsLab || isLabUnlocked()
   );
+  const [routePath, setRoutePath] = useState(
+    () => (typeof window !== "undefined" ? window.location.pathname : "/")
+  );
+  const onUndisclosedRoute = labUnlockFromPath(routePath);
+  const labVisible = labUnlocked || onUndisclosedRoute;
   const [logoClicks, setLogoClicks] = useState([]);
   const logoClicksRef = useRef([]);
   const lastBrandTapRef = useRef(0);
@@ -202,6 +208,27 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const syncRoute = () =>
+      setRoutePath(
+        typeof window !== "undefined" ? window.location.pathname : "/"
+      );
+    syncRoute();
+    window.addEventListener("popstate", syncRoute);
+    return () => window.removeEventListener("popstate", syncRoute);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!onUndisclosedRoute && !urlWantsLab) return;
+    setLabUnlocked(true);
+    setLabUnlockedState(true);
+    setView((current) =>
+      current === VIEWS.skincare || current === VIEWS.skinProduct
+        ? VIEWS.shop
+        : current
+    );
+  }, [onUndisclosedRoute, urlWantsLab]);
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const viewParam = params.get("view");
     const cb = params.get("cb");
@@ -238,7 +265,7 @@ export default function App() {
   }, [urlWantsLab]);
 
   useEffect(() => {
-    if (labUnlocked) return;
+    if (labVisible) return;
     if (
       view === VIEWS.shop ||
       view === VIEWS.product ||
@@ -248,14 +275,14 @@ export default function App() {
     ) {
       setView(VIEWS.skincare);
     }
-  }, [labUnlocked, view]);
+  }, [labVisible, view]);
 
   useEffect(() => {
     if (opsUnlocked) return;
     if (view === VIEWS.vendor || view === VIEWS.admin) {
-      setView(labUnlocked ? VIEWS.shop : VIEWS.skincare);
+      setView(labVisible ? VIEWS.shop : VIEWS.skincare);
     }
-  }, [opsUnlocked, view, labUnlocked]);
+  }, [opsUnlocked, view, labVisible]);
 
   function unlockLabMenu(message = "Undisclosed unlocked") {
     setLabUnlocked(true);
@@ -426,7 +453,7 @@ export default function App() {
   );
 
   function goShop() {
-    setView(labUnlocked ? VIEWS.shop : VIEWS.skincare);
+    setView(labVisible ? VIEWS.shop : VIEWS.skincare);
     setSelectedId(null);
     setSelectedVariantId(null);
     setSkinProduct(null);
@@ -751,7 +778,7 @@ export default function App() {
   }
 
   return (
-    <div className={`app-shell ${labUnlocked ? "app-shell--undisclosed" : "app-shell--skincare"}`}>
+    <div className={`app-shell ${labVisible ? "app-shell--undisclosed" : "app-shell--skincare"}`}>
       {showAuth && (
         <AuthGate
           onAuthed={(next) => {
@@ -766,12 +793,12 @@ export default function App() {
         <div className="header-top">
           <div className="container header-top-inner">
             <span className="header-top-msg">
-              {labUnlocked
+              {labVisible
                 ? "Undisclosed · alternate universe · by WellPept"
                 : "Request first · Pay after supply check · Up to 4 weeks"}
             </span>
             <span className="header-top-links">
-              {labUnlocked ? (
+              {labVisible ? (
                 <button type="button" onClick={lockLabMenu}>
                   Exit to WellPept
                 </button>
@@ -800,23 +827,23 @@ export default function App() {
             onClick={handleBrandClick}
           >
             <img
-              src={labUnlocked ? "/ud-monogram.svg" : "/wp-monogram.svg"}
-              alt={labUnlocked ? "Undisclosed" : "WellPept"}
+              src={labVisible ? "/ud-monogram.svg" : "/wp-monogram.svg"}
+              alt={labVisible ? "Undisclosed" : "WellPept"}
               className="brand-logo"
               width={44}
               height={44}
             />
             <span className="brand-text">
               <span className="brand-mark">
-                {labUnlocked ? "Undisclosed" : "WellPept"}
+                {labVisible ? "Undisclosed" : "WellPept"}
               </span>
               <span className="brand-sub">
-                {labUnlocked ? "Brought to you by WellPept" : "Renew skincare"}
+                {labVisible ? "Brought to you by WellPept" : "Renew skincare"}
               </span>
             </span>
           </button>
 
-          {labUnlocked ? (
+          {labVisible ? (
             <div className="search-wrap">
               <select
                 className="search-dept"
@@ -910,7 +937,7 @@ export default function App() {
           )}
 
           <div className="header-actions">
-            {labUnlocked && (
+            {labVisible && (
               <button
                 type="button"
                 className="ghost-btn"
@@ -923,7 +950,7 @@ export default function App() {
                 <span>Calculator</span>
               </button>
             )}
-            {labUnlocked && opsUnlocked && (
+            {labVisible && opsUnlocked && (
               <>
                 <button
                   type="button"
@@ -968,7 +995,7 @@ export default function App() {
               aria-label="Open bag"
             >
               <ShoppingCart size={17} />
-              <span className="cart-label">{labUnlocked ? "Cart" : "Bag"}</span>
+              <span className="cart-label">{labVisible ? "Cart" : "Bag"}</span>
               {cartCount > 0 && (
                 <span className={`cart-count ${cartPulse ? "pulse" : ""}`}>
                   {cartCount}
@@ -978,7 +1005,7 @@ export default function App() {
           </div>
         </div>
 
-        {labUnlocked && (
+        {labVisible && (
           <nav className="dept-bar" aria-label="Categories">
             <div className="container dept-bar-inner">
               {CATEGORIES.map((c) => (
@@ -1154,7 +1181,7 @@ export default function App() {
           </section>
         )}
 
-        {view === VIEWS.shop && labUnlocked && (
+        {view === VIEWS.shop && labVisible && (
           <>
             <div className="lab-banner">
               <div className="container lab-banner-inner">
@@ -1715,7 +1742,7 @@ export default function App() {
           </>
         )}
 
-        {view === VIEWS.product && labUnlocked && selectedListing && selectedVariant && (
+        {view === VIEWS.product && labVisible && selectedListing && selectedVariant && (
           <ProductDetail
             listing={selectedListing}
             product={selectedVariant}
@@ -1760,7 +1787,7 @@ export default function App() {
           />
         )}
 
-        {view === VIEWS.calculator && labUnlocked && (
+        {view === VIEWS.calculator && labVisible && (
           <PeptideCalculator
             initial={calcInitial}
             listings={listings}
@@ -1768,7 +1795,7 @@ export default function App() {
           />
         )}
 
-        {view === VIEWS.vendor && labUnlocked && opsUnlocked && (
+        {view === VIEWS.vendor && labVisible && opsUnlocked && (
           <VendorPortal
             vendors={vendors}
             submissions={submissions}
@@ -1779,7 +1806,7 @@ export default function App() {
           />
         )}
 
-        {view === VIEWS.admin && labUnlocked && opsUnlocked && (
+        {view === VIEWS.admin && labVisible && opsUnlocked && (
           <AdminPanel
             vendors={vendors}
             submissions={submissions}
@@ -1801,9 +1828,9 @@ export default function App() {
       <footer className="footer" id="contact">
         <div className="container footer-inner">
           <div>
-            <strong>{labUnlocked ? "Undisclosed" : "WellPept"}</strong>
+            <strong>{labVisible ? "Undisclosed" : "WellPept"}</strong>
             <div>
-              {labUnlocked
+              {labVisible
                 ? "Brought to you by WellPept · research peptides for laboratory use"
                 : "Renew skincare. White light, cobalt signal"}
             </div>
@@ -1823,7 +1850,7 @@ export default function App() {
             </p>
           </div>
           <p className="disclaimer">
-            {labUnlocked ? (
+            {labVisible ? (
               <>
                 Undisclosed is brought to you by WellPept. Items are for laboratory
                 research use only. Not for human consumption, medical use, or
