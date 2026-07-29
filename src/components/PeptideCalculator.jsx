@@ -10,9 +10,11 @@ import {
 import {
   buildCalculatorShareUrl,
   defaultsFromCatalogSelection,
+  formatDoseRangeLabel,
   normalizeDoseUnit,
   suggestedBacMl as suggestedBacFromAutomation,
 } from "../utils/automation";
+import { resolveCoaQrPayload } from "../utils/coaStore";
 
 function formatNum(v, digits = 2) {
   const n = Number(v);
@@ -300,13 +302,16 @@ export default function PeptideCalculator({
     solution && Number(solution) > 0 ? `${formatNum(solution, 2)} mL` : "";
   const vialConc = result?.concLabel || "";
   const vialDose = result
-    ? `${result.doseText} (${formatNum(result.units, 1)} u)`
+    ? formatDoseRangeLabel(dose, doseUnit === "IU" ? "IU" : "mg", 10)
     : "";
   const vialCategory = guessCategory(name || "Research");
   const doseUnitOptions =
     vialUnit === "IU"
       ? [{ value: "IU", label: "IU" }]
       : [{ value: "mg", label: "mg" }];
+  const calcCoaQr = resolveCoaQrPayload({
+    fallback: shareUrl,
+  });
 
   return (
     <section className="panel-page fade">
@@ -546,7 +551,7 @@ export default function PeptideCalculator({
                   reconstituted={Boolean(solution && parseFloat(solution) > 0)}
                   vialMl={vialMl || 3}
                   size="lg"
-                  qrPayload={shareUrl}
+                  qrPayload={calcCoaQr}
                   showDownload
                 />
               </div>
@@ -559,7 +564,7 @@ export default function PeptideCalculator({
                   concentration={vialConc}
                   doseRange={vialDose}
                   size="md"
-                  qrPayload={shareUrl}
+                  qrPayload={calcCoaQr}
                   showDownload
                 />
               </div>

@@ -50,6 +50,11 @@ import {
   defaultsFromCatalogSelection,
 } from "./utils/automation";
 import { fetchChargebeeConfig } from "./utils/chargebeeClient";
+import {
+  getCoaMeta,
+  setCoaUrl,
+  clearCoaUrl,
+} from "./utils/coaStore";
 import PeptideCalculator, {
   parseCalculatorQuery,
 } from "./components/PeptideCalculator";
@@ -115,6 +120,8 @@ function VialPreview({ product, size = "md", showDownload = false }) {
       summary={product.tagline || ""}
       size={size}
       showDownload={showDownload}
+      productId={product.id}
+      coaUrl={product.coaUrl || ""}
     />
   );
 }
@@ -2004,6 +2011,14 @@ function ProductDetail({
     .filter((v) => v.price != null)
     .sort((a, b) => Number(a.price) - Number(b.price))[0]?.price;
 
+  const [coaTick, setCoaTick] = useState(0);
+  const coaMeta = useMemo(
+    () => getCoaMeta(product.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [product.id, coaTick]
+  );
+  const coaUrl = product.coaUrl || coaMeta?.url || "";
+
   return (
     <section className="panel-page fade">
       <div className="container">
@@ -2012,7 +2027,12 @@ function ProductDetail({
         </button>
         <div className="detail-layout amazon-detail" style={{ marginTop: "1rem" }}>
           <div className="detail-visual">
-            <VialPreview product={product} size="lg" showDownload />
+            <VialPreview
+              key={`${product.id}-${coaTick}`}
+              product={{ ...product, coaUrl }}
+              size="lg"
+              showDownload
+            />
           </div>
           <div className="detail-info">
             <div className="meta">
@@ -2050,6 +2070,13 @@ function ProductDetail({
               </strong>{" "}
               · US shipping via WellPept marketplace
             </div>
+
+            <CoaStorePanel
+              productId={product.id}
+              productName={listing.name || product.name}
+              seedUrl={product.coaUrl || ""}
+              onChanged={() => setCoaTick((n) => n + 1)}
+            />
 
             <div className="detail-compare">
               <h2 className="detail-summary-label">Compare prices</h2>
@@ -2137,10 +2164,119 @@ function ProductDetail({
             <button type="button" className="soft-btn" onClick={onCalculate}>
               <Calculator size={16} /> Calculate reconstitution
             </button>
+            {coaUrl ? (
+              <p className="meta" style={{ marginTop: "0.75rem" }}>
+                Label QR → COA linked
+              </p>
+            ) : (
+              <p className="meta" style={{ marginTop: "0.75rem" }}>
+                Add a COA below to encode it in the vial QR
+              </p>
+            )}
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function CoaStorePanel({ productId, productName, seedUrl = "", onChanged }) {
+  const existing = getCoaMeta(productId);
+  const [url, setUrl] = useState(existing?.url || seedUrl || "");
+  const [status, setStatus] = useState("");
+
+  useEffect(() => {
+    const meta = getCoaMeta(productId);
+    setUrl(meta?.url || seedUrl || "");
+    setStatus("");
+  }, [productId, seedUrl]);
+
+  function saveUrl(next, name = "Certificate of Analysis") {
+    const saved = setCoaUrl(productId, next, name);
+    setUrl(saved);
+    setStatus(saved ? "COA saved — vial QR updated." : "COA cleared.");
+    onChanged?.();
+  }
+
+  function onFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 4.5 * 1024 * 1024) {
+      setStatus("File too large (max ~4.5 MB). Host it and paste the URL instead.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      saveUrl(String(reader.result || ""), file.name || "COA");
+    };
+    reader.onerror = () => setStatus("Could not read that file.");
+    reader.readAsDataURL(file);
+  }
+
+  return (
+    <div className="detail-summary coa-store-panel">
+      <h2 className="detail-summary-label">Certificate of Analysis</h2>
+      <p className="meta" style={{ marginTop: 0 }}>
+        Stored on this selection page. The vial / wrap label QR opens this COA
+        for {productName}.
+      </p>
+      <label className="field">
+        COA URL
+        <input
+          type="url"
+          placeholder="https://…/coa.pdf"
+          value={url.startsWith("data:") ? "" : url}
+          onChange={(e) => setUrl(e.target.value)}
+        />
+      </label>
+      {url.startsWith("data:") && (
+        <p className="meta">Local file attached ({existing?.name || "COA"}).</p>
+      )}
+      <div className="row-actions" style={{ marginTop: "0.5rem" }}>
+        <button
+          type="button"
+          className="soft-btn"
+          onClick={() => saveUrl(url)}
+          disabled={!url.trim() && !existing?.url}
+        >
+          Save COA link
+        </button>
+        <label className="soft-btn" style={{ cursor: "pointer" }}>
+          Upload file
+          <input
+            type="file"
+            accept=".pdf,image/*,.png,.jpg,.jpeg,.webp"
+            hidden
+            onChange={onFile}
+          />
+        </label>
+        {existing?.url && (
+          <button
+            type="button"
+            className="ghost-btn"
+            onClick={() => {
+              clearCoaUrl(productId);
+              setUrl("");
+              setStatus("COA cleared.");
+              onChanged?.();
+            }}
+          >
+            Remove
+          </button>
+        )}
+        {existing?.url && (
+          <a
+            className="soft-btn"
+            href={existing.url}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open COA
+          </a>
+        )}
+      </div>
+      {status && <div className="notice" style={{ marginTop: "0.75rem" }}>{status}</div>}
+    </div>
   );
 }
 

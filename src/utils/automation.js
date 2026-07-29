@@ -93,7 +93,8 @@ export function defaultResearchDose(mass, unit = "mg", name = "") {
   } else if (n.includes("glutathione") || n.includes("gluta")) {
     dose = massN >= 600 ? 200 : 100;
   } else if (n.includes("klow")) {
-    dose = 0.5;
+    // Reference KLOW label: 2.5 mg @ 10 u → 3.2 mL BAC on 80 mg vial
+    dose = 2.5;
   } else if (n.includes("semax") || n.includes("selank")) {
     dose = 0.3;
   } else if (n.includes("mots")) {
@@ -161,7 +162,7 @@ export function defaultsFromCatalogSelection({
         ? `${Number((massN / bacNum).toFixed(2))} IU/mL`
         : `${Number((massN / bacNum).toFixed(2))} mg/mL`
       : "";
-  const doseRange = `${dose} ${doseUnit} (${desiredUnits} u)`;
+  const doseRange = formatDoseRangeLabel(dose, doseUnit, desiredUnits);
 
   return {
     name,
@@ -176,6 +177,17 @@ export function defaultsFromCatalogSelection({
     doseRange,
     desiredUnits,
   };
+}
+
+/** Label-style dose range: "2.5 - 5 mg (10 - 20 u)" */
+export function formatDoseRangeLabel(dose, doseUnit, units = 10) {
+  const low = Number(dose);
+  if (!(low > 0)) return "—";
+  const high = low * 2;
+  const uHigh = Number(units) * 2;
+  const fmt = (n) => parseFloat(Number(n).toFixed(2)).toString();
+  const unit = doseUnit === "IU" ? "IU" : "mg";
+  return `${fmt(low)} - ${fmt(high)} ${unit} (${units} - ${uHigh} u)`;
 }
 
 export function buildCalculatorShareUrl({

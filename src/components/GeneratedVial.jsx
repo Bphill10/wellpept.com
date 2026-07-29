@@ -8,6 +8,7 @@ import {
   loadBrandVial10,
 } from "../utils/vialArt";
 import { resolveCalculatorLabelFields } from "../utils/automation";
+import { resolveCoaQrPayload } from "../utils/coaStore";
 
 // Warm the photoreal vial photos so first paint is fast.
 if (typeof window !== "undefined") {
@@ -33,12 +34,19 @@ export default function GeneratedVial({
   vialMl,
   form = "",
   qrPayload = "",
+  coaUrl = "",
+  productId = "",
   showDownload = false,
   className = "",
 }) {
   const canvasRef = useRef(null);
   const [png, setPng] = useState("");
   const resolvedMl = resolveVialMl({ form: form || subtitle, vialMl, name });
+  const resolvedQr = resolveCoaQrPayload({
+    productId,
+    coaUrl,
+    fallback: qrPayload,
+  });
 
   // Same calculator label fields used on the printable wrap / share link.
   const labelFields = useMemo(
@@ -51,11 +59,23 @@ export default function GeneratedVial({
         bacWater,
         concentration,
         doseRange,
-        qrPayload,
+        qrPayload: resolvedQr,
         vialMl: resolvedMl,
         form: form || subtitle,
       }),
-    [name, mass, unit, sku, bacWater, concentration, doseRange, qrPayload, resolvedMl, form, subtitle]
+    [
+      name,
+      mass,
+      unit,
+      sku,
+      bacWater,
+      concentration,
+      doseRange,
+      resolvedQr,
+      resolvedMl,
+      form,
+      subtitle,
+    ]
   );
 
   useEffect(() => {
@@ -82,6 +102,7 @@ export default function GeneratedVial({
           vialMl: resolvedMl,
           form: form || subtitle,
           qrPayload: labelFields.qrPayload,
+          coaUrl: resolvedQr,
         });
         if (!cancelled) setPng(dataUrl);
       } catch (err) {
@@ -106,6 +127,7 @@ export default function GeneratedVial({
     reconstituted,
     resolvedMl,
     form,
+    resolvedQr,
   ]);
 
   function handleDownload() {
@@ -121,9 +143,9 @@ export default function GeneratedVial({
         className={`generated-vial generated-vial--${size} generated-vial--${resolvedMl}ml`}
         aria-label={`${name} Undisclosed labeled vial`}
       />
-      {showDownload && (
+      {showDownload && png && (
         <button type="button" className="soft-btn vial-download" onClick={handleDownload}>
-          <Download size={14} /> Download vial
+          <Download size={14} /> Download vial PNG
         </button>
       )}
     </div>

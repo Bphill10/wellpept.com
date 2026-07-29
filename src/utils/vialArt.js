@@ -355,6 +355,7 @@ function qrSeedFromOptions(options) {
 }
 
 function qrPayloadFromOptions(options) {
+  if (options.coaUrl) return String(options.coaUrl);
   if (options.qrPayload) return String(options.qrPayload);
   return "";
 }
@@ -848,9 +849,14 @@ export async function drawGeneratedVial(canvas, options = {}) {
     concentration = "",
     doseRange = "",
     qrPayload = "",
+    coaUrl = "",
   } = options;
 
-  const vialMl = resolveVialMl({ form: form || subtitle, vialMl: vialMlOpt });
+  const vialMl = resolveVialMl({
+    name,
+    form: form || subtitle,
+    vialMl: vialMlOpt,
+  });
   const isTen = vialMl >= 10;
 
   const dims = {
@@ -884,13 +890,38 @@ export async function drawGeneratedVial(canvas, options = {}) {
       concentration,
       doseRange,
       qrPayload,
+      coaUrl,
       isTen,
       reconstituted,
     });
   } else {
     // Fallback if photos fail to load
-    if (isTen) drawLabeledTenMl(ctx, dims, { name, mass, unit, sku, reconstituted, bacWater, concentration, doseRange, qrPayload });
-    else drawLabeledThreeMl(ctx, dims, { name, mass, unit, sku, reconstituted, bacWater, concentration, doseRange, qrPayload });
+    if (isTen)
+      drawLabeledTenMl(ctx, dims, {
+        name,
+        mass,
+        unit,
+        sku,
+        reconstituted,
+        bacWater,
+        concentration,
+        doseRange,
+        qrPayload,
+        coaUrl,
+      });
+    else
+      drawLabeledThreeMl(ctx, dims, {
+        name,
+        mass,
+        unit,
+        sku,
+        reconstituted,
+        bacWater,
+        concentration,
+        doseRange,
+        qrPayload,
+        coaUrl,
+      });
   }
 
   return canvas.toDataURL("image/png");
@@ -922,6 +953,7 @@ function drawPhotorealVial(ctx, dims, options) {
     concentration = "",
     doseRange = "",
     qrPayload = "",
+    coaUrl = "",
     isTen = false,
   } = options;
 
@@ -955,6 +987,7 @@ function drawPhotorealVial(ctx, dims, options) {
     doseRange,
     sku,
     qrPayload,
+    coaUrl,
   });
   drawCylindricalLabelWrap(ctx, labelBmp, {
     cx: dims.w / 2,
@@ -1084,6 +1117,7 @@ function drawLabeledThreeMl(ctx, dims, options) {
     concentration = "",
     doseRange = "",
     qrPayload = "",
+    coaUrl = "",
   } = options;
 
   const cx = dims.w / 2;
@@ -1229,6 +1263,7 @@ function drawLabeledThreeMl(ctx, dims, options) {
     doseRange,
     sku,
     qrPayload,
+    coaUrl,
   });
   drawCylindricalLabelWrap(ctx, labelBmp, {
     cx,
@@ -1264,6 +1299,7 @@ function drawLabeledTenMl(ctx, dims, options) {
     concentration = "",
     doseRange = "",
     qrPayload = "",
+    coaUrl = "",
   } = options;
 
   const cx = dims.w / 2;
@@ -1346,6 +1382,7 @@ function drawLabeledTenMl(ctx, dims, options) {
     doseRange,
     sku,
     qrPayload,
+    coaUrl,
   });
   drawCylindricalLabelWrap(ctx, labelBmp, {
     cx,
@@ -1510,7 +1547,10 @@ export function drawLabelTemplate(canvas, options = {}) {
   return canvas.toDataURL("image/png");
 }
 
-/** Paint the wrap-label artwork into an existing context at logical dims. */
+/** Paint the wrap-label artwork into an existing context at logical dims.
+ *  Matches the Undisclosed clinical wrap (KLOW reference): spine · name ·
+ *  mass between rules · BAC/conc/dose grid · COA QR · PEPTIDE POWER footer.
+ */
 function paintLabelTemplate(ctx, dims, options = {}) {
   const {
     name = "Peptide",
@@ -1521,42 +1561,46 @@ function paintLabelTemplate(ctx, dims, options = {}) {
     doseRange = "",
     sku = "",
     qrPayload = "",
+    coaUrl = "",
+    footerText = "PEPTIDE POWER | 20%",
   } = options;
 
-  const spineW = Math.round(dims.w * 0.105);
-  const rightW = Math.round(dims.w * 0.235);
+  const spineW = Math.round(dims.w * 0.1);
+  const rightW = Math.round(dims.w * 0.26);
   const midX = spineW;
   const midW = dims.w - spineW - rightW;
   const rightX = spineW + midW;
   const ink = "#0a0a0a";
-  const muted = "#555555";
-  const hair = Math.max(1, dims.h * 0.0045);
-  const corner = Math.max(4, dims.h * 0.035);
+  const muted = "#444444";
+  const hair = Math.max(1.25, dims.h * 0.005);
+  const footerH = Math.round(dims.h * 0.11);
 
-  roundRect(ctx, 0.5, 0.5, dims.w - 1, dims.h - 1, corner);
+  // Sharp clinical card (reference is hard-edged white wrap)
   ctx.fillStyle = "#ffffff";
-  ctx.fill();
-  ctx.strokeStyle = "rgba(0,0,0,0.18)";
+  ctx.fillRect(0, 0, dims.w, dims.h);
+  ctx.strokeStyle = "rgba(0,0,0,0.2)";
   ctx.lineWidth = 1;
-  ctx.stroke();
+  ctx.strokeRect(0.5, 0.5, dims.w - 1, dims.h - 1);
 
   ctx.save();
-  roundRect(ctx, 0, 0, dims.w, dims.h, corner);
+  ctx.beginPath();
+  ctx.rect(0, 0, dims.w, dims.h);
   ctx.clip();
 
+  // Left black spine
   ctx.fillStyle = ink;
   ctx.fillRect(0, 0, spineW, dims.h);
 
   ctx.save();
-  ctx.translate(spineW * 0.52, dims.h * 0.42);
+  ctx.translate(spineW * 0.52, dims.h * 0.4);
   ctx.rotate(-Math.PI / 2);
   ctx.fillStyle = "#ffffff";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const spineFont = Math.max(10, Math.min(dims.h * 0.078, spineW * 0.34));
-  ctx.font = `700 ${spineFont}px Outfit, "Segoe UI", sans-serif`;
+  const spineFont = Math.max(11, Math.min(dims.h * 0.075, spineW * 0.38));
+  ctx.font = `800 ${spineFont}px Outfit, "Segoe UI", sans-serif`;
   const spineWord = "UNDISCLOSED";
-  const track = spineFont * 0.12;
+  const track = spineFont * 0.14;
   let totalW = 0;
   for (const ch of spineWord) totalW += ctx.measureText(ch).width + track;
   totalW -= track;
@@ -1568,29 +1612,42 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   }
   ctx.restore();
 
-  const markR = Math.min(spineW * 0.34, dims.h * 0.105);
-  drawLabelSpineMark(ctx, spineW * 0.5, dims.h - markR * 1.45, markR);
+  const markR = Math.min(spineW * 0.32, dims.h * 0.085);
+  drawLabelSpineMark(
+    ctx,
+    spineW * 0.5,
+    dims.h - footerH - markR * 1.25,
+    markR
+  );
 
+  // Right column divider
   ctx.strokeStyle = ink;
   ctx.lineWidth = hair;
   ctx.beginPath();
-  ctx.moveTo(rightX, dims.h * 0.06);
-  ctx.lineTo(rightX, dims.h * 0.82);
+  ctx.moveTo(rightX, dims.h * 0.05);
+  ctx.lineTo(rightX, dims.h - footerH - dims.h * 0.02);
   ctx.stroke();
 
-  const footerH = Math.round(dims.h * 0.1);
   const midCx = midX + midW / 2;
-  const midPad = midW * 0.06;
+  const midPad = midW * 0.055;
   const contentW = midW - midPad * 2;
+  const ruleW = contentW;
+  const ruleX = midX + midPad;
 
-  // Reference header
+  // Top brand header
   ctx.fillStyle = ink;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const brandHeaderPx = Math.max(9, dims.h * 0.045);
-  ctx.font = `600 ${brandHeaderPx}px Outfit, "Segoe UI", sans-serif`;
-  ctx.fillText("—  UNDISCLOSED  —", midCx, dims.h * 0.09);
+  const brandHeaderPx = Math.max(8, dims.h * 0.038);
+  ctx.font = `700 ${brandHeaderPx}px Outfit, "Segoe UI", sans-serif`;
+  ctx.fillText("— UNDISCLOSED —", midCx, dims.h * 0.075);
 
+  // Rule under header
+  const rule1Y = dims.h * 0.12;
+  ctx.fillStyle = ink;
+  ctx.fillRect(ruleX, rule1Y, ruleW, hair);
+
+  // Product name — large block (KLOW)
   const product = String(name || "PEPTIDE")
     .replace(/\(.*?\)/g, " ")
     .replace(/\s+/g, " ")
@@ -1600,44 +1657,52 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   const nameSize = fitCenteredText(
     ctx,
     product,
-    contentW,
-    Math.max(32, dims.h * 0.2),
+    contentW * 0.98,
+    Math.max(36, dims.h * 0.22),
     nameFamily
   );
   ctx.font = `400 ${nameSize}px ${nameFamily}`;
   ctx.fillStyle = ink;
-  ctx.fillText(product, midCx, dims.h * 0.27);
+  ctx.textAlign = "center";
+  ctx.fillText(product, midCx, dims.h * 0.245);
 
-  const massLabel =
-    mass !== "" && mass != null
-      ? `${String(mass).trim()} ${String(unit || "mg").toUpperCase()}`
-      : "";
-  const ruleW = contentW * 0.92;
-  const ruleX = midCx - ruleW / 2;
-  const topRuleY = dims.h * 0.38;
-  const botRuleY = dims.h * 0.54;
-  ctx.fillStyle = ink;
-  ctx.fillRect(ruleX, topRuleY, ruleW, Math.max(2, dims.h * 0.01));
-  ctx.fillRect(ruleX, botRuleY, ruleW, Math.max(2, dims.h * 0.01));
+  // Rule under name
+  const rule2Y = dims.h * 0.35;
+  ctx.fillRect(ruleX, rule2Y, ruleW, hair);
 
-  if (massLabel) {
-    const massSize = fitCenteredText(
-      ctx,
-      massLabel,
-      ruleW * 0.9,
-      Math.max(26, dims.h * 0.12),
-      'Outfit, "Segoe UI", sans-serif'
-    );
-    ctx.font = `800 ${massSize}px Outfit, "Segoe UI", sans-serif`;
+  // Mass — large number + smaller unit (80 MG)
+  const massNum =
+    mass !== "" && mass != null ? String(mass).trim() : "";
+  const massUnit = String(unit || "mg").toUpperCase();
+  const massBandMid = (rule2Y + dims.h * 0.52) / 2;
+  if (massNum) {
+    const numSize = Math.max(28, dims.h * 0.145);
+    const unitSize = Math.max(14, dims.h * 0.07);
+    ctx.font = `800 ${numSize}px Outfit, "Segoe UI", sans-serif`;
+    const numW = ctx.measureText(massNum).width;
+    ctx.font = `800 ${unitSize}px Outfit, "Segoe UI", sans-serif`;
+    const unitW = ctx.measureText(` ${massUnit}`).width;
+    const startX = midCx - (numW + unitW) / 2;
     ctx.fillStyle = ink;
-    ctx.fillText(massLabel, midCx, (topRuleY + botRuleY) / 2 + dims.h * 0.008);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.font = `800 ${numSize}px Outfit, "Segoe UI", sans-serif`;
+    ctx.fillText(massNum, startX, massBandMid);
+    ctx.font = `800 ${unitSize}px Outfit, "Segoe UI", sans-serif`;
+    ctx.fillText(` ${massUnit}`, startX + numW, massBandMid + unitSize * 0.08);
   }
 
-  const gridTop = botRuleY + dims.h * 0.04;
-  const gridBottom = dims.h - footerH - dims.h * 0.04;
-  const gridH = Math.max(24, gridBottom - gridTop);
+  // Rule under mass
+  const rule3Y = dims.h * 0.52;
+  ctx.fillStyle = ink;
+  ctx.fillRect(ruleX, rule3Y, ruleW, hair);
+
+  // Three-column BAC / CONCENTRATION / DOSE RANGE (centered like reference)
+  const gridTop = rule3Y + dims.h * 0.03;
+  const gridBottom = dims.h - footerH - dims.h * 0.02;
+  const gridH = Math.max(28, gridBottom - gridTop);
   const colW = contentW / 3;
-  const gridLeft = midX + midPad;
+  const gridLeft = ruleX;
   const cells = [
     { label: "BAC WATER", value: formatBacForLabel(bacWater) },
     { label: "CONCENTRATION", value: String(concentration || "—") },
@@ -1645,45 +1710,46 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   ];
 
   cells.forEach((cell, i) => {
-    const cellLeft = gridLeft + colW * i + colW * 0.06;
-    const cellMaxW = colW * 0.88;
+    const cellCx = gridLeft + colW * (i + 0.5);
     if (i > 0) {
       ctx.strokeStyle = ink;
       ctx.lineWidth = hair;
       ctx.beginPath();
-      ctx.moveTo(gridLeft + colW * i, gridTop + gridH * 0.12);
-      ctx.lineTo(gridLeft + colW * i, gridTop + gridH * 0.88);
+      ctx.moveTo(gridLeft + colW * i, gridTop + gridH * 0.15);
+      ctx.lineTo(gridLeft + colW * i, gridTop + gridH * 0.9);
       ctx.stroke();
     }
     ctx.fillStyle = muted;
     ctx.font = `700 ${Math.max(7, dims.h * 0.028)}px Outfit, "Segoe UI", sans-serif`;
-    ctx.textAlign = "left";
-    ctx.fillText(cell.label, cellLeft, gridTop + gridH * 0.28);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(cell.label, cellCx, gridTop + gridH * 0.28);
 
     const valueSize = fitCenteredText(
       ctx,
       cell.value,
-      cellMaxW,
-      Math.max(12, dims.h * 0.05),
+      colW * 0.92,
+      Math.max(11, dims.h * 0.048),
       'Outfit, "Segoe UI", sans-serif'
     );
     ctx.font = `800 ${valueSize}px Outfit, "Segoe UI", sans-serif`;
     ctx.fillStyle = ink;
-    ctx.textAlign = "left";
-    ctx.fillText(cell.value, cellLeft, gridTop + gridH * 0.68);
+    ctx.fillText(cell.value, cellCx, gridTop + gridH * 0.68);
   });
 
+  // QR — links to COA when available
   const qrPad = Math.max(10, rightW * 0.12);
-  const qrBox = Math.min(rightW - qrPad * 2, dims.h * 0.42);
+  const qrBox = Math.min(rightW - qrPad * 2, dims.h * 0.48);
   const qrX = rightX + (rightW - qrBox) / 2;
-  const qrY = dims.h * 0.1;
+  const qrY = dims.h * 0.08;
 
-  roundRect(ctx, qrX, qrY, qrBox, qrBox, Math.max(6, qrBox * 0.08));
-  ctx.strokeStyle = "rgba(10,10,10,0.45)";
+  ctx.strokeStyle = "rgba(10,10,10,0.55)";
   ctx.lineWidth = Math.max(1.25, hair);
+  roundRect(ctx, qrX, qrY, qrBox, qrBox, Math.max(4, qrBox * 0.04));
   ctx.stroke();
 
-  const qrInset = qrBox * 0.1;
+  const qrInset = qrBox * 0.08;
+  const payload = qrPayloadFromOptions({ qrPayload, coaUrl });
   drawQrCode(
     ctx,
     qrX + qrInset,
@@ -1699,8 +1765,17 @@ function paintLabelTemplate(ctx, dims, options = {}) {
       sku,
     }),
     false,
-    qrPayloadFromOptions({ qrPayload })
+    payload
   );
+
+  // Small COA caption under QR when linked
+  if (payload) {
+    ctx.fillStyle = muted;
+    ctx.font = `700 ${Math.max(6, dims.h * 0.022)}px Outfit, "Segoe UI", sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("SCAN FOR COA", rightX + rightW / 2, qrY + qrBox + dims.h * 0.035);
+  }
 
   ctx.fillStyle = ink;
   ctx.textAlign = "center";
@@ -1708,33 +1783,18 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   const discPx = Math.max(6.5, dims.h * 0.026);
   ctx.font = `700 ${discPx}px Outfit, "Segoe UI", sans-serif`;
   const discX = rightX + rightW / 2;
-  const discBase = Math.min(
-    dims.h - footerH - discPx * 2.8,
-    qrY + qrBox + dims.h * 0.07
-  );
+  const discBase = dims.h - footerH - discPx * 2.6;
   ctx.fillText("RESEARCH ONLY.", discX, discBase);
-  ctx.fillText("NOT FOR HUMAN CONSUMPTION.", discX, discBase + discPx * 1.45);
+  ctx.fillText("NOT FOR HUMAN CONSUMPTION.", discX, discBase + discPx * 1.35);
 
-  // Bottom banner — reference style (black bar, white caps)
+  // Bottom banner — reference: PEPTIDE POWER | 20%
   ctx.fillStyle = ink;
   ctx.fillRect(0, dims.h - footerH, dims.w, footerH);
   ctx.fillStyle = "#ffffff";
-  ctx.font = `700 ${Math.max(9, footerH * 0.42)}px Outfit, "Segoe UI", sans-serif`;
+  ctx.font = `700 ${Math.max(10, footerH * 0.42)}px Outfit, "Segoe UI", sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(
-    "BROUGHT TO YOU BY WELLPEPT",
-    dims.w / 2,
-    dims.h - footerH / 2
-  );
-
-  // UD hex sits on the spine above the footer (not under the black bar)
-  drawLabelSpineMark(
-    ctx,
-    spineW * 0.5,
-    dims.h - footerH - markR * 1.2,
-    Math.min(spineW * 0.34, dims.h * 0.09)
-  );
+  ctx.fillText(String(footerText || "PEPTIDE POWER | 20%"), dims.w / 2, dims.h - footerH / 2);
 
   ctx.restore();
 }

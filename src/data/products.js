@@ -738,6 +738,7 @@ export function buildCatalog(vendors, submissions) {
       name: item.name,
       form: item.form,
       purity: item.purity,
+      coaUrl: item.coaUrl || "",
       mg: item.mg,
       unit: resolveVialUnit(item),
       packVials,

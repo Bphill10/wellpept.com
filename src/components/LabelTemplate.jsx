@@ -16,6 +16,7 @@ export default function LabelTemplate({
   sku = "",
   size = "md",
   qrPayload = "",
+  coaUrl = "",
   showDownload = true,
   className = "",
 }) {
@@ -48,6 +49,7 @@ export default function LabelTemplate({
         size,
         wpMark,
         qrPayload,
+        coaUrl,
       });
       setPng(dataUrl);
     } catch (err) {
@@ -64,6 +66,7 @@ export default function LabelTemplate({
     size,
     wpMark,
     qrPayload,
+    coaUrl,
   ]);
 
   function handleDownload() {
