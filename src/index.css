@@ -1544,6 +1544,14 @@ svg {
   border: 1px solid rgba(196, 163, 90, 0.28);
 }
 
+.featured-product-photo {
+  display: block;
+  width: min(100%, 280px);
+  height: auto;
+  max-height: 420px;
+  object-fit: contain;
+}
+
 .price-external {
   font-size: 1rem;
   color: var(--teal-deep);
@@ -5092,23 +5100,13 @@ body:has(.app-shell--undisclosed)::before {
 
   .hero--undisclosed .hero-media,
   .hero-media--undisclosed {
-    height: clamp(260px, 62vw, 380px) !important;
-    min-height: 260px !important;
-    max-height: 380px !important;
+    height: clamp(200px, 55vw, 320px) !important;
+    min-height: 200px !important;
+    max-height: 320px !important;
     border-top: 1px solid rgba(255, 255, 255, 0.12);
-    background: #050505 url("/black-marble.jpg") center / cover no-repeat !important;
-    display: grid !important;
-    place-items: center !important;
-    padding: 1.1rem 0.85rem 1.5rem !important;
-  }
-
-  .hero--undisclosed .hero-vial-stage {
-    width: min(70vw, 250px);
-  }
-
-  .hero--undisclosed .hero-generated-vial .generated-vial--lg {
-    max-width: min(100%, 230px);
-    max-height: 300px;
+    background: #050505 url("/undisclosed-hero-kit.png") center / cover no-repeat !important;
+    display: block !important;
+    padding: 0 !important;
   }
 
   .skin-hero .hero-media::after,

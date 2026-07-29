@@ -1241,23 +1241,18 @@ export default function App() {
               <div className="container">
                 <div className="featured-vendor panel">
                   <div className="featured-vendor-copy">
-                    <span className="featured-kicker">Featured for HGH</span>
-                    <h2>Lobster</h2>
+                    <span className="featured-kicker">Featured kit</span>
+                    <h2>KLOW</h2>
                     <p>
-                      Featured HGH vendor on Undisclosed. Pharma-grade HGH kits
-                      and growth-pathway lines. Minimum order{" "}
-                      {formatMoney(THE_LOBSTER_VENDOR.minOrder)}. Request first —
-                      we confirm supply within 24 hours, then payment. US
-                      shipping only; allow up to 4 weeks after payment.
+                      Signature Undisclosed kit photography — 10 × 80 MG
+                      lyophilized vials with clinical wrap labels, QR, and
+                      research-only marking. Request first; we confirm supply
+                      within 24 hours, then payment. US shipping only.
                     </p>
                     <ul className="featured-meta">
-                      <li>Featured for HGH</li>
-                      <li>
-                        Min order {formatMoney(THE_LOBSTER_VENDOR.minOrder)}
-                      </li>
-                      <li>
-                        Flat shipping {formatMoney(THE_LOBSTER_VENDOR.shippingFlat)}
-                      </li>
+                      <li>Featured kit photography</li>
+                      <li>80 MG · BAC 3.2 mL template</li>
+                      <li>Kit of 10 labeled vials</li>
                       <li>Request first · pay after supply check</li>
                       <li>US shipping only · up to 4 weeks after payment</li>
                     </ul>
@@ -1266,36 +1261,38 @@ export default function App() {
                         type="button"
                         className="primary-btn"
                         onClick={() => {
-                          setQuery("HGH");
-                          setCategory("Growth");
-                          document
-                            .getElementById("catalog")
-                            ?.scrollIntoView({ behavior: "smooth" });
-                        }}
-                      >
-                        Shop Lobster HGH
-                      </button>
-                      <button
-                        type="button"
-                        className="soft-btn"
-                        onClick={() => {
-                          setQuery("Lobster");
+                          setQuery("KLOW");
                           setCategory("All");
                           document
                             .getElementById("catalog")
                             ?.scrollIntoView({ behavior: "smooth" });
                         }}
                       >
-                        Full Lobster catalog
+                        Shop KLOW
+                      </button>
+                      <button
+                        type="button"
+                        className="soft-btn"
+                        onClick={() => {
+                          setQuery("");
+                          setCategory("All");
+                          document
+                            .getElementById("catalog")
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        }}
+                      >
+                        Full catalog
                       </button>
                     </div>
                   </div>
                   <div className="featured-vendor-visual">
-                    <GeneratedVial
-                      name="HGH"
-                      category="Growth"
-                      size="lg"
-                      catalogTemplate
+                    <img
+                      src="/undisclosed-brand.png"
+                      alt="Undisclosed KLOW 80 MG labeled vial"
+                      className="featured-product-photo"
+                      width={899}
+                      height={1750}
+                      decoding="async"
                     />
                   </div>
                 </div>
