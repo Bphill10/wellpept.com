@@ -1546,9 +1546,9 @@ svg {
 
 .featured-product-photo {
   display: block;
-  width: min(100%, 280px);
+  width: min(100%, 420px);
   height: auto;
-  max-height: 420px;
+  max-height: 360px;
   object-fit: contain;
 }
 
