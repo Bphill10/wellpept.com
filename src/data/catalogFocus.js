@@ -12,13 +12,21 @@ function norm(name) {
     .trim();
 }
 
-/** Lobster keepers: HGH family, Retatrutide, TB-4, Wolverine (BPC+TB). */
+/** Lobster keepers: HGH family, Retatrutide, TB-500, Wolverine (BPC+TB). */
 export function isLobsterFocused(name) {
   const n = norm(name);
   if (!n) return false;
   if (n === "hgh" || n.includes("prolobster") || n.includes("plus hgh")) return true;
   if (n.startsWith("retatrutide") || n === "reta") return true;
-  if (n.includes("tb-4") || n.includes("tb4") || n.includes("thymosin beta-4")) return true;
+  if (
+    n.includes("tb-4") ||
+    n.includes("tb4") ||
+    n.includes("tb-500") ||
+    n.includes("tb500") ||
+    n.includes("thymosin beta")
+  ) {
+    return true;
+  }
   // Wolverine stack on Lobster list
   if (n.includes("bpc") && n.includes("tb")) return true;
   if (n.includes("wolverine")) return true;
@@ -64,7 +72,9 @@ export function isChangshaFocused(name) {
   if (n.includes("selank")) return true;
 
   // 5 additional popular non-GLP-1 lines
-  if (n === "bpc 157" || n === "bpc-157") return true;
+  if (n === "bpc 157" || n === "bpc-157" || n.startsWith("bpc-157") || n.startsWith("bpc 157")) {
+    return true;
+  }
   if (n === "ghk-cu" || n === "ghk cu") return true;
   if (n.startsWith("epithalon") || n.startsWith("epitalon")) return true;
   if (n.startsWith("mots-c") || n.startsWith("mots c")) return true;

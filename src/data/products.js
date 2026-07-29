@@ -402,6 +402,68 @@ export function normalizeCompoundKey(name) {
     .trim();
 }
 
+/**
+ * Customer-facing peptide names — what people actually call them.
+ * Drops vendor jargon and odd formatting; dosage stays in the strength picker.
+ */
+export function displayPeptideName(name = "") {
+  const raw = String(name || "").replace(/\s+/g, " ").trim();
+  if (!raw) return "Peptide";
+  const n = raw
+    .toLowerCase()
+    .replace(/[·•]/g, ".")
+    .replace(/[（(].*?[）)]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (n.includes("wolverine") || (n.includes("bpc") && n.includes("tb"))) {
+    return "Wolverine";
+  }
+  if (n === "hgh" || n.includes("prolobster") || /\bplus hgh\b/.test(n)) {
+    return n.includes("prolobster") ? "HGH" : "HGH";
+  }
+  if (n.includes("tb-4") || n.includes("tb4") || n.includes("thymosin beta")) {
+    return "TB-500";
+  }
+  if (n.includes("tb-500") || n.includes("tb500")) return "TB-500";
+  if (n.startsWith("bpc")) return "BPC-157";
+  if (n.includes("retatrutide") || n === "reta") return "Retatrutide";
+  if (n.includes("tirzepatide") || n.startsWith("triz")) return "Tirzepatide";
+  if (n.includes("tesamorelin") && n.includes("ipa")) {
+    return "Tesamorelin / Ipamorelin";
+  }
+  if (n.startsWith("tesa") || n.includes("tesamorelin")) return "Tesamorelin";
+  if (n.includes("cjc") && n.includes("ipa")) return "CJC-1295 / Ipamorelin";
+  if (n.includes("cjc") && (n.includes("without") || n.includes("no dac") || n.includes("w/o"))) {
+    return "CJC-1295";
+  }
+  if (n.includes("cjc") && n.includes("dac")) return "CJC-1295 with DAC";
+  if (n.includes("cjc")) return "CJC-1295";
+  if (n.includes("ipamorelin") || n.startsWith("ipa ")) return "Ipamorelin";
+  if (n === "nad+" || n === "nad" || n.startsWith("nad+")) return "NAD+";
+  if (n.includes("glutathione") || n.startsWith("gluta")) return "Glutathione";
+  if (n.includes("ghk") && n.includes("cu")) return "GHK-Cu";
+  if (n.includes("ghk")) return "GHK";
+  if (n.includes("epithalon") || n.includes("epitalon")) return "Epitalon";
+  if (n.includes("mots")) return "MOTS-c";
+  if (n.includes("pt141") || n.includes("pt-141") || n.includes("pt 141")) {
+    return "PT-141";
+  }
+  if (n.includes("ss.31") || n.includes("ss-31") || n === "ss31") {
+    return "SS-31";
+  }
+  if (n.includes("n-acetyl") && n.includes("semax")) return "NA-Semax";
+  if (n.includes("semax")) return "Semax";
+  if (n.includes("selank")) return "Selank";
+  if (n === "klow") return "KLOW";
+
+  // Title-case leftover clean names
+  return raw
+    .replace(/[（(].*?[）)]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function variantKey(product) {
   const mg = Number(product.mg) || 0;
   const pack = Number(product.packVials) || 1;
@@ -733,11 +795,12 @@ export function buildCatalog(vendors, submissions) {
     const packVials = Number(item.packVials) || 1;
     const featured = Boolean(item.vendor.featured);
     const vialMl = resolveVialMl(item);
+    const displayName = displayPeptideName(item.name);
     return {
       id: `p-${item.vendorId}-${item.sku}`.toLowerCase().replace(/[^a-z0-9-]+/g, "-"),
       submissionId: item.id,
       sku: item.sku,
-      name: item.name,
+      name: displayName,
       form: item.form,
       purity: item.purity,
       coaUrl: item.coaUrl || "",
@@ -746,9 +809,9 @@ export function buildCatalog(vendors, submissions) {
       packVials,
       vialMl,
       unitLabel: packVials > 1 ? `${packVials}-pack` : "each",
-      category: item.category || guessCategory(item.name),
-      blurb: guessBlurb(item.name),
-      tagline: guessTagline(item.name),
+      category: item.category || guessCategory(displayName),
+      blurb: guessBlurb(displayName),
+      tagline: guessTagline(displayName),
       vendorId: item.vendorId,
       vendor: displayVendorName(item.vendor.name, item.vendorId),
       vendorCost,

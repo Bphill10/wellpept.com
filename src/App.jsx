@@ -110,7 +110,6 @@ function VialPreview({ product, size = "md", showDownload = false }) {
   return (
     <GeneratedVial
       name={product.name}
-      sku={product.sku}
       mass={product.mg}
       unit={product.unit || "mg"}
       category={product.category}
@@ -833,7 +832,7 @@ export default function App() {
                   setQuery(e.target.value);
                   setView(VIEWS.shop);
                 }}
-                placeholder="Search peptides, SKUs, vendors…"
+                placeholder="Search peptides, vendors…"
                 aria-label="Search catalog"
               />
               <button
@@ -1538,7 +1537,6 @@ export default function App() {
                   <div className="featured-vendor-visual">
                     <GeneratedVial
                       name="HGH"
-                      sku="LOB-HGH"
                       mass={150}
                       unit="IU"
                       category="Growth"
@@ -1558,7 +1556,7 @@ export default function App() {
                     <div>
                       <p className="section-kicker">Just listed</p>
                       <h2>New arrivals</h2>
-                      <p>Fresh SKUs from the latest approved price lists.</p>
+                      <p>Fresh lines from the latest approved price lists.</p>
                     </div>
                   </div>
                   <div className="product-grid">
@@ -1890,7 +1888,7 @@ function ProductCard({ listing, onOpen, onAdd }) {
             {listing.category}
             {multiStrength
               ? ` · ${strengths.length} strengths`
-              : ` · SKU ${product.sku}`}
+              : ""}
             {listing.vendorCount > 1 ? ` · ${listing.vendorCount} vendors` : ""}
           </div>
           <h3>{listing.name}</h3>
@@ -2045,7 +2043,7 @@ function ProductDetail({
           </div>
           <div className="detail-info">
             <div className="meta">
-              {listing.category} · SKU {product.sku}
+              {listing.category}
               {listing.vendorCount > 1
                 ? ` · ${listing.vendorCount} vendors`
                 : ""}

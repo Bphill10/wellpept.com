@@ -667,11 +667,6 @@ function drawBrandThreeMl(ctx, dims, options) {
 
   drawBrandWordmark(ctx, cx, bodyBottom + dims.h * 0.055, dims.w * 0.7);
 
-  if (sku) {
-    ctx.fillStyle = "rgba(200,200,200,0.45)";
-    ctx.font = `500 ${Math.max(8, dims.w * 0.025)}px Outfit, "Segoe UI", sans-serif`;
-    ctx.fillText(sku, cx, bodyBottom + dims.h * 0.095);
-  }
 }
 
 /** 10 mL — same brand language, taller bottle. */
@@ -823,11 +818,6 @@ function drawBrandTenMl(ctx, dims, options) {
   ctx.fillText("10 mL · Reference Material", cx, bodyBottom - bodyW * 0.06);
 
   drawBrandWordmark(ctx, cx, bodyBottom + dims.h * 0.05, dims.w * 0.7);
-  if (sku) {
-    ctx.fillStyle = "rgba(200,200,200,0.4)";
-    ctx.font = `500 ${Math.max(8, dims.w * 0.024)}px Outfit, sans-serif`;
-    ctx.fillText(sku, cx, bodyBottom + dims.h * 0.09);
-  }
 }
 
 /**
@@ -1280,12 +1270,6 @@ function drawLabeledThreeMl(ctx, dims, options) {
   ctx.stroke();
 
   drawBrandWordmark(ctx, cx, bodyBottom + dims.h * 0.055, dims.w * 0.7);
-  if (sku) {
-    ctx.fillStyle = "rgba(200,200,200,0.45)";
-    ctx.font = `500 ${Math.max(8, dims.w * 0.025)}px Outfit, "Segoe UI", sans-serif`;
-    ctx.textAlign = "center";
-    ctx.fillText(sku, cx, bodyBottom + dims.h * 0.095);
-  }
 }
 
 function drawLabeledTenMl(ctx, dims, options) {
@@ -1394,12 +1378,6 @@ function drawLabeledTenMl(ctx, dims, options) {
   });
 
   drawBrandWordmark(ctx, cx, bodyBottom + dims.h * 0.05, dims.w * 0.72);
-  if (sku) {
-    ctx.fillStyle = "rgba(200,200,200,0.45)";
-    ctx.font = `500 ${Math.max(8, dims.w * 0.024)}px Outfit, "Segoe UI", sans-serif`;
-    ctx.textAlign = "center";
-    ctx.fillText(sku, cx, bodyBottom + dims.h * 0.09);
-  }
 }
 
 /** Cover-fit helper kept for any legacy photo paths (unused by default). */
@@ -1453,13 +1431,6 @@ function drawPhotoVial(ctx, dims, options) {
     sleeveH,
     radius: 6,
   });
-
-  if (sku) {
-    ctx.fillStyle = "rgba(255,255,255,0.4)";
-    ctx.font = `500 ${Math.max(8, dims.w * 0.038)}px Outfit, sans-serif`;
-    ctx.textAlign = "center";
-    ctx.fillText(sku, dims.w / 2, dims.h - dims.w * 0.06);
-  }
 }
 
 /** Clean BAC volume text for the label grid (drop redundant "BAC"). */
