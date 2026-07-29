@@ -280,7 +280,7 @@ export function resolveVialUnit({ name = "", form = "", unit } = {}) {
   return "mg";
 }
 
-/** Classic black marble slab with bright white vein streaks. */
+/** Classic black marble slab with cobalt blue vein streaks. */
 function drawBlackMarbleBackground(ctx, w, h, seed = 42) {
   const base = ctx.createLinearGradient(0, 0, w * 0.2, h);
   base.addColorStop(0, "#000000");
@@ -301,6 +301,20 @@ function drawBlackMarbleBackground(ctx, w, h, seed = 42) {
     const g = ctx.createRadialGradient(x, y, 0, x, y, r);
     const c = 18 + Math.floor(rand() * 36);
     g.addColorStop(0, `rgba(${c},${c},${c + 4},${0.1 + rand() * 0.14})`);
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Soft cobalt pools in the stone
+  for (let i = 0; i < 10; i += 1) {
+    const x = rand() * w;
+    const y = rand() * h;
+    const r = 80 + rand() * Math.max(w, h) * 0.28;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, `rgba(0,71,171,${0.06 + rand() * 0.08})`);
     g.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = g;
     ctx.beginPath();
@@ -351,18 +365,24 @@ function drawBlackMarbleBackground(ctx, w, h, seed = 42) {
         } else ctx.lineTo(x, y);
       }
     }
-    ctx.strokeStyle = `rgba(220,220,228,${glowA})`;
+    // Soft cobalt outer glow
+    ctx.strokeStyle = `rgba(26,95,212,${glowA})`;
     ctx.lineWidth = glowW;
     ctx.stroke();
-    ctx.strokeStyle = `rgba(255,255,255,${coreA})`;
+    // Bright cobalt core streak
+    ctx.strokeStyle = `rgba(0,71,171,${coreA})`;
     ctx.lineWidth = coreW;
+    ctx.stroke();
+    // Thin brighter highlight along the vein
+    ctx.strokeStyle = `rgba(90,150,235,${coreA * 0.55})`;
+    ctx.lineWidth = Math.max(0.6, coreW * 0.35);
     ctx.stroke();
   };
 
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
 
-  // Primary white marble veins — clearly readable streaks
+  // Primary cobalt marble veins
   for (let i = 0; i < 11; i += 1) {
     strokeVein({
       yStart: rand() * h,
@@ -372,9 +392,9 @@ function drawBlackMarbleBackground(ctx, w, h, seed = 42) {
       slope: (rand() - 0.5) * 0.65,
       step: 4,
       glowW: 6 + rand() * 10,
-      glowA: 0.1 + rand() * 0.12,
+      glowA: 0.14 + rand() * 0.16,
       coreW: 1.6 + rand() * 3.2,
-      coreA: 0.32 + rand() * 0.38,
+      coreA: 0.42 + rand() * 0.4,
       vertical: false,
     });
   }
@@ -389,9 +409,9 @@ function drawBlackMarbleBackground(ctx, w, h, seed = 42) {
       slope: (rand() - 0.5) * 0.5,
       step: 5,
       glowW: 4 + rand() * 7,
-      glowA: 0.07 + rand() * 0.1,
+      glowA: 0.1 + rand() * 0.12,
       coreW: 1 + rand() * 2.2,
-      coreA: 0.22 + rand() * 0.28,
+      coreA: 0.3 + rand() * 0.32,
       vertical: true,
     });
   }
@@ -406,16 +426,16 @@ function drawBlackMarbleBackground(ctx, w, h, seed = 42) {
       slope: (rand() - 0.5) * 0.45,
       step: 5,
       glowW: 2 + rand() * 3.5,
-      glowA: 0.05 + rand() * 0.07,
+      glowA: 0.07 + rand() * 0.09,
       coreW: 0.7 + rand() * 1.5,
-      coreA: 0.16 + rand() * 0.22,
+      coreA: 0.22 + rand() * 0.28,
       vertical: rand() > 0.55,
     });
   }
 
-  // Mineral flecks / sparkle in the stone
+  // Mineral flecks — cobalt sparkle in the stone
   for (let i = 0; i < 110; i += 1) {
-    ctx.fillStyle = `rgba(255,255,255,${0.04 + rand() * 0.1})`;
+    ctx.fillStyle = `rgba(90,150,235,${0.05 + rand() * 0.12})`;
     ctx.fillRect(rand() * w, rand() * h, 1 + rand() * 2, 1 + rand() * 2);
   }
 }
