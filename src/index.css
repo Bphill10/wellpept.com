@@ -2700,6 +2700,11 @@ body:has(.app-shell--undisclosed)::before {
   text-transform: uppercase;
 }
 
+.build-stamp {
+  color: #c4a35a;
+  font-weight: 700;
+}
+
 .lab-banner .ghost-btn {
   color: #fff;
   border-color: rgba(255, 255, 255, 0.35);
