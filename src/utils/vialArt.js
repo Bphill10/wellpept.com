@@ -1662,7 +1662,10 @@ function paintLabelTemplate(ctx, dims, options = {}) {
 
   ctx.save();
   ctx.translate(spineW * 0.52, dims.h * 0.4);
-  ctx.rotate(-Math.PI / 2);
+  // Canvas Y goes down: +90° CW makes letter tops face LEFT (outward on the
+  // left spine) and writing go upward — bottom-to-top, matching the mock.
+  // (-90° had tops facing right / inward — the "wrong direction".)
+  ctx.rotate(Math.PI / 2);
   ctx.fillStyle = "#ffffff";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
