@@ -1146,14 +1146,16 @@ export default function App() {
                     width={136}
                     height={136}
                   />
-                  <h1 className="hero-brand">Undisclosed</h1>
+                  <div className="hero-brand-text">
+                    <h1 className="hero-brand">Undisclosed</h1>
+                    <p className="ud-brought-by">
+                      Brought to you by <strong>WellPept</strong>
+                    </p>
+                  </div>
                 </div>
                 <div className="hero-brand-rule rise-delay" aria-hidden="true" />
                 <p className="hero-tagline rise-delay">
                   Research peptides. Same molecule. Darker mirror of WellPept.
-                </p>
-                <p className="ud-brought-by rise-delay">
-                  An alternate universe · brought to you by <strong>WellPept</strong>
                 </p>
                 <p className="hero-copy rise-delay">
                   Approved near-source vendors, COAs, and catalog tools — the inverse

@@ -719,6 +719,14 @@ svg {
   margin-bottom: 0.85rem;
 }
 
+.hero-brand-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
 .hero-brand-mark {
   width: clamp(5.5rem, 14vw, 8.5rem);
   height: clamp(5.5rem, 14vw, 8.5rem);
