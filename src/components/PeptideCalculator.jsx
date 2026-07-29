@@ -535,7 +535,7 @@ export default function PeptideCalculator({
                 <h2>Brand vial</h2>
               </div>
               <p className="meta">
-                Studio vial preview with wrap label for the selected peptide.
+                Studio vial preview for the selected peptide — no wrap label.
               </p>
               <div className="calc-vial-stage">
                 <GeneratedVial

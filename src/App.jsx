@@ -91,7 +91,7 @@ const VIEWS = {
   calculator: "calculator",
 };
 
-function VialPreview({ product, size = "md", showDownload = false, showLabel = true }) {
+function VialPreview({ product, size = "md", showDownload = false }) {
   if (product?.skin) {
     if (product.image) {
       return (
@@ -109,7 +109,7 @@ function VialPreview({ product, size = "md", showDownload = false, showLabel = t
       </div>
     );
   }
-  // Same camera/lighting for every SKU; label shows this product's name, mg, dosage
+  // Plain studio vial — no wrap label
   return (
     <GeneratedVial
       name={product.name}
@@ -124,7 +124,7 @@ function VialPreview({ product, size = "md", showDownload = false, showLabel = t
       coaUrl={product.coaUrl || ""}
       size={size}
       showDownload={showDownload}
-      showLabel={showLabel}
+      showLabel={false}
       catalogTemplate
     />
   );
@@ -2465,7 +2465,7 @@ function CartPage({
                   {cart.map((line) => (
                     <div className="cart-item" key={line.id}>
                       <div className="cart-thumb">
-                        <VialPreview product={line} size="sm" showLabel={false} />
+                        <VialPreview product={line} size="sm" />
                       </div>
                       <div>
                         <strong>{line.name}</strong>

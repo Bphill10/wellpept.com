@@ -39,10 +39,10 @@ export default function GeneratedVial({
   productId = "",
   showDownload = false,
   className = "",
-  /** Storefront framing lock: same 3 mL plate; label uses each product's fields. */
+  /** Storefront framing lock: same 3 mL plate. */
   catalogTemplate = true,
-  /** Draw clinical wrap label on the vial glass. */
-  showLabel = true,
+  /** Clinical wrap label — off by default (plain studio bottle). */
+  showLabel = false,
 }) {
   const canvasRef = useRef(null);
   const [png, setPng] = useState("");
