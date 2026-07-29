@@ -3,6 +3,7 @@ import { Scale } from "lucide-react";
 import {
   formatMoney,
   formatStrengthLabel,
+  displayVendorName,
   strengthKey,
 } from "../data/products";
 
@@ -111,7 +112,7 @@ export default function PriceCompare({
                     <tr key={o.id} className={selected ? "is-selected" : ""}>
                       <td>{formatStrengthLabel(o)}</td>
                       <td>
-                        {o.vendor}
+                        {displayVendorName(o.vendor, o.vendorId)}
                         {o.featured ? (
                           <span className="best-price-tag">Featured</span>
                         ) : null}

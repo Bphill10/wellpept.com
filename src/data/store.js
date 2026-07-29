@@ -1,23 +1,24 @@
 import {
   SEED_SUBMISSIONS,
   SEED_VENDORS,
+  ACTIVE_VENDOR_IDS,
+  displayVendorName,
   buildCatalog,
 } from "./products";
 import { CHANGSHA_VENDOR } from "./changshaPremium";
 import { THE_LOBSTER_VENDOR } from "./theLobster";
 import { isFocusedSubmission } from "./catalogFocus";
 
-/** Bump whenever the focused catalog / pricing must replace stale local data. */
-const STORAGE_KEY = "wellpept-marketplace-v6";
-
-/** Vendors currently live on Undisclosed. */
-const ACTIVE_VENDOR_IDS = new Set(["v-changsha-premium", "v-the-lobster"]);
+/** Bump when focused vendors/catalog must replace stale local data. */
+const STORAGE_KEY = "wellpept-marketplace-v7";
 
 function syncVendor(v) {
+  if (!v || !ACTIVE_VENDOR_IDS.has(v.id)) return null;
   if (v.id === CHANGSHA_VENDOR.id) {
     return {
       ...v,
-      name: CHANGSHA_VENDOR.name,
+      id: CHANGSHA_VENDOR.id,
+      name: "Changsha",
       priceListSource: CHANGSHA_VENDOR.priceListSource,
       shippingFlat: CHANGSHA_VENDOR.shippingFlat,
       shippingNote: CHANGSHA_VENDOR.shippingNote,
@@ -28,7 +29,8 @@ function syncVendor(v) {
   if (v.id === THE_LOBSTER_VENDOR.id) {
     return {
       ...v,
-      name: THE_LOBSTER_VENDOR.name,
+      id: THE_LOBSTER_VENDOR.id,
+      name: "Lobster",
       featured: true,
       featuredFor: "HGH",
       shippingFlat: THE_LOBSTER_VENDOR.shippingFlat,
@@ -37,7 +39,10 @@ function syncVendor(v) {
       status: "approved",
     };
   }
-  return v;
+  return {
+    ...v,
+    name: displayVendorName(v.name, v.id),
+  };
 }
 
 function loadState() {
@@ -46,18 +51,9 @@ function loadState() {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed?.vendors || !parsed?.submissions) return null;
-    const vendors = parsed.vendors
-      .filter((v) => ACTIVE_VENDOR_IDS.has(v.id))
-      .map(syncVendor);
-    // Keep any extra focused lines from ops, but never ERP / Sema / unfocused stock.
-    const seedIds = new Set(SEED_SUBMISSIONS.map((s) => s.id));
-    const extra = parsed.submissions.filter(
-      (s) =>
-        ACTIVE_VENDOR_IDS.has(s.vendorId) &&
-        isFocusedSubmission(s) &&
-        !seedIds.has(s.id)
-    );
-    const submissions = [...SEED_SUBMISSIONS, ...extra];
+    const vendors = parsed.vendors.map(syncVendor).filter(Boolean);
+    // Public catalog always reseeds focused lines; drop ERP / Sema / other vendors.
+    const submissions = SEED_SUBMISSIONS.filter(isFocusedSubmission);
     if (!vendors.length) return null;
     return { vendors, submissions };
   } catch {
@@ -77,14 +73,11 @@ function saveState(state) {
 
 export function getInitialMarketplace() {
   const saved = loadState();
-  // Always prefer seed vendors so Changsha/Lobster names + shipping stay correct.
-  const byId = new Map((saved?.vendors || []).map((v) => [v.id, v]));
-  const vendors = SEED_VENDORS.map((seed) =>
-    syncVendor(byId.get(seed.id) ? { ...seed, ...byId.get(seed.id), ...seed } : seed)
-  );
-  const submissions = saved?.submissions?.length
-    ? saved.submissions
-    : SEED_SUBMISSIONS;
+  const vendors = SEED_VENDORS.map((seed) => syncVendor(seed)).filter(Boolean);
+  // Prefer seed catalog so only Changsha + Lobster focused lines show.
+  const submissions = SEED_SUBMISSIONS;
+  // Keep seed vendor objects even if something was saved.
+  void saved;
   return {
     vendors,
     submissions,
@@ -93,14 +86,20 @@ export function getInitialMarketplace() {
 }
 
 export function persistMarketplace(vendors, submissions) {
-  const cleanVendors = vendors
-    .filter((v) => ACTIVE_VENDOR_IDS.has(v.id))
-    .map(syncVendor);
+  const cleanVendors = vendors.map(syncVendor).filter(Boolean);
+  // Ensure both live vendors always exist.
+  for (const seed of SEED_VENDORS) {
+    if (!cleanVendors.some((v) => v.id === seed.id)) {
+      cleanVendors.push(syncVendor(seed));
+    }
+  }
   const cleanSubs = submissions.filter(
     (s) => ACTIVE_VENDOR_IDS.has(s.vendorId) && isFocusedSubmission(s)
   );
-  saveState({ vendors: cleanVendors, submissions: cleanSubs });
-  return buildCatalog(cleanVendors, cleanSubs);
+  // If ops wiped everything, fall back to seed.
+  const finalSubs = cleanSubs.length ? cleanSubs : SEED_SUBMISSIONS;
+  saveState({ vendors: cleanVendors, submissions: finalSubs });
+  return buildCatalog(cleanVendors, finalSubs);
 }
 
 export function uid(prefix) {

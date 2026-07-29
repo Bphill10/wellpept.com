@@ -30,6 +30,26 @@ export function formatMoney(n) {
   }).format(Number(n) || 0);
 }
 
+/** Live Undisclosed vendors only. */
+export const ACTIVE_VENDOR_IDS = new Set([
+  "v-changsha-premium",
+  "v-the-lobster",
+]);
+
+/** Always show Changsha / Lobster — never “Premium” or stale vendor names. */
+export function displayVendorName(name, vendorId = "") {
+  const id = String(vendorId || "");
+  if (id === "v-changsha-premium" || id === "v-changsha") return "Changsha";
+  if (id === "v-the-lobster") return "Lobster";
+  const cleaned = String(name || "")
+    .replace(/\bpremium\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (/changsha/i.test(cleaned)) return "Changsha";
+  if (/lobster/i.test(cleaned)) return "Lobster";
+  return cleaned || "Vendor";
+}
+
 export const CATEGORIES = [
   "All",
   "Recovery",
@@ -435,6 +455,17 @@ export function formatStrengthLabel(product) {
   return `${amountPart}${vialPart}${packPart}${lanePart}`;
 }
 
+/** Short strength line for card/detail dropdowns. */
+export function formatStrengthSelectLabel(strengthOrProduct) {
+  const amount = Number(strengthOrProduct?.mg);
+  const pack = Number(strengthOrProduct?.packVials) || 1;
+  const unit = strengthOrProduct?.unit || "mg";
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return formatStrengthLabel(strengthOrProduct);
+  }
+  return pack > 1 ? `${amount} ${unit} · ${pack}-pack` : `${amount} ${unit}`;
+}
+
 function sortOffers(a, b) {
   const pa = a.price == null ? Number.POSITIVE_INFINITY : Number(a.price);
   const pb = b.price == null ? Number.POSITIVE_INFINITY : Number(b.price);
@@ -444,13 +475,14 @@ function sortOffers(a, b) {
 }
 
 export function formatVendorOfferLabel(product) {
+  const vendor = displayVendorName(product.vendor, product.vendorId);
   const price =
     product.price == null ? "See options" : formatMoney(product.price);
   const ship =
     product.shippingFlat != null
       ? ` · ship ${formatMoney(product.shippingFlat)}`
       : "";
-  return `${product.vendor} · ${price}${ship}`;
+  return `${vendor} · ${price}${ship}`;
 }
 
 /**
@@ -502,6 +534,7 @@ export function groupCatalog(products) {
             packVials: sample.packVials,
             vialMl: sample.vialMl,
             label: formatStrengthLabel(sample),
+            selectLabel: formatStrengthSelectLabel(sample),
             offers: sorted,
             defaultOfferId: (priced || sample).id,
             lowestPrice: priced?.price ?? null,
@@ -648,10 +681,17 @@ export function strengthForProduct(listing, product) {
 /**
  * Build the public catalog from approved submissions.
  * One retail offer per vendor SKU (vendorId + sku).
+ * Only Changsha + Lobster are live.
  */
 export function buildCatalog(vendors, submissions) {
-  const vendorById = Object.fromEntries(vendors.map((v) => [v.id, v]));
-  const approved = submissions.filter((s) => s.status === "approved");
+  const vendorById = Object.fromEntries(
+    vendors
+      .filter((v) => ACTIVE_VENDOR_IDS.has(v.id))
+      .map((v) => [v.id, { ...v, name: displayVendorName(v.name, v.id) }])
+  );
+  const approved = submissions.filter(
+    (s) => s.status === "approved" && ACTIVE_VENDOR_IDS.has(s.vendorId)
+  );
   const byOffer = new Map();
 
   for (const item of approved) {
@@ -692,7 +732,7 @@ export function buildCatalog(vendors, submissions) {
       blurb: guessBlurb(item.name),
       tagline: guessTagline(item.name),
       vendorId: item.vendorId,
-      vendor: item.vendor.name,
+      vendor: displayVendorName(item.vendor.name, item.vendorId),
       vendorCost,
       price,
       priceLabel: null,
@@ -709,10 +749,8 @@ export function buildCatalog(vendors, submissions) {
         ? "US only · request first · pay after supply check · up to 4 weeks"
         : "US only · request first · pay after supply check · up to 4 weeks",
       badge: featured
-        ? "Featured vendor"
-        : index < 3
-          ? "Best price"
-          : null,
+        ? "Featured · Lobster"
+        : null,
       featured,
     };
   });

@@ -23,7 +23,9 @@ import {
   CATEGORIES,
   formatMoney,
   formatStrengthLabel,
+  formatStrengthSelectLabel,
   formatVendorOfferLabel,
+  displayVendorName,
   groupCatalog,
   guessCategory,
   retailFromVendor,
@@ -1904,7 +1906,9 @@ function ProductCard({ listing, onOpen, onAdd }) {
               </>
             )}
           </div>
-          <div className="meta sold-by">Sold by {product.vendor}</div>
+          <div className="meta sold-by">
+            Sold by {displayVendorName(product.vendor, product.vendorId)}
+          </div>
         </div>
       </button>
 
@@ -1921,9 +1925,8 @@ function ProductCard({ listing, onOpen, onAdd }) {
           >
             {strengths.map((s) => (
               <option key={s.key} value={s.key}>
-                {s.label}
-                {s.lowestPrice == null ? "" : ` · from ${formatMoney(s.lowestPrice)}`}
-                {s.vendorCount > 1 ? ` · ${s.vendorCount} vendors` : ""}
+                {s.selectLabel || formatStrengthSelectLabel(s)}
+                {s.lowestPrice == null ? "" : ` · ${formatMoney(s.lowestPrice)}`}
               </option>
             ))}
           </select>
@@ -2042,8 +2045,11 @@ function ProductDetail({
               {product.form} · Purity {product.purity}
             </div>
             <div className="meta sold-by">
-              Sold by <strong>{product.vendor}</strong> · US shipping via
-              WellPept marketplace
+              Sold by{" "}
+              <strong>
+                {displayVendorName(product.vendor, product.vendorId)}
+              </strong>{" "}
+              · US shipping via WellPept marketplace
             </div>
 
             <div className="detail-compare">
@@ -2071,11 +2077,10 @@ function ProductDetail({
                 >
                   {strengths.map((s) => (
                     <option key={s.key} value={s.key}>
-                      {s.label}
+                      {s.selectLabel || formatStrengthSelectLabel(s)}
                       {s.lowestPrice == null
                         ? ""
-                        : ` · from ${formatMoney(s.lowestPrice)}`}
-                      {s.vendorCount > 1 ? ` · ${s.vendorCount} vendors` : ""}
+                        : ` · ${formatMoney(s.lowestPrice)}`}
                     </option>
                   ))}
                 </select>
@@ -2128,7 +2133,7 @@ function ProductDetail({
             <div className="meta">
               <Package size={14} style={{ display: "inline", marginRight: 6 }} />
               Vendor minimum order {formatMoney(product.minOrder)} · Fulfilled by{" "}
-              {product.vendor}
+              {displayVendorName(product.vendor, product.vendorId)}
             </div>
             <button type="button" className="soft-btn" onClick={onCalculate}>
               <Calculator size={16} /> Calculate reconstitution
