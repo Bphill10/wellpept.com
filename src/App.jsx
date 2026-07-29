@@ -393,7 +393,14 @@ export default function App() {
     () =>
       [...listings]
         .filter((l) => l.variants.some((v) => !v.externalOnly))
-        .sort((a, b) => b.reviews - a.reviews)
+        .sort((a, b) => {
+          const reviewDiff = (Number(b.reviews) || 0) - (Number(a.reviews) || 0);
+          if (reviewDiff !== 0) return reviewDiff;
+          if (Boolean(b.featured) !== Boolean(a.featured)) {
+            return Number(Boolean(b.featured)) - Number(Boolean(a.featured));
+          }
+          return a.name.localeCompare(b.name);
+        })
         .slice(0, 8),
     [listings]
   );
@@ -1892,12 +1899,14 @@ function ProductCard({ listing, onOpen, onAdd }) {
           <div className="meta vial-size-tag">
             {product.vialMl || 3} mL vial
           </div>
-          <div className="rating">
-            <span className="stars" aria-hidden>
-              ★★★★☆
-            </span>{" "}
-            {listing.rating.toFixed(1)} · {listing.reviews} reviews
-          </div>
+          {Number(listing.reviews) > 0 && listing.rating != null && (
+            <div className="rating">
+              <span className="stars" aria-hidden>
+                ★★★★☆
+              </span>{" "}
+              {Number(listing.rating).toFixed(1)} · {listing.reviews} reviews
+            </div>
+          )}
           <div className="price-row">
             {product.externalOnly || product.price == null ? (
               <span className="price price-external">See options</span>
@@ -2042,10 +2051,12 @@ function ProductDetail({
                 : ""}
             </div>
             <h1>{listing.name}</h1>
-            <div className="rating">
-              <span className="stars">★★★★☆</span> {listing.rating.toFixed(1)} ·{" "}
-              {listing.reviews} ratings
-            </div>
+            {Number(listing.reviews) > 0 && listing.rating != null && (
+              <div className="rating">
+                <span className="stars">★★★★☆</span>{" "}
+                {Number(listing.rating).toFixed(1)} · {listing.reviews} ratings
+              </div>
+            )}
             <div className="detail-summary">
               <h2 className="detail-summary-label">Summary</h2>
               <p className="detail-blurb">{listing.blurb || product.blurb}</p>

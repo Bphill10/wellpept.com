@@ -551,10 +551,12 @@ export function groupCatalog(products) {
       const defaultStrength =
         strengths.find((s) => s.lowestPrice != null) || strengths[0];
       const defaultVariantId = defaultStrength?.defaultOfferId || variants[0]?.id;
-      const reviews = variants.reduce((sum, v) => sum + (v.reviews || 0), 0);
+      const reviews = variants.reduce((sum, v) => sum + (Number(v.reviews) || 0), 0);
+      const rated = variants.filter((v) => Number(v.reviews) > 0 && Number(v.rating) > 0);
       const rating =
-        variants.reduce((sum, v) => sum + (v.rating || 0), 0) /
-        Math.max(variants.length, 1);
+        rated.length > 0
+          ? rated.reduce((sum, v) => sum + Number(v.rating), 0) / rated.length
+          : null;
 
       return {
         id: group.id,
@@ -758,8 +760,8 @@ export function buildCatalog(vendors, submissions) {
       minOrder: Number(item.vendor.minOrder) || 0,
       shippingFlat: Number(item.vendor.shippingFlat) || 0,
       shippingNote: item.vendor.shippingNote || "",
-      rating: 4.4 + ((index * 7) % 6) / 10,
-      reviews: 12 + index * 9,
+      rating: item.rating != null ? Number(item.rating) : null,
+      reviews: Number(item.reviews) || 0,
       inStock: true,
       ships: featured
         ? "US only · request first · pay after supply check · up to 4 weeks"
