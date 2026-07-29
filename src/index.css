@@ -47,15 +47,18 @@ body,
 
 html {
   scroll-behavior: smooth;
-  overflow-x: hidden;
+  overflow-x: clip;
+  max-width: 100%;
 }
 
 body {
   margin: 0;
   color: var(--ink);
   font-family: var(--font-body);
-  overflow-x: hidden;
+  overflow-x: clip;
   min-width: 0;
+  max-width: 100%;
+  width: 100%;
   background:
     radial-gradient(ellipse at 70% 0%, rgba(0, 71, 171, 0.06), transparent 42%),
     linear-gradient(180deg, #ffffff 0%, var(--paper) 40%, #e8eef8 100%);
@@ -63,8 +66,15 @@ body {
 }
 
 .app-shell {
-  overflow-x: hidden;
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: clip;
   min-width: 0;
+  max-width: 100%;
+  width: 100%;
 }
 
 body::before {
@@ -97,8 +107,12 @@ button {
   cursor: pointer;
 }
 
-img {
+img,
+video,
+canvas,
+svg {
   max-width: 100%;
+  height: auto;
   display: block;
 }
 
@@ -113,6 +127,8 @@ img {
 .container {
   width: min(var(--max), calc(100% - 2rem));
   margin-inline: auto;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 @keyframes rise-in {
@@ -1253,8 +1269,10 @@ img {
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .product-grid-scroll {
@@ -1264,6 +1282,7 @@ img {
   overflow-x: auto;
   padding-bottom: 0.35rem;
   scroll-snap-type: x mandatory;
+  max-width: 100%;
 }
 
 .product-grid-scroll .product-card {
@@ -4663,6 +4682,122 @@ body:has(.app-shell--undisclosed)::before {
 @media (max-width: 700px) {
   .container {
     width: min(100% - 2rem, var(--max));
+  }
+
+  html,
+  body,
+  #root,
+  .app-shell,
+  main {
+    overflow-x: clip !important;
+    max-width: 100vw;
+    width: 100%;
+  }
+
+  /* Fit any phone width — no left/right page scroll */
+  .brand {
+    min-width: 0 !important;
+    max-width: 100%;
+  }
+
+  .header-inner,
+  .header-actions,
+  .search-wrap,
+  .filters,
+  .section,
+  .section-head,
+  .product-grid,
+  .trust-grid,
+  .flagship-mix,
+  .sk-builder,
+  .sk-builder-grid,
+  .panel,
+  .hero-cta {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .search-wrap {
+    width: 100%;
+  }
+
+  .search-wrap input {
+    min-width: 0;
+    width: 100%;
+  }
+
+  h1,
+  h2,
+  h3,
+  p,
+  li,
+  .hero-brand,
+  .hero-tagline,
+  .hero-copy,
+  .card-blurb,
+  .meta,
+  .disclaimer {
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
+    max-width: 100%;
+  }
+
+  img,
+  video,
+  canvas,
+  svg,
+  .skin-product-img,
+  .flagship-mix-img,
+  .generated-vial {
+    max-width: 100% !important;
+  }
+
+  /* Stack carousels instead of sideways swipe on phones */
+  .product-grid-scroll {
+    display: grid !important;
+    grid-auto-flow: row !important;
+    grid-template-columns: 1fr !important;
+    grid-auto-columns: unset !important;
+    overflow-x: visible !important;
+    scroll-snap-type: none !important;
+  }
+
+  .dept-bar-inner {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    gap: 0.25rem;
+  }
+
+  .dept-link {
+    white-space: normal;
+  }
+
+  .filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+
+  .filters .chip {
+    width: 100%;
+    text-align: center;
+    white-space: normal;
+    justify-content: center;
+  }
+
+  .supply-flow {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .supply-step {
+    min-width: 0 !important;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .table-wrap {
+    max-width: 100%;
   }
 
   .nav-label-full {
