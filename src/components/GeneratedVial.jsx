@@ -4,7 +4,15 @@ import {
   drawGeneratedVial,
   downloadVialPng,
   resolveVialMl,
+  loadBrandVial,
+  loadBrandVial10,
 } from "../utils/vialArt";
+
+// Warm the photoreal vial photos so first paint is fast.
+if (typeof window !== "undefined") {
+  loadBrandVial();
+  loadBrandVial10();
+}
 
 export default function GeneratedVial({
   name = "Peptide",
@@ -34,30 +42,36 @@ export default function GeneratedVial({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    try {
-      const dataUrl = drawGeneratedVial(canvas, {
-        name,
-        subtitle,
-        sku,
-        mass,
-        unit,
-        category,
-        mixText,
-        doseRef,
-        bacWater,
-        concentration,
-        doseRange,
-        summary,
-        size,
-        reconstituted,
-        vialMl: resolvedMl,
-        form: form || subtitle,
-        qrPayload,
-      });
-      setPng(dataUrl);
-    } catch (err) {
-      console.error("Vial render failed", err);
-    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const dataUrl = await drawGeneratedVial(canvas, {
+          name,
+          subtitle,
+          sku,
+          mass,
+          unit,
+          category,
+          mixText,
+          doseRef,
+          bacWater,
+          concentration,
+          doseRange,
+          summary,
+          size,
+          reconstituted,
+          vialMl: resolvedMl,
+          form: form || subtitle,
+          qrPayload,
+        });
+        if (!cancelled) setPng(dataUrl);
+      } catch (err) {
+        console.error("Vial render failed", err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [
     name,
     subtitle,

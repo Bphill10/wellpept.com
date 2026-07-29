@@ -1,10 +1,12 @@
 import QRCode from "qrcode";
 
-/** Wellpept / Undisclosed vial art — clear glass + clinical wrap label (not black keyhole sleeve). */
+/** Wellpept / Undisclosed vial art — photoreal glass vial + compact clinical sticker. */
 
 export const BRAND_IMAGE_SRC = "/wellpept-brand.png";
-/** Real studio vial photo cropped from the brand plate. */
-export const BRAND_VIAL_SRC = "/wellpept-vial.png";
+/** Photoreal unlabeled 3 mL research vial (studio photo). */
+export const BRAND_VIAL_SRC = "/real-vial-3ml.png";
+/** Photoreal unlabeled 10 mL research vial (studio photo). */
+export const BRAND_VIAL_10_SRC = "/real-vial-10ml.png";
 /** Circular WP seal / monogram. */
 export const WP_MARK_SRC = "/wp-monogram.svg";
 /** Vector WP monogram — P layered in front of W. */
@@ -14,6 +16,8 @@ let brandImageCache = null;
 let brandImagePromise = null;
 let brandVialCache = null;
 let brandVialPromise = null;
+let brandVial10Cache = null;
+let brandVial10Promise = null;
 let wpMarkCache = null;
 let wpMarkPromise = null;
 
@@ -39,7 +43,7 @@ export function loadBrandImage() {
   return brandImagePromise;
 }
 
-/** Prefetch the real studio vial photo. */
+/** Prefetch the real studio 3 mL vial photo. */
 export function loadBrandVial() {
   if (brandVialCache) return Promise.resolve(brandVialCache);
   if (brandVialPromise) return brandVialPromise;
@@ -48,12 +52,25 @@ export function loadBrandVial() {
       brandVialCache = img;
       return img;
     }
-    // Fall back to full brand plate
     const plate = await loadBrandImage();
     brandVialCache = plate;
     return plate;
   });
   return brandVialPromise;
+}
+
+/** Prefetch the real studio 10 mL vial photo. */
+export function loadBrandVial10() {
+  if (brandVial10Cache) return Promise.resolve(brandVial10Cache);
+  if (brandVial10Promise) return brandVial10Promise;
+  brandVial10Promise = loadImage(BRAND_VIAL_10_SRC).then(async (img) => {
+    if (img) {
+      brandVial10Cache = img;
+      return img;
+    }
+    return loadBrandVial();
+  });
+  return brandVial10Promise;
 }
 
 /** Prefetch the circular WP mark (preferred seal asset). */
@@ -782,10 +799,10 @@ function drawBrandTenMl(ctx, dims, options) {
 }
 
 /**
- * Draw the clear glass vial with the printable clinical wrap label
- * mapped onto the cylinder — not the old black keyhole sleeve photo.
+ * Draw a photoreal vial photo with a compact clinical sticker on the glass.
+ * Async — waits for the studio vial image to load.
  */
-export function drawGeneratedVial(canvas, options = {}) {
+export async function drawGeneratedVial(canvas, options = {}) {
   const {
     name = "Peptide",
     subtitle = "",
@@ -808,10 +825,11 @@ export function drawGeneratedVial(canvas, options = {}) {
   const dims = {
     sm: { w: 160, h: 240 },
     md: { w: 280, h: 420 },
-    lg: { w: 360, h: 560 },
+    lg: { w: 360, h: 540 },
   }[size] || { w: 280, h: 420 };
 
-  const dpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 2, 3) : 2;
+  const dpr =
+    typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 2, 3) : 2;
   canvas.width = dims.w * dpr;
   canvas.height = dims.h * dpr;
   canvas.style.width = `${dims.w}px`;
@@ -823,22 +841,177 @@ export function drawGeneratedVial(canvas, options = {}) {
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
 
-  const drawOpts = {
-    name,
-    mass,
-    unit,
-    sku,
-    reconstituted,
-    bacWater,
-    concentration,
-    doseRange,
-    qrPayload,
-  };
-
-  if (isTen) drawLabeledTenMl(ctx, dims, drawOpts);
-  else drawLabeledThreeMl(ctx, dims, drawOpts);
+  const photo = isTen ? await loadBrandVial10() : await loadBrandVial();
+  if (photo && photo.width) {
+    drawPhotorealVial(ctx, dims, {
+      photo,
+      name,
+      mass,
+      unit,
+      sku,
+      bacWater,
+      concentration,
+      doseRange,
+      qrPayload,
+      isTen,
+      reconstituted,
+    });
+  } else {
+    // Fallback if photos fail to load
+    if (isTen) drawLabeledTenMl(ctx, dims, { name, mass, unit, sku, reconstituted, bacWater, concentration, doseRange, qrPayload });
+    else drawLabeledThreeMl(ctx, dims, { name, mass, unit, sku, reconstituted, bacWater, concentration, doseRange, qrPayload });
+  }
 
   return canvas.toDataURL("image/png");
+}
+
+/** Cover-fit photo into canvas. */
+function drawCoverImage(ctx, img, w, h) {
+  const iw = img.width;
+  const ih = img.height;
+  const scale = Math.max(w / iw, h / ih);
+  const dw = iw * scale;
+  const dh = ih * scale;
+  const dx = (w - dw) / 2;
+  const dy = (h - dh) / 2;
+  ctx.drawImage(img, dx, dy, dw, dh);
+}
+
+/** Compact white clinical sticker bitmap for wrapping onto glass. */
+function createCompactSticker(options) {
+  const {
+    name = "Peptide",
+    mass = "",
+    unit = "mg",
+    sku = "",
+  } = options;
+  const dims = { w: 420, h: 210 };
+  const c =
+    typeof document !== "undefined" ? document.createElement("canvas") : null;
+  if (!c) return null;
+  c.width = dims.w;
+  c.height = dims.h;
+  const ctx = c.getContext("2d");
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+
+  // Matte paper face
+  roundRect(ctx, 0, 0, dims.w, dims.h, 10);
+  const paper = ctx.createLinearGradient(0, 0, dims.w, 0);
+  paper.addColorStop(0, "#f2f2f0");
+  paper.addColorStop(0.5, "#fafaf8");
+  paper.addColorStop(1, "#ecece8");
+  ctx.fillStyle = paper;
+  ctx.fill();
+
+  // Soft edge shadow / paper thickness
+  ctx.strokeStyle = "rgba(0,0,0,0.12)";
+  ctx.lineWidth = 2;
+  roundRect(ctx, 1, 1, dims.w - 2, dims.h - 2, 9);
+  ctx.stroke();
+
+  // Black left spine stripe
+  ctx.fillStyle = "#0a0a0a";
+  ctx.fillRect(0, 0, dims.w * 0.08, dims.h);
+
+  const left = dims.w * 0.12;
+  const maxW = dims.w * 0.76;
+
+  ctx.fillStyle = "#666";
+  ctx.font = `600 ${Math.max(11, dims.h * 0.09)}px Outfit, "Segoe UI", sans-serif`;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.fillText("UNDISCLOSED · RESEARCH", left, dims.h * 0.12);
+
+  const shortName = String(name || "Peptide")
+    .replace(/\(.*?\)/g, "")
+    .trim()
+    .slice(0, 28);
+  ctx.fillStyle = "#0a0a0a";
+  let namePx = Math.max(18, dims.h * 0.22);
+  ctx.font = `700 ${namePx}px Outfit, "Segoe UI", sans-serif`;
+  while (namePx > 14 && ctx.measureText(shortName).width > maxW) {
+    namePx -= 1;
+    ctx.font = `700 ${namePx}px Outfit, "Segoe UI", sans-serif`;
+  }
+  ctx.fillText(shortName, left, dims.h * 0.32);
+
+  const strength =
+    mass !== "" && mass != null
+      ? `${mass} ${unit || "mg"}`
+      : "";
+  if (strength) {
+    ctx.fillStyle = "#1a1a1a";
+    ctx.font = `600 ${Math.max(14, dims.h * 0.14)}px Outfit, "Segoe UI", sans-serif`;
+    ctx.fillText(strength, left, dims.h * 0.58);
+  }
+
+  ctx.fillStyle = "#888";
+  ctx.font = `500 ${Math.max(10, dims.h * 0.08)}px Outfit, "Segoe UI", sans-serif`;
+  ctx.fillText(
+    sku ? `${sku} · NOT FOR HUMAN USE` : "NOT FOR HUMAN USE",
+    left,
+    dims.h * 0.78
+  );
+
+  return c;
+}
+
+/**
+ * Photoreal vial + compact curved sticker on the cylinder.
+ */
+function drawPhotorealVial(ctx, dims, options) {
+  const {
+    photo,
+    name = "Peptide",
+    mass = "",
+    unit = "mg",
+    sku = "",
+    isTen = false,
+  } = options;
+
+  drawCoverImage(ctx, photo, dims.w, dims.h);
+
+  // Soft vignette so product cards stay dark-studio
+  const vignette = ctx.createRadialGradient(
+    dims.w * 0.5,
+    dims.h * 0.42,
+    dims.w * 0.15,
+    dims.w * 0.5,
+    dims.h * 0.5,
+    dims.w * 0.78
+  );
+  vignette.addColorStop(0, "rgba(0,0,0,0)");
+  vignette.addColorStop(1, "rgba(0,0,0,0.28)");
+  ctx.fillStyle = vignette;
+  ctx.fillRect(0, 0, dims.w, dims.h);
+
+  // Label placement tuned to the studio photos (mid body of glass)
+  const bodyW = dims.w * (isTen ? 0.28 : 0.26);
+  const bodyX = dims.w / 2 - bodyW / 2;
+  const sleeveTop = dims.h * (isTen ? 0.42 : 0.4);
+  const sleeveH = dims.h * (isTen ? 0.2 : 0.18);
+
+  const sticker = createCompactSticker({ name, mass, unit, sku });
+  drawCylindricalLabelWrap(ctx, sticker, {
+    cx: dims.w / 2,
+    bodyX,
+    bodyW,
+    sleeveTop,
+    sleeveH,
+    radius: 8,
+  });
+
+  // Subtle glass highlight over sticker edge so it reads as under glass
+  const gloss = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW, 0);
+  gloss.addColorStop(0, "rgba(255,255,255,0)");
+  gloss.addColorStop(0.22, "rgba(255,255,255,0.14)");
+  gloss.addColorStop(0.35, "rgba(255,255,255,0)");
+  gloss.addColorStop(0.72, "rgba(255,255,255,0)");
+  gloss.addColorStop(0.85, "rgba(255,255,255,0.1)");
+  gloss.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = gloss;
+  ctx.fillRect(bodyX, sleeveTop, bodyW, sleeveH);
 }
 
 /** Build an offscreen flat wrap-label (1× CSS pixels) for cylinder mapping. */
