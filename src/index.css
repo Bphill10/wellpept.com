@@ -2878,6 +2878,10 @@ body:has(.app-shell--undisclosed)::before {
   .hero--undisclosed .hero-content {
     background: #050505 !important;
     color: #f4f6f8 !important;
+    text-align: left !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
+    justify-self: start !important;
   }
 
   .skin-hero .hero-media,
@@ -5010,6 +5014,10 @@ body:has(.app-shell--undisclosed)::before {
   .hero--undisclosed .hero-content {
     background: #050505 !important;
     color: #f4f6f8 !important;
+    text-align: left !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
+    justify-self: start !important;
   }
 
   .skin-hero .hero-media,
