@@ -1183,7 +1183,6 @@ export default function App() {
                 <div className="container lab-banner-inner">
                   <span>
                     Undisclosed · alternate universe · brought to you by WellPept
-                    <span className="build-stamp"> · vial build 7ccf</span>
                   </span>
                   <button type="button" className="ghost-btn" onClick={lockLabMenu}>
                     Exit to WellPept
@@ -1194,19 +1193,12 @@ export default function App() {
               <div className="hero-media hero-media--undisclosed">
                 <div className="hero-vial-stage" aria-hidden="true">
                   <img
-                    src="/undisclosed-brand.png"
+                    src="/real-vial-3ml.png"
                     alt=""
                     className="hero-vial-fallback"
-                    width={720}
-                    height={1080}
+                    width={1024}
+                    height={1536}
                     decoding="async"
-                  />
-                  <GeneratedVial
-                    name="HGH"
-                    category="Growth"
-                    size="lg"
-                    catalogTemplate
-                    className="hero-generated-vial"
                   />
                 </div>
               </div>
