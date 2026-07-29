@@ -57,7 +57,7 @@ export function clearCoaUrl(productId) {
   return setCoaUrl(productId, "");
 }
 
-/** Prefer product COA, then local store, then optional fallback (e.g. calculator share). */
+/** Prefer product COA, then local store, then optional fallback, then site. */
 export function resolveCoaQrPayload({
   productId = "",
   coaUrl = "",
@@ -67,5 +67,7 @@ export function resolveCoaQrPayload({
   if (fromProduct) return fromProduct;
   const stored = getCoaUrl(productId);
   if (stored) return stored;
-  return String(fallback || "").trim();
+  const fromFallback = String(fallback || "").trim();
+  if (fromFallback) return fromFallback;
+  return "https://www.wellpept.com";
 }
