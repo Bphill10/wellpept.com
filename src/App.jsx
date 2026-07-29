@@ -1352,8 +1352,8 @@ export default function App() {
                     <span className="supply-step-num">3</span>
                     <strong>Vial &amp; kit</strong>
                     <p>
-                      Powder is filled into vials or kits — strength and pack
-                      size set for lab inventory, not pharmacy packaging.
+                      Every line ships as a kit of 10 lyophilized vials —
+                      white powder for most compounds, blue powder for KLOW.
                     </p>
                   </li>
                   <li className="supply-flow-arrow" aria-hidden="true">
