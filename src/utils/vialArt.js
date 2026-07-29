@@ -280,19 +280,137 @@ export function resolveVialUnit({ name = "", form = "", unit } = {}) {
   return "mg";
 }
 
-function drawDarkStudio(ctx, w, h) {
-  const bg = ctx.createRadialGradient(w * 0.5, h * 0.38, 4, w * 0.5, h * 0.5, w * 0.85);
-  bg.addColorStop(0, "#2a2a2a");
-  bg.addColorStop(0.45, "#141414");
-  bg.addColorStop(1, "#050505");
-  ctx.fillStyle = bg;
+/** Black marble slab with soft white vein streaks (product-shot backdrop). */
+function drawBlackMarbleBackground(ctx, w, h, seed = 42) {
+  const base = ctx.createLinearGradient(0, 0, w * 0.15, h);
+  base.addColorStop(0, "#040404");
+  base.addColorStop(0.35, "#0b0b0b");
+  base.addColorStop(0.7, "#070707");
+  base.addColorStop(1, "#020202");
+  ctx.fillStyle = base;
   ctx.fillRect(0, 0, w, h);
 
-  const rand = mulberry32(42);
-  ctx.fillStyle = "rgba(255,255,255,0.02)";
-  for (let i = 0; i < 220; i += 1) {
-    ctx.fillRect(rand() * w, rand() * h, 1.2, 1.2);
+  const rand = mulberry32(seed);
+  // Stone depth / charcoal variation
+  for (let i = 0; i < 22; i += 1) {
+    const x = rand() * w;
+    const y = rand() * h;
+    const r = 60 + rand() * Math.max(w, h) * 0.32;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    const c = 16 + Math.floor(rand() * 28);
+    g.addColorStop(0, `rgba(${c},${c},${c + 3},${0.07 + rand() * 0.1})`);
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
   }
+
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  // Bold primary marble veins (white streaks through black stone)
+  for (let i = 0; i < 9; i += 1) {
+    const yStart = rand() * h;
+    const amp = 40 + rand() * 90;
+    const freq = 0.004 + rand() * 0.008;
+    const phase = rand() * Math.PI * 2;
+    const slope = (rand() - 0.5) * 0.55;
+    ctx.beginPath();
+    let first = true;
+    for (let x = -60; x <= w + 60; x += 5) {
+      const y =
+        yStart +
+        x * slope +
+        Math.sin(x * freq + phase) * amp +
+        Math.sin(x * freq * 2.1 + phase * 1.4) * amp * 0.4;
+      if (first) {
+        ctx.moveTo(x, y);
+        first = false;
+      } else ctx.lineTo(x, y);
+    }
+    // Soft outer glow of the vein
+    ctx.strokeStyle = `rgba(210,210,218,${0.06 + rand() * 0.08})`;
+    ctx.lineWidth = 4 + rand() * 7;
+    ctx.stroke();
+    // Bright core streak
+    ctx.strokeStyle = `rgba(245,245,250,${0.14 + rand() * 0.18})`;
+    ctx.lineWidth = 1.2 + rand() * 2.4;
+    ctx.stroke();
+  }
+
+  // Secondary branching streaks
+  for (let i = 0; i < 14; i += 1) {
+    const yStart = rand() * h;
+    const amp = 20 + rand() * 55;
+    const freq = 0.007 + rand() * 0.012;
+    const phase = rand() * Math.PI * 2;
+    const slope = (rand() - 0.5) * 0.4;
+    ctx.beginPath();
+    let first = true;
+    for (let x = -40; x <= w + 40; x += 6) {
+      const y =
+        yStart +
+        x * slope +
+        Math.sin(x * freq + phase) * amp +
+        Math.sin(x * freq * 1.8 + phase) * amp * 0.3;
+      if (first) {
+        ctx.moveTo(x, y);
+        first = false;
+      } else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = `rgba(230,230,236,${0.07 + rand() * 0.12})`;
+    ctx.lineWidth = 0.6 + rand() * 1.8;
+    ctx.stroke();
+  }
+
+  // Tiny mineral flecks
+  for (let i = 0; i < 70; i += 1) {
+    ctx.fillStyle = `rgba(255,255,255,${0.03 + rand() * 0.07})`;
+    ctx.fillRect(rand() * w, rand() * h, 1 + rand() * 1.5, 1 + rand() * 1.5);
+  }
+}
+
+function drawDarkStudio(ctx, w, h) {
+  drawBlackMarbleBackground(ctx, w, h, 42);
+}
+
+/**
+ * Punch the solid studio black out of a vial photo so marble shows through.
+ * Keeps glass, cake, cap, and soft contact shadow.
+ */
+function punchStudioBlackBackground(ctx, w, h) {
+  let img;
+  try {
+    img = ctx.getImageData(0, 0, w, h);
+  } catch {
+    return;
+  }
+  const data = img.data;
+  const cx = w * 0.5;
+  const vialHalf = w * 0.22;
+  for (let y = 0; y < h; y += 1) {
+    for (let x = 0; x < w; x += 1) {
+      const i = (y * w + x) * 4;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const max = Math.max(r, g, b);
+      const avg = (r + g + b) / 3;
+      // Protect the central vial column (glass reflections can be dark)
+      const inVialCol = Math.abs(x - cx) < vialHalf;
+      if (inVialCol && avg > 12) continue;
+      if (max < 14) {
+        data[i + 3] = 0;
+      } else if (max < 28 && !inVialCol) {
+        data[i + 3] = Math.round(data[i + 3] * ((max - 14) / 14));
+      } else if (max < 22 && inVialCol && y < h * 0.18) {
+        // upper corners outside cap
+        if (Math.abs(x - cx) > vialHalf * 0.55) data[i + 3] = 0;
+      }
+    }
+  }
+  ctx.putImageData(img, 0, 0);
 }
 
 /**
@@ -1031,24 +1149,41 @@ function drawPhotorealVial(ctx, dims, options) {
     isTen = false,
   } = options;
 
-  // Match reference framing: vial fills the shot, powder stays white
-  drawZoomedVialPhoto(ctx, photo, dims.w, dims.h, isTen ? 1.42 : 1.58);
+  // Black marble with white streaks, then cut the vial out of the studio plate
+  const seed = hashString(String(name || "vial")) || 42;
+  drawBlackMarbleBackground(ctx, dims.w, dims.h, seed);
+
+  const plate =
+    typeof document !== "undefined" ? document.createElement("canvas") : null;
+  if (plate) {
+    plate.width = dims.w;
+    plate.height = dims.h;
+    const pctx = plate.getContext("2d");
+    pctx.imageSmoothingEnabled = true;
+    pctx.imageSmoothingQuality = "high";
+    drawZoomedVialPhoto(pctx, photo, dims.w, dims.h, isTen ? 1.42 : 1.58);
+    punchStudioBlackBackground(pctx, dims.w, dims.h);
+    ctx.drawImage(plate, 0, 0);
+  } else {
+    drawZoomedVialPhoto(ctx, photo, dims.w, dims.h, isTen ? 1.42 : 1.58);
+  }
 
   const bodyW = dims.w * (isTen ? 0.37 : 0.35);
   const bodyX = dims.w / 2 - bodyW / 2;
   const sleeveTop = dims.h * (isTen ? 0.315 : 0.305);
   const sleeveH = dims.h * (isTen ? 0.34 : 0.33);
 
+  // Soft marble vignette — keep center readable
   const vignette = ctx.createRadialGradient(
     dims.w * 0.5,
     dims.h * 0.42,
-    dims.w * 0.16,
+    dims.w * 0.18,
     dims.w * 0.5,
     dims.h * 0.5,
-    dims.w * 0.8
+    dims.w * 0.82
   );
   vignette.addColorStop(0, "rgba(0,0,0,0)");
-  vignette.addColorStop(1, "rgba(0,0,0,0.26)");
+  vignette.addColorStop(1, "rgba(0,0,0,0.18)");
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, dims.w, dims.h);
 
