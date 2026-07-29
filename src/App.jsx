@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Search,
   ShoppingCart,
@@ -137,6 +137,8 @@ export default function App() {
     () => urlWantsLab || isLabUnlocked()
   );
   const [logoClicks, setLogoClicks] = useState([]);
+  const logoClicksRef = useRef([]);
+  const lastBrandTapRef = useRef(0);
   const [skinProduct, setSkinProduct] = useState(null);
   const [view, setView] = useState(() => {
     if (calcFromUrl && (urlWantsLab || isLabUnlocked())) return VIEWS.calculator;
@@ -257,21 +259,43 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function handleBrandClick() {
+  function handleBrandActivate(e) {
+    // Prefer pointer events so phone taps and mouse clicks both count once.
+    if (e?.type === "pointerup" && e.button != null && e.button !== 0) return;
+    if (e?.pointerType === "touch" || e?.pointerType === "pen") {
+      e.preventDefault?.();
+    }
+
+    const now = Date.now();
+    // Ignore ghost duplicate events within 40ms (some devices fire both).
+    if (now - lastBrandTapRef.current < 40) return;
+    lastBrandTapRef.current = now;
+
     if (!labUnlocked) {
-      const now = Date.now();
-      const next = [...logoClicks, now].filter((t) => now - t < 4000);
+      // Ref keeps a reliable count during rapid phone taps (state can lag).
+      const next = [...logoClicksRef.current, now].filter((t) => now - t < 6000);
+      logoClicksRef.current = next;
       setLogoClicks(next);
       if (next.length >= 5) {
+        logoClicksRef.current = [];
         setLogoClicks([]);
         unlockLabMenu("Undisclosed unlocked");
         return;
       }
-      setView(VIEWS.skincare);
-      setSkinProduct(null);
+      // Stay on skincare without thrashing navigation on every tap.
+      if (view !== VIEWS.skincare || skinProduct) {
+        setView(VIEWS.skincare);
+        setSkinProduct(null);
+      }
       return;
     }
     goShop();
+  }
+
+  function handleBrandClick(e) {
+    // Fallback for browsers without PointerEvent; skip if pointer already handled.
+    if (typeof window !== "undefined" && window.PointerEvent) return;
+    handleBrandActivate(e);
   }
 
   function addSkincareToCart(product) {
@@ -737,7 +761,13 @@ export default function App() {
         </div>
 
         <div className="container header-inner">
-          <button className="brand" onClick={handleBrandClick} type="button">
+          <button
+            className="brand"
+            type="button"
+            aria-label="WellPept home"
+            onPointerUp={handleBrandActivate}
+            onClick={handleBrandClick}
+          >
             <img
               src={labUnlocked ? "/ud-monogram.svg" : "/wp-monogram.svg"}
               alt={labUnlocked ? "Undisclosed" : "WellPept"}
