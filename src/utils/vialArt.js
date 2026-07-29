@@ -1004,6 +1004,7 @@ function drawCoverImage(ctx, img, w, h) {
 
 /**
  * Photoreal vial with clinical wrap label — peptide name + QR to the site.
+ * Label keeps the flat-mock landscape aspect (wraps horizontally around the glass).
  */
 function drawPhotorealVial(ctx, dims, options) {
   const {
@@ -1024,10 +1025,13 @@ function drawPhotorealVial(ctx, dims, options) {
   ctx.fillRect(0, 0, dims.w, dims.h);
   drawZoomedVialPhoto(ctx, photo, dims.w, dims.h, isTen ? 1.42 : 1.58);
 
-  const bodyW = dims.w * (isTen ? 0.37 : 0.35);
+  // Flat wrap art is landscape. On the vial front show it as a horizontal wrap
+  // band (not a tall portrait sticker) — that was reading as the wrong direction.
+  const bodyW = dims.w * (isTen ? 0.5 : 0.48);
   const bodyX = dims.w / 2 - bodyW / 2;
-  const sleeveTop = dims.h * (isTen ? 0.315 : 0.305);
-  const sleeveH = dims.h * (isTen ? 0.34 : 0.33);
+  // ~1.45:1 matches the visible front of a wrap (not the full unrolled 2.6:1)
+  const sleeveH = bodyW / 1.45;
+  const sleeveTop = dims.h * (isTen ? 0.355 : 0.345);
 
   const wrapBmp = createWrapLabelBitmap({
     name,
@@ -1045,7 +1049,7 @@ function drawPhotorealVial(ctx, dims, options) {
     bodyW,
     sleeveTop,
     sleeveH,
-    radius: Math.max(3, bodyW * 0.045),
+    radius: Math.max(2, bodyW * 0.03),
   });
 }
 
@@ -1132,42 +1136,64 @@ function createWrapLabelBitmap(options) {
 
 /**
  * Apply the clinical wrap upright on the glass (spine left → QR right).
- * Mild edge shade only — no cylindrical remapping that flipped text.
+ * Mild front-arc wrap; source maps left→left so text is not mirrored.
  */
 function drawUprightLabelOnVial(ctx, labelCanvas, geom) {
   if (!labelCanvas || !labelCanvas.width) return;
   const { bodyX, bodyW, sleeveTop, sleeveH, radius = 4 } = geom;
+  const cx = bodyX + bodyW / 2;
+  const lw = labelCanvas.width;
+  const lh = labelCanvas.height;
+  const slices = 64;
+  const visibleArc = Math.PI * 0.72;
 
   ctx.save();
   roundRect(ctx, bodyX - 0.5, sleeveTop - 0.5, bodyW + 1, sleeveH + 1, radius);
   ctx.clip();
 
-  ctx.fillStyle = "rgba(0,0,0,0.16)";
+  ctx.fillStyle = "rgba(0,0,0,0.14)";
   roundRect(ctx, bodyX + 1, sleeveTop + 2, bodyW - 2, sleeveH - 1, radius);
   ctx.fill();
 
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
-  // Draw upright: left of artwork = left of vial (black UNDISCLOSED spine)
-  ctx.drawImage(labelCanvas, bodyX, sleeveTop, bodyW, sleeveH);
+
+  for (let i = 0; i < slices; i += 1) {
+    const t0 = i / slices;
+    const t1 = (i + 1) / slices;
+    const theta0 = (t0 - 0.5) * visibleArc;
+    const theta1 = (t1 - 0.5) * visibleArc;
+    const cos = (Math.cos(theta0) + Math.cos(theta1)) / 2;
+    if (cos < 0.15) continue;
+
+    const x0 = cx + (bodyW / 2) * 0.99 * Math.sin(theta0);
+    const x1 = cx + (bodyW / 2) * 0.99 * Math.sin(theta1);
+    const destX = Math.min(x0, x1);
+    const destW = Math.max(1.1, Math.abs(x1 - x0) + 0.6);
+    // Left of artwork → left of vial (do not reverse — that mirrored the text)
+    const srcX = t0 * lw;
+    const srcW = Math.max(1, (t1 - t0) * lw + 0.4);
+
+    ctx.drawImage(
+      labelCanvas,
+      srcX,
+      0,
+      srcW,
+      lh,
+      destX,
+      sleeveTop,
+      destW,
+      sleeveH
+    );
+  }
 
   const shade = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW, 0);
-  shade.addColorStop(0, "rgba(0,0,0,0.28)");
-  shade.addColorStop(0.12, "rgba(0,0,0,0.05)");
+  shade.addColorStop(0, "rgba(0,0,0,0.26)");
+  shade.addColorStop(0.14, "rgba(0,0,0,0.05)");
   shade.addColorStop(0.5, "rgba(0,0,0,0)");
-  shade.addColorStop(0.88, "rgba(0,0,0,0.05)");
-  shade.addColorStop(1, "rgba(0,0,0,0.28)");
+  shade.addColorStop(0.86, "rgba(0,0,0,0.05)");
+  shade.addColorStop(1, "rgba(0,0,0,0.26)");
   ctx.fillStyle = shade;
-  ctx.fillRect(bodyX, sleeveTop, bodyW, sleeveH);
-
-  const gloss = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW, 0);
-  gloss.addColorStop(0, "rgba(255,255,255,0)");
-  gloss.addColorStop(0.16, "rgba(255,255,255,0.1)");
-  gloss.addColorStop(0.28, "rgba(255,255,255,0)");
-  gloss.addColorStop(0.74, "rgba(255,255,255,0)");
-  gloss.addColorStop(0.88, "rgba(255,255,255,0.08)");
-  gloss.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = gloss;
   ctx.fillRect(bodyX, sleeveTop, bodyW, sleeveH);
 
   ctx.strokeStyle = "rgba(255,255,255,0.28)";
