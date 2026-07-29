@@ -1566,22 +1566,12 @@ export default function App() {
                     </div>
                   </div>
                   <div className="featured-vendor-visual">
-                    {(() => {
-                      const d = defaultsFromCatalogSelection({
-                        name: "HGH",
-                        mass: 150,
-                        unit: "IU",
-                        form: "Pharma-grade kit · 150 IU",
-                      });
-                      return (
-                        <GeneratedVial
-                          name="HGH"
-                          category="Growth"
-                          size="lg"
-                          catalogTemplate
-                        />
-                      );
-                    })()}
+                    <GeneratedVial
+                      name="HGH"
+                      category="Growth"
+                      size="lg"
+                      catalogTemplate
+                    />
                   </div>
                 </div>
               </div>
