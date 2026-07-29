@@ -914,6 +914,7 @@ export async function drawGeneratedVial(canvas, options = {}) {
     qrPayload = "",
     coaUrl = "",
     catalogTemplate = true,
+    showLabel = true,
   } = options;
 
   // Catalog hero always uses the same 3 mL bottle plate for identical framing
@@ -961,6 +962,7 @@ export async function drawGeneratedVial(canvas, options = {}) {
       isTen,
       reconstituted: catalogTemplate ? false : reconstituted,
       catalogTemplate,
+      showLabel,
     });
   } else {
     // Fallback if photos fail to load
@@ -975,6 +977,7 @@ export async function drawGeneratedVial(canvas, options = {}) {
       qrPayload,
       coaUrl,
       reconstituted: catalogTemplate ? false : reconstituted,
+      showLabel,
     };
     if (isTen) drawLabeledTenMl(ctx, dims, fallbackOpts);
     else drawLabeledThreeMl(ctx, dims, fallbackOpts);
@@ -1023,12 +1026,15 @@ function drawPhotorealVial(ctx, dims, options) {
     doseRange,
     qrPayload,
     coaUrl,
+    showLabel = true,
   } = options;
 
   ctx.fillStyle = "#000000";
   ctx.fillRect(0, 0, dims.w, dims.h);
   // Same bottle framing for every SKU (3 mL plate is the catalog hero)
   drawZoomedVialPhoto(ctx, photo, dims.w, dims.h, isTen ? 1.38 : 1.52);
+
+  if (!showLabel) return;
 
   // Label band matches reference: mid-body wrap, ~full glass width
   const bodyW = dims.w * (isTen ? 0.4 : 0.38);
@@ -1412,26 +1418,28 @@ function drawLabeledThreeMl(ctx, dims, options) {
   ctx.fillStyle = "rgba(255,255,255,0.35)";
   ctx.fillRect(bodyX + bodyW * 0.12, bodyY + shoulderH, bodyW * 0.1, bodyH * 0.35);
 
-  const sleeveTop = bodyY + bodyH * 0.34;
-  const sleeveH = bodyBottom - sleeveTop - radius * 0.15;
-  const labelBmp = createWrapLabelBitmap({
-    name,
-    mass,
-    unit,
-    bacWater,
-    concentration,
-    doseRange,
-    sku,
-    qrPayload,
-    coaUrl,
-  });
-  drawUprightLabelOnVial(ctx, labelBmp, {
-    bodyX,
-    bodyW,
-    sleeveTop,
-    sleeveH,
-    radius: radius * 0.6,
-  });
+  if (options.showLabel !== false) {
+    const sleeveTop = bodyY + bodyH * 0.34;
+    const sleeveH = bodyBottom - sleeveTop - radius * 0.15;
+    const labelBmp = createWrapLabelBitmap({
+      name,
+      mass,
+      unit,
+      bacWater,
+      concentration,
+      doseRange,
+      sku,
+      qrPayload,
+      coaUrl,
+    });
+    drawUprightLabelOnVial(ctx, labelBmp, {
+      bodyX,
+      bodyW,
+      sleeveTop,
+      sleeveH,
+      radius: radius * 0.6,
+    });
+  }
 
   ctx.strokeStyle = "rgba(180, 190, 200, 0.35)";
   ctx.lineWidth = 1.2;
@@ -1530,26 +1538,28 @@ function drawLabeledTenMl(ctx, dims, options) {
   }
   ctx.restore();
 
-  const sleeveTop = bodyY + bodyH * 0.28;
-  const sleeveH = bodyBottom - sleeveTop - 4;
-  const labelBmp = createWrapLabelBitmap({
-    name,
-    mass,
-    unit,
-    bacWater,
-    concentration,
-    doseRange,
-    sku,
-    qrPayload,
-    coaUrl,
-  });
-  drawUprightLabelOnVial(ctx, labelBmp, {
-    bodyX,
-    bodyW,
-    sleeveTop,
-    sleeveH,
-    radius: radius * 0.5,
-  });
+  if (options.showLabel !== false) {
+    const sleeveTop = bodyY + bodyH * 0.28;
+    const sleeveH = bodyBottom - sleeveTop - 4;
+    const labelBmp = createWrapLabelBitmap({
+      name,
+      mass,
+      unit,
+      bacWater,
+      concentration,
+      doseRange,
+      sku,
+      qrPayload,
+      coaUrl,
+    });
+    drawUprightLabelOnVial(ctx, labelBmp, {
+      bodyX,
+      bodyW,
+      sleeveTop,
+      sleeveH,
+      radius: radius * 0.5,
+    });
+  }
 
   drawBrandWordmark(ctx, cx, bodyBottom + dims.h * 0.05, dims.w * 0.72);
 }

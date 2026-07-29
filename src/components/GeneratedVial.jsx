@@ -41,6 +41,8 @@ export default function GeneratedVial({
   className = "",
   /** Storefront framing lock: same 3 mL plate; label uses each product's fields. */
   catalogTemplate = true,
+  /** Draw clinical wrap label on the vial glass. */
+  showLabel = true,
 }) {
   const canvasRef = useRef(null);
   const [png, setPng] = useState("");
@@ -109,6 +111,7 @@ export default function GeneratedVial({
           qrPayload: labelFields.qrPayload,
           coaUrl: catalogTemplate ? "" : resolvedQr,
           catalogTemplate,
+          showLabel,
         });
         if (!cancelled) setPng(dataUrl);
       } catch (err) {
@@ -135,6 +138,7 @@ export default function GeneratedVial({
     form,
     resolvedQr,
     catalogTemplate,
+    showLabel,
   ]);
 
   function handleDownload() {

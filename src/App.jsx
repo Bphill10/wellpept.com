@@ -91,7 +91,7 @@ const VIEWS = {
   calculator: "calculator",
 };
 
-function VialPreview({ product, size = "md", showDownload = false }) {
+function VialPreview({ product, size = "md", showDownload = false, showLabel = true }) {
   if (product?.skin) {
     if (product.image) {
       return (
@@ -124,6 +124,7 @@ function VialPreview({ product, size = "md", showDownload = false }) {
       coaUrl={product.coaUrl || ""}
       size={size}
       showDownload={showDownload}
+      showLabel={showLabel}
       catalogTemplate
     />
   );
@@ -2442,7 +2443,7 @@ function CartPage({
                   {cart.map((line) => (
                     <div className="cart-item" key={line.id}>
                       <div className="cart-thumb">
-                        <VialPreview product={line} size="sm" />
+                        <VialPreview product={line} size="sm" showLabel={false} />
                       </div>
                       <div>
                         <strong>{line.name}</strong>
