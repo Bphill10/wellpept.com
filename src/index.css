@@ -791,14 +791,15 @@ svg {
   background:
     linear-gradient(
       105deg,
-      rgba(0, 0, 0, 0.94) 0%,
-      rgba(0, 0, 0, 0.72) 36%,
-      rgba(0, 0, 0, 0.28) 58%,
-      rgba(0, 0, 0, 0.08) 100%
+      rgba(0, 0, 0, 0.82) 0%,
+      rgba(0, 0, 0, 0.55) 36%,
+      rgba(0, 0, 0, 0.18) 58%,
+      rgba(0, 0, 0, 0.04) 100%
     ),
     url("/undisclosed-brand.png") right center / contain no-repeat,
-    #050505;
-  background-color: #050505;
+    url("/black-marble.svg") center / cover no-repeat,
+    #000;
+  background-color: #000;
 }
 
 .hero-media--undisclosed::after {
@@ -2243,23 +2244,24 @@ body:has(.app-shell--skincare) {
   --shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
   --accent: #ffffff;
   color: var(--ink);
-  background: #050505;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.55) 100%),
+    url("/black-marble.svg") center top / cover fixed no-repeat,
+    #000;
 }
 
 body:has(.app-shell--undisclosed) {
   color: #f4f6f8;
   background:
-    radial-gradient(ellipse at 18% 0%, rgba(255, 255, 255, 0.06), transparent 42%),
-    radial-gradient(ellipse at 88% 12%, rgba(0, 71, 171, 0.12), transparent 36%),
-    linear-gradient(180deg, #050505 0%, #0a0a0a 48%, #101018 100%);
+    url("/black-marble.svg") center top / cover fixed no-repeat,
+    #000;
 }
 
 body:has(.app-shell--undisclosed)::before {
-  opacity: 0.35;
+  opacity: 0.22;
   background-image:
-    radial-gradient(circle at 80% 8%, rgba(0, 71, 171, 0.08), transparent 30%),
-    linear-gradient(125deg, rgba(255, 255, 255, 0.04), transparent 42%),
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+    radial-gradient(circle at 80% 8%, rgba(255, 255, 255, 0.04), transparent 30%),
+    linear-gradient(125deg, rgba(255, 255, 255, 0.03), transparent 42%);
 }
 
 .app-shell--undisclosed .header-top {

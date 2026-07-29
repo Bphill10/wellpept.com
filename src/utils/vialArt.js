@@ -280,25 +280,27 @@ export function resolveVialUnit({ name = "", form = "", unit } = {}) {
   return "mg";
 }
 
-/** Black marble slab with soft white vein streaks (product-shot backdrop). */
+/** Classic black marble slab with bright white vein streaks. */
 function drawBlackMarbleBackground(ctx, w, h, seed = 42) {
-  const base = ctx.createLinearGradient(0, 0, w * 0.15, h);
-  base.addColorStop(0, "#040404");
-  base.addColorStop(0.35, "#0b0b0b");
-  base.addColorStop(0.7, "#070707");
-  base.addColorStop(1, "#020202");
+  const base = ctx.createLinearGradient(0, 0, w * 0.2, h);
+  base.addColorStop(0, "#000000");
+  base.addColorStop(0.28, "#080808");
+  base.addColorStop(0.55, "#030303");
+  base.addColorStop(0.82, "#0a0a0a");
+  base.addColorStop(1, "#000000");
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, w, h);
 
   const rand = mulberry32(seed);
-  // Stone depth / charcoal variation
-  for (let i = 0; i < 22; i += 1) {
+
+  // Charcoal stone depth — soft light/dark pools in the black
+  for (let i = 0; i < 28; i += 1) {
     const x = rand() * w;
     const y = rand() * h;
-    const r = 60 + rand() * Math.max(w, h) * 0.32;
+    const r = 50 + rand() * Math.max(w, h) * 0.38;
     const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-    const c = 16 + Math.floor(rand() * 28);
-    g.addColorStop(0, `rgba(${c},${c},${c + 3},${0.07 + rand() * 0.1})`);
+    const c = 18 + Math.floor(rand() * 36);
+    g.addColorStop(0, `rgba(${c},${c},${c + 4},${0.1 + rand() * 0.14})`);
     g.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = g;
     ctx.beginPath();
@@ -306,68 +308,115 @@ function drawBlackMarbleBackground(ctx, w, h, seed = 42) {
     ctx.fill();
   }
 
+  const strokeVein = (opts) => {
+    const {
+      yStart,
+      amp,
+      freq,
+      phase,
+      slope,
+      step,
+      glowW,
+      glowA,
+      coreW,
+      coreA,
+      vertical = false,
+    } = opts;
+    ctx.beginPath();
+    let first = true;
+    if (vertical) {
+      for (let y = -80; y <= h + 80; y += step) {
+        const x =
+          yStart +
+          y * slope +
+          Math.sin(y * freq + phase) * amp +
+          Math.sin(y * freq * 2.35 + phase * 1.3) * amp * 0.42 +
+          Math.sin(y * freq * 4.1 + phase * 0.7) * amp * 0.18;
+        if (first) {
+          ctx.moveTo(x, y);
+          first = false;
+        } else ctx.lineTo(x, y);
+      }
+    } else {
+      for (let x = -80; x <= w + 80; x += step) {
+        const y =
+          yStart +
+          x * slope +
+          Math.sin(x * freq + phase) * amp +
+          Math.sin(x * freq * 2.2 + phase * 1.45) * amp * 0.45 +
+          Math.sin(x * freq * 3.8 + phase * 0.6) * amp * 0.2;
+        if (first) {
+          ctx.moveTo(x, y);
+          first = false;
+        } else ctx.lineTo(x, y);
+      }
+    }
+    ctx.strokeStyle = `rgba(220,220,228,${glowA})`;
+    ctx.lineWidth = glowW;
+    ctx.stroke();
+    ctx.strokeStyle = `rgba(255,255,255,${coreA})`;
+    ctx.lineWidth = coreW;
+    ctx.stroke();
+  };
+
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
 
-  // Bold primary marble veins (white streaks through black stone)
-  for (let i = 0; i < 9; i += 1) {
-    const yStart = rand() * h;
-    const amp = 40 + rand() * 90;
-    const freq = 0.004 + rand() * 0.008;
-    const phase = rand() * Math.PI * 2;
-    const slope = (rand() - 0.5) * 0.55;
-    ctx.beginPath();
-    let first = true;
-    for (let x = -60; x <= w + 60; x += 5) {
-      const y =
-        yStart +
-        x * slope +
-        Math.sin(x * freq + phase) * amp +
-        Math.sin(x * freq * 2.1 + phase * 1.4) * amp * 0.4;
-      if (first) {
-        ctx.moveTo(x, y);
-        first = false;
-      } else ctx.lineTo(x, y);
-    }
-    // Soft outer glow of the vein
-    ctx.strokeStyle = `rgba(210,210,218,${0.06 + rand() * 0.08})`;
-    ctx.lineWidth = 4 + rand() * 7;
-    ctx.stroke();
-    // Bright core streak
-    ctx.strokeStyle = `rgba(245,245,250,${0.14 + rand() * 0.18})`;
-    ctx.lineWidth = 1.2 + rand() * 2.4;
-    ctx.stroke();
+  // Primary white marble veins — clearly readable streaks
+  for (let i = 0; i < 11; i += 1) {
+    strokeVein({
+      yStart: rand() * h,
+      amp: 55 + rand() * 120,
+      freq: 0.0035 + rand() * 0.007,
+      phase: rand() * Math.PI * 2,
+      slope: (rand() - 0.5) * 0.65,
+      step: 4,
+      glowW: 6 + rand() * 10,
+      glowA: 0.1 + rand() * 0.12,
+      coreW: 1.6 + rand() * 3.2,
+      coreA: 0.32 + rand() * 0.38,
+      vertical: false,
+    });
   }
 
-  // Secondary branching streaks
-  for (let i = 0; i < 14; i += 1) {
-    const yStart = rand() * h;
-    const amp = 20 + rand() * 55;
-    const freq = 0.007 + rand() * 0.012;
-    const phase = rand() * Math.PI * 2;
-    const slope = (rand() - 0.5) * 0.4;
-    ctx.beginPath();
-    let first = true;
-    for (let x = -40; x <= w + 40; x += 6) {
-      const y =
-        yStart +
-        x * slope +
-        Math.sin(x * freq + phase) * amp +
-        Math.sin(x * freq * 1.8 + phase) * amp * 0.3;
-      if (first) {
-        ctx.moveTo(x, y);
-        first = false;
-      } else ctx.lineTo(x, y);
-    }
-    ctx.strokeStyle = `rgba(230,230,236,${0.07 + rand() * 0.12})`;
-    ctx.lineWidth = 0.6 + rand() * 1.8;
-    ctx.stroke();
+  // Diagonal / vertical secondary veins
+  for (let i = 0; i < 7; i += 1) {
+    strokeVein({
+      yStart: rand() * w,
+      amp: 40 + rand() * 90,
+      freq: 0.004 + rand() * 0.009,
+      phase: rand() * Math.PI * 2,
+      slope: (rand() - 0.5) * 0.5,
+      step: 5,
+      glowW: 4 + rand() * 7,
+      glowA: 0.07 + rand() * 0.1,
+      coreW: 1 + rand() * 2.2,
+      coreA: 0.22 + rand() * 0.28,
+      vertical: true,
+    });
   }
 
-  // Tiny mineral flecks
-  for (let i = 0; i < 70; i += 1) {
-    ctx.fillStyle = `rgba(255,255,255,${0.03 + rand() * 0.07})`;
-    ctx.fillRect(rand() * w, rand() * h, 1 + rand() * 1.5, 1 + rand() * 1.5);
+  // Fine branching hairline streaks
+  for (let i = 0; i < 18; i += 1) {
+    strokeVein({
+      yStart: rand() * h,
+      amp: 18 + rand() * 50,
+      freq: 0.008 + rand() * 0.014,
+      phase: rand() * Math.PI * 2,
+      slope: (rand() - 0.5) * 0.45,
+      step: 5,
+      glowW: 2 + rand() * 3.5,
+      glowA: 0.05 + rand() * 0.07,
+      coreW: 0.7 + rand() * 1.5,
+      coreA: 0.16 + rand() * 0.22,
+      vertical: rand() > 0.55,
+    });
+  }
+
+  // Mineral flecks / sparkle in the stone
+  for (let i = 0; i < 110; i += 1) {
+    ctx.fillStyle = `rgba(255,255,255,${0.04 + rand() * 0.1})`;
+    ctx.fillRect(rand() * w, rand() * h, 1 + rand() * 2, 1 + rand() * 2);
   }
 }
 
@@ -1173,17 +1222,17 @@ function drawPhotorealVial(ctx, dims, options) {
   const sleeveTop = dims.h * (isTen ? 0.315 : 0.305);
   const sleeveH = dims.h * (isTen ? 0.34 : 0.33);
 
-  // Soft marble vignette — keep center readable
+  // Soft marble vignette — keep center readable without hiding veins
   const vignette = ctx.createRadialGradient(
     dims.w * 0.5,
     dims.h * 0.42,
-    dims.w * 0.18,
+    dims.w * 0.22,
     dims.w * 0.5,
     dims.h * 0.5,
-    dims.w * 0.82
+    dims.w * 0.88
   );
   vignette.addColorStop(0, "rgba(0,0,0,0)");
-  vignette.addColorStop(1, "rgba(0,0,0,0.18)");
+  vignette.addColorStop(1, "rgba(0,0,0,0.12)");
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, dims.w, dims.h);
 
