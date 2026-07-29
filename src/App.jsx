@@ -109,6 +109,13 @@ function VialPreview({ product, size = "md", showDownload = false }) {
       </div>
     );
   }
+  const labelDefaults = defaultsFromCatalogSelection({
+    name: product?.name || "",
+    mass: product?.mg,
+    unit: product?.unit || "mg",
+    vialMl: product?.vialMl,
+    form: product?.form || "",
+  });
   return (
     <GeneratedVial
       name={product.name}
@@ -118,6 +125,9 @@ function VialPreview({ product, size = "md", showDownload = false }) {
       subtitle={product.form}
       form={product.form}
       vialMl={product.vialMl}
+      bacWater={labelDefaults.bacWater}
+      concentration={labelDefaults.concentration}
+      doseRange={labelDefaults.doseRange}
       summary={product.tagline || ""}
       size={size}
       showDownload={showDownload}
