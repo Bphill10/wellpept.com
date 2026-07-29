@@ -791,15 +791,17 @@ svg {
   background:
     linear-gradient(
       105deg,
-      rgba(0, 0, 0, 0.78) 0%,
-      rgba(0, 0, 0, 0.48) 36%,
-      rgba(0, 0, 0, 0.14) 58%,
+      rgba(0, 0, 0, 0.82) 0%,
+      rgba(0, 0, 0, 0.42) 34%,
+      rgba(0, 0, 0, 0.1) 58%,
       rgba(0, 0, 0, 0.02) 100%
     ),
-    url("/undisclosed-brand.png") right center / contain no-repeat,
     url("/black-marble.jpg") center / cover no-repeat,
     #000;
   background-color: #000;
+  display: grid;
+  place-items: center end;
+  padding: 2rem clamp(1rem, 4vw, 3.5rem) 2rem 0;
 }
 
 .hero-media--undisclosed::after {
@@ -808,6 +810,26 @@ svg {
     rgba(0, 0, 0, 0.55) 0%,
     transparent 42%
   );
+  pointer-events: none;
+}
+
+.hero-vial-stage {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: min(42vw, 420px);
+  max-width: 100%;
+}
+
+.hero-generated-vial.generated-vial-wrap {
+  width: 100%;
+}
+
+.hero-generated-vial .generated-vial--lg {
+  max-width: min(100%, 360px);
+  max-height: min(62vh, 560px);
+  width: 100%;
 }
 
 .hero--undisclosed .container.hero-content,
@@ -2926,10 +2948,25 @@ body:has(.app-shell--undisclosed)::before {
 
   .hero--undisclosed .hero-media,
   .hero-media--undisclosed {
+    height: clamp(280px, 58vw, 420px) !important;
+    min-height: 280px !important;
+    max-height: 420px !important;
     border-top: 1px solid rgba(255, 255, 255, 0.12);
     background:
       #050505
-        url("/undisclosed-brand.png") center 40% / contain no-repeat !important;
+        url("/black-marble.jpg") center / cover no-repeat !important;
+    display: grid !important;
+    place-items: center !important;
+    padding: 1.25rem 1rem 1.75rem !important;
+  }
+
+  .hero--undisclosed .hero-vial-stage {
+    width: min(72vw, 280px);
+  }
+
+  .hero--undisclosed .hero-generated-vial .generated-vial--lg {
+    max-width: min(100%, 260px);
+    max-height: 340px;
   }
 
   .skin-hero .hero-media::after,
@@ -5060,8 +5097,23 @@ body:has(.app-shell--undisclosed)::before {
 
   .hero--undisclosed .hero-media,
   .hero-media--undisclosed {
+    height: clamp(260px, 62vw, 380px) !important;
+    min-height: 260px !important;
+    max-height: 380px !important;
     border-top: 1px solid rgba(255, 255, 255, 0.12);
-    background: #050505 url("/undisclosed-brand.png") center 42% / contain no-repeat !important;
+    background: #050505 url("/black-marble.jpg") center / cover no-repeat !important;
+    display: grid !important;
+    place-items: center !important;
+    padding: 1.1rem 0.85rem 1.5rem !important;
+  }
+
+  .hero--undisclosed .hero-vial-stage {
+    width: min(70vw, 250px);
+  }
+
+  .hero--undisclosed .hero-generated-vial .generated-vial--lg {
+    max-width: min(100%, 230px);
+    max-height: 300px;
   }
 
   .skin-hero .hero-media::after,
@@ -5440,12 +5492,17 @@ body:has(.app-shell--undisclosed)::before {
   }
 
   .skin-hero .hero-media,
-  .skin-hero-media,
-  .hero--undisclosed .hero-media,
-  .hero-media--undisclosed {
+  .skin-hero-media {
     height: 120px !important;
     min-height: 120px !important;
     max-height: 120px !important;
+  }
+
+  .hero--undisclosed .hero-media,
+  .hero-media--undisclosed {
+    height: 240px !important;
+    min-height: 240px !important;
+    max-height: 240px !important;
   }
 
   .skin-hero .hero-brand {

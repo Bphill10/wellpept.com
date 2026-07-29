@@ -1190,7 +1190,17 @@ export default function App() {
               </div>
             </div>
             <section className="hero hero--undisclosed">
-              <div className="hero-media hero-media--undisclosed" />
+              <div className="hero-media hero-media--undisclosed">
+                <div className="hero-vial-stage" aria-hidden="true">
+                  <GeneratedVial
+                    name="HGH"
+                    category="Growth"
+                    size="lg"
+                    catalogTemplate
+                    className="hero-generated-vial"
+                  />
+                </div>
+              </div>
               <div className="container hero-content">
                 <div className="hero-brand-lockup rise">
                   <img
@@ -1210,10 +1220,6 @@ export default function App() {
                 <div className="hero-brand-rule rise-delay" aria-hidden="true" />
                 <p className="hero-tagline rise-delay">
                   Research peptides. Same molecule. Darker mirror of WellPept.
-                </p>
-                <p className="hero-copy rise-delay">
-                  Approved near-source vendors, COAs, and catalog tools — the inverse
-                  of the white-and-cobalt storefront.
                 </p>
                 <div className="hero-cta rise-delay">
                   <button
