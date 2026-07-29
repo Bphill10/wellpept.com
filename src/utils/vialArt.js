@@ -964,25 +964,18 @@ export async function drawGeneratedVial(canvas, options = {}) {
     });
   } else {
     // Fallback if photos fail to load
-    const fallbackOpts = catalogTemplate
-      ? {
-          name,
-          ...CATALOG_VIAL_TEMPLATE,
-          sku,
-          reconstituted: false,
-        }
-      : {
-          name,
-          mass,
-          unit,
-          sku,
-          reconstituted,
-          bacWater,
-          concentration,
-          doseRange,
-          qrPayload,
-          coaUrl,
-        };
+    const fallbackOpts = {
+      name,
+      mass,
+      unit,
+      sku,
+      bacWater,
+      concentration,
+      doseRange,
+      qrPayload,
+      coaUrl,
+      reconstituted: catalogTemplate ? false : reconstituted,
+    };
     if (isTen) drawLabeledTenMl(ctx, dims, fallbackOpts);
     else drawLabeledThreeMl(ctx, dims, fallbackOpts);
   }
@@ -1002,7 +995,7 @@ function drawCoverImage(ctx, img, w, h) {
   ctx.drawImage(img, dx, dy, dw, dh);
 }
 
-/** Locked storefront vial label — only `name` changes between products. */
+/** Shared storefront label defaults (footer / QR). Mass & dosage come per product. */
 export const CATALOG_VIAL_TEMPLATE = {
   mass: "80",
   unit: "mg",
@@ -1015,18 +1008,54 @@ export const CATALOG_VIAL_TEMPLATE = {
 
 /**
  * Photoreal catalog vial — identical camera/lighting for every product.
- * Labels intentionally omitted (plain studio bottle only).
+ * Wrap label shows product name, mass (mg/IU), and dosage fields.
  */
 function drawPhotorealVial(ctx, dims, options) {
   const {
     photo,
+    name = "Peptide",
     isTen = false,
+    mass,
+    unit,
+    sku = "",
+    bacWater,
+    concentration,
+    doseRange,
+    qrPayload,
+    coaUrl,
   } = options;
 
   ctx.fillStyle = "#000000";
   ctx.fillRect(0, 0, dims.w, dims.h);
   // Same bottle framing for every SKU (3 mL plate is the catalog hero)
   drawZoomedVialPhoto(ctx, photo, dims.w, dims.h, isTen ? 1.38 : 1.52);
+
+  // Label band matches reference: mid-body wrap, ~full glass width
+  const bodyW = dims.w * (isTen ? 0.4 : 0.38);
+  const bodyX = dims.w / 2 - bodyW / 2;
+  const sleeveTop = dims.h * (isTen ? 0.3 : 0.29);
+  const sleeveH = dims.h * (isTen ? 0.33 : 0.32);
+
+  const wrapBmp = createWrapLabelBitmap({
+    name,
+    mass,
+    unit,
+    bacWater,
+    concentration,
+    doseRange,
+    sku,
+    qrPayload: qrPayload || CATALOG_VIAL_TEMPLATE.qrPayload,
+    coaUrl: coaUrl || "",
+    footerText: CATALOG_VIAL_TEMPLATE.footerText,
+  });
+
+  drawCatalogWrapOnVial(ctx, wrapBmp, {
+    bodyX,
+    bodyW,
+    sleeveTop,
+    sleeveH,
+    radius: Math.max(3, bodyW * 0.04),
+  });
 }
 
 /** Cover-fit with zoom so the vial reads like a close product shot. */
@@ -1383,6 +1412,27 @@ function drawLabeledThreeMl(ctx, dims, options) {
   ctx.fillStyle = "rgba(255,255,255,0.35)";
   ctx.fillRect(bodyX + bodyW * 0.12, bodyY + shoulderH, bodyW * 0.1, bodyH * 0.35);
 
+  const sleeveTop = bodyY + bodyH * 0.34;
+  const sleeveH = bodyBottom - sleeveTop - radius * 0.15;
+  const labelBmp = createWrapLabelBitmap({
+    name,
+    mass,
+    unit,
+    bacWater,
+    concentration,
+    doseRange,
+    sku,
+    qrPayload,
+    coaUrl,
+  });
+  drawUprightLabelOnVial(ctx, labelBmp, {
+    bodyX,
+    bodyW,
+    sleeveTop,
+    sleeveH,
+    radius: radius * 0.6,
+  });
+
   ctx.strokeStyle = "rgba(180, 190, 200, 0.35)";
   ctx.lineWidth = 1.2;
   roundRect(ctx, bodyX, bodyY + shoulderH * 0.85, bodyW, bodyH - shoulderH * 0.85, radius);
@@ -1479,6 +1529,27 @@ function drawLabeledTenMl(ctx, dims, options) {
     ctx.fillRect(bodyX, bodyY + bodyH * 0.4, bodyW, bodyH * 0.6);
   }
   ctx.restore();
+
+  const sleeveTop = bodyY + bodyH * 0.28;
+  const sleeveH = bodyBottom - sleeveTop - 4;
+  const labelBmp = createWrapLabelBitmap({
+    name,
+    mass,
+    unit,
+    bacWater,
+    concentration,
+    doseRange,
+    sku,
+    qrPayload,
+    coaUrl,
+  });
+  drawUprightLabelOnVial(ctx, labelBmp, {
+    bodyX,
+    bodyW,
+    sleeveTop,
+    sleeveH,
+    radius: radius * 0.5,
+  });
 
   drawBrandWordmark(ctx, cx, bodyBottom + dims.h * 0.05, dims.w * 0.72);
 }

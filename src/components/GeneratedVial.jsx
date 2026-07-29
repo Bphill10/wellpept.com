@@ -39,7 +39,7 @@ export default function GeneratedVial({
   productId = "",
   showDownload = false,
   className = "",
-  /** Storefront hero template: only the peptide name changes. */
+  /** Storefront framing lock: same 3 mL plate; label uses each product's fields. */
   catalogTemplate = true,
 }) {
   const canvasRef = useRef(null);
@@ -56,16 +56,7 @@ export default function GeneratedVial({
       });
 
   const labelFields = useMemo(() => {
-    if (catalogTemplate) {
-      return {
-        bacWater: CATALOG_VIAL_TEMPLATE.bacWater,
-        concentration: CATALOG_VIAL_TEMPLATE.concentration,
-        doseRange: CATALOG_VIAL_TEMPLATE.doseRange,
-        qrPayload: CATALOG_VIAL_TEMPLATE.qrPayload,
-        mass: CATALOG_VIAL_TEMPLATE.mass,
-        unit: CATALOG_VIAL_TEMPLATE.unit,
-      };
-    }
+    // Per-product name + mg/IU + dosage on every vial (catalog + calculator)
     return resolveCalculatorLabelFields({
       name,
       mass,
@@ -79,7 +70,6 @@ export default function GeneratedVial({
       form: form || subtitle,
     });
   }, [
-    catalogTemplate,
     name,
     mass,
     unit,
@@ -103,8 +93,8 @@ export default function GeneratedVial({
           name,
           subtitle,
           sku,
-          mass: catalogTemplate ? CATALOG_VIAL_TEMPLATE.mass : mass,
-          unit: catalogTemplate ? CATALOG_VIAL_TEMPLATE.unit : unit,
+          mass,
+          unit: labelFields.unit || unit,
           category,
           mixText,
           doseRef,

@@ -109,13 +109,19 @@ function VialPreview({ product, size = "md", showDownload = false }) {
       </div>
     );
   }
-  // Catalog hero template: identical vial/lighting/label — only the name changes
+  // Same camera/lighting for every SKU; label shows this product's name, mg, dosage
   return (
     <GeneratedVial
       name={product.name}
+      mass={product.mg}
+      unit={product.unit || "mg"}
+      sku={product.sku || ""}
       category={product.category}
       subtitle={product.form}
       form={product.form}
+      vialMl={product.vialMl}
+      productId={product.id}
+      coaUrl={product.coaUrl || ""}
       size={size}
       showDownload={showDownload}
       catalogTemplate
