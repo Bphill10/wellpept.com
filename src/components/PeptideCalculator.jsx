@@ -553,6 +553,7 @@ export default function PeptideCalculator({
                   size="lg"
                   qrPayload={calcCoaQr}
                   showDownload
+                  catalogTemplate={false}
                 />
               </div>
               <div className="calc-label-stage">

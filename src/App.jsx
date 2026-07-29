@@ -109,30 +109,16 @@ function VialPreview({ product, size = "md", showDownload = false }) {
       </div>
     );
   }
-  const labelDefaults = defaultsFromCatalogSelection({
-    name: product?.name || "",
-    mass: product?.mg,
-    unit: product?.unit || "mg",
-    vialMl: product?.vialMl,
-    form: product?.form || "",
-  });
+  // Catalog hero template: identical vial/lighting/label — only the name changes
   return (
     <GeneratedVial
       name={product.name}
-      mass={product.mg}
-      unit={product.unit || "mg"}
       category={product.category}
       subtitle={product.form}
       form={product.form}
-      vialMl={product.vialMl}
-      bacWater={labelDefaults.bacWater}
-      concentration={labelDefaults.concentration}
-      doseRange={labelDefaults.doseRange}
-      summary={product.tagline || ""}
       size={size}
       showDownload={showDownload}
-      productId={product.id}
-      coaUrl={product.coaUrl || ""}
+      catalogTemplate
     />
   );
 }
@@ -1590,15 +1576,9 @@ export default function App() {
                       return (
                         <GeneratedVial
                           name="HGH"
-                          mass={150}
-                          unit="IU"
                           category="Growth"
-                          vialMl={3}
-                          form="Pharma-grade kit · 150 IU"
                           size="lg"
-                          bacWater={d.bacWater}
-                          concentration={d.concentration}
-                          doseRange={d.doseRange}
+                          catalogTemplate
                         />
                       );
                     })()}

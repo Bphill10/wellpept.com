@@ -913,14 +913,18 @@ export async function drawGeneratedVial(canvas, options = {}) {
     doseRange = "",
     qrPayload = "",
     coaUrl = "",
+    catalogTemplate = true,
   } = options;
 
-  const vialMl = resolveVialMl({
-    name,
-    form: form || subtitle,
-    vialMl: vialMlOpt,
-  });
-  const isTen = vialMl >= 10;
+  // Catalog hero always uses the same 3 mL bottle plate for identical framing
+  const vialMl = catalogTemplate
+    ? 3
+    : resolveVialMl({
+        name,
+        form: form || subtitle,
+        vialMl: vialMlOpt,
+      });
+  const isTen = !catalogTemplate && vialMl >= 10;
 
   const dims = {
     sm: { w: 160, h: 240 },
@@ -955,36 +959,32 @@ export async function drawGeneratedVial(canvas, options = {}) {
       qrPayload,
       coaUrl,
       isTen,
-      reconstituted,
+      reconstituted: catalogTemplate ? false : reconstituted,
+      catalogTemplate,
     });
   } else {
     // Fallback if photos fail to load
-    if (isTen)
-      drawLabeledTenMl(ctx, dims, {
-        name,
-        mass,
-        unit,
-        sku,
-        reconstituted,
-        bacWater,
-        concentration,
-        doseRange,
-        qrPayload,
-        coaUrl,
-      });
-    else
-      drawLabeledThreeMl(ctx, dims, {
-        name,
-        mass,
-        unit,
-        sku,
-        reconstituted,
-        bacWater,
-        concentration,
-        doseRange,
-        qrPayload,
-        coaUrl,
-      });
+    const fallbackOpts = catalogTemplate
+      ? {
+          name,
+          ...CATALOG_VIAL_TEMPLATE,
+          sku,
+          reconstituted: false,
+        }
+      : {
+          name,
+          mass,
+          unit,
+          sku,
+          reconstituted,
+          bacWater,
+          concentration,
+          doseRange,
+          qrPayload,
+          coaUrl,
+        };
+    if (isTen) drawLabeledTenMl(ctx, dims, fallbackOpts);
+    else drawLabeledThreeMl(ctx, dims, fallbackOpts);
   }
 
   return canvas.toDataURL("image/png");
@@ -1002,54 +1002,82 @@ function drawCoverImage(ctx, img, w, h) {
   ctx.drawImage(img, dx, dy, dw, dh);
 }
 
+/** Locked storefront vial label — only `name` changes between products. */
+export const CATALOG_VIAL_TEMPLATE = {
+  mass: "80",
+  unit: "mg",
+  bacWater: "3.2 mL",
+  concentration: "25 mg/mL",
+  doseRange: "2.5 – 5 mg (10 – 20 u)",
+  footerText: "PEPTIDE POWER | 20%",
+  qrPayload: SITE_QR_URL,
+};
+
 /**
- * Photoreal vial with clinical wrap label — peptide name + QR to the site.
- * Label keeps the flat-mock landscape aspect (wraps horizontally around the glass).
+ * Photoreal catalog vial — identical camera/lighting/wrap for every product.
+ * Only the large peptide name changes; mass/BAC/QR layout stay locked to template.
  */
 function drawPhotorealVial(ctx, dims, options) {
   const {
     photo,
     name = "Peptide",
-    mass = "",
-    unit = "mg",
-    sku = "",
-    bacWater = "",
-    concentration = "",
-    doseRange = "",
-    qrPayload = "",
-    coaUrl = "",
     isTen = false,
+    catalogTemplate = true,
+    mass,
+    unit,
+    sku = "",
+    bacWater,
+    concentration,
+    doseRange,
+    qrPayload,
+    coaUrl,
   } = options;
 
   ctx.fillStyle = "#000000";
   ctx.fillRect(0, 0, dims.w, dims.h);
-  drawZoomedVialPhoto(ctx, photo, dims.w, dims.h, isTen ? 1.42 : 1.58);
+  // Same bottle framing for every SKU (3 mL plate is the catalog hero)
+  drawZoomedVialPhoto(ctx, photo, dims.w, dims.h, isTen ? 1.38 : 1.52);
 
-  // Flat wrap art is landscape. On the vial front show it as a horizontal wrap
-  // band (not a tall portrait sticker) — that was reading as the wrong direction.
-  const bodyW = dims.w * (isTen ? 0.5 : 0.48);
+  // Label band matches reference: mid-body wrap, ~full glass width
+  const bodyW = dims.w * (isTen ? 0.4 : 0.38);
   const bodyX = dims.w / 2 - bodyW / 2;
-  // ~1.45:1 matches the visible front of a wrap (not the full unrolled 2.6:1)
-  const sleeveH = bodyW / 1.45;
-  const sleeveTop = dims.h * (isTen ? 0.355 : 0.345);
+  const sleeveTop = dims.h * (isTen ? 0.3 : 0.29);
+  const sleeveH = dims.h * (isTen ? 0.33 : 0.32);
 
-  const wrapBmp = createWrapLabelBitmap({
-    name,
-    mass,
-    unit,
-    bacWater,
-    concentration,
-    doseRange,
-    sku,
-    qrPayload,
-    coaUrl,
-  });
-  drawUprightLabelOnVial(ctx, wrapBmp, {
+  const tpl = CATALOG_VIAL_TEMPLATE;
+  const wrapBmp = createWrapLabelBitmap(
+    catalogTemplate
+      ? {
+          name,
+          mass: tpl.mass,
+          unit: tpl.unit,
+          bacWater: tpl.bacWater,
+          concentration: tpl.concentration,
+          doseRange: tpl.doseRange,
+          sku,
+          qrPayload: tpl.qrPayload,
+          coaUrl: "",
+          footerText: tpl.footerText,
+        }
+      : {
+          name,
+          mass,
+          unit,
+          bacWater,
+          concentration,
+          doseRange,
+          sku,
+          qrPayload,
+          coaUrl,
+        }
+  );
+
+  drawCatalogWrapOnVial(ctx, wrapBmp, {
     bodyX,
     bodyW,
     sleeveTop,
     sleeveH,
-    radius: Math.max(2, bodyW * 0.03),
+    radius: Math.max(3, bodyW * 0.04),
   });
 }
 
@@ -1135,23 +1163,34 @@ function createWrapLabelBitmap(options) {
 }
 
 /**
- * Apply the clinical wrap upright on the glass (spine left → QR right).
- * Mild front-arc wrap; source maps left→left so text is not mirrored.
+ * Physical wrap on glass: vial yawed ~12° left so spine is face-on and the
+ * right-side QR solidly disappears around the curve (~30–40% cropped).
+ * Full opacity slices — no fade on the QR modules.
  */
-function drawUprightLabelOnVial(ctx, labelCanvas, geom) {
+function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   if (!labelCanvas || !labelCanvas.width) return;
   const { bodyX, bodyW, sleeveTop, sleeveH, radius = 4 } = geom;
   const cx = bodyX + bodyW / 2;
+  const R = bodyW / 2;
   const lw = labelCanvas.width;
   const lh = labelCanvas.height;
-  const slices = 64;
-  const visibleArc = Math.PI * 0.72;
+  const slices = 120;
+
+  // ~12.5° left yaw: camera sees more of the left spine; right edge cuts QR
+  const yaw = (-12.5 * Math.PI) / 180;
+  // Visible wrap ≈ 80% of cylinder front arc
+  const visibleArc = Math.PI * 0.92;
+  // Label U range: spine at 0 → cut through QR (~74–100% of art). Ending at
+  // 0.90 leaves ~35% of the QR band past the right silhouette.
+  const uStart = 0.0;
+  const uEnd = 0.9;
 
   ctx.save();
   roundRect(ctx, bodyX - 0.5, sleeveTop - 0.5, bodyW + 1, sleeveH + 1, radius);
   ctx.clip();
 
-  ctx.fillStyle = "rgba(0,0,0,0.14)";
+  // Soft paper contact under the wrap
+  ctx.fillStyle = "rgba(0,0,0,0.2)";
   roundRect(ctx, bodyX + 1, sleeveTop + 2, bodyW - 2, sleeveH - 1, radius);
   ctx.fill();
 
@@ -1161,19 +1200,24 @@ function drawUprightLabelOnVial(ctx, labelCanvas, geom) {
   for (let i = 0; i < slices; i += 1) {
     const t0 = i / slices;
     const t1 = (i + 1) / slices;
-    const theta0 = (t0 - 0.5) * visibleArc;
-    const theta1 = (t1 - 0.5) * visibleArc;
+    const theta0 = (t0 - 0.5) * visibleArc + yaw;
+    const theta1 = (t1 - 0.5) * visibleArc + yaw;
     const cos = (Math.cos(theta0) + Math.cos(theta1)) / 2;
-    if (cos < 0.15) continue;
+    // Keep drawing past grazing so QR stays solid as it wraps away
+    if (cos < 0.02) continue;
 
-    const x0 = cx + (bodyW / 2) * 0.99 * Math.sin(theta0);
-    const x1 = cx + (bodyW / 2) * 0.99 * Math.sin(theta1);
+    const x0 = cx + R * 0.995 * Math.sin(theta0);
+    const x1 = cx + R * 0.995 * Math.sin(theta1);
     const destX = Math.min(x0, x1);
-    const destW = Math.max(1.1, Math.abs(x1 - x0) + 0.6);
-    // Left of artwork → left of vial (do not reverse — that mirrored the text)
-    const srcX = t0 * lw;
-    const srcW = Math.max(1, (t1 - t0) * lw + 0.4);
+    const destW = Math.max(1.05, Math.abs(x1 - x0) + 0.55);
 
+    const u0 = uStart + t0 * (uEnd - uStart);
+    const u1 = uStart + t1 * (uEnd - uStart);
+    const srcX = u0 * lw;
+    const srcW = Math.max(1, (u1 - u0) * lw + 0.5);
+
+    // Full opacity — QR modules stay solid black until geometrically cropped
+    ctx.globalAlpha = 1;
     ctx.drawImage(
       labelCanvas,
       srcX,
@@ -1186,23 +1230,43 @@ function drawUprightLabelOnVial(ctx, labelCanvas, geom) {
       sleeveH
     );
   }
+  ctx.globalAlpha = 1;
 
+  // Cylinder shade only (does not wash out QR — kept subtle on the right)
   const shade = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW, 0);
-  shade.addColorStop(0, "rgba(0,0,0,0.26)");
-  shade.addColorStop(0.14, "rgba(0,0,0,0.05)");
-  shade.addColorStop(0.5, "rgba(0,0,0,0)");
-  shade.addColorStop(0.86, "rgba(0,0,0,0.05)");
-  shade.addColorStop(1, "rgba(0,0,0,0.26)");
+  shade.addColorStop(0, "rgba(0,0,0,0.34)");
+  shade.addColorStop(0.12, "rgba(0,0,0,0.08)");
+  shade.addColorStop(0.42, "rgba(0,0,0,0)");
+  shade.addColorStop(0.72, "rgba(0,0,0,0.04)");
+  shade.addColorStop(1, "rgba(0,0,0,0.22)");
   ctx.fillStyle = shade;
   ctx.fillRect(bodyX, sleeveTop, bodyW, sleeveH);
 
-  ctx.strokeStyle = "rgba(255,255,255,0.28)";
+  // Specular rim on glass over paper
+  const gloss = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW, 0);
+  gloss.addColorStop(0, "rgba(255,255,255,0)");
+  gloss.addColorStop(0.14, "rgba(255,255,255,0.14)");
+  gloss.addColorStop(0.26, "rgba(255,255,255,0)");
+  gloss.addColorStop(0.78, "rgba(255,255,255,0)");
+  gloss.addColorStop(0.9, "rgba(255,255,255,0.07)");
+  gloss.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = gloss;
+  ctx.fillRect(bodyX, sleeveTop, bodyW, sleeveH);
+
+  ctx.strokeStyle = "rgba(255,255,255,0.22)";
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(bodyX + 3, sleeveTop + 0.5);
   ctx.lineTo(bodyX + bodyW - 3, sleeveTop + 0.5);
   ctx.stroke();
   ctx.restore();
+}
+
+/**
+ * Apply the clinical wrap upright on the glass (spine left → QR right).
+ */
+function drawUprightLabelOnVial(ctx, labelCanvas, geom) {
+  drawCatalogWrapOnVial(ctx, labelCanvas, geom);
 }
 
 /**

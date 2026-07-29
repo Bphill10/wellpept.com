@@ -6,6 +6,7 @@ import {
   resolveVialMl,
   loadBrandVial,
   loadBrandVial10,
+  CATALOG_VIAL_TEMPLATE,
 } from "../utils/vialArt";
 import { resolveCalculatorLabelFields } from "../utils/automation";
 import { resolveCoaQrPayload } from "../utils/coaStore";
@@ -38,32 +39,34 @@ export default function GeneratedVial({
   productId = "",
   showDownload = false,
   className = "",
+  /** Storefront hero template: only the peptide name changes. */
+  catalogTemplate = true,
 }) {
   const canvasRef = useRef(null);
   const [png, setPng] = useState("");
-  const resolvedMl = resolveVialMl({ form: form || subtitle, vialMl, name });
-  const resolvedQr = resolveCoaQrPayload({
-    productId,
-    coaUrl,
-    fallback: qrPayload,
-  });
+  const resolvedMl = catalogTemplate
+    ? 3
+    : resolveVialMl({ form: form || subtitle, vialMl, name });
+  const resolvedQr = catalogTemplate
+    ? CATALOG_VIAL_TEMPLATE.qrPayload
+    : resolveCoaQrPayload({
+        productId,
+        coaUrl,
+        fallback: qrPayload,
+      });
 
-  // Same calculator label fields used on the printable wrap / share link.
-  const labelFields = useMemo(
-    () =>
-      resolveCalculatorLabelFields({
-        name,
-        mass,
-        unit,
-        sku,
-        bacWater,
-        concentration,
-        doseRange,
-        qrPayload: resolvedQr,
-        vialMl: resolvedMl,
-        form: form || subtitle,
-      }),
-    [
+  const labelFields = useMemo(() => {
+    if (catalogTemplate) {
+      return {
+        bacWater: CATALOG_VIAL_TEMPLATE.bacWater,
+        concentration: CATALOG_VIAL_TEMPLATE.concentration,
+        doseRange: CATALOG_VIAL_TEMPLATE.doseRange,
+        qrPayload: CATALOG_VIAL_TEMPLATE.qrPayload,
+        mass: CATALOG_VIAL_TEMPLATE.mass,
+        unit: CATALOG_VIAL_TEMPLATE.unit,
+      };
+    }
+    return resolveCalculatorLabelFields({
       name,
       mass,
       unit,
@@ -71,12 +74,24 @@ export default function GeneratedVial({
       bacWater,
       concentration,
       doseRange,
-      resolvedQr,
-      resolvedMl,
-      form,
-      subtitle,
-    ]
-  );
+      qrPayload: resolvedQr,
+      vialMl: resolvedMl,
+      form: form || subtitle,
+    });
+  }, [
+    catalogTemplate,
+    name,
+    mass,
+    unit,
+    sku,
+    bacWater,
+    concentration,
+    doseRange,
+    resolvedQr,
+    resolvedMl,
+    form,
+    subtitle,
+  ]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -88,8 +103,8 @@ export default function GeneratedVial({
           name,
           subtitle,
           sku,
-          mass,
-          unit,
+          mass: catalogTemplate ? CATALOG_VIAL_TEMPLATE.mass : mass,
+          unit: catalogTemplate ? CATALOG_VIAL_TEMPLATE.unit : unit,
           category,
           mixText,
           doseRef,
@@ -98,11 +113,12 @@ export default function GeneratedVial({
           doseRange: labelFields.doseRange,
           summary,
           size,
-          reconstituted: reconstituted,
+          reconstituted: catalogTemplate ? false : reconstituted,
           vialMl: resolvedMl,
           form: form || subtitle,
           qrPayload: labelFields.qrPayload,
-          coaUrl: resolvedQr,
+          coaUrl: catalogTemplate ? "" : resolvedQr,
+          catalogTemplate,
         });
         if (!cancelled) setPng(dataUrl);
       } catch (err) {
@@ -128,6 +144,7 @@ export default function GeneratedVial({
     resolvedMl,
     form,
     resolvedQr,
+    catalogTemplate,
   ]);
 
   function handleDownload() {
