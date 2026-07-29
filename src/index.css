@@ -4916,14 +4916,15 @@ body:has(.app-shell--undisclosed)::before {
     max-width: 100% !important;
   }
 
-  /* Stack carousels instead of sideways swipe on phones */
+  /* Keep 2-up peptide cards on phones — not a single tall stack */
   .product-grid-scroll {
     display: grid !important;
     grid-auto-flow: row !important;
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     grid-auto-columns: unset !important;
     overflow-x: visible !important;
     scroll-snap-type: none !important;
+    gap: 0.65rem;
   }
 
   .dept-bar-inner {
