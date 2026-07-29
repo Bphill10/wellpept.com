@@ -736,7 +736,7 @@ export default function App() {
           <div className="container header-top-inner">
             <span className="header-top-msg">
               {labUnlocked
-                ? "Undisclosed · Request first · Pay after supply check · Up to 4 weeks"
+                ? "Undisclosed · Request first · Up to 4 weeks"
                 : "Request first · Pay after supply check · Up to 4 weeks"}
             </span>
             <span className="header-top-links">
@@ -837,7 +837,8 @@ export default function App() {
                     ?.scrollIntoView({ behavior: "smooth" });
                 }}
               >
-                Build serum
+                <span className="nav-label-full">Build serum</span>
+                <span className="nav-label-short">Build</span>
               </button>
               <button
                 type="button"
@@ -860,7 +861,8 @@ export default function App() {
                     ?.scrollIntoView({ behavior: "smooth" })
                 }
               >
-                How it works
+                <span className="nav-label-full">How it works</span>
+                <span className="nav-label-short">Ritual</span>
               </button>
               <button
                 type="button"
