@@ -1190,18 +1190,7 @@ export default function App() {
                 </div>
               </div>
             <section className="hero hero--undisclosed">
-              <div className="hero-media hero-media--undisclosed">
-                <div className="hero-vial-stage" aria-hidden="true">
-                  <img
-                    src="/real-vial-3ml.png"
-                    alt=""
-                    className="hero-vial-fallback"
-                    width={1024}
-                    height={1536}
-                    decoding="async"
-                  />
-                </div>
-              </div>
+              <div className="hero-media hero-media--undisclosed" aria-hidden="true" />
               <div className="container hero-content">
                 <div className="hero-brand-lockup rise">
                   <img
