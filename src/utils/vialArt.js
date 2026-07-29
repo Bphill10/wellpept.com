@@ -441,7 +441,8 @@ function drawBlackMarbleBackground(ctx, w, h, seed = 42) {
 }
 
 function drawDarkStudio(ctx, w, h) {
-  drawBlackMarbleBackground(ctx, w, h, 42);
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(0, 0, w, h);
 }
 
 /**
@@ -1200,47 +1201,17 @@ function drawCoverImage(ctx, img, w, h) {
 }
 
 /**
- * Photoreal unlabeled vial on black marble — no wrap sticker (labels were reversed).
+ * Photoreal unlabeled vial on a clean black studio field — no decorative backdrop.
  */
 function drawPhotorealVial(ctx, dims, options) {
   const {
     photo,
-    name = "Peptide",
     isTen = false,
   } = options;
 
-  // Black marble with cobalt veins, then cut the vial out of the studio plate
-  const seed = hashString(String(name || "vial")) || 42;
-  drawBlackMarbleBackground(ctx, dims.w, dims.h, seed);
-
-  const plate =
-    typeof document !== "undefined" ? document.createElement("canvas") : null;
-  if (plate) {
-    plate.width = dims.w;
-    plate.height = dims.h;
-    const pctx = plate.getContext("2d");
-    pctx.imageSmoothingEnabled = true;
-    pctx.imageSmoothingQuality = "high";
-    drawZoomedVialPhoto(pctx, photo, dims.w, dims.h, isTen ? 1.42 : 1.58);
-    punchStudioBlackBackground(pctx, dims.w, dims.h);
-    ctx.drawImage(plate, 0, 0);
-  } else {
-    drawZoomedVialPhoto(ctx, photo, dims.w, dims.h, isTen ? 1.42 : 1.58);
-  }
-
-  // Soft marble vignette — keep center readable without hiding veins
-  const vignette = ctx.createRadialGradient(
-    dims.w * 0.5,
-    dims.h * 0.42,
-    dims.w * 0.22,
-    dims.w * 0.5,
-    dims.h * 0.5,
-    dims.w * 0.88
-  );
-  vignette.addColorStop(0, "rgba(0,0,0,0)");
-  vignette.addColorStop(1, "rgba(0,0,0,0.12)");
-  ctx.fillStyle = vignette;
+  ctx.fillStyle = "#000000";
   ctx.fillRect(0, 0, dims.w, dims.h);
+  drawZoomedVialPhoto(ctx, photo, dims.w, dims.h, isTen ? 1.42 : 1.58);
 }
 
 /** Cover-fit with zoom so the vial reads like a close product shot. */
