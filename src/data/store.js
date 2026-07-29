@@ -5,8 +5,9 @@ import {
 } from "./products";
 import { CHANGSHA_VENDOR } from "./changshaPremium";
 import { THE_LOBSTER_VENDOR } from "./theLobster";
+import { isFocusedSubmission } from "./catalogFocus";
 
-const STORAGE_KEY = "wellpept-marketplace-v2";
+const STORAGE_KEY = "wellpept-marketplace-v4";
 
 /** Vendors currently live on Undisclosed. */
 const ACTIVE_VENDOR_IDS = new Set(["v-changsha-premium", "v-the-lobster"]);
@@ -18,11 +19,11 @@ function loadState() {
     const parsed = JSON.parse(raw);
     if (!parsed?.vendors || !parsed?.submissions) return null;
     const vendors = parsed.vendors.filter((v) => ACTIVE_VENDOR_IDS.has(v.id));
-    const submissions = parsed.submissions.filter((s) =>
-      ACTIVE_VENDOR_IDS.has(s.vendorId)
+    const submissions = parsed.submissions.filter(
+      (s) => ACTIVE_VENDOR_IDS.has(s.vendorId) && isFocusedSubmission(s)
     );
     if (!vendors.length) return null;
-    // Keep display names in sync with seed (e.g. Changsha, not Premium).
+    // Keep display names / shipping in sync with seed.
     const vendorsSynced = vendors.map((v) => {
       if (v.id === CHANGSHA_VENDOR.id) {
         return {

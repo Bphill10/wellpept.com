@@ -6,6 +6,7 @@ import {
   THE_LOBSTER_SUBMISSIONS,
   THE_LOBSTER_VENDOR,
 } from "./theLobster";
+import { isChangshaFocused, isLobsterFocused } from "./catalogFocus";
 import { resolveVialMl } from "../utils/vialArt";
 
 export { resolveVialMl };
@@ -350,10 +351,10 @@ export function guessTagline(name) {
 /** Active vendors for now: Changsha + Lobster (featured for HGH). */
 export const SEED_VENDORS = [CHANGSHA_VENDOR, THE_LOBSTER_VENDOR];
 
-/** Seed submissions from Changsha and Lobster only. */
+/** Focused seed submissions only (popular Changsha + Lobster HGH/Reta/TB4/Wolverine). */
 export const SEED_SUBMISSIONS = [
-  ...CHANGSHA_SUBMISSIONS,
-  ...THE_LOBSTER_SUBMISSIONS,
+  ...CHANGSHA_SUBMISSIONS.filter((s) => isChangshaFocused(s.name)),
+  ...THE_LOBSTER_SUBMISSIONS.filter((s) => isLobsterFocused(s.name)),
 ];
 
 export function guessCategory(name) {

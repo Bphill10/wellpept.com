@@ -23,33 +23,19 @@ export const THE_LOBSTER_VENDOR = {
 };
 
 /**
+ * Focused Lobster list: HGH, Retatrutide, TB-4, and Wolverine (BPC+TB).
  * vendorCost = Lobster International list price before Wellpept markup.
  * KIT = 10 vials unless packVials/form says otherwise.
- * Skipped: TheProLobster 50 IU (listed at $0 on source).
  */
 const LOBSTER_LINES = [
-  { sku: "LOB-BPC12", name: "BPC-157", mg: 12, vendorCost: 80, category: "Recovery", packVials: 10 },
-  { sku: "LOB-BPCTB", name: "BPC-157 + TB-500", mg: 10, vendorCost: 150, category: "Recovery", packVials: 10, form: "Lyophilized blend · 10/10mg*10vials · International" },
-  { sku: "LOB-GHK100", name: "GHK-Cu", mg: 100, vendorCost: 90, category: "Cellular", packVials: 10 },
-  { sku: "LOB-GHK50", name: "GHK-Cu", mg: 50, vendorCost: 50, category: "Cellular", packVials: 10 },
-  { sku: "LOB-GHRP6", name: "GHRP-6", mg: 10, vendorCost: 60, category: "Growth", packVials: 10 },
-  { sku: "LOB-GLOW70", name: "Glow", mg: 70, vendorCost: 200, category: "Recovery", packVials: 10, form: "Lyophilized blend kit · Glow 70 · International" },
-  { sku: "LOB-HCG5K", name: "HCG", mg: 5000, unit: "IU", vendorCost: 80, category: "Research", packVials: 10, form: "Lyophilized vial · 5000 IU*10vials · International" },
   { sku: "LOB-HGH150", name: "HGH", mg: 150, unit: "IU", vendorCost: 100, category: "Growth", packVials: 1, form: "Pharma-grade kit · 150 IU · International" },
   { sku: "LOB-HGH310", name: "HGH", mg: 310, unit: "IU", vendorCost: 190, category: "Growth", packVials: 1, form: "Pharma-grade kit · 310 IU · International" },
-  { sku: "LOB-IPA10", name: "Ipamorelin", mg: 10, vendorCost: 100, category: "Growth", packVials: 10 },
-  { sku: "LOB-MT2", name: "Melanotan-2", mg: 10, vendorCost: 80, category: "Research", packVials: 10 },
-  { sku: "LOB-MOTS10", name: "MOTS-c", mg: 10, vendorCost: 80, category: "Metabolic", packVials: 10 },
+  { sku: "LOB-PRO62", name: "TheProLobster Plus HGH", mg: 62, unit: "IU", vendorCost: 35, category: "Growth", packVials: 1, vialMl: 10, form: "Large bottle · 62 IU single vial · 10ml · International" },
   { sku: "LOB-RETA12", name: "Retatrutide", mg: 12, vendorCost: 100, category: "Metabolic", packVials: 10 },
   { sku: "LOB-RETA30", name: "Retatrutide", mg: 30, vendorCost: 200, category: "Metabolic", packVials: 10 },
   { sku: "LOB-RETA60", name: "Retatrutide", mg: 60, vendorCost: 360, category: "Metabolic", packVials: 10 },
-  { sku: "LOB-SS31", name: "SS-31", mg: 10, vendorCost: 120, category: "Cellular", packVials: 10 },
   { sku: "LOB-TB4", name: "TB-4 (full sequence)", mg: 10, vendorCost: 120, category: "Recovery", packVials: 10 },
-  { sku: "LOB-TB500", name: "TB-500", mg: 12, vendorCost: 80, category: "Recovery", packVials: 10 },
-  { sku: "LOB-TIRZ10", name: "Tirzepatide", mg: 10, vendorCost: 80, category: "Metabolic", packVials: 10 },
-  { sku: "LOB-TIRZ30", name: "Tirzepatide", mg: 30, vendorCost: 160, category: "Metabolic", packVials: 10 },
-  { sku: "LOB-TIRZ60", name: "Tirzepatide", mg: 60, vendorCost: 290, category: "Metabolic", packVials: 10 },
-  { sku: "LOB-PRO62", name: "TheProLobster Plus HGH", mg: 62, unit: "IU", vendorCost: 35, category: "Growth", packVials: 1, vialMl: 10, form: "Large bottle · 62 IU single vial · 10ml · International" },
+  { sku: "LOB-BPCTB", name: "Wolverine (BPC-157 + TB-500)", mg: 10, vendorCost: 150, category: "Recovery", packVials: 10, form: "Lyophilized blend · 10/10mg*10vials · International" },
 ];
 
 export const THE_LOBSTER_SUBMISSIONS = LOBSTER_LINES.map((line) => ({
