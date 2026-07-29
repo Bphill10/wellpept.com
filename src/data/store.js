@@ -37,6 +37,8 @@ function loadState() {
           name: THE_LOBSTER_VENDOR.name,
           featured: true,
           featuredFor: "HGH",
+          shippingFlat: THE_LOBSTER_VENDOR.shippingFlat,
+          shippingNote: THE_LOBSTER_VENDOR.shippingNote,
           notes: THE_LOBSTER_VENDOR.notes,
         };
       }
