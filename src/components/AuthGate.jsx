@@ -11,7 +11,7 @@ import {
   validateUserId,
 } from "../utils/auth";
 
-export default function AuthGate({ onAuthed }) {
+export default function AuthGate({ onAuthed, onClose }) {
   const [mode, setMode] = useState("signup"); // signup | login | confirm
   const [email, setEmail] = useState("");
   const [userId, setUserId] = useState("");
@@ -133,6 +133,16 @@ export default function AuthGate({ onAuthed }) {
     <div className="auth-gate">
       <div className="auth-gate-bg" aria-hidden="true" />
       <div className="auth-card">
+        {onClose && (
+          <button
+            type="button"
+            className="auth-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        )}
         <img
           src="/wp-monogram.svg"
           alt="WellPept"
@@ -150,8 +160,8 @@ export default function AuthGate({ onAuthed }) {
         </h1>
         <p className="auth-lead">
           {mode === "confirm"
-            ? "We need a working email before you can shop. Enter the 6-digit code from your confirmation message, or open the confirmation link on this device."
-            : "Account required to shop Fresh Mix. You must be 18 or older. Email must be confirmed before access."}
+            ? "Confirm your email to save an account across visits. You can still browse and request orders without an account."
+            : "Optional account for a saved profile. You can browse and submit order requests as a guest."}
         </p>
 
         {mode !== "confirm" && (

@@ -3981,6 +3981,39 @@ body:has(.app-shell--skincare) {
   box-shadow: 0 24px 60px rgba(0, 47, 117, 0.1);
 }
 
+.auth-close {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.7rem;
+  border: 0;
+  background: transparent;
+  color: var(--muted, #666);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.2rem 0.45rem;
+}
+
+.skin-bottle-preview--photo {
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.skin-cart-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cart-confirm-meta {
+  margin: 0.75rem 0 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.92rem;
+}
+
 .auth-mark {
   width: 3.5rem;
   height: 3.5rem;

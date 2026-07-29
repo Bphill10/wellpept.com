@@ -38,7 +38,6 @@ import {
   loadAutomationSettings,
   saveAutomationSettings,
   buildOrderPacket,
-  formatOrderPacketText,
   createOrderId,
   isValidUsZip,
   loadOrders,
@@ -83,6 +82,13 @@ const VIEWS = {
 
 function VialPreview({ product, size = "md", showDownload = false }) {
   if (product?.skin) {
+    if (product.image) {
+      return (
+        <div className={`skin-bottle-preview skin-bottle-preview--${size} skin-bottle-preview--photo`}>
+          <img src={product.image} alt="" className="skin-cart-thumb" />
+        </div>
+      );
+    }
     return (
       <div className={`skin-bottle-preview skin-bottle-preview--${size}`}>
         <div className="skin-bottle" aria-hidden="true">
@@ -154,6 +160,14 @@ export default function App() {
     skincarePlanPriceId: null,
   });
   const [session, setSession] = useState(() => getSession());
+  const [showAuth, setShowAuth] = useState(false);
+  const [opsUnlocked, setOpsUnlocked] = useState(() => {
+    try {
+      return localStorage.getItem("wellpept_ops_v1") === "1";
+    } catch {
+      return false;
+    }
+  });
 
   function updateAutomation(patch) {
     setAutomation((prev) => saveAutomationSettings({ ...prev, ...patch }));
@@ -175,6 +189,14 @@ export default function App() {
     const cb = params.get("cb");
     if (viewParam === "cart" || cb === "success" || cb === "cancel") {
       setView(VIEWS.cart);
+    }
+    if (params.get("ops") === "1") {
+      try {
+        localStorage.setItem("wellpept_ops_v1", "1");
+      } catch {
+        /* ignore */
+      }
+      setOpsUnlocked(true);
     }
     if (cb === "success") {
       setFlash("Chargebee return noted — confirm supply before taking payment.");
@@ -209,6 +231,13 @@ export default function App() {
       setView(VIEWS.skincare);
     }
   }, [labUnlocked, view]);
+
+  useEffect(() => {
+    if (opsUnlocked) return;
+    if (view === VIEWS.vendor || view === VIEWS.admin) {
+      setView(labUnlocked ? VIEWS.shop : VIEWS.skincare);
+    }
+  }, [opsUnlocked, view, labUnlocked]);
 
   function unlockLabMenu(message = "Undisclosed unlocked") {
     setLabUnlocked(true);
@@ -271,7 +300,8 @@ export default function App() {
       category: product.kind === "mix" ? "Fresh Mix" : "Skincare",
       skin: true,
       mix: product.kind === "mix",
-      ships: product.kind === "mix" ? "Up to 4 weeks after payment" : "Up to 4 weeks after payment",
+      image: product.image || "",
+      ships: "Up to 4 weeks after payment",
       legalNote:
         product.kind === "mix"
           ? "Cosmetic topical peptides only. Not for injection or medical use."
@@ -667,9 +697,16 @@ export default function App() {
 
   return (
     <div className={`app-shell ${labUnlocked ? "app-shell--undisclosed" : "app-shell--skincare"}`}>
-      {!session && <AuthGate onAuthed={setSession} />}
-      {session && (
-      <>
+      {showAuth && (
+        <AuthGate
+          onAuthed={(next) => {
+            setSession(next);
+            setShowAuth(false);
+            setFlash("Signed in");
+          }}
+          onClose={() => setShowAuth(false)}
+        />
+      )}
       <header className="site-header">
         <div className="header-top">
           <div className="container header-top-inner">
@@ -811,18 +848,20 @@ export default function App() {
 
           <div className="header-actions">
             {labUnlocked && (
+              <button
+                type="button"
+                className="ghost-btn"
+                onClick={() => {
+                  setCalcInitial(null);
+                  setView(VIEWS.calculator);
+                }}
+              >
+                <Calculator size={16} />
+                <span>Calculator</span>
+              </button>
+            )}
+            {labUnlocked && opsUnlocked && (
               <>
-                <button
-                  type="button"
-                  className="ghost-btn"
-                  onClick={() => {
-                    setCalcInitial(null);
-                    setView(VIEWS.calculator);
-                  }}
-                >
-                  <Calculator size={16} />
-                  <span>Calculator</span>
-                </button>
                 <button
                   type="button"
                   className="ghost-btn"
@@ -841,7 +880,7 @@ export default function App() {
                 </button>
               </>
             )}
-            {session && (
+            {session ? (
               <div className="header-account">
                 <span className="header-account-id" title={session.email}>
                   @{session.userId}
@@ -850,6 +889,14 @@ export default function App() {
                   Sign out
                 </button>
               </div>
+            ) : (
+              <button
+                type="button"
+                className="ghost-btn"
+                onClick={() => setShowAuth(true)}
+              >
+                Sign in
+              </button>
             )}
             <button
               type="button"
@@ -901,7 +948,6 @@ export default function App() {
       <main>
         {view === VIEWS.skincare && (
           <SkincareHome
-            chargebeeConfig={chargebeeConfig}
             onShopSkin={() =>
               document
                 .getElementById("skin-catalog")
@@ -1625,7 +1671,7 @@ export default function App() {
           <PeptideCalculator initial={calcInitial} />
         )}
 
-        {view === VIEWS.vendor && labUnlocked && (
+        {view === VIEWS.vendor && labUnlocked && opsUnlocked && (
           <VendorPortal
             vendors={vendors}
             submissions={submissions}
@@ -1636,7 +1682,7 @@ export default function App() {
           />
         )}
 
-        {view === VIEWS.admin && labUnlocked && (
+        {view === VIEWS.admin && labUnlocked && opsUnlocked && (
           <AdminPanel
             vendors={vendors}
             submissions={submissions}
@@ -1699,8 +1745,6 @@ export default function App() {
         </div>
       </footer>
       <LiveChat />
-      </>
-      )}
     </div>
   );
 }
@@ -2079,20 +2123,10 @@ function CartPage({
   function finalizePacket(next, note) {
     setPacket(next);
     setStep("done");
-    const text = formatOrderPacketText(next);
-    try {
-      navigator.clipboard.writeText(text);
-      setPacketMsg(note || "Request packet copied.");
-    } catch {
-      setPacketMsg(note || "Download the request packet below.");
-    }
-    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${next.orderId}-request.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    setPacketMsg(
+      note ||
+        "Request received. We’ll check supply and reply within 24 hours."
+    );
   }
 
   function handleSubmitRequest(e) {
@@ -2119,13 +2153,13 @@ function CartPage({
         email: customer.email || session?.email || "",
         userId: customer.userId || session?.userId || "",
       },
-      { waitConsent: true, notify: true }
+      { waitConsent: true, notify: false }
     );
     setSubmitting(false);
     if (!next) return;
     finalizePacket(
       next,
-      "Request sent · we check supply and email payment instructions within 24 hours."
+      "Request saved. We’ll check supply and reply within 24 hours."
     );
   }
 
@@ -2333,7 +2367,7 @@ function CartPage({
                       <span>{formatMoney(subtotal)}</span>
                     </div>
                     <div className="summary-row">
-                      <span>US shipping (by vendor)</span>
+                      <span>US shipping</span>
                       <span>{formatMoney(shipping)}</span>
                     </div>
                     <div className="summary-row total">
@@ -2350,8 +2384,8 @@ function CartPage({
                         : "Submit order request"}
                     </button>
                     <p className="meta" style={{ marginTop: "0.65rem" }}>
-                      Opens a message to info@wellpept.com with your request so
-                      we can check supply.
+                      We’ll review your request and reply to your email within 24
+                      hours with payment instructions if supply is available.
                     </p>
                     {packetMsg && (
                       <div className="notice warn" style={{ marginTop: "0.75rem" }}>
@@ -2363,7 +2397,7 @@ function CartPage({
               )}
 
               {packet && (
-                <div className="notice ok" style={{ marginTop: "1rem" }}>
+                <div className="notice ok cart-confirm" style={{ marginTop: "1rem" }}>
                   <strong>Request {packet.orderId} received</strong>
                   <p style={{ margin: "0.5rem 0 0" }}>
                     We will check supply and email you at{" "}
@@ -2372,14 +2406,26 @@ function CartPage({
                     hear from us. Allow up to 4 weeks after payment for
                     fulfillment.
                   </p>
+                  <ul className="cart-confirm-meta">
+                    <li>Quoted total: {formatMoney(packet.totals?.total || 0)}</li>
+                    <li>Ship to: {packet.customer?.name}</li>
+                    {packet.waitConsent ? (
+                      <li>4-week wait accepted</li>
+                    ) : null}
+                  </ul>
                   {packetMsg ? (
                     <p className="meta" style={{ marginTop: "0.5rem" }}>
                       {packetMsg}
                     </p>
                   ) : null}
-                  <pre className="order-packet-preview">
-                    {formatOrderPacketText(packet)}
-                  </pre>
+                  <button
+                    type="button"
+                    className="primary-btn"
+                    style={{ marginTop: "1rem" }}
+                    onClick={onBack}
+                  >
+                    Keep shopping
+                  </button>
                 </div>
               )}
             </>

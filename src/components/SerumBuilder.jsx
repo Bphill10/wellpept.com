@@ -227,7 +227,7 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
               }}
             />
             <span>
-              I understand these are cosmetic / research-oriented peptide products, not drugs or
+              I understand these are cosmetic topical peptide products, not drugs or
               medical treatments, and I am 18+ ordering for personal cosmetic use.
             </span>
           </label>

@@ -9,7 +9,6 @@ import {
   SERUM_BASES,
 } from "../data/skincare";
 import SerumBuilder from "./SerumBuilder";
-import ChargebeeCheckout from "./ChargebeeCheckout";
 import { formatMoney } from "../data/products";
 
 function ProductCard({ product, onOpenProduct, onAddToCart }) {
@@ -64,7 +63,6 @@ export default function SkincareHome({
   onShopSkin,
   onOpenProduct,
   onAddToCart,
-  chargebeeConfig,
 }) {
   return (
     <>
@@ -399,31 +397,6 @@ export default function SkincareHome({
           </button>
         </div>
       </section>
-
-      {chargebeeConfig?.enabled && chargebeeConfig?.skincarePlanPriceId && (
-        <section className="section section-tight" id="subscribe">
-          <div className="container">
-            <div className="section-head">
-              <div>
-                <p className="section-kicker">Membership</p>
-                <h2>Subscribe to the ritual</h2>
-                <p>
-                  Optional recurring Fresh Mix. One-time orders still use
-                  request-first: we confirm supply, then email payment within
-                  24 hours.
-                </p>
-              </div>
-            </div>
-            <ChargebeeCheckout
-              config={chargebeeConfig}
-              mode="subscription"
-              total={0}
-              buttonLabel="Subscribe with Chargebee"
-              onPaid={() => {}}
-            />
-          </div>
-        </section>
-      )}
     </>
   );
 }

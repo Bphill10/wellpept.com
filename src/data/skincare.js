@@ -122,13 +122,13 @@ export const PEPTIDES = [
 export const SERUM_BASES = [
   {
     id: "base-buffet",
-    name: "Buffet-Style Serum",
+    name: "Multi-Peptide Serum Base",
     form: "serum",
     volume: "30 mL",
     price: 28,
     image: "/skincare/buffet-serum.png",
     blurb:
-      "Ordinary Buffet type multi-peptide / HA / amino-acid serum. Best all-rounder face vehicle.",
+      "Multi-peptide / HA / amino-acid face serum. Best all-rounder vehicle for 1 to 4 dry peptides.",
     bestFor: "Face serum, daily, 1 to 4 peptides",
     shelfAfterMix: "Use within 21 to 30 days after activation. Refrigerate if GHK-Cu included.",
   },
