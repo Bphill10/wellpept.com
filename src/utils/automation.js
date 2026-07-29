@@ -2,6 +2,7 @@
 
 import {
   isHghCompound,
+  resolveVialMl,
   resolveVialUnit,
 } from "./vialArt";
 
