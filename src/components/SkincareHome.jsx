@@ -81,11 +81,11 @@ export default function SkincareHome({
           </div>
           <div className="hero-brand-rule rise-delay" aria-hidden="true" />
           <p className="hero-tagline rise-delay">
-            Four peptides. Serum or cream. Mixed when you are.
+            Renewal peptides. Serum or cream. Activated when you are.
           </p>
           <p className="hero-copy rise-delay">
-            GHK-Cu is the staple, with Matrixyl 3000, Syn-Ake, and SNAP-8.
-            Dry powder in the twist-cap. Dropper beside until you activate.
+            Anti-aging focused GHK-Cu with Matrixyl 3000, Syn-Ake, and SNAP-8.
+            Fine dry powder in the twist-cap. Dropper beside until you activate.
           </p>
           <div className="hero-cta rise-delay">
             <button
@@ -124,7 +124,7 @@ export default function SkincareHome({
             <Droplets size={22} />
             <div>
               <strong>2 serums + 1 cream</strong>
-              <p>Buffet serum, peptide cream base, or eye serum. Then load peptides.</p>
+              <p>Multi-peptide serum, cream base, or eye serum. Then load peptides.</p>
             </div>
           </div>
           <div className="trust-item">
@@ -147,16 +147,16 @@ export default function SkincareHome({
         </div>
       </section>
 
-      <section className="section" id="fresh-mixes">
+      <section className="section" id="renew">
         <div className="container">
           <div className="section-head">
             <div>
-              <p className="section-kicker">Fresh Mix</p>
-              <h2>Your peptides. Serum or cream. One mix.</h2>
+              <p className="section-kicker">Renew</p>
+              <h2>Anti-aging peptides. One personal mix.</h2>
               <p>
-                Choose a Buffet serum, peptide cream, or eye serum, then add any
-                combination of our four core topicals, or all four. Optional custom
-                peptides ship as extra dry vials on the same order.
+                Choose a multi-peptide serum, cream, or eye serum, then load the
+                renewal peptides you want. Optional custom peptides ship as extra
+                dry vials on the same order.
               </p>
             </div>
           </div>
@@ -209,7 +209,7 @@ export default function SkincareHome({
               <p>{FLAGSHIP_SERUM.blurb}</p>
               <ul className="flagship-mix-points">
                 <li>1 g dry GHK-Cu sealed in the twist-cap chamber</li>
-                <li>30 mL Buffet-style serum in the bottle</li>
+                <li>30 mL Renew multi-peptide serum in the bottle</li>
                 <li>Dropper ships beside. Seat it after you activate.</li>
                 <li>Cosmetic use only. Peptide acknowledgment at checkout.</li>
                 <li>Request first — pay only after we confirm supply (within 24 hours).</li>
@@ -381,9 +381,9 @@ export default function SkincareHome({
             <p className="section-kicker">About</p>
             <h2>WellPept skincare</h2>
             <p>
-              Fresh Mix keeps topical peptides dry until you activate them into your chosen
-              base. Ready formulas handle the rest with restrained textures, white light,
-              and a cobalt signal.
+              Renew keeps anti-aging topical peptides as fine dry powder until you
+              activate them into your chosen base. Ready formulas handle the rest with
+              restrained textures, white light, and a cobalt signal.
             </p>
           </div>
           <button

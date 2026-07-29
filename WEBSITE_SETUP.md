@@ -90,4 +90,4 @@ Accounts are stored in the browser for now (device local). Confirmation links wo
 - [ ] Order request flow tested (no pay at checkout; 4-week consent)
 - [ ] Create account / 18+ gate tested
 - [ ] Email confirmation required before store access
-- [ ] Legal notices still visible on Fresh Mix products
+- [ ] Legal notices still visible on Renew products

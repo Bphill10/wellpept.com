@@ -55,4 +55,4 @@ If you only have a friction lip (no threads), measure that OD the same way.
 
 ## Safety / product note
 
-This is a prototype twist-cap powder chamber for WellPept Fresh Mix packaging R&D. Thin membrane is designed to be pierced or broken by hand — not a sealed pharmaceutical closure.
+This is a prototype twist-cap powder chamber for WellPept Renew packaging R&D. Thin membrane is designed to be pierced or broken by hand — not a sealed pharmaceutical closure.

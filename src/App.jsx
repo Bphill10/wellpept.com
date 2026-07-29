@@ -321,7 +321,7 @@ export default function App() {
       minOrder: 0,
       shippingNote: "US ground, cold-pack when needed",
       sku: String(product.id).toUpperCase().slice(0, 48),
-      category: product.kind === "mix" ? "Fresh Mix" : "Skincare",
+      category: product.kind === "mix" ? "Renew" : "Skincare",
       skin: true,
       mix: product.kind === "mix",
       image: product.image || "",
@@ -780,7 +780,7 @@ export default function App() {
                 {labUnlocked ? "Undisclosed" : "WellPept"}
               </span>
               <span className="brand-sub">
-                {labUnlocked ? "Research lab" : "Fresh Mix skincare"}
+                {labUnlocked ? "Research lab" : "Renew skincare"}
               </span>
             </span>
           </button>
@@ -1738,7 +1738,7 @@ export default function App() {
             <div>
               {labUnlocked
                 ? "Research peptides for laboratory use"
-                : "Fresh Mix skincare. White light, cobalt signal"}
+                : "Renew skincare. White light, cobalt signal"}
             </div>
             <p className="footer-contact">
               <a href={`mailto:${contactEmail()}`}>{contactEmail()}</a>
@@ -1764,7 +1764,7 @@ export default function App() {
               </>
             ) : (
               <>
-                WellPept Fresh Mix products contain topical cosmetic peptides for
+                WellPept Renew products contain topical cosmetic peptides for
                 external use on intact skin only. Not for injection, ingestion, or
                 medical use. Not evaluated by the FDA. Not intended to diagnose,
                 treat, cure, or prevent any disease. Ships to United States

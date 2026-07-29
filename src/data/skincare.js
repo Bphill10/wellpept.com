@@ -5,7 +5,7 @@ export const PEPTIDE_LEGAL = {
   short:
     "For external cosmetic use only. Not for injection, ingestion, inhalation, or any clinical or medical use. Not evaluated by the FDA. Not intended to diagnose, treat, cure, or prevent any disease.",
   medium:
-    "WellPept Fresh Mix products contain cosmetic-grade topical peptides sold for external use on intact skin only. They are not drugs, not sterile injectables, and not for compounding into injectable preparations. Keep out of reach of children. Discontinue if irritation occurs. Consult a qualified professional if you are pregnant, nursing, or under medical care.",
+    "WellPept Renew products contain cosmetic-grade topical peptides sold for external use on intact skin only. They are not drugs, not sterile injectables, and not for compounding into injectable preparations. Keep out of reach of children. Discontinue if irritation occurs. Consult a qualified professional if you are pregnant, nursing, or under medical care.",
   long: [
     "COSMETIC USE ONLY. External application on intact skin. Not for injection, IV, IM, SQ, oral, nasal, ocular (unless labeled as an eye serum for periocular skin), or any other route.",
     "NOT A DRUG. These products are not intended to diagnose, treat, cure, or prevent any disease. No therapeutic or medical claims are made.",
@@ -122,13 +122,13 @@ export const PEPTIDES = [
 export const SERUM_BASES = [
   {
     id: "base-buffet",
-    name: "Multi-Peptide Serum Base",
+    name: "Renew Serum Base",
     form: "serum",
     volume: "30 mL",
     price: 28,
     image: "/skincare/buffet-serum.png",
     blurb:
-      "Multi-peptide / HA / amino-acid face serum. Best all-rounder vehicle for 1 to 4 dry peptides.",
+      "Anti-aging multi-peptide / HA / amino-acid face serum. Best all-rounder vehicle for 1 to 4 dry peptides.",
     bestFor: "Face serum, daily, 1 to 4 peptides",
     shelfAfterMix: "Use within 21 to 30 days after activation. Refrigerate if GHK-Cu included.",
   },
@@ -193,7 +193,7 @@ export const SKINCARE_RITUAL = [
   {
     step: "01",
     title: "Pick a vehicle",
-    copy: "Buffet serum, peptide cream, or eye serum. One base per mix.",
+    copy: "Renew multi-peptide serum, peptide cream, or eye serum. One base per mix.",
   },
   {
     step: "02",
@@ -311,7 +311,7 @@ export function buildSerumProduct({
       .join("-") || "x"}`,
     name: title,
     subtitle,
-    line: isCream ? "Fresh Mix Cream" : "Fresh Mix Serum",
+    line: isCream ? "Renew Cream" : "Renew Serum",
     kind: "mix",
     packaging,
     form: base.form || "serum",
@@ -355,7 +355,7 @@ export function buildSerumProduct({
   };
 }
 
-/** Default featured build: Buffet serum + GHK-Cu staple. */
+/** Default featured build: Renew multi-peptide serum + GHK-Cu staple. */
 export const FLAGSHIP_BUILD = {
   baseId: "base-buffet",
   peptideIds: ["pep-ghk"],
@@ -369,7 +369,7 @@ export const SERUM_PRESETS = [
   {
     id: "preset-ghk",
     name: "Flagship copper",
-    blurb: "GHK-Cu staple in Buffet serum with twist-cap freshness.",
+    blurb: "GHK-Cu staple in Renew serum with twist-cap freshness.",
     baseId: "base-buffet",
     peptideIds: ["pep-ghk"],
     customIds: [],
@@ -393,7 +393,7 @@ export const SERUM_PRESETS = [
   {
     id: "preset-all",
     name: "All four peptides",
-    blurb: "GHK-Cu, Matrixyl, Syn-Ake, and SNAP-8 in one Buffet serum.",
+    blurb: "GHK-Cu, Matrixyl, Syn-Ake, and SNAP-8 in one Renew serum.",
     baseId: "base-buffet",
     peptideIds: ["pep-ghk", "pep-matrixyl", "pep-synake", "pep-snap8"],
     customIds: [],

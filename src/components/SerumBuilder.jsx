@@ -84,9 +84,9 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
         <p className="sk-eyebrow">Build your serum</p>
         <h2>Add 1, 2, 3, or all four peptides to one serum or the cream.</h2>
         <p>
-          Four cores: GHK-Cu (staple), Matrixyl 3000, Syn-Ake, SNAP-8. Choose Buffet
+          Four cores: GHK-Cu (staple), Matrixyl 3000, Syn-Ake, SNAP-8. Choose Renew
           serum, peptide cream, or eye serum. Optional Eyeseryl / Argireline / extra
-          copper as customs. Powder stays dry until you activate.
+          copper as customs. Fine dry powder stays sealed until you activate.
         </p>
       </div>
 
