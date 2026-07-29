@@ -1748,17 +1748,6 @@ export default function App() {
                       </div>
                     ))}
                   </div>
-                  <p className="meta glossary-credit">
-                    Educational reference (unaffiliated):{" "}
-                    <a
-                      href="https://www.stairwaytogray.com/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Stairway to Gray
-                    </a>{" "}
-                    — rewritten here for lab research framing, not medical use.
-                  </p>
                 </div>
               </div>
             </section>
