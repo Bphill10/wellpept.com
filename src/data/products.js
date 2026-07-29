@@ -7,9 +7,9 @@ import {
   THE_LOBSTER_VENDOR,
 } from "./theLobster";
 import { isChangshaFocused, isLobsterFocused } from "./catalogFocus";
-import { resolveVialMl, resolveVialUnit } from "../utils/vialArt";
+import { resolveVialMl, resolveVialUnit, resolvePowderColor } from "../utils/vialArt";
 
-export { resolveVialMl, resolveVialUnit };
+export { resolveVialMl, resolveVialUnit, resolvePowderColor };
 
 /** Default retail markup applied on top of vendor cost after approval.
  *  100% markup = 2× vendor cost. Then rounded UP to the nearest $5.
@@ -469,7 +469,7 @@ export function displayPeptideName(name = "") {
 
 function variantKey(product) {
   const mg = Number(product.mg) || 0;
-  const pack = Number(product.packVials) || 1;
+  const pack = Number(product.packVials) || 10;
   const vialMl = resolveVialMl(product);
   return `${mg}|${pack}|${vialMl}|${product.externalOnly ? "ext" : "std"}`;
 }
@@ -483,7 +483,7 @@ export function formatStrengthLabel(product) {
     return product.form || product.unitLabel || product.size || "Skincare";
   }
   const amount = Number(product.mg);
-  const pack = Number(product.packVials) || 1;
+  const pack = Number(product.packVials) || 10;
   const unit = product.unit || "mg";
   const form = String(product.form || "");
   const vialMl = resolveVialMl(product);
@@ -503,7 +503,7 @@ export function formatStrengthLabel(product) {
                 : null;
 
   if (!amount && !product.externalOnly) {
-    return pack > 1 ? `${pack}-pack · ${vialMl} mL` : `${vialMl} mL vial`;
+    return `Kit of ${pack} · ${vialMl} mL`;
   }
 
   let amountPart;
@@ -514,7 +514,7 @@ export function formatStrengthLabel(product) {
     amountPart = amount === 1000 ? "1g raw" : `${amount} mg raw`;
   else amountPart = `${amount} ${unit}`;
 
-  const packPart = pack > 1 ? ` · ${pack}-pack` : "";
+  const packPart = ` · kit of ${pack}`;
   const vialPart = ` · ${vialMl} mL`;
   const lanePart = lane ? ` · ${lane}` : "";
   return `${amountPart}${vialPart}${packPart}${lanePart}`;
@@ -523,12 +523,12 @@ export function formatStrengthLabel(product) {
 /** Short strength line for card/detail dropdowns. */
 export function formatStrengthSelectLabel(strengthOrProduct) {
   const amount = Number(strengthOrProduct?.mg);
-  const pack = Number(strengthOrProduct?.packVials) || 1;
+  const pack = Number(strengthOrProduct?.packVials) || 10;
   const unit = strengthOrProduct?.unit || "mg";
   if (!Number.isFinite(amount) || amount <= 0) {
     return formatStrengthLabel(strengthOrProduct);
   }
-  return pack > 1 ? `${amount} ${unit} · ${pack}-pack` : `${amount} ${unit}`;
+  return `${amount} ${unit} · kit of ${pack}`;
 }
 
 function sortOffers(a, b) {
@@ -795,10 +795,11 @@ export function buildCatalog(vendors, submissions) {
     const isExternal = Boolean(item.externalOnly);
     const vendorCost = Number(item.vendorCost);
     const price = isExternal ? null : retailFromVendor(vendorCost);
-    const packVials = Number(item.packVials) || 1;
+    const packVials = 10; // All Undisclosed lines ship as kits of 10
     const featured = Boolean(item.vendor.featured);
     const vialMl = resolveVialMl(item);
     const displayName = displayPeptideName(item.name);
+    const powderColor = resolvePowderColor({ name: displayName, form: item.form });
     return {
       id: `p-${item.vendorId}-${item.sku}`.toLowerCase().replace(/[^a-z0-9-]+/g, "-"),
       submissionId: item.id,
@@ -811,7 +812,8 @@ export function buildCatalog(vendors, submissions) {
       unit: resolveVialUnit(item),
       packVials,
       vialMl,
-      unitLabel: packVials > 1 ? `${packVials}-pack` : "each",
+      powderColor,
+      unitLabel: "kit of 10",
       category: item.category || guessCategory(displayName),
       blurb: guessBlurb(displayName),
       tagline: guessTagline(displayName),

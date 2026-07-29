@@ -161,6 +161,37 @@ function ellipse(ctx, cx, cy, rx, ry) {
   ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
 }
 
+/** Lyophilized cake — white for most kits, bright blue for KLOW. */
+function drawPowderCake(ctx, bodyX, cakeY, bodyW, cakeH, radius, powderColor = "white") {
+  const cake = ctx.createLinearGradient(bodyX, cakeY, bodyX + bodyW, cakeY + cakeH);
+  if (powderColor === "blue") {
+    cake.addColorStop(0, "#1e6bb8");
+    cake.addColorStop(0.35, "#3aa0ef");
+    cake.addColorStop(0.7, "#1a8de0");
+    cake.addColorStop(1, "#0d5fa8");
+  } else {
+    cake.addColorStop(0, "#e8eaee");
+    cake.addColorStop(0.4, "#ffffff");
+    cake.addColorStop(1, "#cfd3d9");
+  }
+  ctx.fillStyle = cake;
+  roundRect(ctx, bodyX + 2, cakeY, bodyW - 4, cakeH, Math.min(3, radius * 0.4));
+  ctx.fill();
+
+  // Speckles so it reads as lyophilized crystals
+  const rand = mulberry32(powderColor === "blue" ? 91 : 42);
+  ctx.fillStyle =
+    powderColor === "blue" ? "rgba(220,245,255,0.45)" : "rgba(255,255,255,0.55)";
+  for (let i = 0; i < 28; i += 1) {
+    ctx.fillRect(
+      bodyX + 4 + rand() * (bodyW - 8),
+      cakeY + 2 + rand() * (cakeH - 4),
+      1.2 + rand() * 1.6,
+      1.2 + rand() * 1.6
+    );
+  }
+}
+
 /** True for NAD / Glutathione — the only 10 mL bottles. */
 export function isTenMlCompound(name = "", form = "") {
   const text = `${name || ""} ${form || ""}`;
@@ -175,6 +206,17 @@ export function isTenMlCompound(name = "", form = "") {
 export function isHghCompound(name = "", form = "") {
   const text = `${name || ""} ${form || ""}`;
   return /\bhgh\b/i.test(text) || /\bgrowth hormone\b/i.test(text);
+}
+
+/** KLOW is the only blue lyophilized powder; everything else is white. */
+export function isKlowCompound(name = "", form = "") {
+  const text = `${name || ""} ${form || ""}`;
+  return /\bklow\b/i.test(text);
+}
+
+/** Powder fill color for kit vials. */
+export function resolvePowderColor({ name = "", form = "" } = {}) {
+  return isKlowCompound(name, form) ? "blue" : "white";
 }
 
 /**
@@ -541,26 +583,15 @@ function drawBrandThreeMl(ctx, dims, options) {
   } else {
     const cakeH = bodyH * 0.28;
     const cakeY = bodyBottom - cakeH - radius * 0.4;
-    const cake = ctx.createLinearGradient(bodyX, cakeY, bodyX + bodyW, cakeY + cakeH);
-    cake.addColorStop(0, "#e8eaee");
-    cake.addColorStop(0.4, "#ffffff");
-    cake.addColorStop(1, "#cfd3d9");
-    ctx.fillStyle = cake;
-    roundRect(ctx, bodyX + inset + 1, cakeY, bodyW - inset * 2 - 2, cakeH, 3);
-    ctx.fill();
-    const rand = mulberry32(hashString(name) || 1);
-    ctx.fillStyle = "rgba(160, 165, 175, 0.45)";
-    for (let i = 0; i < 20; i += 1) {
-      ctx.beginPath();
-      ctx.arc(
-        bodyX + inset + 4 + rand() * (bodyW - inset * 2 - 8),
-        cakeY + 3 + rand() * (cakeH - 6),
-        0.5 + rand() * 1.2,
-        0,
-        Math.PI * 2
-      );
-      ctx.fill();
-    }
+    drawPowderCake(
+      ctx,
+      bodyX + inset,
+      cakeY,
+      bodyW - inset * 2,
+      cakeH,
+      3,
+      resolvePowderColor({ name })
+    );
   }
   ctx.restore();
 
@@ -744,9 +775,15 @@ function drawBrandTenMl(ctx, dims, options) {
   if (!reconstituted) {
     const cakeH = bodyH * 0.18;
     const cakeY = bodyBottom - cakeH - radius * 0.4;
-    ctx.fillStyle = "#f0f2f5";
-    roundRect(ctx, bodyX + inset + 1, cakeY, bodyW - inset * 2 - 2, cakeH, 3);
-    ctx.fill();
+    drawPowderCake(
+      ctx,
+      bodyX + inset,
+      cakeY,
+      bodyW - inset * 2,
+      cakeH,
+      3,
+      resolvePowderColor({ name })
+    );
   } else {
     ctx.fillStyle = "rgba(200, 215, 230, 0.4)";
     ctx.fillRect(bodyX, bodyY + bodyH * 0.4, bodyW, bodyH * 0.6);
@@ -945,6 +982,7 @@ function drawPhotorealVial(ctx, dims, options) {
     qrPayload = "",
     coaUrl = "",
     isTen = false,
+    reconstituted = false,
   } = options;
 
   drawCoverImage(ctx, photo, dims.w, dims.h);
@@ -967,6 +1005,15 @@ function drawPhotorealVial(ctx, dims, options) {
   const bodyX = dims.w / 2 - bodyW / 2;
   const sleeveTop = dims.h * (isTen ? 0.34 : 0.33);
   const sleeveH = dims.h * (isTen ? 0.36 : 0.34);
+  const bodyBottom = sleeveTop + sleeveH + dims.h * 0.08;
+  const powderColor = resolvePowderColor({ name });
+
+  // Kit powder sits under the wrap — KLOW is blue, all others white
+  if (!reconstituted) {
+    const cakeH = dims.h * (isTen ? 0.1 : 0.09);
+    const cakeY = bodyBottom - cakeH - dims.h * 0.01;
+    drawPowderCake(ctx, bodyX, cakeY, bodyW, cakeH, bodyW * 0.08, powderColor);
+  }
 
   const labelBmp = createWrapLabelBitmap({
     name,
@@ -1228,13 +1275,15 @@ function drawLabeledThreeMl(ctx, dims, options) {
   } else {
     const cakeH = bodyH * 0.28;
     const cakeY = bodyBottom - cakeH - radius * 0.4;
-    const cake = ctx.createLinearGradient(bodyX, cakeY, bodyX + bodyW, cakeY + cakeH);
-    cake.addColorStop(0, "#e8eaee");
-    cake.addColorStop(0.4, "#ffffff");
-    cake.addColorStop(1, "#cfd3d9");
-    ctx.fillStyle = cake;
-    roundRect(ctx, bodyX + inset + 1, cakeY, bodyW - inset * 2 - 2, cakeH, 3);
-    ctx.fill();
+    drawPowderCake(
+      ctx,
+      bodyX + inset,
+      cakeY,
+      bodyW - inset * 2,
+      cakeH,
+      3,
+      resolvePowderColor({ name })
+    );
   }
   ctx.restore();
 
@@ -1346,9 +1395,15 @@ function drawLabeledTenMl(ctx, dims, options) {
   if (!reconstituted) {
     const cakeH = bodyH * 0.18;
     const cakeY = bodyBottom - cakeH - radius * 0.4;
-    ctx.fillStyle = "#f0f2f5";
-    roundRect(ctx, bodyX + inset + 1, cakeY, bodyW - inset * 2 - 2, cakeH, 3);
-    ctx.fill();
+    drawPowderCake(
+      ctx,
+      bodyX + inset,
+      cakeY,
+      bodyW - inset * 2,
+      cakeH,
+      3,
+      resolvePowderColor({ name })
+    );
   } else {
     ctx.fillStyle = "rgba(200, 215, 230, 0.4)";
     ctx.fillRect(bodyX, bodyY + bodyH * 0.4, bodyW, bodyH * 0.6);

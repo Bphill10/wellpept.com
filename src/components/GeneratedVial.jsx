@@ -98,7 +98,7 @@ export default function GeneratedVial({
           doseRange: labelFields.doseRange,
           summary,
           size,
-          reconstituted: reconstituted || Boolean(labelFields.bacWater),
+          reconstituted: reconstituted,
           vialMl: resolvedMl,
           form: form || subtitle,
           qrPayload: labelFields.qrPayload,

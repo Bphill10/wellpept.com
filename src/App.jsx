@@ -1895,7 +1895,8 @@ function ProductCard({ listing, onOpen, onAdd }) {
           <p className="card-blurb">{listing.blurb || product.blurb}</p>
           <div className="meta">{product.form}</div>
           <div className="meta vial-size-tag">
-            {product.vialMl || 3} mL vial
+            Kit of 10 · {product.vialMl || 3} mL vials ·{" "}
+            {product.powderColor === "blue" ? "blue powder" : "white powder"}
           </div>
           {Number(listing.reviews) > 0 && listing.rating != null && (
             <div className="rating">
@@ -2070,8 +2071,13 @@ function ProductDetail({
               medical use, or household purposes.
             </p>
             <div className="meta">
-              {product.form} · Purity {product.purity}
+              Kit of 10 · {product.vialMl || 3} mL ·{" "}
+              {product.powderColor === "blue"
+                ? "blue lyophilized powder"
+                : "white lyophilized powder"}
+              {product.purity ? ` · Purity ${product.purity}` : ""}
             </div>
+            <div className="meta">{product.form}</div>
             <div className="meta sold-by">
               Sold by{" "}
               <strong>
@@ -2147,7 +2153,7 @@ function ProductDetail({
                 )}
               </div>
               <div className="meta">
-                {formatStrengthLabel(product)} · per {product.unitLabel}
+                {formatStrengthLabel(product)} · kit of 10
               </div>
               <div className="buy-stock ok">In Stock</div>
               <button type="button" className="cart-cta" onClick={onAdd}>

@@ -28,9 +28,9 @@ export const THE_LOBSTER_VENDOR = {
  * KIT = 10 vials unless packVials/form says otherwise.
  */
 const LOBSTER_LINES = [
-  { sku: "LOB-HGH150", name: "HGH", mg: 150, unit: "IU", vendorCost: 100, category: "Growth", packVials: 1, form: "Pharma-grade kit · 150 IU · International" },
-  { sku: "LOB-HGH310", name: "HGH", mg: 310, unit: "IU", vendorCost: 190, category: "Growth", packVials: 1, form: "Pharma-grade kit · 310 IU · International" },
-  { sku: "LOB-PRO62", name: "HGH", mg: 62, unit: "IU", vendorCost: 35, category: "Growth", packVials: 1, form: "Pharma-grade kit · 62 IU · International" },
+  { sku: "LOB-HGH150", name: "HGH", mg: 150, unit: "IU", vendorCost: 100, category: "Growth", packVials: 10, form: "Pharma-grade kit · 150 IU · International" },
+  { sku: "LOB-HGH310", name: "HGH", mg: 310, unit: "IU", vendorCost: 190, category: "Growth", packVials: 10, form: "Pharma-grade kit · 310 IU · International" },
+  { sku: "LOB-PRO62", name: "HGH", mg: 62, unit: "IU", vendorCost: 35, category: "Growth", packVials: 10, form: "Pharma-grade kit · 62 IU · International" },
   { sku: "LOB-RETA12", name: "Retatrutide", mg: 12, vendorCost: 100, category: "Metabolic", packVials: 10 },
   { sku: "LOB-RETA30", name: "Retatrutide", mg: 30, vendorCost: 200, category: "Metabolic", packVials: 10 },
   { sku: "LOB-RETA60", name: "Retatrutide", mg: 60, vendorCost: 360, category: "Metabolic", packVials: 10 },
