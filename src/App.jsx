@@ -1229,10 +1229,10 @@ export default function App() {
                   <div>
                     <p className="section-kicker">This week</p>
                     <h2>Bestsellers</h2>
-                    <p>Top-reviewed research peptides across approved vendors.</p>
+                    <p>Focused research lines from Changsha and Lobster.</p>
                   </div>
                 </div>
-                <div className="product-grid product-grid-scroll">
+                <div className="product-grid">
                   {bestsellers.map((listing) => (
                     <ProductCard
                       key={`best-${listing.id}`}

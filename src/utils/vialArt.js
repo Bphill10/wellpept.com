@@ -354,6 +354,10 @@ function drawBrandWordmark(ctx, cx, y, maxW) {
   ctx.strokeStyle = "#d4af37";
   ctx.lineWidth = 1;
   ctx.stroke();
+
+  ctx.fillStyle = "rgba(255,255,255,0.55)";
+  ctx.font = `600 ${Math.max(8, maxW * 0.048)}px Outfit, "Segoe UI", sans-serif`;
+  ctx.fillText("BROUGHT TO YOU BY WELLPEPT", cx, y + maxW * 0.12);
 }
 
 /**
@@ -921,20 +925,23 @@ function createCompactSticker(options) {
   ctx.font = `600 ${Math.max(11, dims.h * 0.09)}px Outfit, "Segoe UI", sans-serif`;
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
-  ctx.fillText("UNDISCLOSED · RESEARCH", left, dims.h * 0.12);
+  ctx.fillText("UNDISCLOSED", left, dims.h * 0.08);
+  ctx.fillStyle = "#888";
+  ctx.font = `600 ${Math.max(9, dims.h * 0.07)}px Outfit, "Segoe UI", sans-serif`;
+  ctx.fillText("BROUGHT TO YOU BY WELLPEPT", left, dims.h * 0.2);
 
   const shortName = String(name || "Peptide")
     .replace(/\(.*?\)/g, "")
     .trim()
     .slice(0, 28);
   ctx.fillStyle = "#0a0a0a";
-  let namePx = Math.max(18, dims.h * 0.22);
+  let namePx = Math.max(16, dims.h * 0.18);
   ctx.font = `700 ${namePx}px Outfit, "Segoe UI", sans-serif`;
-  while (namePx > 14 && ctx.measureText(shortName).width > maxW) {
+  while (namePx > 12 && ctx.measureText(shortName).width > maxW) {
     namePx -= 1;
     ctx.font = `700 ${namePx}px Outfit, "Segoe UI", sans-serif`;
   }
-  ctx.fillText(shortName, left, dims.h * 0.32);
+  ctx.fillText(shortName, left, dims.h * 0.38);
 
   const strength =
     mass !== "" && mass != null
@@ -942,16 +949,16 @@ function createCompactSticker(options) {
       : "";
   if (strength) {
     ctx.fillStyle = "#1a1a1a";
-    ctx.font = `600 ${Math.max(14, dims.h * 0.14)}px Outfit, "Segoe UI", sans-serif`;
-    ctx.fillText(strength, left, dims.h * 0.58);
+    ctx.font = `600 ${Math.max(13, dims.h * 0.12)}px Outfit, "Segoe UI", sans-serif`;
+    ctx.fillText(strength, left, dims.h * 0.6);
   }
 
   ctx.fillStyle = "#888";
-  ctx.font = `500 ${Math.max(10, dims.h * 0.08)}px Outfit, "Segoe UI", sans-serif`;
+  ctx.font = `500 ${Math.max(9, dims.h * 0.07)}px Outfit, "Segoe UI", sans-serif`;
   ctx.fillText(
-    sku ? `${sku} · NOT FOR HUMAN USE` : "NOT FOR HUMAN USE",
+    sku ? `${sku} · RESEARCH ONLY` : "RESEARCH ONLY",
     left,
-    dims.h * 0.78
+    dims.h * 0.8
   );
 
   return c;
@@ -1012,6 +1019,8 @@ function drawPhotorealVial(ctx, dims, options) {
   gloss.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = gloss;
   ctx.fillRect(bodyX, sleeveTop, bodyW, sleeveH);
+
+  drawBrandWordmark(ctx, dims.w / 2, dims.h * 0.9, dims.w * 0.72);
 }
 
 /** Build an offscreen flat wrap-label (1× CSS pixels) for cylinder mapping. */
