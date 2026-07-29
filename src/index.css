@@ -854,7 +854,7 @@ svg {
 }
 
 .hero--undisclosed .ud-brought-by {
-  margin: 0 0 1.15rem;
+  margin: 0;
 }
 
 .hero-tagline {
@@ -2394,11 +2394,11 @@ body:has(.app-shell--undisclosed)::before {
 }
 
 .app-shell--undisclosed .ud-brought-by {
-  margin: 0.35rem 0 0.85rem;
-  font-size: 0.82rem;
+  margin: 0;
+  font-size: 0.78rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.62);
 }
 
 .app-shell--undisclosed .ud-brought-by strong {
@@ -5068,8 +5068,8 @@ body:has(.app-shell--undisclosed)::before {
   }
 
   .hero--undisclosed .ud-brought-by {
-    margin: 0.15rem 0 0.75rem;
-    font-size: 0.7rem;
+    margin: 0;
+    font-size: 0.68rem;
     letter-spacing: 0.1em;
   }
 
