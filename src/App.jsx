@@ -1179,16 +1179,17 @@ export default function App() {
 
         {view === VIEWS.shop && labVisible && (
           <>
-            <div className="lab-banner">
-              <div className="container lab-banner-inner">
-                <span>
-                  Undisclosed · alternate universe · brought to you by WellPept
-                </span>
-                <button type="button" className="ghost-btn" onClick={lockLabMenu}>
-                  Exit to WellPept
-                </button>
+              <div className="lab-banner">
+                <div className="container lab-banner-inner">
+                  <span>
+                    Undisclosed · alternate universe · brought to you by WellPept
+                    <span className="build-stamp"> · vial build 7ccf</span>
+                  </span>
+                  <button type="button" className="ghost-btn" onClick={lockLabMenu}>
+                    Exit to WellPept
+                  </button>
+                </div>
               </div>
-            </div>
             <section className="hero hero--undisclosed">
               <div className="hero-media hero-media--undisclosed">
                 <div className="hero-vial-stage" aria-hidden="true">
