@@ -763,9 +763,10 @@ img {
   background:
     linear-gradient(
       105deg,
-      rgba(0, 0, 0, 0.92) 0%,
-      rgba(0, 0, 0, 0.62) 42%,
-      rgba(0, 0, 0, 0.28) 100%
+      rgba(0, 0, 0, 0.96) 0%,
+      rgba(0, 0, 0, 0.78) 38%,
+      rgba(0, 0, 0, 0.35) 62%,
+      rgba(0, 0, 0, 0.15) 100%
     ),
     url("/undisclosed-brand.png") right center / cover no-repeat;
 }
@@ -818,6 +819,18 @@ img {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.35);
   color: #fff;
+}
+
+.hero--undisclosed .hero-tagline {
+  color: rgba(247, 247, 247, 0.92);
+}
+
+.hero--undisclosed .hero-copy {
+  color: rgba(247, 247, 247, 0.78);
+}
+
+.hero--undisclosed .ud-brought-by {
+  margin: 0 0 1.15rem;
 }
 
 .hero-tagline {
@@ -2134,6 +2147,318 @@ body:has(.app-shell--skincare) {
   display: none !important;
 }
 
+/* —— Undisclosed: inverse WellPept / alternate universe —— */
+.app-shell--undisclosed {
+  --ink: #f4f6f8;
+  --ink-soft: rgba(244, 246, 248, 0.78);
+  --muted: rgba(244, 246, 248, 0.55);
+  --paper: #0a0a0a;
+  --paper-2: #121212;
+  --surface: #141414;
+  --line: rgba(255, 255, 255, 0.12);
+  --cobalt: #ffffff;
+  --cobalt-bright: #f0f4f8;
+  --cobalt-deep: #c8d0d8;
+  --cobalt-soft: rgba(255, 255, 255, 0.1);
+  --shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  --accent: #ffffff;
+  color: var(--ink);
+  background: #050505;
+}
+
+body:has(.app-shell--undisclosed) {
+  color: #f4f6f8;
+  background:
+    radial-gradient(ellipse at 18% 0%, rgba(255, 255, 255, 0.06), transparent 42%),
+    radial-gradient(ellipse at 88% 12%, rgba(0, 71, 171, 0.12), transparent 36%),
+    linear-gradient(180deg, #050505 0%, #0a0a0a 48%, #101018 100%);
+}
+
+body:has(.app-shell--undisclosed)::before {
+  opacity: 0.35;
+  background-image:
+    radial-gradient(circle at 80% 8%, rgba(0, 71, 171, 0.08), transparent 30%),
+    linear-gradient(125deg, rgba(255, 255, 255, 0.04), transparent 42%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+.app-shell--undisclosed .header-top {
+  background: #000;
+  color: rgba(244, 246, 248, 0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.app-shell--undisclosed .primary-btn {
+  background: #fff;
+  color: #0a0a0a;
+  border-radius: 2px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  font-weight: 650;
+  box-shadow: none;
+}
+
+.app-shell--undisclosed .primary-btn:hover {
+  background: #e8ecf0;
+  color: #0a0a0a;
+}
+
+.app-shell--undisclosed .soft-btn,
+.app-shell--undisclosed .ghost-btn {
+  border-radius: 2px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #f4f6f8;
+  background: transparent;
+}
+
+.app-shell--undisclosed .soft-btn:hover,
+.app-shell--undisclosed .ghost-btn:hover {
+  border-color: #fff;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.app-shell--undisclosed .section-kicker {
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.22em;
+}
+
+.app-shell--undisclosed .section-head h2,
+.app-shell--undisclosed .section h2 {
+  color: #fff;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.app-shell--undisclosed .section-head p {
+  color: var(--ink-soft);
+}
+
+.app-shell--undisclosed .trust-strip {
+  background: rgba(255, 255, 255, 0.03);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.app-shell--undisclosed .trust-item strong {
+  color: #fff;
+  font-family: var(--font-brand);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.app-shell--undisclosed .trust-item p {
+  color: var(--muted);
+}
+
+.app-shell--undisclosed .trust-item svg {
+  color: #fff;
+  opacity: 0.85;
+}
+
+.app-shell--undisclosed .product-card,
+.app-shell--undisclosed .panel,
+.app-shell--undisclosed .thesis-card {
+  background: #121212;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f4f6f8;
+  box-shadow: none;
+  border-radius: 2px;
+}
+
+.app-shell--undisclosed .product-card:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+}
+
+.app-shell--undisclosed .product-card h3,
+.app-shell--undisclosed .product-body h3,
+.app-shell--undisclosed .thesis-card h3 {
+  color: #fff;
+}
+
+.app-shell--undisclosed .product-card .meta,
+.app-shell--undisclosed .product-card .card-blurb,
+.app-shell--undisclosed .thesis-card p {
+  color: var(--ink-soft);
+}
+
+.app-shell--undisclosed .product-card .price-row strong,
+.app-shell--undisclosed .price-row strong {
+  color: #fff;
+}
+
+.app-shell--undisclosed .mission-band,
+.app-shell--undisclosed .lab-band {
+  background:
+    linear-gradient(135deg, #000 0%, #0c0c10 55%, #0a1220 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: 1px solid rgba(0, 71, 171, 0.35);
+}
+
+.app-shell--undisclosed .mission-band .section-kicker,
+.app-shell--undisclosed .lab-band .section-kicker {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.app-shell--undisclosed .mission-points li,
+.app-shell--undisclosed .lab-points li {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.app-shell--undisclosed .supply-step,
+.app-shell--undisclosed .supply-example,
+.app-shell--undisclosed .source-path li {
+  background: #121212;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f4f6f8;
+}
+
+.app-shell--undisclosed .supply-step strong,
+.app-shell--undisclosed .supply-example-copy h3 {
+  color: #fff;
+}
+
+.app-shell--undisclosed .supply-step p,
+.app-shell--undisclosed .supply-example-copy p {
+  color: var(--ink-soft);
+}
+
+.app-shell--undisclosed .supply-step-num,
+.app-shell--undisclosed .supply-step-icon {
+  color: #fff;
+}
+
+.app-shell--undisclosed .chip,
+.app-shell--undisclosed .category-chip,
+.app-shell--undisclosed button.chip {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #f4f6f8;
+}
+
+.app-shell--undisclosed .chip.active,
+.app-shell--undisclosed .category-chip.active {
+  background: #fff;
+  color: #0a0a0a;
+  border-color: #fff;
+}
+
+.app-shell--undisclosed .lab-banner {
+  background: #000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.app-shell--undisclosed .lab-banner-inner {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+}
+
+.app-shell--undisclosed .ud-brought-by {
+  margin: 0.75rem 0 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.app-shell--undisclosed .ud-brought-by strong {
+  color: #fff;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+}
+
+.app-shell--undisclosed .search-wrap {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #f4f6f8;
+  box-shadow: none;
+}
+
+.app-shell--undisclosed .search-wrap input {
+  color: #f4f6f8;
+}
+
+.app-shell--undisclosed .search-wrap input::placeholder {
+  color: rgba(244, 246, 248, 0.45);
+}
+
+.app-shell--undisclosed .search-dept {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f4f6f8;
+}
+
+.app-shell--undisclosed .search-go {
+  background: #fff;
+  color: #0a0a0a;
+}
+
+.app-shell--undisclosed .dept-bar {
+  background: #000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.app-shell--undisclosed .panel-page .panel,
+.app-shell--undisclosed .amazon-detail,
+.app-shell--undisclosed .buy-box,
+.app-shell--undisclosed .calc-panel {
+  background: #121212;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f4f6f8;
+}
+
+.app-shell--undisclosed .field input,
+.app-shell--undisclosed .checkout-form input,
+.app-shell--undisclosed select,
+.app-shell--undisclosed textarea {
+  background: #0a0a0a;
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #f4f6f8;
+}
+
+.app-shell--undisclosed .footer {
+  background: #000;
+  color: rgba(244, 246, 248, 0.65);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.app-shell--undisclosed .footer strong {
+  color: #fff;
+}
+
+.app-shell--undisclosed .footer-contact a,
+.app-shell--undisclosed .footer-chat-btn {
+  color: #fff;
+}
+
+.app-shell--undisclosed .featured-vendor,
+.app-shell--undisclosed .featured-vendor.panel {
+  background: #121212;
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.app-shell--undisclosed .featured-vendor h2,
+.app-shell--undisclosed .featured-kicker {
+  color: #fff;
+}
+
+.app-shell--undisclosed .featured-vendor p,
+.app-shell--undisclosed .featured-meta {
+  color: var(--ink-soft);
+}
+
+.app-shell--undisclosed .research-guide,
+.app-shell--undisclosed .guide-card {
+  background: #121212;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f4f6f8;
+}
+
 .skin-hero {
   min-height: min(92vh, 860px);
   display: flex;
@@ -2477,6 +2802,58 @@ body:has(.app-shell--skincare) {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.65rem;
+  }
+
+  .hero.hero--undisclosed,
+  .hero--undisclosed {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero--undisclosed .hero-media,
+  .hero-media--undisclosed {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: clamp(190px, 40vw, 300px);
+    min-height: 190px;
+    max-height: 300px;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(5, 5, 5, 0.1) 0%,
+        rgba(5, 5, 5, 0.7) 75%,
+        #050505 100%
+      ),
+      url("/undisclosed-brand.png") center 28% / cover no-repeat !important;
+    animation: none;
+    transform: none;
+  }
+
+  .hero--undisclosed .hero-media::after {
+    display: none;
+  }
+
+  .hero--undisclosed .container.hero-content,
+  .hero--undisclosed .hero-content {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 1rem 0 2.1rem;
+    background: #050505;
+  }
+
+  .hero--undisclosed .hero-brand-lockup {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+
+  .hero--undisclosed .hero-brand {
+    font-size: clamp(2rem, 6.5vw, 3rem);
+    letter-spacing: 0.08em;
   }
 }
 
@@ -4452,6 +4829,160 @@ body:has(.app-shell--skincare) {
     margin-bottom: 1.1rem;
   }
 
+  /* Undisclosed phone: same stacked hero as WellPept, inverted */
+  .hero.hero--undisclosed,
+  .hero--undisclosed {
+    min-height: 0 !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    overflow: hidden;
+  }
+
+  .hero--undisclosed .hero-media,
+  .hero-media--undisclosed {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    height: clamp(160px, 44vw, 210px) !important;
+    min-height: clamp(160px, 44vw, 210px) !important;
+    max-height: 210px !important;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(5, 5, 5, 0.15) 0%,
+        rgba(5, 5, 5, 0.55) 55%,
+        rgba(5, 5, 5, 0.96) 88%,
+        #050505 100%
+      ),
+      url("/undisclosed-brand.png") center 28% / cover no-repeat !important;
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .hero--undisclosed .hero-media::after,
+  .hero-media--undisclosed::after {
+    display: none !important;
+  }
+
+  .hero--undisclosed .container.hero-content,
+  .hero--undisclosed .hero-content {
+    position: relative !important;
+    z-index: 2;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 1rem 0 1.75rem !important;
+    background: #050505;
+    color: #f4f6f8;
+  }
+
+  .hero--undisclosed .hero-brand-lockup {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.45rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .hero--undisclosed .hero-brand-mark {
+    display: none;
+  }
+
+  .hero--undisclosed .hero-brand {
+    font-size: clamp(1.85rem, 9vw, 2.4rem);
+    letter-spacing: 0.08em;
+    line-height: 1;
+    max-width: 100%;
+    color: #fff;
+  }
+
+  .hero--undisclosed .hero-brand-rule {
+    width: min(9rem, 55vw);
+    margin: 0.5rem 0 0.7rem;
+  }
+
+  .hero--undisclosed .hero-tagline {
+    font-size: 1.1rem;
+    line-height: 1.35;
+    max-width: none;
+  }
+
+  .hero--undisclosed .hero-copy {
+    font-size: 0.88rem;
+    line-height: 1.55;
+    max-width: none;
+    margin-bottom: 0.65rem;
+  }
+
+  .hero--undisclosed .ud-brought-by {
+    margin: 0 0 1rem;
+    font-size: 0.65rem;
+  }
+
+  .app-shell--undisclosed .lab-banner-inner {
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    padding: 0.5rem 0;
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+  }
+
+  /* Phone: one Exit is enough — keep header-top, drop duplicate banner */
+  .app-shell--undisclosed .lab-banner {
+    display: none;
+  }
+
+  .app-shell--undisclosed .lab-banner .ghost-btn {
+    min-height: 40px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.65rem;
+  }
+
+  .app-shell--undisclosed .search-wrap {
+    border-radius: 10px;
+    padding: 0.15rem;
+  }
+
+  .app-shell--undisclosed .search-go {
+    min-height: 40px;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .app-shell--undisclosed .header-actions .ghost-btn span {
+    display: none;
+  }
+
+  .app-shell--undisclosed .dept-bar {
+    padding: 0.35rem 0;
+  }
+
+  .app-shell--undisclosed .dept-link {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.75rem;
+    min-height: 40px;
+  }
+
+  .app-shell--undisclosed .product-grid,
+  .app-shell--undisclosed .product-grid-scroll {
+    gap: 0.75rem;
+  }
+
+  .app-shell--undisclosed .mission-inner,
+  .app-shell--undisclosed .lab-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .app-shell--undisclosed .thesis-grid {
+    grid-template-columns: 1fr;
+  }
+
   .hero-cta {
     display: grid !important;
     grid-template-columns: 1fr !important;
@@ -4639,6 +5170,15 @@ body:has(.app-shell--skincare) {
     display: none;
   }
 
+  /* Undisclosed: keep Exit reachable when top links would hide */
+  .app-shell--undisclosed .header-top-links {
+    display: flex;
+  }
+
+  .app-shell--undisclosed .lab-banner {
+    display: none;
+  }
+
   .sk-mix-demo-stills {
     grid-template-columns: 1fr;
   }
@@ -4653,5 +5193,17 @@ body:has(.app-shell--skincare) {
   .skin-hero .hero-brand {
     font-size: 1.85rem;
     letter-spacing: 0.08em;
+  }
+
+  .hero--undisclosed .hero-media,
+  .hero-media--undisclosed {
+    height: 145px !important;
+    min-height: 145px !important;
+    max-height: 145px !important;
+  }
+
+  .hero--undisclosed .hero-brand {
+    font-size: 1.7rem;
+    letter-spacing: 0.06em;
   }
 }

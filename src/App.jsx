@@ -736,7 +736,7 @@ export default function App() {
           <div className="container header-top-inner">
             <span className="header-top-msg">
               {labUnlocked
-                ? "Undisclosed · Request first · Up to 4 weeks"
+                ? "Undisclosed · alternate universe · by WellPept"
                 : "Request first · Pay after supply check · Up to 4 weeks"}
             </span>
             <span className="header-top-links">
@@ -1127,7 +1127,9 @@ export default function App() {
           <>
             <div className="lab-banner">
               <div className="container lab-banner-inner">
-                <span>Undisclosed · research peptides</span>
+                <span>
+                  Undisclosed · alternate universe · brought to you by WellPept
+                </span>
                 <button type="button" className="ghost-btn" onClick={lockLabMenu}>
                   Exit to WellPept
                 </button>
@@ -1148,12 +1150,15 @@ export default function App() {
                 </div>
                 <div className="hero-brand-rule rise-delay" aria-hidden="true" />
                 <p className="hero-tagline rise-delay">
-                  Research peptides — same compound, clearer path.
+                  Research peptides. Same molecule. Darker mirror of WellPept.
                 </p>
                 <p className="hero-copy rise-delay">
-                  Most research peptides share the same synthesis pipeline.
-                  Undisclosed sources approved manufacturers directly so labs
-                  pay for the molecule — not the pharmacy markup.
+                  An alternate universe for the bench: approved near-source
+                  vendors, COAs, and catalog tools — inverse of the white-and-cobalt
+                  storefront, brought to you by WellPept.
+                </p>
+                <p className="ud-brought-by rise-delay">
+                  Brought to you by <strong>WellPept</strong>
                 </p>
                 <div className="hero-cta rise-delay">
                   <button
@@ -1170,9 +1175,12 @@ export default function App() {
                   <button
                     type="button"
                     className="soft-btn"
-                    onClick={() => setView(VIEWS.vendor)}
+                    onClick={() => {
+                      setCalcInitial(null);
+                      setView(VIEWS.calculator);
+                    }}
                   >
-                    Become a vendor
+                    Calculator
                   </button>
                 </div>
               </div>
@@ -1239,7 +1247,7 @@ export default function App() {
             <section className="mission-band">
               <div className="container mission-inner">
                 <div>
-                  <p className="section-kicker">Why WellPept</p>
+                  <p className="section-kicker">Why Undisclosed</p>
                   <h2>Research equivalent. Not retail theater.</h2>
                   <p>
                     If a compound isn’t coming straight from a branded pharmacy
@@ -1248,7 +1256,7 @@ export default function App() {
                     resellers and storefronts. If it{" "}
                     <em>is</em> pharma-sourced, you’re often paying a premium for
                     packaging and distribution of the same active structure.
-                    WellPept is the lab’s generic path: approved near-source
+                    Undisclosed is WellPept’s lab mirror: approved near-source
                     vendors, documented batches, and a catalog built for the
                     bench — not the brand story.
                   </p>
@@ -1278,7 +1286,7 @@ export default function App() {
                     <h2>From source plant to your US lab</h2>
                     <p>
                       Most research peptides follow the same manufacturing path.
-                      WellPept sits after QC — connecting approved vendors to
+                      Undisclosed sits after QC — connecting approved vendors to
                       your bench without sending you to their storefront.
                     </p>
                   </div>
@@ -1348,7 +1356,7 @@ export default function App() {
                     <span className="supply-step-num">5</span>
                     <strong>US drop-ship</strong>
                     <p>
-                      You order on WellPept; the approved vendor ships to your
+                      You order on Undisclosed; the approved vendor ships to your
                       US address. Vendor sites stay hidden.
                     </p>
                   </li>
@@ -1380,7 +1388,7 @@ export default function App() {
                     </li>
                     <li>
                       <span>Fulfill</span>
-                      Vendor drop-ships US-only via WellPept
+                      Vendor drop-ships US-only via Undisclosed
                     </li>
                   </ol>
                   <ul className="supply-example-notes">
@@ -1410,7 +1418,7 @@ export default function App() {
                     <h2>Two supply stories. One molecule.</h2>
                     <p>
                       Either way, the structure on the vial is what matters for
-                      research — WellPept makes the source path clear.
+                      research — Undisclosed makes the source path clear.
                     </p>
                   </div>
                 </div>
@@ -1432,17 +1440,17 @@ export default function App() {
                     <p>
                       When the active is the same sequence or small molecule,
                       the research question is purity, fill, and documentation —
-                      not the logo on the box. WellPept lists research-grade
+                      not the logo on the box. Undisclosed lists research-grade
                       equivalents so you can judge the molecule on the bench.
                     </p>
                   </article>
                   <article className="thesis-card panel thesis-card-accent">
-                    <p className="section-kicker">WellPept</p>
+                    <p className="section-kicker">Undisclosed</p>
                     <h3>Your generic research lane</h3>
                     <p>
                       Admin-vetted vendors. Documented kits. US drop-ship only.
                       For laboratory research use only; not for human
-                      consumption or medical use.
+                      consumption or medical use. Brought to you by WellPept.
                     </p>
                   </article>
                 </div>
@@ -1456,7 +1464,7 @@ export default function App() {
                     <span className="featured-kicker">Featured vendor</span>
                     <h2>The Lobster</h2>
                     <p>
-                      Featured vendor on WellPept. Minimum order{" "}
+                      Featured vendor on Undisclosed. Minimum order{" "}
                       {formatMoney(THE_LOBSTER_VENDOR.minOrder)}. Request first —
                       we confirm supply within 24 hours, then payment. US
                       shipping only; allow up to 4 weeks after payment.
@@ -1739,7 +1747,7 @@ export default function App() {
             <strong>{labUnlocked ? "Undisclosed" : "WellPept"}</strong>
             <div>
               {labUnlocked
-                ? "Research peptides for laboratory use"
+                ? "Research peptides for laboratory use · brought to you by WellPept"
                 : "Renew skincare. White light, cobalt signal"}
             </div>
             <p className="footer-contact">
