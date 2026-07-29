@@ -1228,11 +1228,11 @@ export default function App() {
                     className="primary-btn"
                     onClick={() =>
                       document
-                        .getElementById("catalog")
+                        .getElementById("featured")
                         ?.scrollIntoView({ behavior: "smooth" })
                     }
                   >
-                    Shop catalog
+                    Shop featured
                   </button>
                   <button
                     type="button"
@@ -1245,6 +1245,165 @@ export default function App() {
                     Calculator
                   </button>
                 </div>
+              </div>
+            </section>
+
+            <section className="section featured-vendor-section" id="featured">
+              <div className="container">
+                <div className="featured-vendor panel">
+                  <div className="featured-vendor-copy">
+                    <span className="featured-kicker">Featured for HGH</span>
+                    <h2>Lobster</h2>
+                    <p>
+                      Featured HGH vendor on Undisclosed. Pharma-grade HGH kits
+                      and growth-pathway lines. Minimum order{" "}
+                      {formatMoney(THE_LOBSTER_VENDOR.minOrder)}. Request first —
+                      we confirm supply within 24 hours, then payment. US
+                      shipping only; allow up to 4 weeks after payment.
+                    </p>
+                    <ul className="featured-meta">
+                      <li>Featured for HGH</li>
+                      <li>
+                        Min order {formatMoney(THE_LOBSTER_VENDOR.minOrder)}
+                      </li>
+                      <li>
+                        Flat shipping {formatMoney(THE_LOBSTER_VENDOR.shippingFlat)}
+                      </li>
+                      <li>Request first · pay after supply check</li>
+                      <li>US shipping only · up to 4 weeks after payment</li>
+                    </ul>
+                    <div className="hero-cta" style={{ marginTop: "0.85rem" }}>
+                      <button
+                        type="button"
+                        className="primary-btn"
+                        onClick={() => {
+                          setQuery("HGH");
+                          setCategory("Growth");
+                          document
+                            .getElementById("catalog")
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        }}
+                      >
+                        Shop Lobster HGH
+                      </button>
+                      <button
+                        type="button"
+                        className="soft-btn"
+                        onClick={() => {
+                          setQuery("Lobster");
+                          setCategory("All");
+                          document
+                            .getElementById("catalog")
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        }}
+                      >
+                        Full Lobster catalog
+                      </button>
+                    </div>
+                  </div>
+                  <div className="featured-vendor-visual">
+                    <GeneratedVial
+                      name="HGH"
+                      category="Growth"
+                      size="lg"
+                      catalogTemplate
+                    />
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="section">
+              <div className="container">
+                <div className="section-head">
+                  <div>
+                    <p className="section-kicker">This week</p>
+                    <h2>Bestsellers</h2>
+                    <p>Focused research lines from Changsha and Lobster.</p>
+                  </div>
+                </div>
+                <div className="product-grid">
+                  {bestsellers.map((listing) => (
+                    <ProductCard
+                      key={`best-${listing.id}`}
+                      listing={listing}
+                      onOpen={openProduct}
+                      onAdd={addToCart}
+                    />
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {!query.trim() && category === "All" && (
+              <section className="section section-tight">
+                <div className="container">
+                  <div className="section-head">
+                    <div>
+                      <p className="section-kicker">Just listed</p>
+                      <h2>New arrivals</h2>
+                      <p>Fresh lines from the latest approved price lists.</p>
+                    </div>
+                  </div>
+                  <div className="product-grid">
+                    {newArrivals.map((listing) => (
+                      <ProductCard
+                        key={`new-${listing.id}`}
+                        listing={listing}
+                        onOpen={openProduct}
+                        onAdd={addToCart}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )}
+
+            <section className="section" id="catalog">
+              <div className="container">
+                <div className="section-head">
+                  <div>
+                    <p className="section-kicker">Full marketplace</p>
+                    <h2>Catalog</h2>
+                    <p>
+                      {filtered.length} result
+                      {filtered.length === 1 ? "" : "s"}
+                      {category !== "All" ? ` in ${category}` : ""}
+                      {query.trim() ? ` for “${query.trim()}”` : ""}. US
+                      shipping only.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="filters">
+                  {CATEGORIES.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className={`chip ${category === c ? "active" : ""}`}
+                      onClick={() => setCategory(c)}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+
+                {filtered.length === 0 ? (
+                  <div className="empty-state">
+                    No approved products match this search yet.
+                  </div>
+                ) : (
+                  <div className="product-grid">
+                    {filtered.map((listing) => (
+                      <ProductCard
+                        key={listing.id}
+                        listing={listing}
+                        onOpen={openProduct}
+                        onAdd={addToCart}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             </section>
 
@@ -1278,30 +1437,8 @@ export default function App() {
                   <Headset size={22} />
                   <div>
                     <strong>Research tools built in</strong>
-                    <p>Reconstitution calculator + auto-generated vial labels.</p>
+                    <p>Reconstitution calculator built in.</p>
                   </div>
-                </div>
-              </div>
-            </section>
-
-            <section className="section">
-              <div className="container">
-                <div className="section-head">
-                  <div>
-                    <p className="section-kicker">This week</p>
-                    <h2>Bestsellers</h2>
-                    <p>Focused research lines from Changsha and Lobster.</p>
-                  </div>
-                </div>
-                <div className="product-grid">
-                  {bestsellers.map((listing) => (
-                    <ProductCard
-                      key={`best-${listing.id}`}
-                      listing={listing}
-                      onOpen={openProduct}
-                      onAdd={addToCart}
-                    />
-                  ))}
                 </div>
               </div>
             </section>
@@ -1516,143 +1653,6 @@ export default function App() {
                     </p>
                   </article>
                 </div>
-              </div>
-            </section>
-
-            <section className="section featured-vendor-section">
-              <div className="container">
-                <div className="featured-vendor panel">
-                  <div className="featured-vendor-copy">
-                    <span className="featured-kicker">Featured for HGH</span>
-                    <h2>Lobster</h2>
-                    <p>
-                      Featured HGH vendor on Undisclosed. Pharma-grade HGH kits
-                      and growth-pathway lines. Minimum order{" "}
-                      {formatMoney(THE_LOBSTER_VENDOR.minOrder)}. Request first —
-                      we confirm supply within 24 hours, then payment. US
-                      shipping only; allow up to 4 weeks after payment.
-                    </p>
-                    <ul className="featured-meta">
-                      <li>Featured for HGH</li>
-                      <li>
-                        Min order {formatMoney(THE_LOBSTER_VENDOR.minOrder)}
-                      </li>
-                      <li>
-                        Flat shipping {formatMoney(THE_LOBSTER_VENDOR.shippingFlat)}
-                      </li>
-                      <li>Request first · pay after supply check</li>
-                      <li>US shipping only · up to 4 weeks after payment</li>
-                    </ul>
-                    <div className="hero-cta" style={{ marginTop: "0.85rem" }}>
-                      <button
-                        type="button"
-                        className="primary-btn"
-                        onClick={() => {
-                          setQuery("HGH");
-                          setCategory("Growth");
-                          document
-                            .getElementById("catalog")
-                            ?.scrollIntoView({ behavior: "smooth" });
-                        }}
-                      >
-                        Shop Lobster HGH
-                      </button>
-                      <button
-                        type="button"
-                        className="soft-btn"
-                        onClick={() => {
-                          setQuery("Lobster");
-                          setCategory("All");
-                          document
-                            .getElementById("catalog")
-                            ?.scrollIntoView({ behavior: "smooth" });
-                        }}
-                      >
-                        Full Lobster catalog
-                      </button>
-                    </div>
-                  </div>
-                  <div className="featured-vendor-visual">
-                    <GeneratedVial
-                      name="HGH"
-                      category="Growth"
-                      size="lg"
-                      catalogTemplate
-                    />
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {!query.trim() && category === "All" && (
-              <section className="section section-tight">
-                <div className="container">
-                  <div className="section-head">
-                    <div>
-                      <p className="section-kicker">Just listed</p>
-                      <h2>New arrivals</h2>
-                      <p>Fresh lines from the latest approved price lists.</p>
-                    </div>
-                  </div>
-                  <div className="product-grid">
-                    {newArrivals.map((listing) => (
-                      <ProductCard
-                        key={`new-${listing.id}`}
-                        listing={listing}
-                        onOpen={openProduct}
-                        onAdd={addToCart}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </section>
-            )}
-
-            <section className="section" id="catalog">
-              <div className="container">
-                <div className="section-head">
-                  <div>
-                    <p className="section-kicker">Full marketplace</p>
-                    <h2>Catalog</h2>
-                    <p>
-                      {filtered.length} result
-                      {filtered.length === 1 ? "" : "s"}
-                      {category !== "All" ? ` in ${category}` : ""}
-                      {query.trim() ? ` for “${query.trim()}”` : ""}. US
-                      shipping only.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="filters">
-                  {CATEGORIES.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      className={`chip ${category === c ? "active" : ""}`}
-                      onClick={() => setCategory(c)}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </div>
-
-                {filtered.length === 0 ? (
-                  <div className="empty-state">
-                    No approved products match this search yet.
-                  </div>
-                ) : (
-                  <div className="product-grid">
-                    {filtered.map((listing) => (
-                      <ProductCard
-                        key={listing.id}
-                        listing={listing}
-                        onOpen={openProduct}
-                        onAdd={addToCart}
-                      />
-                    ))}
-                  </div>
-                )}
               </div>
             </section>
 
