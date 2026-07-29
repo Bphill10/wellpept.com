@@ -7,7 +7,7 @@ import { CHANGSHA_VENDOR } from "./changshaPremium";
 import { THE_LOBSTER_VENDOR } from "./theLobster";
 import { isFocusedSubmission } from "./catalogFocus";
 
-const STORAGE_KEY = "wellpept-marketplace-v4";
+const STORAGE_KEY = "wellpept-marketplace-v5";
 
 /** Vendors currently live on Undisclosed. */
 const ACTIVE_VENDOR_IDS = new Set(["v-changsha-premium", "v-the-lobster"]);
@@ -23,13 +23,16 @@ function loadState() {
       (s) => ACTIVE_VENDOR_IDS.has(s.vendorId) && isFocusedSubmission(s)
     );
     if (!vendors.length) return null;
-    // Keep display names / shipping in sync with seed.
+    // Keep display names / shipping / terms in sync with seed.
     const vendorsSynced = vendors.map((v) => {
       if (v.id === CHANGSHA_VENDOR.id) {
         return {
           ...v,
           name: CHANGSHA_VENDOR.name,
           priceListSource: CHANGSHA_VENDOR.priceListSource,
+          shippingFlat: CHANGSHA_VENDOR.shippingFlat,
+          shippingNote: CHANGSHA_VENDOR.shippingNote,
+          minOrder: CHANGSHA_VENDOR.minOrder,
         };
       }
       if (v.id === THE_LOBSTER_VENDOR.id) {

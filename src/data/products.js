@@ -12,9 +12,9 @@ import { resolveVialMl } from "../utils/vialArt";
 export { resolveVialMl };
 
 /** Default retail markup applied on top of vendor cost after approval.
- *  Final catalog price is marked up, then rounded UP to the nearest $5.
+ *  100% markup = 2× vendor cost. Then rounded UP to the nearest $5.
  */
-export const MARKUP = 0.5;
+export const MARKUP = 1;
 
 export function retailFromVendor(vendorCost) {
   const marked =
