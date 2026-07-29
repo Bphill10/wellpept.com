@@ -76,6 +76,7 @@ import {
   setLabUnlocked,
   labUnlockFromUrl,
   cleanLabUnlockUrl,
+  cleanPublicEntryUrl,
 } from "./utils/secretMenu";
 
 const VIEWS = {
@@ -140,7 +141,12 @@ export default function App() {
   const [products, setProducts] = useState(initial.products);
 
   const urlWantsLab = useMemo(
-    () => labUnlockFromUrl(window.location.search, window.location.hash),
+    () =>
+      labUnlockFromUrl(
+        window.location.search,
+        window.location.hash,
+        window.location.pathname
+      ),
     []
   );
   const [labUnlocked, setLabUnlockedState] = useState(
@@ -227,7 +233,7 @@ export default function App() {
     if (!urlWantsLab) return;
     setLabUnlocked(true);
     setLabUnlockedState(true);
-    cleanLabUnlockUrl();
+    cleanLabUnlockUrl({ promotePath: true });
     setFlash("Undisclosed unlocked");
   }, [urlWantsLab]);
 
@@ -254,6 +260,7 @@ export default function App() {
   function unlockLabMenu(message = "Undisclosed unlocked") {
     setLabUnlocked(true);
     setLabUnlockedState(true);
+    cleanLabUnlockUrl({ promotePath: true });
     setFlash(message);
     setView(VIEWS.shop);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -262,6 +269,7 @@ export default function App() {
   function lockLabMenu() {
     setLabUnlocked(false);
     setLabUnlockedState(false);
+    cleanPublicEntryUrl();
     setView(VIEWS.skincare);
     setSelectedId(null);
     setSelectedVariantId(null);
