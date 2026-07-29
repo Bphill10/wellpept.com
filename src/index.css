@@ -2554,7 +2554,7 @@ body:has(.app-shell--undisclosed)::before {
 
 .skin-hero .hero-content {
   padding: 5.5rem 0 4.25rem;
-  max-width: 28rem;
+  max-width: 26rem;
   margin-right: auto;
   margin-left: 0;
   position: relative;
@@ -2562,7 +2562,7 @@ body:has(.app-shell--undisclosed)::before {
 }
 
 .skin-hero .container.hero-content {
-  width: min(28rem, calc(100% - 2rem));
+  width: min(26rem, calc(100% - 2rem));
   margin-left: max(1rem, calc((100% - min(var(--max), calc(100% - 2rem))) / 2));
   margin-right: auto;
 }
@@ -2605,13 +2605,22 @@ body:has(.app-shell--undisclosed)::before {
     linear-gradient(
       95deg,
       rgba(255, 255, 255, 1) 0%,
-      rgba(255, 255, 255, 0.97) 34%,
-      rgba(255, 255, 255, 0.55) 52%,
-      rgba(255, 255, 255, 0.12) 68%,
-      transparent 82%
+      rgba(255, 255, 255, 0.99) 46%,
+      rgba(255, 255, 255, 0.78) 58%,
+      rgba(255, 255, 255, 0.28) 70%,
+      transparent 84%
     ),
-    url("/skincare/hero-wide.png") right center / cover no-repeat !important;
-  animation: hero-drift 22s ease-in-out infinite alternate;
+    url("/skincare/hero-wide.png") right -24vw center / cover no-repeat !important;
+  animation: skin-hero-drift 22s ease-in-out infinite alternate;
+}
+
+@keyframes skin-hero-drift {
+  from {
+    transform: scale(1.05) translate3d(6%, 0, 0);
+  }
+  to {
+    transform: scale(1.09) translate3d(10%, -0.8%, 0);
+  }
 }
 
 .skin-nav-links {
