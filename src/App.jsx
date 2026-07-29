@@ -47,8 +47,7 @@ import {
   loadOrders,
   saveOrder,
   notifyOrderRequest,
-  suggestedBacMl,
-  defaultResearchDose,
+  defaultsFromCatalogSelection,
 } from "./utils/automation";
 import { fetchChargebeeConfig } from "./utils/chargebeeClient";
 import PeptideCalculator, {
@@ -1704,27 +1703,25 @@ export default function App() {
             onBack={goShop}
             onAdd={() => addToCart(selectedVariant)}
             onCalculate={() => {
-              const mass = selectedVariant.mg || 10;
-              const unit = resolveVialUnit(selectedVariant);
-              const { dose, doseUnit } = defaultResearchDose(
-                mass,
-                unit,
-                selectedVariant.name
-              );
-              const autoBac = automation.autoSuggestBacFromProduct;
-              const bac = autoBac
-                ? suggestedBacMl(mass, dose, doseUnit, 10, selectedVariant.name)
-                : null;
-              setCalcInitial({
+              const d = defaultsFromCatalogSelection({
                 name: selectedVariant.name,
-                mass,
-                unit,
-                vialMl: resolveVialMl(selectedVariant),
-                dose,
-                doseUnit,
+                mass: selectedVariant.mg || 10,
+                unit: selectedVariant.unit,
+                vialMl: selectedVariant.vialMl,
+                form: selectedVariant.form,
+              });
+              setCalcInitial({
+                name: d.name,
+                mass: d.mass,
+                unit: d.unit,
+                vialMl: d.vialMl,
+                dose: d.dose,
+                doseUnit: d.doseUnit,
                 desiredUnits: 10,
-                solution: bac != null ? Number(bac.toFixed(2)) : undefined,
-                autoBac,
+                solution: automation.autoSuggestBacFromProduct
+                  ? d.solution
+                  : undefined,
+                autoBac: automation.autoSuggestBacFromProduct,
               });
               setView(VIEWS.calculator);
               window.scrollTo({ top: 0, behavior: "smooth" });

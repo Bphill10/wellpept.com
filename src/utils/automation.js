@@ -56,11 +56,126 @@ export function normalizeDoseUnit(dose, doseUnit, name = "") {
 export function defaultResearchDose(mass, unit = "mg", name = "") {
   const massN = Number(mass) || 0;
   const resolved = resolveVialUnit({ name, unit });
+  const n = String(name || "")
+    .toLowerCase()
+    .replace(/[·•]/g, ".")
+    .replace(/\s+/g, " ")
+    .trim();
+
   if (resolved === "IU") {
     return { dose: massN >= 100 ? 5 : 2, doseUnit: "IU" };
   }
-  if (massN >= 10) return { dose: 1, doseUnit: "mg" };
-  return { dose: 0.25, doseUnit: "mg" };
+
+  // Peptide + vial-size aware research dose defaults (mg)
+  let dose = 0.25;
+  if (n.includes("retatrutide") || n === "reta") {
+    dose = massN >= 30 ? 2 : 1;
+  } else if (n.includes("tirzepatide") || n.startsWith("triz")) {
+    dose = massN >= 10 ? 2.5 : 1;
+  } else if (n.includes("wolverine") || (n.includes("bpc") && n.includes("tb"))) {
+    dose = 0.25;
+  } else if (n.includes("bpc")) {
+    dose = 0.25;
+  } else if (
+    n.includes("tb-4") ||
+    n.includes("tb4") ||
+    n.includes("tb-500") ||
+    n.includes("tb500") ||
+    n.includes("thymosin")
+  ) {
+    dose = 0.25;
+  } else if (n.includes("ipamorelin") || n.includes("cjc")) {
+    dose = 0.1;
+  } else if (n.includes("tesamorelin") || n.startsWith("tesa")) {
+    dose = 1;
+  } else if (n.includes("nad")) {
+    dose = massN >= 500 ? 100 : massN >= 100 ? 50 : Math.min(50, Math.max(0.25, massN));
+  } else if (n.includes("glutathione") || n.includes("gluta")) {
+    dose = massN >= 600 ? 200 : 100;
+  } else if (n.includes("klow")) {
+    dose = 0.5;
+  } else if (n.includes("semax") || n.includes("selank")) {
+    dose = 0.3;
+  } else if (n.includes("mots")) {
+    dose = 5;
+  } else if (n.includes("epithalon") || n.includes("epitalon")) {
+    dose = 0.5;
+  } else if (n.includes("ghk")) {
+    dose = 1;
+  } else if (n.includes("pt-141") || n.includes("pt141") || n.includes("pt 141")) {
+    dose = 1;
+  } else if (n.includes("ss-31") || n.includes("ss.31") || n.includes("ss31")) {
+    dose = 5;
+  } else if (massN >= 10) {
+    dose = 1;
+  } else {
+    dose = 0.25;
+  }
+
+  if (massN > 0 && dose > massN) dose = massN;
+  return { dose: Number(parseFloat(dose.toFixed(4))), doseUnit: "mg" };
+}
+
+/**
+ * All calculator / label defaults from the chosen peptide + available dosage.
+ * Unit, vial mL, research dose, BAC, concentration, and dose range.
+ */
+export function defaultsFromCatalogSelection({
+  name = "",
+  mass = "",
+  unit = "mg",
+  vialMl,
+  form = "",
+  desiredUnits = 10,
+  dose: seedDose,
+  doseUnit: seedDoseUnit,
+  solution: seedSolution,
+} = {}) {
+  const massN = Number(mass) || 0;
+  const resolvedUnit = resolveVialUnit({ name, unit, form });
+  const resolvedMl = resolveVialMl({ name, form, vialMl });
+  const research =
+    seedDose != null && String(seedDose) !== ""
+      ? normalizeDoseUnit(seedDose, seedDoseUnit || resolvedUnit, name)
+      : defaultResearchDose(massN, resolvedUnit, name);
+
+  // Force dose unit to match vial unit rules
+  const doseUnit = resolvedUnit === "IU" ? "IU" : "mg";
+  const dose =
+    doseUnit === research.doseUnit
+      ? research.dose
+      : defaultResearchDose(massN, resolvedUnit, name).dose;
+
+  const bac =
+    seedSolution != null && String(seedSolution) !== ""
+      ? Number(seedSolution)
+      : suggestedBacMl(massN, dose, doseUnit, desiredUnits, name);
+  const bacNum =
+    bac != null && Number.isFinite(Number(bac))
+      ? Number(Number(bac).toFixed(2))
+      : null;
+  const bacWater = bacNum != null ? `${bacNum} mL` : "";
+  const concentration =
+    bacNum > 0
+      ? resolvedUnit === "IU"
+        ? `${Number((massN / bacNum).toFixed(2))} IU/mL`
+        : `${Number((massN / bacNum).toFixed(2))} mg/mL`
+      : "";
+  const doseRange = `${dose} ${doseUnit} (${desiredUnits} u)`;
+
+  return {
+    name,
+    mass: massN,
+    unit: resolvedUnit,
+    vialMl: resolvedMl,
+    dose,
+    doseUnit,
+    solution: bacNum != null ? String(bacNum) : "",
+    bacWater,
+    concentration,
+    doseRange,
+    desiredUnits,
+  };
 }
 
 export function buildCalculatorShareUrl({
@@ -97,38 +212,35 @@ export function resolveCalculatorLabelFields({
   concentration = "",
   doseRange = "",
   qrPayload = "",
+  vialMl,
+  form = "",
 } = {}) {
-  const massN = Number(mass);
-  const vialUnit = resolveVialUnit({ name, unit });
-  const { dose, doseUnit } = defaultResearchDose(massN, vialUnit, name);
-
-  const bac = suggestedBacMl(massN, dose, doseUnit, 10, name);
-  const bacNum = bac != null ? Number(bac.toFixed(2)) : null;
-  const bacStr = bacNum != null ? `${bacNum} mL` : "";
-  const conc =
-    bacNum > 0
-      ? vialUnit === "IU"
-        ? `${Number((massN / bacNum).toFixed(2))} IU/mL`
-        : `${Number((massN / bacNum).toFixed(2))} mg/mL`
-      : "";
-  const doseText = `${dose} ${doseUnit} (10 u)`;
+  const defaults = defaultsFromCatalogSelection({
+    name,
+    mass,
+    unit,
+    vialMl,
+    form,
+  });
 
   return {
-    bacWater: bacWater || bacStr,
-    concentration: concentration || conc,
-    doseRange: doseRange || doseText,
-    dose,
-    doseUnit,
-    solution: bacNum != null ? String(bacNum) : "",
+    bacWater: bacWater || defaults.bacWater,
+    concentration: concentration || defaults.concentration,
+    doseRange: doseRange || defaults.doseRange,
+    dose: defaults.dose,
+    doseUnit: defaults.doseUnit,
+    solution: defaults.solution,
+    unit: defaults.unit,
+    vialMl: defaults.vialMl,
     qrPayload:
       qrPayload ||
       buildCalculatorShareUrl({
         name,
         mass,
-        solution: bacNum != null ? String(bacNum) : "",
-        dose,
-        doseUnit,
-        unit: vialUnit,
+        solution: defaults.solution,
+        dose: defaults.dose,
+        doseUnit: defaults.doseUnit,
+        unit: defaults.unit,
       }),
   };
 }

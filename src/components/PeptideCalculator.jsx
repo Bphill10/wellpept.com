@@ -9,7 +9,7 @@ import {
 } from "../data/products";
 import {
   buildCalculatorShareUrl,
-  defaultResearchDose,
+  defaultsFromCatalogSelection,
   normalizeDoseUnit,
   suggestedBacMl as suggestedBacFromAutomation,
 } from "../utils/automation";
@@ -26,16 +26,20 @@ function formatDoseText(dose, unit) {
   return `${formatNum(n, 2)} mg`;
 }
 
-function defaultDoseForStrength(strength, name = "") {
-  const { dose, doseUnit } = defaultResearchDose(
-    strength?.mg,
-    strength?.unit || "mg",
-    name || strength?.name || ""
-  );
-  return { dose: String(dose), doseUnit };
+/** Full defaults from peptide name + available dosage strength. */
+function defaultsFor(option, strength, seed = null) {
+  return defaultsFromCatalogSelection({
+    name: option?.name || seed?.name || "",
+    mass: strength?.mg ?? seed?.mass ?? "",
+    unit: strength?.unit || seed?.unit || "mg",
+    vialMl: strength?.vialMl ?? seed?.vialMl,
+    form: strength?.form || seed?.form || "",
+    desiredUnits: Number(seed?.desiredUnits) || 10,
+    dose: seed?.dose,
+    doseUnit: seed?.doseUnit,
+  });
 }
 
-/** Suggested BAC water so the chosen dose lands on `units` on a U-100 syringe. */
 function suggestedBacMl(mass, dose, doseUnit, units = 10, name = "") {
   return suggestedBacFromAutomation(mass, dose, doseUnit, units, name);
 }
@@ -62,20 +66,21 @@ function buildQuickPicks(options) {
     used.add(opt.id);
     const strength =
       opt.strengths.find((s) => Number(s.mg) >= 10) || opt.strengths[0];
-    const { dose, doseUnit } = defaultDoseForStrength(strength, opt.name);
+    const d = defaultsFor(opt, strength);
     picks.push({
       id: `${opt.id}-${strength.key}`,
       label: `${opt.name.split("(")[0].trim()} ${formatNum(strength.mg, 2)} ${
-        strength.unit || "mg"
+        d.unit
       }`,
       optionId: opt.id,
       strengthKey: strength.key,
       name: opt.name,
-      mass: String(strength.mg),
-      unit: strength.unit || "mg",
-      dose,
-      doseUnit,
-      vialMl: strength.vialMl,
+      mass: String(d.mass),
+      unit: d.unit,
+      dose: String(d.dose),
+      doseUnit: d.doseUnit,
+      vialMl: d.vialMl,
+      solution: d.solution,
     });
     if (picks.length >= 6) break;
   }
@@ -83,20 +88,21 @@ function buildQuickPicks(options) {
     for (const opt of options) {
       if (used.has(opt.id)) continue;
       const strength = opt.strengths[0];
-      const { dose, doseUnit } = defaultDoseForStrength(strength, opt.name);
+      const d = defaultsFor(opt, strength);
       picks.push({
         id: `${opt.id}-${strength.key}`,
         label: `${opt.name.split("(")[0].trim()} ${formatNum(strength.mg, 2)} ${
-          strength.unit || "mg"
+          d.unit
         }`,
         optionId: opt.id,
         strengthKey: strength.key,
         name: opt.name,
-        mass: String(strength.mg),
-        unit: strength.unit || "mg",
-        dose,
-        doseUnit,
-        vialMl: strength.vialMl,
+        mass: String(d.mass),
+        unit: d.unit,
+        dose: String(d.dose),
+        doseUnit: d.doseUnit,
+        vialMl: d.vialMl,
+        solution: d.solution,
       });
       used.add(opt.id);
       if (picks.length >= 6) break;
@@ -121,36 +127,25 @@ export default function PeptideCalculator({
     [options, initial]
   );
 
+  const boot = useMemo(
+    () =>
+      defaultsFor(matched?.option, matched?.strength, initial),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
   const [peptideId, setPeptideId] = useState(matched?.option?.id || "");
   const [strengthKey, setStrengthKey] = useState(
     matched?.strength?.key || ""
   );
-  const [name, setName] = useState(
-    matched?.option?.name || initial?.name || ""
-  );
-  const [mass, setMass] = useState(
-    matched?.strength?.mg != null
-      ? String(matched.strength.mg)
-      : initial?.mass != null
-        ? String(initial.mass)
-        : ""
-  );
-  const [vialUnit, setVialUnit] = useState(
-    matched?.strength?.unit || initial?.unit || "mg"
-  );
-  const [vialMl, setVialMl] = useState(
-    matched?.strength?.vialMl || initial?.vialMl || 3
-  );
-  const [dose, setDose] = useState(
-    initial?.dose != null
-      ? String(initial.dose)
-      : defaultDoseForStrength(matched?.strength).dose
-  );
-  const [doseUnit, setDoseUnit] = useState(
-    initial?.doseUnit || defaultDoseForStrength(matched?.strength).doseUnit
-  );
+  const [name, setName] = useState(boot.name || "");
+  const [mass, setMass] = useState(boot.mass ? String(boot.mass) : "");
+  const [vialUnit, setVialUnit] = useState(boot.unit || "mg");
+  const [vialMl, setVialMl] = useState(boot.vialMl || 3);
+  const [dose, setDose] = useState(boot.dose != null ? String(boot.dose) : "");
+  const [doseUnit, setDoseUnit] = useState(boot.doseUnit || "mg");
   const [solution, setSolution] = useState(
-    initial?.solution != null ? String(initial.solution) : "2"
+    initial?.solution != null ? String(initial.solution) : boot.solution || "2"
   );
   const [shareMsg, setShareMsg] = useState("");
   const [hydratedInitial, setHydratedInitial] = useState(null);
@@ -164,49 +159,20 @@ export default function PeptideCalculator({
 
   function applyCatalogSelection(option, strength, seed = null) {
     if (!option || !strength) return;
+    const d = defaultsFor(option, strength, seed);
     setPeptideId(option.id);
     setStrengthKey(strength.key);
     setName(option.name);
-    setMass(String(strength.mg));
-    setVialUnit(strength.unit || "mg");
-    setVialMl(strength.vialMl || 3);
-
-    const defaults = defaultDoseForStrength(strength, option.name);
-    const seeded =
-      seed?.dose != null
-        ? normalizeDoseUnit(
-            seed.dose,
-            seed.doseUnit || defaults.doseUnit,
-            option.name
-          )
-        : { dose: Number(defaults.dose), doseUnit: defaults.doseUnit };
-    // Keep dose unit coherent with vial unit — only IU or mg
-    const coherentUnit =
-      (strength.unit || "mg") === "IU"
-        ? "IU"
-        : seeded.doseUnit === "IU"
-          ? defaults.doseUnit
-          : "mg";
-    const nextDose =
-      coherentUnit === "IU" && seeded.doseUnit === "IU"
-        ? String(seeded.dose)
-        : coherentUnit === "mg" && seeded.doseUnit === "mg"
-          ? String(seeded.dose)
-          : defaults.dose;
-    setDose(nextDose);
-    setDoseUnit(coherentUnit);
-
+    setMass(String(d.mass));
+    setVialUnit(d.unit);
+    setVialMl(d.vialMl);
+    setDose(String(d.dose));
+    setDoseUnit(d.doseUnit);
+    // BAC always follows peptide + dosage unless an explicit seed value is given
     if (seed?.solution != null && String(seed.solution) !== "") {
       setSolution(String(seed.solution));
-    } else if (autoSuggestBac || seed?.autoBac) {
-      const bac = suggestedBacMl(
-        strength.mg,
-        nextDose,
-        coherentUnit,
-        seed?.desiredUnits || 10,
-        option.name
-      );
-      if (bac != null) setSolution(formatNum(bac, 2));
+    } else {
+      setSolution(d.solution || "2");
     }
     setShareMsg("");
   }
@@ -265,9 +231,7 @@ export default function PeptideCalculator({
       };
     }
 
-    const doseMg = Number(
-      normalizeDoseUnit(doseN, doseUnit, name).dose
-    );
+    const doseMg = doseN;
     const mgPerMl = massN / solutionN;
     const mgPerUnit = mgPerMl / 100;
     const units = (doseMg / mgPerMl) * 100;
@@ -300,11 +264,8 @@ export default function PeptideCalculator({
     const option = options.find((o) => o.id === pick.optionId);
     const strength = option?.strengths.find((s) => s.key === pick.strengthKey);
     if (!option || !strength) return;
-    applyCatalogSelection(option, strength, {
-      dose: pick.dose,
-      doseUnit: pick.doseUnit,
-      autoBac: autoSuggestBac,
-    });
+    // Quick picks are peptide + dosage — full defaults from that choice
+    applyCatalogSelection(option, strength);
   }
 
   function useSuggestedBac() {
@@ -358,8 +319,8 @@ export default function PeptideCalculator({
             <div>
               <h1>Peptide calculator</h1>
               <p className="lede" style={{ marginBottom: 0 }}>
-                Tied to live Undisclosed stock — pick a peptide and vial
-                dosage, then set BAC and research dose.
+                Pick a peptide and available dosage — unit, vial size, research
+                dose, and BAC water default from that choice.
               </p>
             </div>
           </div>
@@ -425,7 +386,7 @@ export default function PeptideCalculator({
 
                 <div className="form-row">
                   <label className="field">
-                    Vial ({vialUnit || "mg"})
+                    Vial ({vialUnit || "mg"} · {vialMl || 3} mL)
                     <input
                       type="number"
                       min="0"
@@ -473,7 +434,12 @@ export default function PeptideCalculator({
                     Unit
                     <select
                       value={doseUnit === "IU" ? "IU" : "mg"}
-                      onChange={(e) => setDoseUnit(e.target.value)}
+                      disabled
+                      title={
+                        vialUnit === "IU"
+                          ? "IU — HGH only"
+                          : "mg — default for all other peptides"
+                      }
                     >
                       {doseUnitOptions.map((u) => (
                         <option key={u.value} value={u.value}>
@@ -500,11 +466,14 @@ export default function PeptideCalculator({
                 {shareMsg && <div className="notice">{shareMsg}</div>}
                 {selectedPeptide && (
                   <p className="meta" style={{ margin: 0 }}>
-                    {selectedPeptide.strengths.length} dosage
-                    {selectedPeptide.strengths.length === 1 ? "" : "s"} in
-                    catalog
+                    Defaults from{" "}
+                    <strong>{selectedPeptide.name.split("(")[0].trim()}</strong>
                     {selectedStrength
                       ? ` · ${selectedStrength.label}`
+                      : ""}
+                    {` · ${vialUnit} · ${vialMl} mL`}
+                    {selectedPeptide.strengths.length > 1
+                      ? ` · ${selectedPeptide.strengths.length} dosages in catalog`
                       : ""}
                   </p>
                 )}

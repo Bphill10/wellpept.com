@@ -38,7 +38,7 @@ export default function GeneratedVial({
 }) {
   const canvasRef = useRef(null);
   const [png, setPng] = useState("");
-  const resolvedMl = resolveVialMl({ form: form || subtitle, vialMl });
+  const resolvedMl = resolveVialMl({ form: form || subtitle, vialMl, name });
 
   // Same calculator label fields used on the printable wrap / share link.
   const labelFields = useMemo(
@@ -52,8 +52,10 @@ export default function GeneratedVial({
         concentration,
         doseRange,
         qrPayload,
+        vialMl: resolvedMl,
+        form: form || subtitle,
       }),
-    [name, mass, unit, sku, bacWater, concentration, doseRange, qrPayload]
+    [name, mass, unit, sku, bacWater, concentration, doseRange, qrPayload, resolvedMl, form, subtitle]
   );
 
   useEffect(() => {
