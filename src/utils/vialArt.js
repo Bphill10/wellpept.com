@@ -161,12 +161,17 @@ function ellipse(ctx, cx, cy, rx, ry) {
   ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
 }
 
-/** Parse vial volume from vendor form text. Default 3 mL; 10 mL when listed. */
-export function resolveVialMl({ form = "", vialMl } = {}) {
+/** Parse vial volume from vendor form text / compound defaults.
+ *  Default 3 mL; 10 mL when listed, large bottle, or NAD / Glutathione.
+ */
+export function resolveVialMl({ form = "", name = "", vialMl } = {}) {
   if (vialMl != null && Number(vialMl) > 0) return Number(vialMl);
-  const text = String(form || "");
+  const text = `${form || ""} ${name || ""}`;
   if (/\b10\s*ml\b/i.test(text) || /\b10ml\b/i.test(text)) return 10;
   if (/\blarge bottle\b/i.test(text)) return 10;
+  // These research lines ship in 10 mL bottles
+  if (/\bglutathione\b/i.test(text) || /\bgluta\b/i.test(text)) return 10;
+  if (/\bnad\+?\b/i.test(text)) return 10;
   return 3;
 }
 

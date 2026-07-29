@@ -10,7 +10,7 @@ import { THE_LOBSTER_VENDOR } from "./theLobster";
 import { isFocusedSubmission } from "./catalogFocus";
 
 /** Bump when focused vendors/catalog must replace stale local data. */
-const STORAGE_KEY = "wellpept-marketplace-v7";
+const STORAGE_KEY = "wellpept-marketplace-v8";
 
 function syncVendor(v) {
   if (!v || !ACTIVE_VENDOR_IDS.has(v.id)) return null;
