@@ -313,7 +313,8 @@ export default function PeptideCalculator({ initial = null }) {
                 <h2>Brand vial</h2>
               </div>
               <p className="meta">
-                Printable Undisclosed wrap label — black spine, calc grid, and QR.
+                Printable Undisclosed wrap label — clinical wrap on the vial,
+                flat label download with QR for the bench.
               </p>
               <div className="calc-vial-stage">
                 <GeneratedVial

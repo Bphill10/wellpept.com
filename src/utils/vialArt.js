@@ -1,6 +1,6 @@
 import QRCode from "qrcode";
 
-/** Wellpept brand vial art — gold cap, black V-sleeve, WP monogram seal (P in front of W). */
+/** Wellpept / Undisclosed vial art — clear glass + clinical wrap label (not black keyhole sleeve). */
 
 export const BRAND_IMAGE_SRC = "/wellpept-brand.png";
 /** Real studio vial photo cropped from the brand plate. */
@@ -320,7 +320,7 @@ function drawBrandWordmark(ctx, cx, y, maxW) {
   ctx.font = `600 ${Math.max(11, maxW * 0.11)}px "Cormorant Garamond", "Times New Roman", serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("WELLPEPT", cx, y);
+  ctx.fillText("UNDISCLOSED", cx, y);
 
   const lineW = maxW * 0.42;
   const grad = ctx.createLinearGradient(cx - lineW, 0, cx + lineW, 0);
@@ -782,8 +782,8 @@ function drawBrandTenMl(ctx, dims, options) {
 }
 
 /**
- * Draw the real brand vial photo, then overlay product / calc label data.
- * Falls back to procedural 3 mL / 10 mL drawing if the photo is unavailable.
+ * Draw the clear glass vial with the printable clinical wrap label
+ * mapped onto the cylinder — not the old black keyhole sleeve photo.
  */
 export function drawGeneratedVial(canvas, options = {}) {
   const {
@@ -796,9 +796,6 @@ export function drawGeneratedVial(canvas, options = {}) {
     reconstituted = false,
     vialMl: vialMlOpt,
     form = "",
-    wpMark = null,
-    brandImage = null,
-    brandVial = null,
     bacWater = "",
     concentration = "",
     doseRange = "",
@@ -826,45 +823,405 @@ export function drawGeneratedVial(canvas, options = {}) {
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
 
-  const photo = brandVial || brandVialCache || brandImage || brandImageCache;
-  if (photo && photo.width) {
-    drawPhotoVial(ctx, dims, {
-      photo,
-      name,
-      mass,
-      unit,
-      sku,
-      bacWater,
-      concentration,
-      doseRange,
-      qrPayload,
-      vialMl,
-      isTen,
-      wpMark: wpMark || wpMarkCache,
-    });
-    return canvas.toDataURL("image/png");
-  }
-
   const drawOpts = {
     name,
     mass,
     unit,
     sku,
     reconstituted,
-    wpMark: wpMark || wpMarkCache || brandImage || brandImageCache,
     bacWater,
     concentration,
     doseRange,
     qrPayload,
   };
 
-  if (isTen) drawBrandTenMl(ctx, dims, drawOpts);
-  else drawBrandThreeMl(ctx, dims, drawOpts);
+  if (isTen) drawLabeledTenMl(ctx, dims, drawOpts);
+  else drawLabeledThreeMl(ctx, dims, drawOpts);
 
   return canvas.toDataURL("image/png");
 }
 
-/** Cover-fit the studio vial photo, then stamp product data on the sleeve. */
+/** Build an offscreen flat wrap-label (1× CSS pixels) for cylinder mapping. */
+function createWrapLabelBitmap(options) {
+  const dims = { w: 760, h: 280 };
+  const c =
+    typeof document !== "undefined"
+      ? document.createElement("canvas")
+      : null;
+  if (!c) return null;
+  c.width = dims.w;
+  c.height = dims.h;
+  const ctx = c.getContext("2d");
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  paintLabelTemplate(ctx, dims, options);
+  return c;
+}
+
+/**
+ * Map the flat clinical label onto the vial as a cylindrical wrap.
+ * Center of the label faces the camera; edges curve away with shading.
+ */
+function drawCylindricalLabelWrap(ctx, labelCanvas, geom) {
+  if (!labelCanvas || !labelCanvas.width) return;
+  const { cx, bodyX, bodyW, sleeveTop, sleeveH, radius = 4 } = geom;
+  const slices = 72;
+  const lw = labelCanvas.width;
+  const lh = labelCanvas.height;
+  const visibleArc = Math.PI * 0.92; // ~166° of wrap facing camera
+
+  ctx.save();
+  // Clip to vial body so label stays on glass
+  roundRect(ctx, bodyX, sleeveTop - 1, bodyW, sleeveH + 2, radius);
+  ctx.clip();
+
+  for (let i = 0; i < slices; i += 1) {
+    const t0 = i / slices;
+    const t1 = (i + 1) / slices;
+    const theta0 = (t0 - 0.5) * visibleArc;
+    const theta1 = (t1 - 0.5) * visibleArc;
+    const cos0 = Math.cos(theta0);
+    const cos1 = Math.cos(theta1);
+    const cos = (cos0 + cos1) / 2;
+    if (cos < 0.08) continue;
+
+    const x0 = cx + (bodyW / 2) * 0.96 * Math.sin(theta0);
+    const x1 = cx + (bodyW / 2) * 0.96 * Math.sin(theta1);
+    const destX = Math.min(x0, x1);
+    const destW = Math.max(0.6, Math.abs(x1 - x0));
+
+    const srcX = t0 * lw;
+    const srcW = Math.max(1, (t1 - t0) * lw);
+
+    ctx.save();
+    // Edge falloff so it reads as wrapped paper, not a flat sticker
+    ctx.globalAlpha = 0.42 + 0.58 * Math.max(0, cos);
+    ctx.drawImage(
+      labelCanvas,
+      srcX,
+      0,
+      srcW,
+      lh,
+      destX,
+      sleeveTop,
+      destW,
+      sleeveH
+    );
+    ctx.restore();
+  }
+
+  // Soft cylindrical shade on left/right of wrap
+  const shade = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW, 0);
+  shade.addColorStop(0, "rgba(0,0,0,0.35)");
+  shade.addColorStop(0.18, "rgba(0,0,0,0)");
+  shade.addColorStop(0.82, "rgba(0,0,0,0)");
+  shade.addColorStop(1, "rgba(0,0,0,0.35)");
+  ctx.fillStyle = shade;
+  ctx.fillRect(bodyX, sleeveTop, bodyW, sleeveH);
+
+  // Top edge of label (thin paper lip)
+  ctx.strokeStyle = "rgba(255,255,255,0.35)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(bodyX + 1, sleeveTop + 0.5);
+  ctx.lineTo(bodyX + bodyW - 1, sleeveTop + 0.5);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawLabeledThreeMl(ctx, dims, options) {
+  const {
+    name = "Peptide",
+    mass = "",
+    unit = "mg",
+    sku = "",
+    reconstituted = false,
+    bacWater = "",
+    concentration = "",
+    doseRange = "",
+    qrPayload = "",
+  } = options;
+
+  const cx = dims.w / 2;
+  drawDarkStudio(ctx, dims.w, dims.h);
+
+  const spot = ctx.createRadialGradient(cx, dims.h * 0.35, 10, cx, dims.h * 0.4, dims.w * 0.55);
+  spot.addColorStop(0, "rgba(255,255,255,0.05)");
+  spot.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = spot;
+  ctx.fillRect(0, 0, dims.w, dims.h);
+
+  const bodyW = dims.w * 0.3;
+  const bodyH = dims.h * 0.46;
+  const bodyX = cx - bodyW / 2;
+  const bodyBottom = dims.h * 0.72;
+  const bodyY = bodyBottom - bodyH;
+  const neckW = bodyW * 0.42;
+  const neckH = bodyH * 0.12;
+  const shoulderH = bodyH * 0.1;
+  const capH = bodyH * 0.1;
+  const neckY = bodyY - neckH;
+  const capY = neckY - capH * 0.75;
+  const radius = bodyW * 0.14;
+
+  ellipse(ctx, cx, bodyBottom + dims.h * 0.015, bodyW * 0.75, bodyW * 0.14);
+  const shadow = ctx.createRadialGradient(cx, bodyBottom, 2, cx, bodyBottom, bodyW);
+  shadow.addColorStop(0, "rgba(0,0,0,0.65)");
+  shadow.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = shadow;
+  ctx.fill();
+
+  // Gold cap
+  const capW = neckW * 1.22;
+  const goldSide = ctx.createLinearGradient(cx - capW / 2, 0, cx + capW / 2, 0);
+  goldSide.addColorStop(0, "#6b4e0e");
+  goldSide.addColorStop(0.25, "#d4af37");
+  goldSide.addColorStop(0.5, "#f0d78c");
+  goldSide.addColorStop(0.75, "#b8922a");
+  goldSide.addColorStop(1, "#5a4010");
+  ctx.fillStyle = goldSide;
+  roundRect(ctx, cx - capW / 2, capY + capH * 0.28, capW, capH * 0.72, 2);
+  ctx.fill();
+  ellipse(ctx, cx, capY + capH * 0.3, capW / 2, capH * 0.2);
+  const goldTop = ctx.createRadialGradient(
+    cx - capW * 0.15,
+    capY + capH * 0.18,
+    1,
+    cx,
+    capY + capH * 0.3,
+    capW * 0.55
+  );
+  goldTop.addColorStop(0, "#f5e6b8");
+  goldTop.addColorStop(0.45, "#d4af37");
+  goldTop.addColorStop(1, "#7a5a12");
+  ctx.fillStyle = goldTop;
+  ctx.fill();
+
+  const neckGrad = ctx.createLinearGradient(cx - neckW / 2, 0, cx + neckW / 2, 0);
+  neckGrad.addColorStop(0, "rgba(160, 175, 190, 0.5)");
+  neckGrad.addColorStop(0.3, "rgba(255,255,255,0.35)");
+  neckGrad.addColorStop(0.7, "rgba(255,255,255,0.12)");
+  neckGrad.addColorStop(1, "rgba(130, 150, 170, 0.5)");
+  ctx.fillStyle = neckGrad;
+  roundRect(ctx, cx - neckW / 2, neckY, neckW, neckH + shoulderH * 0.3, neckW * 0.15);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(cx - neckW / 2, neckY + neckH);
+  ctx.bezierCurveTo(
+    cx - neckW / 2,
+    bodyY + shoulderH * 0.2,
+    cx - bodyW / 2,
+    bodyY + shoulderH * 0.4,
+    cx - bodyW / 2,
+    bodyY + shoulderH
+  );
+  ctx.lineTo(cx + bodyW / 2, bodyY + shoulderH);
+  ctx.bezierCurveTo(
+    cx + bodyW / 2,
+    bodyY + shoulderH * 0.4,
+    cx + neckW / 2,
+    bodyY + shoulderH * 0.2,
+    cx + neckW / 2,
+    neckY + neckH
+  );
+  ctx.closePath();
+  ctx.fillStyle = neckGrad;
+  ctx.fill();
+
+  const glass = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW, 0);
+  glass.addColorStop(0, "rgba(100, 120, 140, 0.55)");
+  glass.addColorStop(0.15, "rgba(255,255,255,0.45)");
+  glass.addColorStop(0.5, "rgba(240,245,250,0.1)");
+  glass.addColorStop(0.85, "rgba(255,255,255,0.4)");
+  glass.addColorStop(1, "rgba(90, 110, 130, 0.55)");
+  ctx.fillStyle = glass;
+  roundRect(ctx, bodyX, bodyY + shoulderH * 0.85, bodyW, bodyH - shoulderH * 0.85, radius);
+  ctx.fill();
+
+  const inset = Math.max(2, bodyW * 0.04);
+  ctx.save();
+  roundRect(
+    ctx,
+    bodyX + inset,
+    bodyY + shoulderH + inset,
+    bodyW - inset * 2,
+    bodyH - shoulderH - inset * 2,
+    radius * 0.7
+  );
+  ctx.clip();
+  ctx.fillStyle = "rgba(230, 235, 240, 0.2)";
+  ctx.fillRect(bodyX, bodyY, bodyW, bodyH);
+
+  if (reconstituted) {
+    const liquidTop = bodyY + bodyH * 0.45;
+    ctx.fillStyle = "rgba(200, 215, 230, 0.45)";
+    ctx.fillRect(bodyX, liquidTop, bodyW, bodyBottom - liquidTop);
+  } else {
+    const cakeH = bodyH * 0.28;
+    const cakeY = bodyBottom - cakeH - radius * 0.4;
+    const cake = ctx.createLinearGradient(bodyX, cakeY, bodyX + bodyW, cakeY + cakeH);
+    cake.addColorStop(0, "#e8eaee");
+    cake.addColorStop(0.4, "#ffffff");
+    cake.addColorStop(1, "#cfd3d9");
+    ctx.fillStyle = cake;
+    roundRect(ctx, bodyX + inset + 1, cakeY, bodyW - inset * 2 - 2, cakeH, 3);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  ctx.fillStyle = "rgba(255,255,255,0.35)";
+  ctx.fillRect(bodyX + bodyW * 0.12, bodyY + shoulderH, bodyW * 0.1, bodyH * 0.35);
+
+  // Clinical wrap label around mid/lower body (replaces black keyhole sleeve)
+  const sleeveTop = bodyY + bodyH * 0.34;
+  const sleeveH = bodyBottom - sleeveTop - radius * 0.15;
+  const labelBmp = createWrapLabelBitmap({
+    name,
+    mass,
+    unit,
+    bacWater,
+    concentration,
+    doseRange,
+    sku,
+    qrPayload,
+  });
+  drawCylindricalLabelWrap(ctx, labelBmp, {
+    cx,
+    bodyX,
+    bodyW,
+    sleeveTop,
+    sleeveH,
+    radius: radius * 0.6,
+  });
+
+  ctx.strokeStyle = "rgba(180, 190, 200, 0.35)";
+  ctx.lineWidth = 1.2;
+  roundRect(ctx, bodyX, bodyY + shoulderH * 0.85, bodyW, bodyH - shoulderH * 0.85, radius);
+  ctx.stroke();
+
+  drawBrandWordmark(ctx, cx, bodyBottom + dims.h * 0.055, dims.w * 0.7);
+  if (sku) {
+    ctx.fillStyle = "rgba(200,200,200,0.45)";
+    ctx.font = `500 ${Math.max(8, dims.w * 0.025)}px Outfit, "Segoe UI", sans-serif`;
+    ctx.textAlign = "center";
+    ctx.fillText(sku, cx, bodyBottom + dims.h * 0.095);
+  }
+}
+
+function drawLabeledTenMl(ctx, dims, options) {
+  const {
+    name = "Peptide",
+    mass = "",
+    unit = "mg",
+    sku = "",
+    reconstituted = false,
+    bacWater = "",
+    concentration = "",
+    doseRange = "",
+    qrPayload = "",
+  } = options;
+
+  const cx = dims.w / 2;
+  drawDarkStudio(ctx, dims.w, dims.h);
+
+  const bodyW = dims.w * 0.36;
+  const bodyH = dims.h * 0.52;
+  const bodyX = cx - bodyW / 2;
+  const bodyBottom = dims.h * 0.74;
+  const bodyY = bodyBottom - bodyH;
+  const neckW = bodyW * 0.4;
+  const neckH = bodyH * 0.1;
+  const shoulderH = bodyH * 0.08;
+  const capH = bodyH * 0.08;
+  const neckY = bodyY - neckH;
+  const capY = neckY - capH * 0.75;
+  const radius = bodyW * 0.1;
+
+  ellipse(ctx, cx, bodyBottom + dims.h * 0.012, bodyW * 0.7, bodyW * 0.12);
+  const shadow = ctx.createRadialGradient(cx, bodyBottom, 2, cx, bodyBottom, bodyW);
+  shadow.addColorStop(0, "rgba(0,0,0,0.6)");
+  shadow.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = shadow;
+  ctx.fill();
+
+  const capW = neckW * 1.2;
+  const goldSide = ctx.createLinearGradient(cx - capW / 2, 0, cx + capW / 2, 0);
+  goldSide.addColorStop(0, "#6b4e0e");
+  goldSide.addColorStop(0.5, "#f0d78c");
+  goldSide.addColorStop(1, "#5a4010");
+  ctx.fillStyle = goldSide;
+  roundRect(ctx, cx - capW / 2, capY + capH * 0.28, capW, capH * 0.72, 2);
+  ctx.fill();
+  ellipse(ctx, cx, capY + capH * 0.3, capW / 2, capH * 0.2);
+  ctx.fill();
+
+  const glass = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW, 0);
+  glass.addColorStop(0, "rgba(100, 120, 140, 0.55)");
+  glass.addColorStop(0.2, "rgba(255,255,255,0.4)");
+  glass.addColorStop(0.5, "rgba(240,245,250,0.1)");
+  glass.addColorStop(0.8, "rgba(255,255,255,0.35)");
+  glass.addColorStop(1, "rgba(90, 110, 130, 0.55)");
+  ctx.fillStyle = glass;
+  roundRect(ctx, cx - neckW / 2, neckY, neckW, neckH + shoulderH, 4);
+  ctx.fill();
+  roundRect(ctx, bodyX, bodyY + shoulderH * 0.5, bodyW, bodyH - shoulderH * 0.5, radius);
+  ctx.fill();
+
+  const inset = Math.max(2, bodyW * 0.04);
+  ctx.save();
+  roundRect(
+    ctx,
+    bodyX + inset,
+    bodyY + shoulderH + inset,
+    bodyW - inset * 2,
+    bodyH - shoulderH - inset * 2,
+    radius * 0.7
+  );
+  ctx.clip();
+  if (!reconstituted) {
+    const cakeH = bodyH * 0.18;
+    const cakeY = bodyBottom - cakeH - radius * 0.4;
+    ctx.fillStyle = "#f0f2f5";
+    roundRect(ctx, bodyX + inset + 1, cakeY, bodyW - inset * 2 - 2, cakeH, 3);
+    ctx.fill();
+  } else {
+    ctx.fillStyle = "rgba(200, 215, 230, 0.4)";
+    ctx.fillRect(bodyX, bodyY + bodyH * 0.4, bodyW, bodyH * 0.6);
+  }
+  ctx.restore();
+
+  const sleeveTop = bodyY + bodyH * 0.28;
+  const sleeveH = bodyBottom - sleeveTop - 4;
+  const labelBmp = createWrapLabelBitmap({
+    name,
+    mass,
+    unit,
+    bacWater,
+    concentration,
+    doseRange,
+    sku,
+    qrPayload,
+  });
+  drawCylindricalLabelWrap(ctx, labelBmp, {
+    cx,
+    bodyX,
+    bodyW,
+    sleeveTop,
+    sleeveH,
+    radius: radius * 0.5,
+  });
+
+  drawBrandWordmark(ctx, cx, bodyBottom + dims.h * 0.05, dims.w * 0.72);
+  if (sku) {
+    ctx.fillStyle = "rgba(200,200,200,0.45)";
+    ctx.font = `500 ${Math.max(8, dims.w * 0.024)}px Outfit, "Segoe UI", sans-serif`;
+    ctx.textAlign = "center";
+    ctx.fillText(sku, cx, bodyBottom + dims.h * 0.09);
+  }
+}
+
+/** Cover-fit helper kept for any legacy photo paths (unused by default). */
 function drawPhotoVial(ctx, dims, options) {
   const {
     photo,
@@ -878,10 +1235,8 @@ function drawPhotoVial(ctx, dims, options) {
     qrPayload = "",
     vialMl = 3,
     isTen = false,
-    wpMark = null,
   } = options;
 
-  // Match brand studio black
   ctx.fillStyle = "#0a0a0a";
   ctx.fillRect(0, 0, dims.w, dims.h);
 
@@ -894,69 +1249,35 @@ function drawPhotoVial(ctx, dims, options) {
   const dy = (dims.h - dh) / 2;
   ctx.drawImage(photo, dx, dy, dw, dh);
 
-  // Soft bottom vignette so overlay text stays readable
-  const veil = ctx.createLinearGradient(0, dims.h * 0.55, 0, dims.h);
-  veil.addColorStop(0, "rgba(0,0,0,0)");
-  veil.addColorStop(0.4, "rgba(0,0,0,0.4)");
-  veil.addColorStop(1, "rgba(0,0,0,0.82)");
-  ctx.fillStyle = veil;
-  ctx.fillRect(0, dims.h * 0.52, dims.w, dims.h * 0.48);
-
-  const cx = dims.w / 2;
-  const massNum = mass !== "" && mass != null ? mass : "";
-  const massLabel =
-    massNum !== "" ? `${massNum} ${String(unit || "mg").toUpperCase()}` : "";
-
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-
-  let y = dims.h * 0.7;
-  ctx.fillStyle = "#ffffff";
-  ctx.font = `700 ${Math.max(11, dims.w * 0.065)}px Outfit, "Segoe UI", sans-serif`;
-  const titleLines = wrapLines(ctx, String(name).toUpperCase(), dims.w * 0.82, 2);
-  titleLines.forEach((line, i) => {
-    ctx.fillText(line, cx, y + i * dims.w * 0.075);
-  });
-  y += titleLines.length * dims.w * 0.075 + dims.w * 0.02;
-
-  if (massLabel) {
-    ctx.fillStyle = "#d4af37";
-    ctx.font = `700 ${Math.max(12, dims.w * 0.08)}px Outfit, "Segoe UI", sans-serif`;
-    ctx.fillText(massLabel, cx, y);
-    y += dims.w * 0.09;
-  }
-
-  const metaBits = [
-    isTen || vialMl >= 10 ? "10 mL vial" : "3 mL vial",
+  // Prefer clinical wrap over photo sleeve text overlay
+  const bodyW = dims.w * (isTen ? 0.36 : 0.3);
+  const bodyX = dims.w / 2 - bodyW / 2;
+  const sleeveTop = dims.h * 0.48;
+  const sleeveH = dims.h * 0.28;
+  const labelBmp = createWrapLabelBitmap({
+    name,
+    mass,
+    unit,
     bacWater,
     concentration,
     doseRange,
-  ].filter(Boolean);
-  if (metaBits.length) {
-    ctx.fillStyle = "rgba(255,255,255,0.72)";
-    ctx.font = `600 ${Math.max(8, dims.w * 0.042)}px Outfit, "Segoe UI", sans-serif`;
-    metaBits.slice(0, 3).forEach((bit, i) => {
-      ctx.fillText(bit, cx, y + i * dims.w * 0.055);
-    });
-    y += metaBits.slice(0, 3).length * dims.w * 0.055;
-  }
+    sku,
+    qrPayload,
+  });
+  drawCylindricalLabelWrap(ctx, labelBmp, {
+    cx: dims.w / 2,
+    bodyX,
+    bodyW,
+    sleeveTop,
+    sleeveH,
+    radius: 6,
+  });
 
-  if (qrPayload || bacWater || concentration || doseRange) {
-    const qrSize = Math.min(dims.w * 0.28, dims.h * 0.16);
-    const qrY = Math.min(dims.h - qrSize - dims.w * 0.06, y + dims.w * 0.04);
-    drawQrCode(
-      ctx,
-      cx - qrSize / 2,
-      qrY,
-      qrSize,
-      qrSeedFromOptions({ name, mass, unit, bacWater, concentration, doseRange, sku }),
-      true,
-      qrPayload
-    );
-  } else if (sku) {
+  if (sku) {
     ctx.fillStyle = "rgba(255,255,255,0.4)";
     ctx.font = `500 ${Math.max(8, dims.w * 0.038)}px Outfit, sans-serif`;
-    ctx.fillText(sku, cx, dims.h - dims.w * 0.06);
+    ctx.textAlign = "center";
+    ctx.fillText(sku, dims.w / 2, dims.h - dims.w * 0.06);
   }
 }
 
@@ -1015,23 +1336,12 @@ function drawLabelSpineMark(ctx, cx, cy, r) {
 }
 
 /**
- * Flat printable Wellpept label — black spine + white data panel + QR,
- * matching the clinical wrap-label mockup.
+ * Flat printable Undisclosed wrap label — black spine + white data panel + QR.
+ * Matching the clinical wrap-label mockup the customer receives.
  */
 export function drawLabelTemplate(canvas, options = {}) {
-  const {
-    name = "Peptide",
-    mass = "",
-    unit = "mg",
-    bacWater = "",
-    concentration = "",
-    doseRange = "",
-    sku = "",
-    size = "md",
-    qrPayload = "",
-  } = options;
+  const { size = "md" } = options;
 
-  // Landscape wrap proportions matching the print mockup
   const dims = {
     sm: { w: 520, h: 190 },
     md: { w: 760, h: 280 },
@@ -1052,6 +1362,22 @@ export function drawLabelTemplate(canvas, options = {}) {
   ctx.clearRect(0, 0, dims.w, dims.h);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
+  paintLabelTemplate(ctx, dims, options);
+  return canvas.toDataURL("image/png");
+}
+
+/** Paint the wrap-label artwork into an existing context at logical dims. */
+function paintLabelTemplate(ctx, dims, options = {}) {
+  const {
+    name = "Peptide",
+    mass = "",
+    unit = "mg",
+    bacWater = "",
+    concentration = "",
+    doseRange = "",
+    sku = "",
+    qrPayload = "",
+  } = options;
 
   const spineW = Math.round(dims.w * 0.105);
   const rightW = Math.round(dims.w * 0.235);
@@ -1063,7 +1389,6 @@ export function drawLabelTemplate(canvas, options = {}) {
   const hair = Math.max(1, dims.h * 0.0045);
   const corner = Math.max(4, dims.h * 0.035);
 
-  // Outer white plate with light border
   roundRect(ctx, 0.5, 0.5, dims.w - 1, dims.h - 1, corner);
   ctx.fillStyle = "#ffffff";
   ctx.fill();
@@ -1075,11 +1400,9 @@ export function drawLabelTemplate(canvas, options = {}) {
   roundRect(ctx, 0, 0, dims.w, dims.h, corner);
   ctx.clip();
 
-  // —— Left black brand spine ——
   ctx.fillStyle = ink;
   ctx.fillRect(0, 0, spineW, dims.h);
 
-  // Vertical WELLPEPT
   ctx.save();
   ctx.translate(spineW * 0.52, dims.h * 0.42);
   ctx.rotate(-Math.PI / 2);
@@ -1104,7 +1427,6 @@ export function drawLabelTemplate(canvas, options = {}) {
   const markR = Math.min(spineW * 0.34, dims.h * 0.105);
   drawLabelSpineMark(ctx, spineW * 0.5, dims.h - markR * 1.45, markR);
 
-  // Divider between center and right
   ctx.strokeStyle = ink;
   ctx.lineWidth = hair;
   ctx.beginPath();
@@ -1116,7 +1438,6 @@ export function drawLabelTemplate(canvas, options = {}) {
   const midPad = midW * 0.06;
   const contentW = midW - midPad * 2;
 
-  // Brand header
   ctx.fillStyle = ink;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
@@ -1124,7 +1445,6 @@ export function drawLabelTemplate(canvas, options = {}) {
   ctx.font = `600 ${brandHeaderPx}px Outfit, "Segoe UI", sans-serif`;
   ctx.fillText("—  UNDISCLOSED  —", midCx, dims.h * 0.1);
 
-  // Product name (athletic / varsity)
   const product = String(name || "PEPTIDE").toUpperCase();
   const nameFamily = '"Bebas Neue", "Arial Black", Impact, sans-serif';
   const nameSize = fitCenteredText(
@@ -1138,7 +1458,6 @@ export function drawLabelTemplate(canvas, options = {}) {
   ctx.fillStyle = ink;
   ctx.fillText(product, midCx, dims.h * 0.3);
 
-  // Mass framed between two horizontal rules
   const massLabel =
     mass !== "" && mass != null
       ? `${String(mass).trim()} ${String(unit || "mg").toUpperCase()}`
@@ -1164,7 +1483,6 @@ export function drawLabelTemplate(canvas, options = {}) {
     ctx.fillText(massLabel, midCx, (topRuleY + botRuleY) / 2 + dims.h * 0.01);
   }
 
-  // Spec grid under bottom rule
   const gridTop = botRuleY + dims.h * 0.045;
   const gridBottom = dims.h * 0.94;
   const gridH = gridBottom - gridTop;
@@ -1177,7 +1495,7 @@ export function drawLabelTemplate(canvas, options = {}) {
   ];
 
   cells.forEach((cell, i) => {
-    const cx = gridLeft + colW * (i + 0.5);
+    const cellCx = gridLeft + colW * (i + 0.5);
     if (i > 0) {
       ctx.strokeStyle = ink;
       ctx.lineWidth = hair;
@@ -1189,7 +1507,7 @@ export function drawLabelTemplate(canvas, options = {}) {
     ctx.fillStyle = muted;
     ctx.font = `700 ${Math.max(7, dims.h * 0.03)}px Outfit, "Segoe UI", sans-serif`;
     ctx.textAlign = "center";
-    ctx.fillText(cell.label, cx, gridTop + gridH * 0.28);
+    ctx.fillText(cell.label, cellCx, gridTop + gridH * 0.28);
 
     const valueSize = fitCenteredText(
       ctx,
@@ -1200,10 +1518,9 @@ export function drawLabelTemplate(canvas, options = {}) {
     );
     ctx.font = `800 ${valueSize}px Outfit, "Segoe UI", sans-serif`;
     ctx.fillStyle = ink;
-    ctx.fillText(cell.value, cx, gridTop + gridH * 0.68);
+    ctx.fillText(cell.value, cellCx, gridTop + gridH * 0.68);
   });
 
-  // —— Right: rounded QR well + disclaimer ——
   const qrPad = Math.max(12, rightW * 0.14);
   const qrBox = Math.min(rightW - qrPad * 2, dims.h * 0.5);
   const qrX = rightX + (rightW - qrBox) / 2;
@@ -1245,7 +1562,6 @@ export function drawLabelTemplate(canvas, options = {}) {
   ctx.fillText("CONSUMPTION.", discX, discBase + discPx * 2.7);
 
   ctx.restore();
-  return canvas.toDataURL("image/png");
 }
 
 export function downloadVialPng(dataUrl, filename = "wellpept-vial.png") {
