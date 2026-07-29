@@ -783,15 +783,17 @@ svg {
 /* Undisclosed lab hero — black / white clinical */
 .hero--undisclosed {
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  align-items: center;
+  justify-items: start;
 }
 
 .hero-media--undisclosed {
   background:
     linear-gradient(
       105deg,
-      rgba(0, 0, 0, 0.92) 0%,
-      rgba(0, 0, 0, 0.55) 42%,
-      rgba(0, 0, 0, 0.2) 68%,
+      rgba(0, 0, 0, 0.94) 0%,
+      rgba(0, 0, 0, 0.72) 36%,
+      rgba(0, 0, 0, 0.28) 58%,
       rgba(0, 0, 0, 0.08) 100%
     ),
     url("/undisclosed-brand.png") right center / contain no-repeat,
@@ -807,12 +809,33 @@ svg {
   );
 }
 
+.hero--undisclosed .container.hero-content,
 .hero--undisclosed .hero-content {
   color: #f7f7f7;
+  text-align: left;
+  margin-left: clamp(1rem, 3.5vw, 2.5rem);
+  margin-right: auto;
+  width: min(36rem, calc(100% - 2rem));
+  max-width: 36rem;
+  justify-self: start;
+  align-self: center;
+  padding-top: 4.5rem;
+  padding-bottom: 3rem;
+}
+
+.hero--undisclosed .hero-brand-lockup {
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.hero--undisclosed .hero-brand-text {
+  align-items: flex-start;
+  text-align: left;
 }
 
 .hero--undisclosed .hero-brand {
   color: #fff;
+  text-align: left;
   text-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
 }
 
@@ -823,19 +846,25 @@ svg {
 }
 
 .hero--undisclosed .hero-brand-rule {
+  margin-left: 0;
+  margin-right: auto;
   background: linear-gradient(
     90deg,
-    transparent,
-    rgba(255, 255, 255, 0.35) 20%,
-    #fff 50%,
-    rgba(255, 255, 255, 0.35) 80%,
-    transparent
+    #fff 0%,
+    rgba(255, 255, 255, 0.55) 55%,
+    transparent 100%
   );
 }
 
 .hero--undisclosed .hero-brand-rule::after {
+  left: 0.15rem;
+  transform: translate(0, -50%);
   background: #fff;
   border-color: rgba(255, 255, 255, 0.5);
+}
+
+.hero--undisclosed .hero-cta {
+  justify-content: flex-start;
 }
 
 .hero--undisclosed .hero-cta .primary-btn {
@@ -847,6 +876,14 @@ svg {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.35);
   color: #fff;
+}
+
+.hero--undisclosed .hero-tagline,
+.hero--undisclosed .hero-copy,
+.hero--undisclosed .ud-brought-by {
+  text-align: left;
+  margin-left: 0;
+  margin-right: auto;
 }
 
 .hero--undisclosed .hero-tagline {
