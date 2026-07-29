@@ -1,14 +1,14 @@
-/** Auto-imported from Changsha Premium July 2026.xlsx */
+/** Auto-imported from Changsha July 2026.xlsx */
 
 export const CHANGSHA_VENDOR = {
   "id": "v-changsha-premium",
-  "name": "Changsha Premium",
-  "email": "orders@changsha-premium.example",
+  "name": "Changsha",
+  "email": "orders@changsha.example",
   "status": "approved",
   "minOrder": 0,
   "shippingFlat": 60,
   "shippingNote": "US shipping only \u00b7 Dedicated Line ~10\u201315 days ($60) \u00b7 FedEx ~1 week ($90)",
-  "priceListSource": "Changsha Premium July 2026.xlsx",
+  "priceListSource": "Changsha July 2026.xlsx",
   "createdAt": "2026-07-01T00:00:00.000Z"
 };
 

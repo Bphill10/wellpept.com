@@ -1,4 +1,4 @@
-/** Featured vendor — Lobster International only (Cartman Gear).
+/** Featured vendor — Lobster (HGH focus).
  *  Customer storefront never links out to the vendor site.
  *  Sourced from Wayback 2026-06-27:
  *  https://cartmangear.co/product-category/lobster-international/
@@ -6,18 +6,19 @@
 
 export const THE_LOBSTER_VENDOR = {
   id: "v-the-lobster",
-  name: "The Lobster (Cartman Gear)",
+  name: "Lobster",
   email: "thelobster@tuta.com",
   telegram: "@THELOBSTERHGH",
   website: "https://cartmangear.co/product-category/lobster-international/",
   status: "approved",
   featured: true,
+  featuredFor: "HGH",
   minOrder: 800,
   shippingFlat: 0,
   shippingNote: "US only · request first · pay after supply check · up to 4 weeks",
   priceListSource: "Lobster International (Wayback 2026-06-27)",
   notes:
-    "Featured vendor. Request first — confirm supply within 24h, then payment. US shipping only. Min order applies. Allow up to 4 weeks after payment. Drop-ship via Wellpept only — do not expose vendor site to customers.",
+    "Featured for HGH. Request first — confirm supply within 24h, then payment. US shipping only. Min order applies. Allow up to 4 weeks after payment. Drop-ship via Wellpept only — do not expose vendor site to customers.",
   createdAt: "2026-01-01T00:00:00.000Z",
 };
 

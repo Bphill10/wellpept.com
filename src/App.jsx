@@ -1460,15 +1460,17 @@ export default function App() {
               <div className="container">
                 <div className="featured-vendor panel">
                   <div className="featured-vendor-copy">
-                    <span className="featured-kicker">Featured vendor</span>
-                    <h2>The Lobster</h2>
+                    <span className="featured-kicker">Featured for HGH</span>
+                    <h2>Lobster</h2>
                     <p>
-                      Featured vendor on Undisclosed. Minimum order{" "}
+                      Featured HGH vendor on Undisclosed. Pharma-grade HGH kits
+                      and growth-pathway lines. Minimum order{" "}
                       {formatMoney(THE_LOBSTER_VENDOR.minOrder)}. Request first —
                       we confirm supply within 24 hours, then payment. US
                       shipping only; allow up to 4 weeks after payment.
                     </p>
                     <ul className="featured-meta">
+                      <li>Featured for HGH</li>
                       <li>
                         Min order {formatMoney(THE_LOBSTER_VENDOR.minOrder)}
                       </li>
@@ -1480,6 +1482,19 @@ export default function App() {
                         type="button"
                         className="primary-btn"
                         onClick={() => {
+                          setQuery("HGH");
+                          setCategory("Growth");
+                          document
+                            .getElementById("catalog")
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        }}
+                      >
+                        Shop Lobster HGH
+                      </button>
+                      <button
+                        type="button"
+                        className="soft-btn"
+                        onClick={() => {
                           setQuery("Lobster");
                           setCategory("All");
                           document
@@ -1487,19 +1502,19 @@ export default function App() {
                             ?.scrollIntoView({ behavior: "smooth" });
                         }}
                       >
-                        Shop Lobster catalog
+                        Full Lobster catalog
                       </button>
                     </div>
                   </div>
                   <div className="featured-vendor-visual">
                     <GeneratedVial
-                      name="The Lobster"
-                      sku="INTL"
-                      mass={10}
-                      unit="mg"
+                      name="HGH"
+                      sku="LOB-HGH"
+                      mass={150}
+                      unit="IU"
                       category="Growth"
                       vialMl={3}
-                      form="Lyophilized vial · 3ml"
+                      form="Pharma-grade kit · 150 IU"
                       size="lg"
                     />
                   </div>

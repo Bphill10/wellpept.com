@@ -3,8 +3,13 @@ import {
   SEED_VENDORS,
   buildCatalog,
 } from "./products";
+import { CHANGSHA_VENDOR } from "./changshaPremium";
+import { THE_LOBSTER_VENDOR } from "./theLobster";
 
-const STORAGE_KEY = "wellpept-marketplace-v1";
+const STORAGE_KEY = "wellpept-marketplace-v2";
+
+/** Vendors currently live on Undisclosed. */
+const ACTIVE_VENDOR_IDS = new Set(["v-changsha-premium", "v-the-lobster"]);
 
 function loadState() {
   try {
@@ -12,7 +17,32 @@ function loadState() {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed?.vendors || !parsed?.submissions) return null;
-    return parsed;
+    const vendors = parsed.vendors.filter((v) => ACTIVE_VENDOR_IDS.has(v.id));
+    const submissions = parsed.submissions.filter((s) =>
+      ACTIVE_VENDOR_IDS.has(s.vendorId)
+    );
+    if (!vendors.length) return null;
+    // Keep display names in sync with seed (e.g. Changsha, not Premium).
+    const vendorsSynced = vendors.map((v) => {
+      if (v.id === CHANGSHA_VENDOR.id) {
+        return {
+          ...v,
+          name: CHANGSHA_VENDOR.name,
+          priceListSource: CHANGSHA_VENDOR.priceListSource,
+        };
+      }
+      if (v.id === THE_LOBSTER_VENDOR.id) {
+        return {
+          ...v,
+          name: THE_LOBSTER_VENDOR.name,
+          featured: true,
+          featuredFor: "HGH",
+          notes: THE_LOBSTER_VENDOR.notes,
+        };
+      }
+      return v;
+    });
+    return { vendors: vendorsSynced, submissions };
   } catch {
     return null;
   }

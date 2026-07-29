@@ -2,7 +2,6 @@ import {
   CHANGSHA_SUBMISSIONS,
   CHANGSHA_VENDOR,
 } from "./changshaPremium";
-import { ERP_SUBMISSIONS, ERP_VENDOR } from "./erpPeptide";
 import {
   THE_LOBSTER_SUBMISSIONS,
   THE_LOBSTER_VENDOR,
@@ -348,45 +347,13 @@ export function guessTagline(name) {
   if (key && TAGLINES[key]) return TAGLINES[key];
   return "Laboratory research compound";
 }
-const DEMO_PENDING_VENDOR = {
-  id: "v-demo-pending",
-  name: "Demo Vendor (pending)",
-  email: "demo@example.com",
-  status: "pending",
-  minOrder: 100,
-  shippingFlat: 20,
-  shippingNote: "Example submission only",
-  createdAt: "2026-07-27T12:00:00.000Z",
-};
+/** Active vendors for now: Changsha + Lobster (featured for HGH). */
+export const SEED_VENDORS = [CHANGSHA_VENDOR, THE_LOBSTER_VENDOR];
 
-/** Seed vendors: Changsha, ERP, The Lobster (featured), + demo pending. */
-export const SEED_VENDORS = [
-  CHANGSHA_VENDOR,
-  ERP_VENDOR,
-  THE_LOBSTER_VENDOR,
-  DEMO_PENDING_VENDOR,
-];
-
-/** Seed submissions: imported vendor lists + Lobster placeholders + demo. */
+/** Seed submissions from Changsha and Lobster only. */
 export const SEED_SUBMISSIONS = [
   ...CHANGSHA_SUBMISSIONS,
-  ...ERP_SUBMISSIONS,
   ...THE_LOBSTER_SUBMISSIONS,
-  {
-    id: "s-pending-demo",
-    vendorId: "v-demo-pending",
-    sku: "DEMO-5MG",
-    name: "Demo peptide",
-    form: "Lyophilized vial · 5mg*10vials",
-    purity: "≥98%",
-    mg: 5,
-    vendorCost: 50,
-    category: "Research",
-    packVials: 10,
-    status: "pending",
-    submittedAt: "2026-07-27T14:30:00.000Z",
-    reviewedAt: null,
-  },
 ];
 
 export function guessCategory(name) {
