@@ -1003,17 +1003,50 @@ function drawCoverImage(ctx, img, w, h) {
 }
 
 /**
- * Photoreal unlabeled vial on a clean black studio field — no decorative backdrop.
+ * Photoreal vial with clinical wrap label — peptide name + QR to the site.
  */
 function drawPhotorealVial(ctx, dims, options) {
   const {
     photo,
+    name = "Peptide",
+    mass = "",
+    unit = "mg",
+    sku = "",
+    bacWater = "",
+    concentration = "",
+    doseRange = "",
+    qrPayload = "",
+    coaUrl = "",
     isTen = false,
   } = options;
 
   ctx.fillStyle = "#000000";
   ctx.fillRect(0, 0, dims.w, dims.h);
   drawZoomedVialPhoto(ctx, photo, dims.w, dims.h, isTen ? 1.42 : 1.58);
+
+  const bodyW = dims.w * (isTen ? 0.37 : 0.35);
+  const bodyX = dims.w / 2 - bodyW / 2;
+  const sleeveTop = dims.h * (isTen ? 0.315 : 0.305);
+  const sleeveH = dims.h * (isTen ? 0.34 : 0.33);
+
+  const wrapBmp = createWrapLabelBitmap({
+    name,
+    mass,
+    unit,
+    bacWater,
+    concentration,
+    doseRange,
+    sku,
+    qrPayload,
+    coaUrl,
+  });
+  drawUprightLabelOnVial(ctx, wrapBmp, {
+    bodyX,
+    bodyW,
+    sleeveTop,
+    sleeveH,
+    radius: Math.max(3, bodyW * 0.045),
+  });
 }
 
 /** Cover-fit with zoom so the vial reads like a close product shot. */
@@ -1098,76 +1131,60 @@ function createWrapLabelBitmap(options) {
 }
 
 /**
- * Apply the clinical wrap to the glass like the reference product shot:
- * mild front-arc wrap so it reads as attached to the cylinder, not a flat card.
+ * Apply the clinical wrap upright on the glass (spine left → QR right).
+ * Mild edge shade only — no cylindrical remapping that flipped text.
  */
-function drawReferenceWrapOnVial(ctx, labelCanvas, geom) {
+function drawUprightLabelOnVial(ctx, labelCanvas, geom) {
   if (!labelCanvas || !labelCanvas.width) return;
   const { bodyX, bodyW, sleeveTop, sleeveH, radius = 4 } = geom;
-  const cx = bodyX + bodyW / 2;
-  const lw = labelCanvas.width;
-  const lh = labelCanvas.height;
-  const slices = 72;
-  // Front face only — keeps text sharp like the reference screenshot
-  const visibleArc = Math.PI * 0.78;
 
   ctx.save();
   roundRect(ctx, bodyX - 0.5, sleeveTop - 0.5, bodyW + 1, sleeveH + 1, radius);
   ctx.clip();
 
-  ctx.fillStyle = "rgba(0,0,0,0.18)";
+  ctx.fillStyle = "rgba(0,0,0,0.16)";
   roundRect(ctx, bodyX + 1, sleeveTop + 2, bodyW - 2, sleeveH - 1, radius);
   ctx.fill();
 
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
-
-  for (let i = 0; i < slices; i += 1) {
-    const t0 = i / slices;
-    const t1 = (i + 1) / slices;
-    const theta0 = (t0 - 0.5) * visibleArc;
-    const theta1 = (t1 - 0.5) * visibleArc;
-    const cos = (Math.cos(theta0) + Math.cos(theta1)) / 2;
-    if (cos < 0.12) continue;
-
-    const x0 = cx + (bodyW / 2) * 0.985 * Math.sin(theta0);
-    const x1 = cx + (bodyW / 2) * 0.985 * Math.sin(theta1);
-    const destX = Math.min(x0, x1);
-    const destW = Math.max(1.15, Math.abs(x1 - x0) + 0.75);
-    const srcX = t0 * lw;
-    const srcW = Math.max(1, (t1 - t0) * lw + 0.5);
-
-    ctx.globalAlpha = 0.92 + cos * 0.08;
-    ctx.drawImage(
-      labelCanvas,
-      srcX,
-      0,
-      srcW,
-      lh,
-      destX,
-      sleeveTop,
-      destW,
-      sleeveH
-    );
-  }
-  ctx.globalAlpha = 1;
+  // Draw upright: left of artwork = left of vial (black UNDISCLOSED spine)
+  ctx.drawImage(labelCanvas, bodyX, sleeveTop, bodyW, sleeveH);
 
   const shade = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW, 0);
-  shade.addColorStop(0, "rgba(0,0,0,0.3)");
-  shade.addColorStop(0.14, "rgba(0,0,0,0.06)");
+  shade.addColorStop(0, "rgba(0,0,0,0.28)");
+  shade.addColorStop(0.12, "rgba(0,0,0,0.05)");
   shade.addColorStop(0.5, "rgba(0,0,0,0)");
-  shade.addColorStop(0.86, "rgba(0,0,0,0.06)");
-  shade.addColorStop(1, "rgba(0,0,0,0.3)");
+  shade.addColorStop(0.88, "rgba(0,0,0,0.05)");
+  shade.addColorStop(1, "rgba(0,0,0,0.28)");
   ctx.fillStyle = shade;
   ctx.fillRect(bodyX, sleeveTop, bodyW, sleeveH);
 
-  ctx.strokeStyle = "rgba(255,255,255,0.32)";
+  const gloss = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW, 0);
+  gloss.addColorStop(0, "rgba(255,255,255,0)");
+  gloss.addColorStop(0.16, "rgba(255,255,255,0.1)");
+  gloss.addColorStop(0.28, "rgba(255,255,255,0)");
+  gloss.addColorStop(0.74, "rgba(255,255,255,0)");
+  gloss.addColorStop(0.88, "rgba(255,255,255,0.08)");
+  gloss.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = gloss;
+  ctx.fillRect(bodyX, sleeveTop, bodyW, sleeveH);
+
+  ctx.strokeStyle = "rgba(255,255,255,0.28)";
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(bodyX + 3, sleeveTop + 0.5);
   ctx.lineTo(bodyX + bodyW - 3, sleeveTop + 0.5);
   ctx.stroke();
   ctx.restore();
+}
+
+/**
+ * Apply the clinical wrap to the glass like the reference product shot:
+ * mild front-arc wrap so it reads as attached to the cylinder, not a flat card.
+ */
+function drawReferenceWrapOnVial(ctx, labelCanvas, geom) {
+  drawUprightLabelOnVial(ctx, labelCanvas, geom);
 }
 
 /** Portrait sticker artwork — unused; wrap template is the source of truth. */
@@ -1329,6 +1346,27 @@ function drawLabeledThreeMl(ctx, dims, options) {
   ctx.fillStyle = "rgba(255,255,255,0.35)";
   ctx.fillRect(bodyX + bodyW * 0.12, bodyY + shoulderH, bodyW * 0.1, bodyH * 0.35);
 
+  const sleeveTop = bodyY + bodyH * 0.34;
+  const sleeveH = bodyBottom - sleeveTop - radius * 0.15;
+  const labelBmp = createWrapLabelBitmap({
+    name,
+    mass,
+    unit,
+    bacWater,
+    concentration,
+    doseRange,
+    sku,
+    qrPayload,
+    coaUrl,
+  });
+  drawUprightLabelOnVial(ctx, labelBmp, {
+    bodyX,
+    bodyW,
+    sleeveTop,
+    sleeveH,
+    radius: radius * 0.6,
+  });
+
   ctx.strokeStyle = "rgba(180, 190, 200, 0.35)";
   ctx.lineWidth = 1.2;
   roundRect(ctx, bodyX, bodyY + shoulderH * 0.85, bodyW, bodyH - shoulderH * 0.85, radius);
@@ -1425,6 +1463,27 @@ function drawLabeledTenMl(ctx, dims, options) {
     ctx.fillRect(bodyX, bodyY + bodyH * 0.4, bodyW, bodyH * 0.6);
   }
   ctx.restore();
+
+  const sleeveTop = bodyY + bodyH * 0.28;
+  const sleeveH = bodyBottom - sleeveTop - 4;
+  const labelBmp = createWrapLabelBitmap({
+    name,
+    mass,
+    unit,
+    bacWater,
+    concentration,
+    doseRange,
+    sku,
+    qrPayload,
+    coaUrl,
+  });
+  drawUprightLabelOnVial(ctx, labelBmp, {
+    bodyX,
+    bodyW,
+    sleeveTop,
+    sleeveH,
+    radius: radius * 0.5,
+  });
 
   drawBrandWordmark(ctx, cx, bodyBottom + dims.h * 0.05, dims.w * 0.72);
 }

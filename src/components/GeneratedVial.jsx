@@ -141,7 +141,7 @@ export default function GeneratedVial({
       <canvas
         ref={canvasRef}
         className={`generated-vial generated-vial--${size} generated-vial--${resolvedMl}ml`}
-        aria-label={`${name} Undisclosed vial`}
+        aria-label={`${name} Undisclosed labeled vial`}
       />
       {showDownload && png && (
         <button type="button" className="soft-btn vial-download" onClick={handleDownload}>
