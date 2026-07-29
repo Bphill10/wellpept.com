@@ -1287,8 +1287,8 @@ export default function App() {
                   </div>
                   <div className="featured-vendor-visual">
                     <img
-                      src="/undisclosed-brand.png"
-                      alt="Undisclosed KLOW 80 MG labeled vial"
+                      src="/undisclosed-hero-kit.png"
+                      alt="Undisclosed KLOW 80 MG research kit"
                       className="featured-product-photo"
                       width={899}
                       height={1750}

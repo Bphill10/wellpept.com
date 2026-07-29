@@ -791,12 +791,12 @@ svg {
   background:
     linear-gradient(
       105deg,
-      rgba(0, 0, 0, 0.88) 0%,
-      rgba(0, 0, 0, 0.55) 34%,
-      rgba(0, 0, 0, 0.18) 58%,
-      rgba(0, 0, 0, 0.08) 100%
+      rgba(0, 0, 0, 0.9) 0%,
+      rgba(0, 0, 0, 0.62) 36%,
+      rgba(0, 0, 0, 0.2) 58%,
+      rgba(0, 0, 0, 0.05) 100%
     ),
-    url("/undisclosed-hero-kit.png") right center / cover no-repeat,
+    url("/undisclosed-brand.png") right 8% center / contain no-repeat,
     #000;
   background-color: #000;
 }
@@ -2966,7 +2966,7 @@ body:has(.app-shell--undisclosed)::before {
     border-top: 1px solid rgba(255, 255, 255, 0.12);
     background:
       #050505
-        url("/undisclosed-hero-kit.png") center / cover no-repeat !important;
+        url("/undisclosed-brand.png") center / contain no-repeat !important;
     display: block !important;
     padding: 0 !important;
   }
@@ -5104,7 +5104,7 @@ body:has(.app-shell--undisclosed)::before {
     min-height: 200px !important;
     max-height: 320px !important;
     border-top: 1px solid rgba(255, 255, 255, 0.12);
-    background: #050505 url("/undisclosed-hero-kit.png") center / cover no-repeat !important;
+    background: #050505 url("/undisclosed-brand.png") center / contain no-repeat !important;
     display: block !important;
     padding: 0 !important;
   }
