@@ -394,7 +394,7 @@ export function buildOrderPacket({
     },
     shipments,
     notes:
-      "ORDER REQUEST. Check supply first. Do not charge until confirmed. Reply to customer within 24 hours with payment instructions. Delivery takes 2-3 weeks. Drop-ship via Wellpept only. Do not share vendor storefront links with the customer.",
+      "ORDER REQUEST. Check supply first. Do not charge until confirmed. Reply to customer within 24 hours with payment instructions. Delivery takes 2-3 weeks. Drop-ship via Wellpept only. Do not share supply storefront links with the customer.",
   };
 }
 
@@ -435,7 +435,7 @@ export function formatOrderPacketText(packet) {
   }
   lines.push("");
   for (const ship of packet.shipments) {
-    lines.push(`── Vendor: ${ship.vendor} ──`);
+    lines.push(`── Shipment ──`);
     lines.push(
       `Ship to: ${ship.shipTo.name}, ${ship.shipTo.address1}${
         ship.shipTo.address2 ? `, ${ship.shipTo.address2}` : ""

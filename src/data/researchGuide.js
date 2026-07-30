@@ -14,7 +14,7 @@ export const RESEARCH_GLOSSARY = [
   },
   {
     term: "COA",
-    def: "Certificate of Analysis — usually HPLC-based purity and quantity reporting. Prefer third-party labs over vendor-only paperwork when possible.",
+    def: "Certificate of Analysis — usually HPLC-based purity and quantity reporting. Prefer independent third-party labs when possible.",
   },
   {
     term: "HPLC",
@@ -60,7 +60,7 @@ export const LYOPHILIZED_QC = {
   testing: [
     "HPLC for identity, purity (many labs target ≥98%), and mass fill",
     "LAL endotoxin when the assay path involves injectable research use",
-    "Periodic counterion / residual-solvent spot checks (e.g. NMR F-19 for TFA) on long-running vendors",
+    "Periodic counterion / residual-solvent spot checks (e.g. NMR F-19 for TFA) on long-running supply lines",
   ],
 };
 

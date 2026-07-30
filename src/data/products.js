@@ -40,7 +40,7 @@ export function displayVendorName(name, vendorId = "") {
     .replace(/\s+/g, " ")
     .trim();
   if (/changsha/i.test(cleaned)) return "Changsha";
-  return cleaned || "Vendor";
+  return cleaned || "Partner";
 }
 
 export const CATEGORIES = [
@@ -104,7 +104,7 @@ const BLURBS = {
   HGH:
     "Recombinant growth hormone (somatropin). Used for GH-receptor, growth, and metabolic pathway laboratory work.",
   "TheProLobster Plus HGH":
-    "Lobster HGH presentation for growth-pathway research. Confirm IU labeling on the vendor line before assay design.",
+    "Lobster HGH presentation for growth-pathway research. Confirm IU labeling on the line before assay design.",
   Glow:
     "Multi-peptide blend (often BPC, TB, and GHK-Cu). Built for labs comparing recovery and copper-peptide pathways together.",
   GLOW:
@@ -352,7 +352,7 @@ function resolveCompoundKey(name) {
 export function guessBlurb(name) {
   const key = resolveCompoundKey(name);
   if (key && BLURBS[key]) return BLURBS[key];
-  return "Research compound for laboratory use only. Review COA and vendor notes before assay design — not for human consumption.";
+  return "Research compound for laboratory use only. Review COA and batch notes before assay design. Not for human consumption.";
 }
 
 /** Short line for vial labels and card meta — more detail without a wall of text. */
@@ -532,14 +532,13 @@ function sortOffers(a, b) {
 }
 
 export function formatVendorOfferLabel(product) {
-  const vendor = displayVendorName(product.vendor, product.vendorId);
   const price =
-    product.price == null ? "See options" : formatMoney(product.price);
+    product.price == null ? "Quote" : formatMoney(product.price);
   const ship =
     product.shippingFlat != null
       ? ` · ship ${formatMoney(product.shippingFlat)}`
       : "";
-  return `${vendor} · ${price}${ship}`;
+  return `${formatStrengthLabel(product)} · ${price}${ship}`;
 }
 
 /**

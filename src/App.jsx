@@ -19,7 +19,6 @@ import {
   formatStrengthLabel,
   formatStrengthSelectLabel,
   formatVendorOfferLabel,
-  displayVendorName,
   groupCatalog,
   guessCategory,
   retailFromVendor,
@@ -502,9 +501,7 @@ export default function App() {
       listing.category.toLowerCase().includes(q) ||
       listing.variants.some(
         (v) =>
-          v.sku.toLowerCase().includes(q) ||
-          v.vendor.toLowerCase().includes(q) ||
-          String(v.mg).includes(q)
+          v.sku.toLowerCase().includes(q) || String(v.mg).includes(q)
       );
     const matchesCategory =
       category === "All" || listing.category === category;
@@ -610,9 +607,9 @@ export default function App() {
             : s
         )
       );
-      setFlash("Vendor approved. Pending lines published");
+      setFlash("Partner approved. Pending lines published");
     } else {
-      setFlash("Vendor approved");
+      setFlash("Partner approved");
     }
   }
 
@@ -620,7 +617,7 @@ export default function App() {
     setVendors((prev) =>
       prev.map((v) => (v.id === id ? { ...v, status: "rejected" } : v))
     );
-    setFlash("Vendor rejected");
+    setFlash("Partner rejected");
   }
 
   function approveAllPending() {
@@ -637,7 +634,7 @@ export default function App() {
           : s
       )
     );
-    setFlash("All pending vendors and lines approved");
+    setFlash("All pending partners and lines approved");
   }
 
   function approveAllPendingLines() {
@@ -712,7 +709,7 @@ export default function App() {
       });
 
     if (!vendor.name || !vendor.email || lines.length === 0) {
-      setFlash("Add vendor details and at least one price-list item");
+      setFlash("Add partner details and at least one price-list item");
       return false;
     }
 
@@ -764,7 +761,7 @@ export default function App() {
     setSubmissions((prev) => [...lines, ...prev]);
     setFlash(
       autoPublish
-        ? `${lines.length} line${lines.length === 1 ? "" : "s"} auto-published for ${vendor?.name || "vendor"}`
+        ? `${lines.length} line${lines.length === 1 ? "" : "s"} auto-published for ${vendor?.name || "partner"}`
         : "Updated price list submitted for approval"
     );
     return true;
@@ -783,7 +780,7 @@ export default function App() {
           : v
       )
     );
-    setFlash("Vendor shipping & minimum order updated");
+    setFlash("Partner shipping & minimum order updated");
   }
 
   function handleStripePaid(orderId, payment) {
@@ -1133,7 +1130,7 @@ export default function App() {
                   onClick={() => setView(VIEWS.vendor)}
                 >
                   <Store size={16} />
-                  <span>Vendors</span>
+                  <span>Partners</span>
                 </button>
                 <button
                   type="button"
@@ -1730,7 +1727,6 @@ function ProductCard({ listing, onOpen, onAdd }) {
             {multiStrength
               ? ` · ${strengths.length} strengths`
               : ""}
-            {listing.vendorCount > 1 ? ` · ${listing.vendorCount} vendors` : ""}
           </div>
           <h3>{listing.name}</h3>
           <p className="card-blurb">{listing.blurb || product.blurb}</p>
@@ -1761,9 +1757,6 @@ function ProductCard({ listing, onOpen, onAdd }) {
               </>
             )}
           </div>
-          <div className="meta sold-by">
-            Sold by {displayVendorName(product.vendor, product.vendorId)}
-          </div>
         </div>
       </button>
 
@@ -1790,11 +1783,11 @@ function ProductCard({ listing, onOpen, onAdd }) {
 
       {multiVendor && (
         <label className="strength-field" onClick={(e) => e.stopPropagation()}>
-          <span>Vendor</span>
+          <span>Option</span>
           <select
             value={product.id}
             onChange={(e) => setOfferId(e.target.value)}
-            aria-label={`${listing.name} vendor`}
+            aria-label={`${listing.name} option`}
           >
             {offers.map((o) => (
               <option key={o.id} value={o.id}>
@@ -1810,7 +1803,7 @@ function ProductCard({ listing, onOpen, onAdd }) {
         product={product}
         onSelect={setOfferId}
         defaultOpen={false}
-        defaultScope={listing.vendorCount > 1 ? "all" : "strength"}
+        defaultScope="strength"
         compact
       />
 
@@ -1884,12 +1877,7 @@ function ProductDetail({
             />
           </div>
           <div className="detail-info">
-            <div className="meta">
-              {listing.category}
-              {listing.vendorCount > 1
-                ? ` · ${listing.vendorCount} vendors`
-                : ""}
-            </div>
+            <div className="meta">{listing.category}</div>
             <h1>{listing.name}</h1>
             {Number(listing.reviews) > 0 && listing.rating != null && (
               <div className="rating">
@@ -1919,13 +1907,7 @@ function ProductDetail({
               {product.purity ? ` · Purity ${product.purity}` : ""}
             </div>
             <div className="meta">{product.form}</div>
-            <div className="meta sold-by">
-              Sold by{" "}
-              <strong>
-                {displayVendorName(product.vendor, product.vendorId)}
-              </strong>{" "}
-              · US shipping via WellPept marketplace
-            </div>
+            <div className="meta">US shipping via WellPept</div>
 
             <CoaStorePanel
               productId={product.id}
@@ -1970,11 +1952,11 @@ function ProductDetail({
             )}
             {multiVendor && (
               <label className="strength-field">
-                <span>Vendor</span>
+                <span>Option</span>
                 <select
                   value={product.id}
                   onChange={(e) => onSelectVariant(e.target.value)}
-                  aria-label="Select vendor"
+                  aria-label="Select option"
                 >
                   {offers.map((o) => (
                     <option key={o.id} value={o.id}>
@@ -2012,11 +1994,12 @@ function ProductDetail({
                 {product.shippingNote ? ` · ${product.shippingNote}` : ""}
               </>
             </div>
-            <div className="meta">
-              <Package size={14} style={{ display: "inline", marginRight: 6 }} />
-              Vendor minimum order {formatMoney(product.minOrder)} · Fulfilled by{" "}
-              {displayVendorName(product.vendor, product.vendorId)}
-            </div>
+            {Number(product.minOrder) > 0 && (
+              <div className="meta">
+                <Package size={14} style={{ display: "inline", marginRight: 6 }} />
+                Minimum order {formatMoney(product.minOrder)}
+              </div>
+            )}
             <button type="button" className="soft-btn" onClick={onCalculate}>
               <Calculator size={16} /> Calculate reconstitution
             </button>
@@ -2174,7 +2157,7 @@ function CartPage({
     const vendorTotal = vendorSubtotals.get(vendorId) || 0;
     if (vendorTotal < info.minOrder) {
       minOrderWarnings.push(
-        `${info.name} minimum is ${formatMoney(info.minOrder)} (cart has ${formatMoney(vendorTotal)})`
+        `Minimum order is ${formatMoney(info.minOrder)} (cart has ${formatMoney(vendorTotal)})`
       );
     }
   }
@@ -2268,7 +2251,7 @@ function CartPage({
       return;
     }
     if (minOrderWarnings.length) {
-      setPacketMsg("Meet each vendor minimum before submitting.");
+      setPacketMsg("Meet the minimum order before submitting.");
       return;
     }
     if (!isValidUsZip(customer.zip)) {
@@ -2423,8 +2406,7 @@ function CartPage({
                       <div>
                         <strong>{line.name}</strong>
                         <div className="meta">
-                          {formatStrengthLabel(line)} · {line.form} ·{" "}
-                          {line.vendor}
+                          {formatStrengthLabel(line)} · {line.form}
                         </div>
                         {line.ships && (
                           <div className="meta">{line.ships}</div>
@@ -2841,7 +2823,7 @@ function VendorPortal({
     <section className="panel-page fade">
       <div className="container">
         <div className="panel">
-          <h1>Vendor portal</h1>
+          <h1>Partner portal</h1>
           <p className="lede">
             Drop an Excel sheet, PDF, or CSV. We auto-fill your price list.
             Review the rows, fix anything off, then submit. US shipping only.
@@ -2851,7 +2833,7 @@ function VendorPortal({
             Best results: columns like Product / Name, Strength (mg), and Price /
             Cost. PDF needs selectable text (not a scanned image).
             {autoApproveTrusted
-              ? " Approved vendors: price-list updates auto-publish to the catalog."
+              ? " Approved partners: price-list updates auto-publish to the catalog."
               : " All price-list updates still need admin approval."}
           </div>
 
@@ -2861,7 +2843,7 @@ function VendorPortal({
               className={`chip ${tab === "apply" ? "active" : ""}`}
               onClick={() => setTab("apply")}
             >
-              New vendor application
+              New partner application
             </button>
             <button
               type="button"
@@ -2892,7 +2874,7 @@ function VendorPortal({
             >
               <div className="form-row">
                 <label className="field">
-                  Vendor name
+                  Partner name
                   <input
                     required
                     value={form.name}
@@ -2911,7 +2893,7 @@ function VendorPortal({
                     onChange={(e) =>
                       setForm((f) => ({ ...f, email: e.target.value }))
                     }
-                    placeholder="supply@vendor.com"
+                    placeholder="supply@example.com"
                   />
                 </label>
               </div>
@@ -2975,7 +2957,7 @@ function VendorPortal({
             <div className="grid-2">
               <div className="form-grid">
                 <label className="field">
-                  Vendor account
+                  Partner account
                   <select
                     value={existingVendorId}
                     onChange={(e) => setExistingVendorId(e.target.value)}
@@ -3396,7 +3378,7 @@ function AdminPanel({
         <div className="panel">
           <h1>Approval desk</h1>
           <p className="lede">
-            New vendors stay human-gated. Configure Venmo / Zelle / crypto here,
+            New partners stay human-gated. Configure Venmo / Zelle / crypto here,
             then send customers a pay link after supply check.
           </p>
 
@@ -3665,7 +3647,7 @@ function AdminPanel({
           </form>
 
           <div className="notice warn">
-            {pendingVendors.length} vendor
+            {pendingVendors.length} partner
             {pendingVendors.length === 1 ? "" : "s"} and {pendingItems.length}{" "}
             price-list line{pendingItems.length === 1 ? "" : "s"} awaiting
             review · {products.length} live products · {orders.length} order
@@ -3688,7 +3670,7 @@ function AdminPanel({
                 }
               />
               <span>
-                Auto-publish price-list updates from already-approved vendors
+                Auto-publish price-list updates from already-approved partners
               </span>
             </label>
             <label className="toggle-row">
@@ -3701,7 +3683,7 @@ function AdminPanel({
                   })
                 }
               />
-              <span>Approving a vendor also publishes their pending lines</span>
+              <span>Approving a partner also publishes their pending lines</span>
             </label>
             <label className="toggle-row">
               <input
@@ -3745,12 +3727,12 @@ function AdminPanel({
             </div>
           </div>
 
-          <h2>Pending vendors</h2>
+          <h2>Pending partners</h2>
           <div className="table-wrap" style={{ marginBottom: "1.5rem" }}>
             <table>
               <thead>
                 <tr>
-                  <th>Vendor</th>
+                  <th>Partner</th>
                   <th>Terms</th>
                   <th>Submitted</th>
                   <th>Actions</th>
@@ -3759,7 +3741,7 @@ function AdminPanel({
               <tbody>
                 {pendingVendors.length === 0 ? (
                   <tr>
-                    <td colSpan={4}>No vendors waiting.</td>
+                    <td colSpan={4}>No partners waiting.</td>
                   </tr>
                 ) : (
                   pendingVendors.map((v) => (
@@ -3812,7 +3794,7 @@ function AdminPanel({
               <thead>
                 <tr>
                   <th>Item</th>
-                  <th>Vendor</th>
+                  <th>Partner</th>
                   <th>Cost → Retail</th>
                   <th>Actions</th>
                 </tr>
@@ -3973,7 +3955,7 @@ function AdminPanel({
               <thead>
                 <tr>
                   <th>Product</th>
-                  <th>Vendor</th>
+                  <th>Partner</th>
                   <th>Retail</th>
                   <th>Ship / Min</th>
                 </tr>

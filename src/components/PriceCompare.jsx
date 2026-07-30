@@ -3,12 +3,11 @@ import { Scale } from "lucide-react";
 import {
   formatMoney,
   formatStrengthLabel,
-  displayVendorName,
   strengthKey,
 } from "../data/products";
 
 /**
- * Vendor / strength price compare table.
+ * Strength / price compare table (no source names shown).
  * scope: "strength" = same mg/pack/vial as selected offer; "all" = whole listing.
  */
 export default function PriceCompare({
@@ -34,13 +33,10 @@ export default function PriceCompare({
       const pa = a.price == null ? Number.POSITIVE_INFINITY : Number(a.price);
       const pb = b.price == null ? Number.POSITIVE_INFINITY : Number(b.price);
       if (pa !== pb) return pa - pb;
-      const mg = (Number(a.mg) || 0) - (Number(b.mg) || 0);
-      if (mg !== 0) return mg;
-      return String(a.vendor || "").localeCompare(String(b.vendor || ""));
+      return (Number(a.mg) || 0) - (Number(b.mg) || 0);
     });
   }, [allOffers, scope, currentKey]);
 
-  const vendorCount = new Set(allOffers.map((o) => o.vendorId)).size;
   const canCompare = allOffers.length > 1;
   if (!canCompare) return null;
 
@@ -61,7 +57,6 @@ export default function PriceCompare({
           {open ? "Hide compare" : "Compare prices"}
           <span className="price-compare-count">
             {allOffers.length} options
-            {vendorCount > 1 ? ` · ${vendorCount} vendors` : ""}
           </span>
         </button>
       </div>
@@ -97,7 +92,6 @@ export default function PriceCompare({
               <thead>
                 <tr>
                   <th>Strength</th>
-                  <th>Vendor</th>
                   <th>Price</th>
                   {!compact && <th>Ship</th>}
                   {!compact && <th>Min</th>}
@@ -110,9 +104,8 @@ export default function PriceCompare({
                   const isBest = o.id === bestId;
                   return (
                     <tr key={o.id} className={selected ? "is-selected" : ""}>
-                      <td>{formatStrengthLabel(o)}</td>
                       <td>
-                        {displayVendorName(o.vendor, o.vendorId)}
+                        {formatStrengthLabel(o)}
                         {o.featured ? (
                           <span className="best-price-tag">Featured</span>
                         ) : null}
