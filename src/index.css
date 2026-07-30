@@ -5746,6 +5746,7 @@ html:has(.app-shell--undisclosed) {
 
 /* ---------- CRT channel-tune unlock (WellPept → Undisclosed) ---------- */
 .tv-tune {
+  --tv-tune-dur: 4.8s;
   position: fixed;
   inset: 0;
   z-index: 200;
@@ -5754,7 +5755,7 @@ html:has(.app-shell--undisclosed) {
   background: #000;
   display: grid;
   place-items: center;
-  animation: tv-tune-hold 2.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: tv-tune-hold var(--tv-tune-dur) cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .tv-tune-svg {
@@ -5769,179 +5770,184 @@ html:has(.app-shell--undisclosed) {
   inset: 0;
   overflow: hidden;
   transform-origin: center;
-  animation: tv-tune-screen 2.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-  background: #050505;
+  animation: tv-tune-screen var(--tv-tune-dur) cubic-bezier(0.16, 1, 0.3, 1) both;
+  background: #000;
+}
+
+.tv-tune-void {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at center, #1a1a1a 0%, #050505 55%, #000 100%);
+  animation: tv-tune-void var(--tv-tune-dur) ease both;
 }
 
 .tv-tune-noise {
   position: absolute;
-  inset: -5%;
-  background: #888;
-  filter: url(#tv-noise-filter) contrast(1.8) brightness(1.25);
-  opacity: 0.55;
+  inset: -8%;
+  background: #9a9a9a;
+  filter: url(#tv-noise-filter) contrast(2.1) brightness(1.35) grayscale(1);
+  opacity: 0.75;
   mix-blend-mode: screen;
-  animation: tv-tune-noise 2.4s linear both;
+  animation: tv-tune-noise var(--tv-tune-dur) linear both;
 }
 
 .tv-tune-snow {
   position: absolute;
-  inset: -12%;
+  inset: -16%;
   background-image:
     repeating-linear-gradient(
       0deg,
       #fff 0 1px,
-      #1a1a1a 1px 2px,
-      #ccc 2px 3px,
-      #0a0a0a 3px 4px
+      #111 1px 2px,
+      #ddd 2px 3px,
+      #000 3px 4px
     ),
     repeating-linear-gradient(
       90deg,
-      #eee 0 1px,
-      #111 1px 2px,
-      #999 2px 3px,
-      #050505 3px 5px
+      #f5f5f5 0 1px,
+      #0a0a0a 1px 2px,
+      #aaa 2px 3px,
+      #000 3px 5px
     );
-  background-size: 3px 4px, 5px 3px;
-  opacity: 0.9;
-  animation: tv-tune-snow 2.4s steps(24) both;
-  filter: contrast(1.45) brightness(1.15);
+  background-size: 2px 3px, 4px 2px;
+  opacity: 0.95;
+  animation: tv-tune-snow var(--tv-tune-dur) steps(36) both;
+  filter: contrast(1.7) brightness(1.2) grayscale(1);
+  mix-blend-mode: screen;
 }
 
-.tv-tune-snow--r {
-  mix-blend-mode: screen;
-  transform: translate3d(-3px, 0, 0);
-  filter: url(#tv-noise-filter) sepia(1) saturate(8) hue-rotate(-50deg) contrast(1.6);
-  opacity: 0.35;
-  animation-name: tv-tune-snow-r;
+.tv-tune-snow--coarse {
+  background-size: 5px 6px, 7px 5px;
+  opacity: 0.55;
+  animation-name: tv-tune-snow-coarse;
+  mix-blend-mode: soft-light;
+  filter: contrast(1.9) grayscale(1) blur(0.4px);
 }
 
-.tv-tune-snow--b {
+.tv-tune-snow--soft {
+  inset: -20%;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.55) 0 1px, transparent 1.5px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.35) 0 1.5px, transparent 2.5px);
+  background-size: 18px 18px, 31px 31px;
+  background-position: 0 0, 9px 12px;
+  opacity: 0.45;
+  animation-name: tv-tune-snow-soft;
+  filter: blur(1.2px) grayscale(1);
   mix-blend-mode: screen;
-  transform: translate3d(3px, 0, 0);
-  filter: url(#tv-noise-filter) sepia(1) saturate(8) hue-rotate(180deg) contrast(1.6);
-  opacity: 0.35;
-  animation-name: tv-tune-snow-b;
+}
+
+.tv-tune-flakes {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.tv-tune-flake {
+  position: absolute;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      #fff 0%,
+      rgba(255, 255, 255, 0.85) 28%,
+      rgba(220, 220, 220, 0.35) 55%,
+      transparent 72%
+    );
+  box-shadow:
+    0 0 6px rgba(255, 255, 255, 0.45),
+    0 0 14px rgba(255, 255, 255, 0.2);
+  animation: tv-tune-flake-drift ease-in-out infinite alternate;
+  will-change: transform, opacity;
 }
 
 .tv-tune-bars {
   position: absolute;
-  inset: 8% 6%;
+  inset: 10% 8%;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: 1fr 18%;
-  gap: 0;
   opacity: 0;
-  transform: scaleY(1.08);
-  animation: tv-tune-bars 2.4s ease both;
-  box-shadow:
-    0 0 0 2px rgba(0, 0, 0, 0.65),
-    0 20px 60px rgba(0, 0, 0, 0.55);
+  animation: tv-tune-bars var(--tv-tune-dur) ease both;
+  filter: grayscale(0.85) contrast(1.15);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.7);
   overflow: hidden;
+  z-index: 2;
 }
 
-.tv-tune-bars span:nth-child(1) { background: #c0c0c0; }
-.tv-tune-bars span:nth-child(2) { background: #c0c000; }
-.tv-tune-bars span:nth-child(3) { background: #00c0c0; }
-.tv-tune-bars span:nth-child(4) { background: #00c000; }
-.tv-tune-bars span:nth-child(5) { background: #c000c0; }
-.tv-tune-bars span:nth-child(6) { background: #c00000; }
-.tv-tune-bars span:nth-child(7) { background: #0000c0; }
-
-.tv-tune-bars i {
-  display: block;
-  grid-row: 2;
-}
-
-.tv-tune-bars i:nth-child(8) { background: #0000c0; }
-.tv-tune-bars i:nth-child(9) { background: #101010; }
-.tv-tune-bars i:nth-child(10) { background: #c000c0; }
-.tv-tune-bars i:nth-child(11) { background: #101010; }
-.tv-tune-bars i:nth-child(12) { background: #00c0c0; }
-.tv-tune-bars i:nth-child(13) { background: #101010; }
-.tv-tune-bars i:nth-child(14) {
-  background: linear-gradient(to right, #fff 0 35%, #111 35% 55%, #000 55% 100%);
-  grid-column: 7;
-}
+.tv-tune-bars span:nth-child(1) { background: #e8e8e8; }
+.tv-tune-bars span:nth-child(2) { background: #c8c800; }
+.tv-tune-bars span:nth-child(3) { background: #00b8b8; }
+.tv-tune-bars span:nth-child(4) { background: #00a800; }
+.tv-tune-bars span:nth-child(5) { background: #a000a0; }
+.tv-tune-bars span:nth-child(6) { background: #a00000; }
+.tv-tune-bars span:nth-child(7) { background: #0000a0; }
 
 .tv-tune-glitch {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 3;
+  z-index: 4;
 }
 
 .tv-tune-glitch span {
   position: absolute;
   left: -5%;
   width: 110%;
-  height: 8%;
+  height: 9%;
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 0, 80, 0.25),
-    rgba(0, 220, 255, 0.3),
+    rgba(255, 255, 255, 0.35),
+    rgba(0, 0, 0, 0.5),
+    rgba(255, 255, 255, 0.2),
     transparent
   );
-  mix-blend-mode: lighten;
+  mix-blend-mode: soft-light;
   opacity: 0;
-  animation: tv-tune-glitch 2.4s steps(1) both;
+  animation: tv-tune-glitch var(--tv-tune-dur) steps(1) both;
 }
 
-.tv-tune-glitch span:nth-child(1) {
-  top: 18%;
-  animation-delay: 0s;
-}
-.tv-tune-glitch span:nth-child(2) {
-  top: 41%;
-  height: 4%;
-  animation-delay: 0.08s;
-}
-.tv-tune-glitch span:nth-child(3) {
-  top: 63%;
-  height: 11%;
-  animation-delay: 0.14s;
-}
-.tv-tune-glitch span:nth-child(4) {
-  top: 82%;
-  height: 5%;
-  animation-delay: 0.2s;
-}
+.tv-tune-glitch span:nth-child(1) { top: 16%; }
+.tv-tune-glitch span:nth-child(2) { top: 38%; height: 5%; animation-delay: 0.12s; }
+.tv-tune-glitch span:nth-child(3) { top: 58%; height: 12%; animation-delay: 0.22s; }
+.tv-tune-glitch span:nth-child(4) { top: 79%; height: 6%; animation-delay: 0.34s; }
 
 .tv-tune-roll {
   position: absolute;
-  inset: -50% 0;
+  inset: -55% 0;
   background:
     linear-gradient(
       to bottom,
       transparent 0%,
-      rgba(255, 255, 255, 0.08) 44%,
-      rgba(255, 255, 255, 0.55) 49.2%,
-      rgba(0, 0, 0, 0.85) 50%,
-      rgba(255, 255, 255, 0.2) 51%,
+      rgba(255, 255, 255, 0.06) 44%,
+      rgba(255, 255, 255, 0.55) 49%,
+      rgba(0, 0, 0, 0.9) 50%,
+      rgba(255, 255, 255, 0.18) 51.5%,
       transparent 100%
     );
-  animation: tv-tune-roll 2.4s cubic-bezier(0.2, 0.85, 0.2, 1) both;
+  animation: tv-tune-roll var(--tv-tune-dur) cubic-bezier(0.2, 0.85, 0.2, 1) both;
   mix-blend-mode: soft-light;
-  z-index: 4;
+  z-index: 5;
 }
 
 .tv-tune-tear {
   position: absolute;
   left: 0;
   right: 0;
-  height: 22%;
-  top: 38%;
-  background:
-    linear-gradient(
-      90deg,
-      rgba(255, 40, 80, 0.35),
-      rgba(40, 220, 255, 0.25) 45%,
-      rgba(255, 255, 255, 0.15)
-    );
-  filter: blur(0.5px);
+  height: 24%;
+  top: 36%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.25),
+    rgba(0, 0, 0, 0.35) 40%,
+    rgba(255, 255, 255, 0.2)
+  );
   opacity: 0;
   mix-blend-mode: screen;
-  animation: tv-tune-tear 2.4s steps(2) both;
+  animation: tv-tune-tear var(--tv-tune-dur) steps(2) both;
   z-index: 5;
 }
 
@@ -5951,26 +5957,13 @@ html:has(.app-shell--undisclosed) {
   background:
     repeating-linear-gradient(
       to bottom,
-      rgba(255, 255, 255, 0.07) 0,
-      rgba(255, 255, 255, 0.07) 1px,
+      rgba(255, 255, 255, 0.06) 0,
+      rgba(255, 255, 255, 0.06) 1px,
       transparent 1px,
       transparent 3px
     );
-  opacity: 0.55;
-  animation: tv-tune-flicker 2.4s steps(2) both;
-  z-index: 6;
-  pointer-events: none;
-}
-
-.tv-tune-phosphor {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse at 50% 42%, rgba(120, 255, 170, 0.12), transparent 48%),
-    radial-gradient(ellipse at 30% 70%, rgba(80, 160, 255, 0.08), transparent 40%);
-  mix-blend-mode: screen;
-  opacity: 0;
-  animation: tv-tune-phosphor 2.4s ease both;
+  opacity: 0.5;
+  animation: tv-tune-flicker var(--tv-tune-dur) steps(2) both;
   z-index: 6;
 }
 
@@ -5980,17 +5973,12 @@ html:has(.app-shell--undisclosed) {
   right: -10%;
   height: 3px;
   top: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(180, 255, 220, 0.95),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, #fff, transparent);
   box-shadow:
-    0 0 18px 4px rgba(140, 255, 200, 0.55),
-    0 0 48px 10px rgba(80, 200, 255, 0.25);
+    0 0 16px 3px rgba(255, 255, 255, 0.55),
+    0 0 40px 8px rgba(255, 255, 255, 0.2);
   opacity: 0;
-  animation: tv-tune-beam 2.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: tv-tune-beam var(--tv-tune-dur) cubic-bezier(0.4, 0, 0.2, 1) both;
   z-index: 8;
 }
 
@@ -6002,15 +5990,13 @@ html:has(.app-shell--undisclosed) {
   display: grid;
   gap: 0.15rem;
   font-family: "Courier New", Courier, ui-monospace, monospace;
-  color: #7dff9a;
+  color: #d8d8d8;
   text-shadow:
-    0 0 6px rgba(80, 255, 140, 0.75),
-    0 0 18px rgba(40, 220, 120, 0.35),
-    2px 0 0 rgba(255, 40, 80, 0.25),
-    -2px 0 0 rgba(40, 200, 255, 0.25);
+    0 0 8px rgba(255, 255, 255, 0.45),
+    0 0 2px rgba(255, 255, 255, 0.8);
   letter-spacing: 0.14em;
   opacity: 0;
-  animation: tv-tune-hud 2.4s steps(1, end) both;
+  animation: tv-tune-hud var(--tv-tune-dur) steps(1, end) both;
 }
 
 .tv-tune-hud-row {
@@ -6021,32 +6007,32 @@ html:has(.app-shell--undisclosed) {
 
 .tv-tune-ch {
   font-size: clamp(0.9rem, 3vw, 1.15rem);
-  opacity: 0.85;
+  opacity: 0.8;
 }
 
 .tv-tune-ch-num {
   font-size: clamp(2rem, 8vw, 3.4rem);
   font-weight: 700;
   line-height: 0.95;
-  color: #e8ffe8;
+  color: #fff;
 }
 
 .tv-tune-from {
   margin: 0.55rem 0 0;
   font-size: clamp(0.7rem, 2.4vw, 0.85rem);
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.4);
   text-decoration: line-through;
-  text-decoration-color: rgba(255, 80, 100, 0.7);
-  animation: tv-tune-from 2.4s steps(1, end) both;
+  text-decoration-color: rgba(255, 255, 255, 0.55);
+  animation: tv-tune-from var(--tv-tune-dur) steps(1, end) both;
 }
 
 .tv-tune-name {
   margin: 0.1rem 0 0;
   font-size: clamp(1.05rem, 4vw, 1.55rem);
   font-weight: 700;
-  color: #f4fff6;
+  color: #fff;
   letter-spacing: 0.22em;
-  animation: tv-tune-name-in 2.4s cubic-bezier(0.2, 1, 0.3, 1) both;
+  animation: tv-tune-name-in var(--tv-tune-dur) cubic-bezier(0.2, 1, 0.3, 1) both;
 }
 
 .tv-tune-signal {
@@ -6055,33 +6041,34 @@ html:has(.app-shell--undisclosed) {
   align-items: center;
   gap: 0.55rem;
   font-size: 0.72rem;
-  color: rgba(160, 255, 190, 0.9);
+  color: rgba(230, 230, 230, 0.9);
 }
 
 .tv-tune-signal span {
   width: 0.55rem;
   height: 0.55rem;
   border-radius: 50%;
-  background: #7dff9a;
-  box-shadow: 0 0 10px #7dff9a;
-  animation: tv-tune-blink 0.32s steps(2) infinite;
+  background: #fff;
+  box-shadow: 0 0 10px #fff;
+  animation: tv-tune-blink 0.28s steps(2) infinite;
 }
 
 .tv-tune-mhz {
   margin: 0.25rem 0 0;
   font-size: 0.68rem;
-  color: rgba(160, 255, 190, 0.55);
-  letter-spacing: 0.08em;
+  color: rgba(200, 200, 200, 0.55);
+  letter-spacing: 0.16em;
+  animation: tv-tune-blink 0.4s steps(2) infinite;
 }
 
 .tv-tune-corner {
   position: absolute;
   width: 2.2rem;
   height: 2.2rem;
-  border: 1px solid rgba(125, 255, 154, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   opacity: 0;
   z-index: 9;
-  animation: tv-tune-corners 2.4s ease both;
+  animation: tv-tune-corners var(--tv-tune-dur) ease both;
 }
 
 .tv-tune-corner--tl {
@@ -6113,8 +6100,8 @@ html:has(.app-shell--undisclosed) {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at center, transparent 34%, rgba(0, 0, 0, 0.78) 100%);
-  box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.75);
+    radial-gradient(ellipse at center, transparent 28%, rgba(0, 0, 0, 0.88) 100%);
+  box-shadow: inset 0 0 140px rgba(0, 0, 0, 0.85);
   z-index: 7;
   pointer-events: none;
 }
@@ -6125,14 +6112,14 @@ html:has(.app-shell--undisclosed) {
   background:
     linear-gradient(
       125deg,
-      rgba(255, 255, 255, 0.14) 0%,
-      transparent 28%,
-      transparent 62%,
-      rgba(255, 255, 255, 0.05) 100%
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 30%,
+      transparent 65%,
+      rgba(255, 255, 255, 0.04) 100%
     );
   z-index: 11;
   pointer-events: none;
-  animation: tv-tune-glass 2.4s ease both;
+  animation: tv-tune-glass var(--tv-tune-dur) ease both;
 }
 
 .tv-tune-cut {
@@ -6141,47 +6128,49 @@ html:has(.app-shell--undisclosed) {
   background: #fff;
   opacity: 0;
   z-index: 12;
-  animation: tv-tune-cut 2.4s ease both;
+  animation: tv-tune-cut var(--tv-tune-dur) ease both;
   mix-blend-mode: screen;
 }
 
 @keyframes tv-tune-hold {
   0%,
-  88% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
+  90% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes tv-tune-void {
+  0%,
+  70% { opacity: 1; }
+  100% { opacity: 0.4; }
 }
 
 @keyframes tv-tune-screen {
   0% {
-    transform: scale(1.04, 0.02) translateY(0);
-    filter: brightness(2.4) contrast(1.4);
+    transform: scale(1.05, 0.015);
+    filter: brightness(2.6) contrast(1.5);
     border-radius: 50%;
   }
-  8% {
-    transform: scale(1.02, 0.35);
-    filter: brightness(1.6);
-    border-radius: 8%;
+  6% {
+    transform: scale(1.02, 0.28);
+    filter: brightness(1.5);
+    border-radius: 10%;
   }
-  16% {
+  12% {
     transform: scale(1.01, 1.02);
     filter: brightness(1.1);
     border-radius: 0;
   }
-  70% {
+  78% {
     transform: scale(1);
-    filter: brightness(1) contrast(1.05);
+    filter: brightness(1) contrast(1.1);
   }
-  86% {
-    transform: scale(1.02, 0.04);
-    filter: brightness(2);
-    border-radius: 40%;
+  88% {
+    transform: scale(1.03, 0.035);
+    filter: brightness(2.2);
+    border-radius: 42%;
   }
   94% {
-    transform: scale(0.2, 0.01);
+    transform: scale(0.18, 0.01);
     filter: brightness(3);
   }
   100% {
@@ -6193,227 +6182,126 @@ html:has(.app-shell--undisclosed) {
 
 @keyframes tv-tune-noise {
   0%,
-  55% {
-    opacity: 0.65;
-  }
-  70% {
-    opacity: 0.2;
-  }
-  100% {
-    opacity: 0;
-  }
+  72% { opacity: 0.8; }
+  85% { opacity: 0.25; }
+  100% { opacity: 0; }
 }
 
 @keyframes tv-tune-snow {
   0% {
-    transform: translate3d(0, 0, 0) scale(1.08);
+    transform: translate3d(0, 0, 0) scale(1.1);
     opacity: 1;
   }
-  15% {
-    transform: translate3d(-2%, 1.5%, 0);
-  }
-  30% {
-    transform: translate3d(2.5%, -2%, 0);
-    opacity: 0.85;
-  }
-  45% {
-    transform: translate3d(-1.5%, 2%, 0);
-    opacity: 0.45;
-  }
-  60% {
-    transform: translate3d(2%, -1%, 0);
-    opacity: 0.7;
-  }
-  78% {
-    opacity: 0.25;
-  }
+  20% { transform: translate3d(-2.5%, 2%, 0); opacity: 0.95; }
+  40% { transform: translate3d(3%, -2.5%, 0); opacity: 0.85; }
+  55% { transform: translate3d(-2%, 3%, 0); opacity: 1; }
+  70% { transform: translate3d(2%, -1%, 0); opacity: 0.7; }
+  85% { opacity: 0.35; }
   100% {
     transform: translate3d(0, 0, 0);
     opacity: 0;
   }
 }
 
-@keyframes tv-tune-snow-r {
-  0%,
-  100% {
-    transform: translate3d(-4px, 0, 0);
-  }
-  50% {
-    transform: translate3d(-7px, 1px, 0);
-  }
+@keyframes tv-tune-snow-coarse {
+  0% { transform: translate3d(1%, -1%, 0) scale(1.12); opacity: 0.7; }
+  25% { transform: translate3d(-3%, 2%, 0); opacity: 0.55; }
+  50% { transform: translate3d(2%, -3%, 0); opacity: 0.75; }
+  75% { transform: translate3d(-1%, 1%, 0); opacity: 0.4; }
+  100% { transform: none; opacity: 0; }
 }
 
-@keyframes tv-tune-snow-b {
-  0%,
-  100% {
-    transform: translate3d(4px, 0, 0);
+@keyframes tv-tune-snow-soft {
+  0% { background-position: 0 0, 9px 12px; opacity: 0.5; }
+  50% { background-position: 40px -30px, -20px 50px; opacity: 0.65; }
+  100% { background-position: 80px -60px, -40px 90px; opacity: 0; }
+}
+
+@keyframes tv-tune-flake-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
   }
-  50% {
-    transform: translate3d(7px, -1px, 0);
+  to {
+    transform: translate3d(18px, 42px, 0) scale(1.35);
   }
 }
 
 @keyframes tv-tune-bars {
   0%,
-  12% {
-    opacity: 0;
-    transform: scaleY(1.2) skewX(-3deg);
-  }
   18% {
-    opacity: 0.95;
+    opacity: 0;
+    transform: scaleY(1.15) skewX(-2deg);
+  }
+  24% {
+    opacity: 0.55;
     transform: scaleY(1) skewX(0);
   }
-  28% {
-    opacity: 0.15;
-  }
-  34% {
-    opacity: 1;
-  }
-  48% {
-    opacity: 0.9;
-  }
-  58% {
-    opacity: 0;
-    transform: scaleY(1.05);
-  }
-  100% {
-    opacity: 0;
-  }
+  32% { opacity: 0.08; }
+  38% { opacity: 0.45; }
+  48% { opacity: 0; }
+  100% { opacity: 0; }
 }
 
 @keyframes tv-tune-glitch {
   0%,
-  14% {
-    opacity: 0;
-    transform: translateX(0);
-  }
-  16% {
-    opacity: 1;
-    transform: translateX(-3%);
-  }
-  18% {
-    opacity: 0;
-    transform: translateX(4%);
-  }
-  36% {
-    opacity: 0;
-  }
-  38% {
-    opacity: 0.9;
-    transform: translateX(2%);
-  }
-  40%,
-  100% {
-    opacity: 0;
-  }
+  10% { opacity: 0; transform: translateX(0); }
+  12% { opacity: 1; transform: translateX(-4%); }
+  14% { opacity: 0; transform: translateX(5%); }
+  28% { opacity: 0; }
+  30% { opacity: 0.85; transform: translateX(3%); }
+  32% { opacity: 0; }
+  55% { opacity: 0; }
+  57% { opacity: 0.7; transform: translateX(-2%); }
+  59%,
+  100% { opacity: 0; }
 }
 
 @keyframes tv-tune-roll {
-  0% {
-    transform: translateY(-45%);
-    opacity: 1;
-  }
-  40% {
-    transform: translateY(5%);
-  }
-  55% {
-    transform: translateY(-12%);
-  }
-  72% {
-    transform: translateY(28%);
-    opacity: 0.5;
-  }
-  100% {
-    transform: translateY(55%);
-    opacity: 0;
-  }
+  0% { transform: translateY(-50%); opacity: 1; }
+  35% { transform: translateY(8%); }
+  50% { transform: translateY(-14%); }
+  68% { transform: translateY(22%); opacity: 0.55; }
+  85% { transform: translateY(40%); opacity: 0.25; }
+  100% { transform: translateY(60%); opacity: 0; }
 }
 
 @keyframes tv-tune-tear {
   0%,
-  20% {
-    opacity: 0;
-    transform: translateX(-8%) skewX(-8deg);
-  }
-  24% {
-    opacity: 0.8;
-    transform: translateX(2%) skewX(4deg);
-  }
-  28% {
-    opacity: 0;
-  }
-  52% {
-    opacity: 0;
-  }
-  55% {
-    opacity: 0.7;
-    transform: translateX(-4%) skewX(-6deg);
-  }
-  58%,
-  100% {
-    opacity: 0;
-  }
-}
-
-@keyframes tv-tune-phosphor {
-  0%,
-  30% {
-    opacity: 0;
-  }
-  45%,
-  75% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
+  15% { opacity: 0; transform: translateX(-8%) skewX(-8deg); }
+  18% { opacity: 0.75; transform: translateX(2%) skewX(4deg); }
+  22% { opacity: 0; }
+  42% { opacity: 0; }
+  45% { opacity: 0.65; transform: translateX(-4%) skewX(-6deg); }
+  48% { opacity: 0; }
+  66% { opacity: 0; }
+  69% { opacity: 0.55; transform: translateX(3%); }
+  72%,
+  100% { opacity: 0; }
 }
 
 @keyframes tv-tune-beam {
   0%,
-  62% {
-    opacity: 0;
-    top: 8%;
-  }
-  68% {
-    opacity: 1;
-    top: 8%;
-  }
-  84% {
-    opacity: 1;
-    top: 92%;
-  }
-  90%,
-  100% {
-    opacity: 0;
-    top: 98%;
-  }
+  78% { opacity: 0; top: 8%; }
+  82% { opacity: 1; top: 8%; }
+  90% { opacity: 1; top: 92%; }
+  94%,
+  100% { opacity: 0; top: 98%; }
 }
 
 @keyframes tv-tune-hud {
   0%,
-  22% {
-    opacity: 0;
-  }
-  26%,
-  80% {
-    opacity: 1;
-  }
+  20% { opacity: 0; }
+  24%,
+  82% { opacity: 1; }
   90%,
-  100% {
-    opacity: 0;
-  }
+  100% { opacity: 0; }
 }
 
 @keyframes tv-tune-from {
   0%,
-  34% {
-    opacity: 0.7;
-  }
+  32% { opacity: 0.7; }
   40%,
-  100% {
-    opacity: 0.25;
-  }
+  100% { opacity: 0.25; }
 }
 
 @keyframes tv-tune-name-in {
@@ -6423,78 +6311,51 @@ html:has(.app-shell--undisclosed) {
     letter-spacing: 0.5em;
     filter: blur(6px);
   }
-  42% {
+  44% {
     opacity: 1;
     letter-spacing: 0.22em;
     filter: blur(0);
   }
-  80% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
+  82% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 @keyframes tv-tune-corners {
   0%,
-  24% {
-    opacity: 0;
-  }
-  30%,
-  78% {
-    opacity: 0.85;
-  }
-  100% {
-    opacity: 0;
-  }
+  22% { opacity: 0; }
+  28%,
+  80% { opacity: 0.75; }
+  100% { opacity: 0; }
 }
 
 @keyframes tv-tune-glass {
   0%,
-  100% {
-    opacity: 0.55;
-  }
+  100% { opacity: 0.5; }
 }
 
 @keyframes tv-tune-cut {
   0%,
-  78% {
-    opacity: 0;
-  }
-  84% {
-    opacity: 0.95;
-  }
-  92% {
-    opacity: 0.2;
-  }
-  100% {
-    opacity: 0;
-  }
+  84% { opacity: 0; }
+  88% { opacity: 0.95; }
+  94% { opacity: 0.2; }
+  100% { opacity: 0; }
 }
 
 @keyframes tv-tune-flicker {
   0%,
-  100% {
-    opacity: 0.4;
-  }
-  50% {
-    opacity: 0.72;
-  }
+  100% { opacity: 0.38; }
+  50% { opacity: 0.7; }
 }
 
 @keyframes tv-tune-blink {
-  from {
-    opacity: 0.25;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0.2; }
+  to { opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .tv-tune,
   .tv-tune-screen,
+  .tv-tune-void,
   .tv-tune-snow,
   .tv-tune-noise,
   .tv-tune-scanlines,
@@ -6503,14 +6364,15 @@ html:has(.app-shell--undisclosed) {
   .tv-tune-glitch span,
   .tv-tune-tear,
   .tv-tune-beam,
-  .tv-tune-phosphor,
   .tv-tune-hud,
   .tv-tune-from,
   .tv-tune-name,
   .tv-tune-signal span,
+  .tv-tune-mhz,
   .tv-tune-corner,
   .tv-tune-cut,
-  .tv-tune-glass {
+  .tv-tune-glass,
+  .tv-tune-flake {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
