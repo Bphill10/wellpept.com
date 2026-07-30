@@ -46,10 +46,15 @@ import {
   isValidUsZip,
   loadOrders,
   saveOrder,
+  markOrderPaid,
+  buildStripePayUrl,
+  parseStripePayPayload,
   notifyOrderRequest,
   defaultsFromCatalogSelection,
 } from "./utils/automation";
 import { fetchChargebeeConfig } from "./utils/chargebeeClient";
+import { fetchPaymentConfig } from "./utils/payments";
+import CheckoutPayment from "./components/CheckoutPayment";
 import {
   getCoaMeta,
   setCoaUrl,
@@ -198,6 +203,11 @@ export default function App() {
     publishableKey: null,
     skincarePlanPriceId: null,
   });
+  const [stripeConfig, setStripeConfig] = useState({
+    enabled: false,
+    publishableKey: null,
+  });
+  const [payInvoice, setPayInvoice] = useState(null);
   const [session, setSession] = useState(() => getSession());
   const [showAuth, setShowAuth] = useState(false);
   const [opsUnlocked, setOpsUnlocked] = useState(() => {
@@ -217,10 +227,6 @@ export default function App() {
     setSession(null);
     setFlash("Signed out");
   }
-
-  useEffect(() => {
-    fetchChargebeeConfig().then(setChargebeeConfig);
-  }, []);
 
   useEffect(() => {
     const syncRoute = () =>
@@ -244,9 +250,22 @@ export default function App() {
   }, [onUndisclosedRoute]);
 
   useEffect(() => {
+    fetchChargebeeConfig().then(setChargebeeConfig);
+    fetchPaymentConfig().then(setStripeConfig);
+  }, []);
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const viewParam = params.get("view");
     const cb = params.get("cb");
+    const payRaw = params.get("pay");
+    if (payRaw) {
+      const parsed = parseStripePayPayload(payRaw);
+      if (parsed) {
+        setPayInvoice(parsed);
+        setView(VIEWS.cart);
+      }
+    }
     if (viewParam === "cart" || cb === "success" || cb === "cancel") {
       setView(VIEWS.cart);
     }
@@ -263,9 +282,10 @@ export default function App() {
     } else if (cb === "cancel") {
       setFlash("Chargebee checkout canceled");
     }
-    if (cb || viewParam === "cart") {
+    if (cb || viewParam === "cart" || payRaw) {
       const url = new URL(window.location.href);
       url.searchParams.delete("cb");
+      // Keep pay payload in URL until paid so refresh still works; strip view only
       url.searchParams.delete("view");
       window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
     }
@@ -734,6 +754,54 @@ export default function App() {
       )
     );
     setFlash("Vendor shipping & minimum order updated");
+  }
+
+  function handleStripePaid(orderId, payment) {
+    let updated = markOrderPaid(orderId, {
+      ...payment,
+      provider: "stripe",
+    });
+    if (!updated && payInvoice?.orderId === orderId) {
+      updated = {
+        orderId,
+        createdAt: new Date().toISOString(),
+        status: "paid",
+        paymentDue: null,
+        paidAt: new Date().toISOString(),
+        customer: payInvoice.customer,
+        totals: {
+          subtotal: payInvoice.total,
+          shipping: 0,
+          total: payInvoice.total,
+        },
+        shipments: [],
+        notes: "Paid via Stripe pay link",
+        payment: {
+          provider: "stripe",
+          paymentIntentId: payment.id || payment.paymentIntentId || "",
+          status: payment.status || "succeeded",
+          amountCents: payment.amount || payment.amountCents || null,
+          methods: payment.methods || "card_or_affirm",
+        },
+      };
+      setOrders(saveOrder(updated));
+    } else if (updated) {
+      setOrders(loadOrders());
+    }
+    setPayInvoice(null);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("pay");
+      window.history.replaceState(
+        {},
+        "",
+        `${url.pathname}${url.search}${url.hash}`
+      );
+    } catch {
+      /* ignore */
+    }
+    setFlash(`Payment received · order ${orderId}`);
+    setView(VIEWS.cart);
   }
 
   async function placeOrder(customer, options = {}) {
@@ -1788,6 +1856,23 @@ export default function App() {
             onUpdateQty={updateQty}
             onRemove={removeLine}
             onPlaceOrder={placeOrder}
+            stripeConfig={stripeConfig}
+            payInvoice={payInvoice}
+            onStripePaid={handleStripePaid}
+            onClearPayInvoice={() => {
+              setPayInvoice(null);
+              try {
+                const url = new URL(window.location.href);
+                url.searchParams.delete("pay");
+                window.history.replaceState(
+                  {},
+                  "",
+                  `${url.pathname}${url.search}${url.hash}`
+                );
+              } catch {
+                /* ignore */
+              }
+            }}
           />
         )}
 
@@ -1817,6 +1902,7 @@ export default function App() {
             products={products}
             orders={orders}
             automation={automation}
+            stripeEnabled={Boolean(stripeConfig?.enabled)}
             onUpdateAutomation={updateAutomation}
             onApproveSubmission={approveSubmission}
             onRejectSubmission={rejectSubmission}
@@ -1825,6 +1911,7 @@ export default function App() {
             onApproveAllPending={approveAllPending}
             onApproveAllLines={approveAllPendingLines}
             onRejectAllLines={rejectAllPendingLines}
+            onFlash={setFlash}
           />
         )}
       </main>
@@ -2341,6 +2428,10 @@ function CartPage({
   onUpdateQty,
   onRemove,
   onPlaceOrder,
+  stripeConfig = null,
+  payInvoice = null,
+  onStripePaid,
+  onClearPayInvoice,
 }) {
   const subtotal = cart.reduce((sum, line) => sum + line.price * line.qty, 0);
 
@@ -2439,9 +2530,61 @@ function CartPage({
   return (
     <section className="panel-page fade">
       <div className="container">
-        <button type="button" className="ghost-btn" onClick={onBack}>
+        <button
+          type="button"
+          className="ghost-btn"
+          onClick={() => {
+            if (payInvoice) onClearPayInvoice?.();
+            onBack();
+          }}
+        >
           <ArrowLeft size={16} /> Continue shopping
         </button>
+
+        {payInvoice && (
+          <div className="panel" style={{ marginTop: "1rem" }}>
+            <h1>Pay order {payInvoice.orderId}</h1>
+            <p className="lede">
+              Secure Stripe checkout for your confirmed WellPept order. Cards and
+              Affirm (when enabled) are accepted.
+            </p>
+            <div className="notice" style={{ marginTop: "0.75rem" }}>
+              <strong>Amount due:</strong> {formatMoney(payInvoice.total)}
+              <div className="meta" style={{ marginTop: "0.35rem" }}>
+                {payInvoice.customer?.name} · {payInvoice.customer?.email}
+              </div>
+            </div>
+            {!stripeConfig?.enabled || !stripeConfig?.publishableKey ? (
+              <div className="notice warn" style={{ marginTop: "1rem" }}>
+                Stripe is not configured yet. Add live keys on Vercel (
+                <code>VITE_STRIPE_PUBLISHABLE_KEY</code> +{" "}
+                <code>STRIPE_SECRET_KEY</code>) and redeploy.
+              </div>
+            ) : (
+              <div style={{ marginTop: "1rem" }}>
+                <CheckoutPayment
+                  publishableKey={stripeConfig.publishableKey}
+                  total={payInvoice.total}
+                  orderId={payInvoice.orderId}
+                  customer={payInvoice.customer}
+                  onPaid={(payment) =>
+                    onStripePaid?.(payInvoice.orderId, payment)
+                  }
+                  onError={(err) =>
+                    setPacketMsg(err?.message || "Payment failed")
+                  }
+                />
+              </div>
+            )}
+            {packetMsg && (
+              <div className="notice warn" style={{ marginTop: "0.75rem" }}>
+                {packetMsg}
+              </div>
+            )}
+          </div>
+        )}
+
+        {!payInvoice && (
         <div className="panel" style={{ marginTop: "1rem" }}>
           <h1>Cart</h1>
           <p className="lede">
@@ -2704,6 +2847,7 @@ function CartPage({
             </>
           )}
         </div>
+        )}
       </div>
     </section>
   );
@@ -3206,6 +3350,7 @@ function AdminPanel({
   products,
   orders = [],
   automation,
+  stripeEnabled = false,
   onUpdateAutomation,
   onApproveSubmission,
   onRejectSubmission,
@@ -3214,10 +3359,25 @@ function AdminPanel({
   onApproveAllPending,
   onApproveAllLines,
   onRejectAllLines,
+  onFlash,
 }) {
   const pendingVendors = vendors.filter((v) => v.status === "pending");
   const pendingItems = submissions.filter((s) => s.status === "pending");
   const vendorName = (id) => vendors.find((v) => v.id === id)?.name || id;
+
+  async function copyPayLink(order) {
+    const url = buildStripePayUrl(order);
+    if (!url) {
+      onFlash?.("Could not build pay link");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      onFlash?.(`Stripe pay link copied · ${order.orderId}`);
+    } catch {
+      window.prompt("Copy Stripe pay link", url);
+    }
+  }
 
   return (
     <section className="panel-page fade">
@@ -3427,6 +3587,13 @@ function AdminPanel({
           </div>
 
           <h2>Order requests (supply review)</h2>
+          <p className="meta" style={{ marginBottom: "0.75rem" }}>
+            After you confirm supply, copy the Stripe pay link and email it to the
+            customer.{" "}
+            {stripeEnabled
+              ? "Stripe is enabled."
+              : "Add live Stripe keys on Vercel to collect payment."}
+          </p>
           <div className="table-wrap" style={{ marginBottom: "1.5rem" }}>
             <table>
               <thead>
@@ -3435,12 +3602,13 @@ function AdminPanel({
                   <th>Customer</th>
                   <th>Status</th>
                   <th>Quoted total</th>
+                  <th>Pay link</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.length === 0 ? (
                   <tr>
-                    <td colSpan={4}>No order requests yet.</td>
+                    <td colSpan={5}>No order requests yet.</td>
                   </tr>
                 ) : (
                   orders.slice(0, 20).map((o) => (
@@ -3465,6 +3633,19 @@ function AdminPanel({
                         ) : null}
                       </td>
                       <td>{formatMoney(o.totals?.total || 0)}</td>
+                      <td>
+                        {o.status === "paid" ? (
+                          <span className="meta">Paid</span>
+                        ) : (
+                          <button
+                            type="button"
+                            className="soft-btn"
+                            onClick={() => copyPayLink(o)}
+                          >
+                            Copy Stripe link
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}

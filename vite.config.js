@@ -39,6 +39,8 @@ function attachApi(server, env) {
     "/api/chargebee-config": "chargebee-config.js",
     "/api/chargebee-checkout": "chargebee-checkout.js",
     "/api/chargebee-portal": "chargebee-portal.js",
+    "/api/email-config": "email-config.js",
+    "/api/send-email": "send-email.js",
   };
 
   server.middlewares.use(async (req, res, next) => {

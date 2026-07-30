@@ -15,8 +15,8 @@
 4. Add environment variables (Production + Preview):
 
 ```
-VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_SECRET_KEY=sk_test_...
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_...
+STRIPE_SECRET_KEY=sk_live_...
 STRIPE_CURRENCY=usd
 VITE_CRISP_WEBSITE_ID=your-crisp-website-id
 RESEND_API_KEY=re_...
@@ -25,6 +25,8 @@ EMAIL_OPS_TO=info@wellpept.com
 ```
 
 5. Deploy
+
+See `PAYMENTS.md` for Stripe live activation + pay-link flow after supply check.
 
 ## C. Connect wellpept.com
 
@@ -112,6 +114,7 @@ Accounts are stored in the browser for now (device local). Confirmation links wo
 - [ ] Vercel project deployed
 - [ ] Domain DNS pointed at Vercel
 - [ ] `info@wellpept.com` mailbox working
+- [ ] Stripe live keys on Vercel + test pay link from Admin
 - [ ] Resend domain verified + `RESEND_API_KEY` / `EMAIL_FROM` set on Vercel
 - [ ] Crisp Website ID set + phone app installed
 - [ ] Order request emails arrive at info@wellpept.com

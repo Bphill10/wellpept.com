@@ -477,7 +477,92 @@ export function loadOrders() {
 
 export function saveOrder(packet) {
   const prev = loadOrders();
-  const next = [packet, ...prev].slice(0, 50);
+  const next = [packet, ...prev.filter((o) => o.orderId !== packet.orderId)].slice(
+    0,
+    50
+  );
   localStorage.setItem(ORDERS_KEY, JSON.stringify(next));
   return next;
+}
+
+export function getOrderById(orderId) {
+  const id = String(orderId || "").trim();
+  if (!id) return null;
+  return loadOrders().find((o) => o.orderId === id) || null;
+}
+
+/** Mark an existing order paid after Stripe confirms. */
+export function markOrderPaid(orderId, payment = {}) {
+  const existing = getOrderById(orderId);
+  if (!existing) return null;
+  const next = {
+    ...existing,
+    status: "paid",
+    paymentDue: null,
+    paidAt: new Date().toISOString(),
+    payment: {
+      provider: payment.provider || "stripe",
+      paymentIntentId: payment.id || payment.paymentIntentId || "",
+      status: payment.status || "succeeded",
+      amountCents: payment.amount || payment.amountCents || null,
+      methods: payment.methods || "card_or_affirm",
+    },
+  };
+  saveOrder(next);
+  return next;
+}
+
+/**
+ * Shareable Stripe pay link for after supply check.
+ * Embeds amount + customer so the buyer can pay on any device.
+ */
+export function buildStripePayUrl(order, origin = window.location.origin) {
+  if (!order?.orderId) return "";
+  const payload = {
+    orderId: order.orderId,
+    total: Number(order.totals?.total) || 0,
+    customer: {
+      name: order.customer?.name || "",
+      email: order.customer?.email || "",
+      phone: order.customer?.phone || "",
+      address1: order.shipments?.[0]?.shipTo?.address1 || "",
+      address2: order.shipments?.[0]?.shipTo?.address2 || "",
+      city: order.shipments?.[0]?.shipTo?.city || "",
+      state: order.shipments?.[0]?.shipTo?.state || "",
+      zip: order.shipments?.[0]?.shipTo?.zip || "",
+    },
+  };
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+  return `${origin}/?view=cart&pay=${encodeURIComponent(encoded)}`;
+}
+
+export function parseStripePayPayload(raw) {
+  try {
+    const value = String(raw || "").trim();
+    if (!value) return null;
+    const b64 = value.replace(/-/g, "+").replace(/_/g, "/");
+    const pad = b64.length % 4 === 0 ? "" : "=".repeat(4 - (b64.length % 4));
+    const json = decodeURIComponent(escape(atob(b64 + pad)));
+    const data = JSON.parse(json);
+    if (!data?.orderId || !(Number(data.total) > 0)) return null;
+    return {
+      orderId: String(data.orderId),
+      total: Number(data.total),
+      customer: {
+        name: data.customer?.name || "",
+        email: data.customer?.email || "",
+        phone: data.customer?.phone || "",
+        address1: data.customer?.address1 || "",
+        address2: data.customer?.address2 || "",
+        city: data.customer?.city || "",
+        state: data.customer?.state || "",
+        zip: data.customer?.zip || "",
+      },
+    };
+  } catch {
+    return null;
+  }
 }

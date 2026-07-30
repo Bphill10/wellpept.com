@@ -68,31 +68,39 @@ function PaymentForm({ totalLabel, customer, onPaid, onError }) {
       confirmParams: {
         return_url: returnUrl.toString(),
         receipt_email: customer.email,
-        shipping: {
-          name: customer.name,
-          phone: customer.phone || undefined,
-          address: {
-            line1: customer.address1,
-            line2: customer.address2 || undefined,
-            city: customer.city,
-            state: customer.state,
-            postal_code: customer.zip,
-            country: "US",
-          },
-        },
+        ...(customer.address1
+          ? {
+              shipping: {
+                name: customer.name,
+                phone: customer.phone || undefined,
+                address: {
+                  line1: customer.address1,
+                  line2: customer.address2 || undefined,
+                  city: customer.city,
+                  state: customer.state,
+                  postal_code: customer.zip,
+                  country: "US",
+                },
+              },
+            }
+          : {}),
         payment_method_data: {
           billing_details: {
             name: customer.name,
             email: customer.email,
             phone: customer.phone || undefined,
-            address: {
-              line1: customer.address1,
-              line2: customer.address2 || undefined,
-              city: customer.city,
-              state: customer.state,
-              postal_code: customer.zip,
-              country: "US",
-            },
+            ...(customer.address1
+              ? {
+                  address: {
+                    line1: customer.address1,
+                    line2: customer.address2 || undefined,
+                    city: customer.city,
+                    state: customer.state,
+                    postal_code: customer.zip,
+                    country: "US",
+                  },
+                }
+              : {}),
           },
         },
       },
@@ -199,15 +207,17 @@ export default function CheckoutPayment({
       orderId,
       email: customer.email,
       name: customer.name,
-      shipping: {
-        name: customer.name,
-        phone: customer.phone,
-        address1: customer.address1,
-        address2: customer.address2,
-        city: customer.city,
-        state: customer.state,
-        zip: customer.zip,
-      },
+      shipping: customer.address1
+        ? {
+            name: customer.name,
+            phone: customer.phone,
+            address1: customer.address1,
+            address2: customer.address2,
+            city: customer.city,
+            state: customer.state,
+            zip: customer.zip,
+          }
+        : null,
     })
       .then((data) => {
         if (!alive) return;
