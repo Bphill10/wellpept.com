@@ -1,76 +1,52 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="WellPept W monogram">
   <defs>
-    <radialGradient id="disc" cx="32%" cy="28%" r="78%">
-      <stop offset="0%" stop-color="#4a8ae0"/>
-      <stop offset="38%" stop-color="#0047ab"/>
-      <stop offset="72%" stop-color="#002f75"/>
-      <stop offset="100%" stop-color="#001536"/>
+    <!-- Aged cobalt medallion -->
+    <radialGradient id="disc" cx="38%" cy="32%" r="72%">
+      <stop offset="0%" stop-color="#3a6fb5"/>
+      <stop offset="45%" stop-color="#003d8f"/>
+      <stop offset="82%" stop-color="#002456"/>
+      <stop offset="100%" stop-color="#00122e"/>
     </radialGradient>
-    <linearGradient id="wFill" x1="20" y1="24" x2="108" y2="104" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#ffffff"/>
-      <stop offset="45%" stop-color="#f2f6ff"/>
-      <stop offset="100%" stop-color="#c5d4f5"/>
+    <!-- Soft carved fill — bone / ivory, not bright white -->
+    <linearGradient id="carve" x1="64" y1="30" x2="64" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#e8e4d8"/>
+      <stop offset="55%" stop-color="#d4cfc0"/>
+      <stop offset="100%" stop-color="#a8a090"/>
     </linearGradient>
-    <linearGradient id="wEdge" x1="64" y1="26" x2="64" y2="102" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
-      <stop offset="100%" stop-color="#9eb6ff" stop-opacity="0.55"/>
-    </linearGradient>
+    <!-- Shallow relief shadow -->
+    <filter id="relief" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0.8" dy="1.2" stdDeviation="0.6" flood-color="#001018" flood-opacity="0.45"/>
+    </filter>
   </defs>
 
   <circle cx="64" cy="64" r="62" fill="url(#disc)"/>
-  <circle cx="64" cy="64" r="57" fill="none" stroke="#b8c9ff" stroke-width="1.25" opacity="0.42"/>
-  <circle cx="64" cy="64" r="52.5" fill="none" stroke="#ffffff" stroke-width="0.6" opacity="0.18"/>
+  <!-- Worn rim like an old coin -->
+  <circle cx="64" cy="64" r="57.5" fill="none" stroke="#8fa8c8" stroke-width="2" opacity="0.35"/>
+  <circle cx="64" cy="64" r="53" fill="none" stroke="#c5d0e0" stroke-width="0.75" opacity="0.22"/>
 
-  <!-- Ornamental diamond mark above the W -->
-  <path
-    d="M64 22 L67.2 28 L64 34 L60.8 28 Z"
-    fill="#dce6ff"
-    opacity="0.9"
-  />
-
-  <!-- Custom display W: pointed valleys, flared tops, thick/thin contrast -->
-  <path
-    fill="url(#wFill)"
-    d="
-      M 22.5 34
-      L 33.5 34
-      L 37.2 36.2
-      L 48.8 86
-      L 57.6 52.5
-      L 61.2 52.5
-      L 64 63.5
-      L 66.8 52.5
-      L 70.4 52.5
-      L 79.2 86
-      L 90.8 36.2
-      L 94.5 34
-      L 105.5 34
-      L 106.8 37.5
-      L 90.2 104
-      L 79.8 104
-      L 64 58.5
-      L 48.2 104
-      L 37.8 104
-      L 21.2 37.5
-      Z
-    "
-  />
-
-  <!-- Fine highlight edge for depth -->
-  <path
-    fill="none"
-    stroke="url(#wEdge)"
-    stroke-width="1.1"
-    stroke-linejoin="round"
-    opacity="0.55"
-    d="
-      M 24 35.5
-      L 36.5 88.5
-      L 48.5 48
-      L 64 78
-      L 79.5 48
-      L 91.5 88.5
-      L 104 35.5
-    "
-  />
+  <!--
+    Relic W: classical inscription cut, even strokes, slight flare at feet.
+    Reads like stone / metal carving — not a logo flourish.
+  -->
+  <g filter="url(#relief)">
+    <path
+      fill="url(#carve)"
+      d="
+        M 28 36
+        L 38 36
+        L 49 86
+        L 58 50
+        L 70 50
+        L 79 86
+        L 90 36
+        L 100 36
+        L 86 100
+        L 74 100
+        L 64 66
+        L 54 100
+        L 42 100
+        Z
+      "
+    />
+  </g>
 </svg>
