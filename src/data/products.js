@@ -7,14 +7,14 @@ import { resolveVialMl, resolveVialUnit, resolvePowderColor } from "../utils/via
 
 export { resolveVialMl, resolveVialUnit, resolvePowderColor };
 
-/** Default retail markup applied on top of vendor cost after approval.
- *  100% markup = 2× vendor cost. Then rounded UP to the nearest $5.
- */
-export const MARKUP = 1;
+/** Retail = 2× Changsha vendor cost, then rounded UP to the nearest $5. */
+export const RETAIL_MULTIPLIER = 2;
+/** @deprecated use RETAIL_MULTIPLIER — kept as alias (markup fraction = multiplier − 1). */
+export const MARKUP = RETAIL_MULTIPLIER - 1;
 
 export function retailFromVendor(vendorCost) {
   const marked =
-    Math.round(Number(vendorCost) * (1 + MARKUP) * 100) / 100;
+    Math.round(Number(vendorCost) * RETAIL_MULTIPLIER * 100) / 100;
   if (!Number.isFinite(marked) || marked <= 0) return 0;
   return Math.ceil(marked / 5) * 5;
 }
