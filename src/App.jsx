@@ -965,7 +965,7 @@ export default function App() {
           </button>
 
           {labVisible ? (
-            <div className="search-wrap">
+            <div className="search-wrap search-wrap--desktop-lab">
               <select
                 className="search-dept"
                 value={category}
@@ -1493,6 +1493,17 @@ export default function App() {
                     </p>
                   </div>
                 </div>
+
+                <label className="catalog-search-mobile">
+                  <Search size={16} strokeWidth={2} aria-hidden="true" />
+                  <input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search catalog…"
+                    aria-label="Search catalog"
+                    enterKeyHint="search"
+                  />
+                </label>
 
                 <div className="filters">
                   {CATEGORIES.map((c) => (

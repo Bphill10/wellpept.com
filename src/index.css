@@ -5288,22 +5288,14 @@ body:has(.app-shell--undisclosed)::before {
     font-size: 0.65rem;
   }
 
-  .app-shell--undisclosed .search-wrap {
-    border-radius: 10px;
-    padding: 0.15rem;
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
+  /* Phone: drop header search — catalog has its own field */
+  .app-shell--undisclosed .search-wrap--desktop-lab {
+    display: none !important;
   }
 
-  .app-shell--undisclosed .search-wrap svg {
-    flex-shrink: 0;
-    opacity: 0.55;
-  }
-
-  .app-shell--undisclosed .search-go {
-    min-height: 44px;
-    padding: 0.5rem 0.75rem;
+  .app-shell--undisclosed .header-inner {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "brand actions";
   }
 
   .app-shell--undisclosed .header-actions .ghost-btn span {
@@ -5715,11 +5707,6 @@ html:has(.app-shell--undisclosed) {
     overflow-wrap: anywhere;
   }
 
-  .app-shell--undisclosed .search-go {
-    padding-left: 0.65rem;
-    padding-right: 0.65rem;
-  }
-
   .app-shell--undisclosed .dept-link {
     padding-left: 0.55rem;
     padding-right: 0.55rem;
@@ -5741,6 +5728,45 @@ html:has(.app-shell--undisclosed) {
   /* Prefer small viewport height when URL bars collapse differently */
   .app-shell {
     min-height: 100svh;
+  }
+}
+
+
+.catalog-search-mobile {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .catalog-search-mobile {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0 0 0.85rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(244, 246, 248, 0.9);
+  }
+
+  .catalog-search-mobile svg {
+    flex-shrink: 0;
+    opacity: 0.55;
+  }
+
+  .catalog-search-mobile input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 16px;
+    padding: 0.25rem 0;
+  }
+
+  .catalog-search-mobile input::placeholder {
+    color: rgba(244, 246, 248, 0.45);
   }
 }
 
