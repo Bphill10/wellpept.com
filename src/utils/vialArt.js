@@ -357,7 +357,7 @@ function drawWpMonogramSeal(ctx, cx, cy, r) {
   ctx.lineTo(55, 98);
   ctx.lineTo(44, 98);
   ctx.closePath();
-  ctx.fillStyle = "#f4f0e8";
+  ctx.fillStyle = "#e8eef8";
   ctx.fill();
   ctx.restore();
 }
@@ -371,7 +371,7 @@ function drawWpSeal(ctx, cx, cy, r, markImage) {
     ctx.drawImage(markImage, cx - r, cy - r, r * 2, r * 2);
     ctx.restore();
     ellipse(ctx, cx, cy, r, r);
-    ctx.strokeStyle = "rgba(212, 175, 55, 0.55)";
+    ctx.strokeStyle = "rgba(0, 71, 171, 0.55)";
     ctx.lineWidth = Math.max(1, r * 0.04);
     ctx.stroke();
     return;
@@ -519,7 +519,7 @@ function drawBrandWordmark(ctx, cx, y, maxW) {
 
 /**
  * 3 mL vial matching the Wellpept brand image:
- * brushed gold cap · clear glass · lyophilized cake · matte black V-sleeve · gold W seal.
+ * brushed silver cap · clear glass · lyophilized cake · matte black V-sleeve · cobalt W seal.
  */
 function drawBrandThreeMl(ctx, dims, options) {
   const {
@@ -566,7 +566,7 @@ function drawBrandThreeMl(ctx, dims, options) {
   ctx.fillStyle = shadow;
   ctx.fill();
 
-  // —— Brushed gold flat cap (brand) ——
+  // —— Brushed silver flat cap (brand) ——
   const capW = neckW * 1.22;
   const silverSide = ctx.createLinearGradient(cx - capW / 2, 0, cx + capW / 2, 0);
   silverSide.addColorStop(0, "#4a5058");
@@ -578,7 +578,7 @@ function drawBrandThreeMl(ctx, dims, options) {
   roundRect(ctx, cx - capW / 2, capY + capH * 0.28, capW, capH * 0.72, 2);
   ctx.fill();
   // vertical brush lines
-  ctx.strokeStyle = "rgba(80, 55, 10, 0.2)";
+  ctx.strokeStyle = "rgba(0, 47, 117, 0.18)";
   ctx.lineWidth = 1;
   for (let i = 0; i < 8; i += 1) {
     const x = cx - capW * 0.35 + (capW * 0.7 * i) / 7;
@@ -588,7 +588,7 @@ function drawBrandThreeMl(ctx, dims, options) {
     ctx.stroke();
   }
   ellipse(ctx, cx, capY + capH * 0.3, capW / 2, capH * 0.2);
-  const goldTop = ctx.createRadialGradient(
+  const silverTop = ctx.createRadialGradient(
     cx - capW * 0.15,
     capY + capH * 0.18,
     1,
@@ -596,10 +596,10 @@ function drawBrandThreeMl(ctx, dims, options) {
     capY + capH * 0.3,
     capW * 0.55
   );
-  goldTop.addColorStop(0, "#ffffff");
-  goldTop.addColorStop(0.45, "#c8d0d8");
-  goldTop.addColorStop(1, "#5a616a");
-  ctx.fillStyle = goldTop;
+  silverTop.addColorStop(0, "#ffffff");
+  silverTop.addColorStop(0.45, "#c8d0d8");
+  silverTop.addColorStop(1, "#5a616a");
+  ctx.fillStyle = silverTop;
   ctx.fill();
 
   // Glass neck
