@@ -2,17 +2,21 @@ import QRCode from "qrcode";
 
 /** Wellpept / Undisclosed vial art — photoreal glass vial + compact clinical sticker. */
 
-export const BRAND_IMAGE_SRC = "/wellpept-brand.jpg";
+/** Undisclosed brand plate (labeled vial with UD hex mark). */
+export const BRAND_IMAGE_SRC = "/undisclosed-brand.webp";
+export const BRAND_IMAGE_FALLBACK_SRC = "/undisclosed-brand.jpg";
 /** Photoreal unlabeled 3 mL research vial (studio photo). */
 export const BRAND_VIAL_SRC = "/real-vial-3ml.webp";
 /** Photoreal unlabeled 10 mL research vial (studio photo). */
 export const BRAND_VIAL_10_SRC = "/real-vial-10ml.webp";
-/** Blank clinical wrap (peptide fields cleared, U spine mark). */
+/** Blank clinical wrap (peptide fields cleared, UD spine mark). */
 export const BLANK_LABEL_SRC = "/undisclosed-label-blank.webp";
-/** Circular W seal / monogram. */
-export const WP_MARK_SRC = "/wp-monogram.svg";
-/** Vector W monogram. */
-export const WP_MONOGRAM_SRC = "/wp-monogram.svg";
+/** Hex UD seal / monogram for Undisclosed. */
+export const UD_MARK_SRC = "/ud-monogram.svg";
+/** @deprecated use UD_MARK_SRC */
+export const WP_MARK_SRC = UD_MARK_SRC;
+/** @deprecated use UD_MARK_SRC */
+export const WP_MONOGRAM_SRC = UD_MARK_SRC;
 
 /**
  * Physical label size by vial bottle. 3 mL wraps use the 40×20 mm folder art.
@@ -35,8 +39,8 @@ let brandVial10Cache = null;
 let brandVial10Promise = null;
 let blankLabelCache = null;
 let blankLabelPromise = null;
-let wpMarkCache = null;
-let wpMarkPromise = null;
+let udMarkCache = null;
+let udMarkPromise = null;
 
 function loadImage(src) {
   if (typeof Image === "undefined") return Promise.resolve(null);
@@ -49,13 +53,18 @@ function loadImage(src) {
   });
 }
 
-/** Prefetch the full brand plate for canvas compositing. */
+/** Prefetch the Undisclosed brand plate (UD mark) for canvas compositing. */
 export function loadBrandImage() {
   if (brandImageCache) return Promise.resolve(brandImageCache);
   if (brandImagePromise) return brandImagePromise;
-  brandImagePromise = loadImage(BRAND_IMAGE_SRC).then((img) => {
-    brandImageCache = img;
-    return img;
+  brandImagePromise = loadImage(BRAND_IMAGE_SRC).then(async (img) => {
+    if (img) {
+      brandImageCache = img;
+      return img;
+    }
+    const jpg = await loadImage(BRAND_IMAGE_FALLBACK_SRC);
+    brandImageCache = jpg;
+    return jpg;
   });
   return brandImagePromise;
 }
@@ -90,20 +99,20 @@ export function loadBrandVial10() {
   return brandVial10Promise;
 }
 
-/** Prefetch the circular WP mark (preferred seal asset). */
-export function loadWpMark() {
-  if (wpMarkCache) return Promise.resolve(wpMarkCache);
-  if (wpMarkPromise) return wpMarkPromise;
-  wpMarkPromise = loadImage(WP_MONOGRAM_SRC).then(async (img) => {
-    if (img) {
-      wpMarkCache = img;
-      return img;
-    }
-    const png = await loadImage(WP_MARK_SRC);
-    wpMarkCache = png;
-    return png;
+/** Prefetch the Undisclosed UD hex mark. */
+export function loadUdMark() {
+  if (udMarkCache) return Promise.resolve(udMarkCache);
+  if (udMarkPromise) return udMarkPromise;
+  udMarkPromise = loadImage(UD_MARK_SRC).then((img) => {
+    udMarkCache = img;
+    return img;
   });
-  return wpMarkPromise;
+  return udMarkPromise;
+}
+
+/** @deprecated use loadUdMark — Undisclosed seals are UD, not W. */
+export function loadWpMark() {
+  return loadUdMark();
 }
 
 /** Prefetch the blank 40×20 mm clinical wrap photo (peptide fields cleared). */
@@ -121,9 +130,6 @@ export function loadBlankLabelImage() {
   });
   return blankLabelPromise;
 }
-
-/** @deprecated use loadWpMark */
-export const loadUdMark = loadWpMark;
 
 function hashString(str) {
   let h = 2166136261;
@@ -319,64 +325,26 @@ function drawDarkStudio(ctx, w, h) {
 }
 
 /**
- * Cobalt circular W monogram — classic crossed-W fallback
- * (center peak on the same line as the outer peaks).
+ * UD hex seal fallback when the SVG mark fails to load.
  */
-function drawWpMonogramSeal(ctx, cx, cy, r) {
-  const cobalt = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.28, 1, cx, cy, r);
-  cobalt.addColorStop(0, "#3a6fb5");
-  cobalt.addColorStop(0.45, "#0047ab");
-  cobalt.addColorStop(0.82, "#002f75");
-  cobalt.addColorStop(1, "#00122e");
-  ellipse(ctx, cx, cy, r, r);
-  ctx.fillStyle = cobalt;
-  ctx.fill();
-
-  ellipse(ctx, cx, cy, r * 0.89, r * 0.89);
-  ctx.strokeStyle = "rgba(197, 208, 224, 0.35)";
-  ctx.lineWidth = Math.max(1, r * 0.03);
-  ctx.stroke();
-
-  const s = (r * 2) / 128;
-  const ox = cx - r;
-  const oy = cy - r;
-  ctx.save();
-  ctx.translate(ox, oy);
-  ctx.scale(s, s);
-  ctx.beginPath();
-  ctx.moveTo(28, 38);
-  ctx.lineTo(39, 38);
-  ctx.lineTo(50, 86);
-  ctx.lineTo(64, 38);
-  ctx.lineTo(78, 86);
-  ctx.lineTo(89, 38);
-  ctx.lineTo(100, 38);
-  ctx.lineTo(84, 98);
-  ctx.lineTo(73, 98);
-  ctx.lineTo(64, 66);
-  ctx.lineTo(55, 98);
-  ctx.lineTo(44, 98);
-  ctx.closePath();
-  ctx.fillStyle = "#e8eef8";
-  ctx.fill();
-  ctx.restore();
+function drawUdMonogramSeal(ctx, cx, cy, r) {
+  drawLabelSpineMark(ctx, cx, cy, r);
 }
 
-/** Draw the circular WP brand mark image, or fall back to the monogram. */
-function drawWpSeal(ctx, cx, cy, r, markImage) {
+/** Draw the Undisclosed UD hex mark, or fall back to a drawn hex. */
+function drawUdSeal(ctx, cx, cy, r, markImage) {
   if (markImage && markImage.width) {
     ctx.save();
-    ellipse(ctx, cx, cy, r, r);
-    ctx.clip();
     ctx.drawImage(markImage, cx - r, cy - r, r * 2, r * 2);
     ctx.restore();
-    ellipse(ctx, cx, cy, r, r);
-    ctx.strokeStyle = "rgba(0, 71, 171, 0.55)";
-    ctx.lineWidth = Math.max(1, r * 0.04);
-    ctx.stroke();
     return;
   }
-  drawWpMonogramSeal(ctx, cx, cy, r);
+  drawUdMonogramSeal(ctx, cx, cy, r);
+}
+
+/** @deprecated use drawUdSeal */
+function drawWpSeal(ctx, cx, cy, r, markImage) {
+  drawUdSeal(ctx, cx, cy, r, markImage);
 }
 
 function buildQrMatrix(seedStr, n = 21) {
@@ -518,8 +486,8 @@ function drawBrandWordmark(ctx, cx, y, maxW) {
 }
 
 /**
- * 3 mL vial matching the Wellpept brand image:
- * brushed silver cap · clear glass · lyophilized cake · matte black V-sleeve · cobalt W seal.
+ * 3 mL vial matching the Undisclosed brand image:
+ * brushed silver cap · clear glass · lyophilized cake · matte black V-sleeve · UD hex seal.
  */
 function drawBrandThreeMl(ctx, dims, options) {
   const {
@@ -529,6 +497,7 @@ function drawBrandThreeMl(ctx, dims, options) {
     sku = "",
     reconstituted = false,
     wpMark = null,
+    udMark = null,
     bacWater = "",
     concentration = "",
     doseRange = "",
@@ -718,7 +687,7 @@ function drawBrandThreeMl(ctx, dims, options) {
   // Cobalt UD seal from brand mark image
   const sealR = bodyW * 0.28;
   const sealCy = sleeveTop + sleeveH * 0.32;
-  drawWpSeal(ctx, cx, sealCy, sealR, wpMark || wpMarkCache);
+  drawUdSeal(ctx, cx, sealCy, sealR, udMark || wpMark || udMarkCache);
 
   // Product name + strength + calc data + QR on sleeve
   const massNum = mass !== "" && mass != null ? mass : "";
@@ -787,7 +756,7 @@ function drawBrandThreeMl(ctx, dims, options) {
 
 }
 
-/** 10 mL — same brand language, taller bottle. */
+/** 10 mL — same Undisclosed brand language, taller bottle. */
 function drawBrandTenMl(ctx, dims, options) {
   const {
     name = "Peptide",
@@ -796,6 +765,7 @@ function drawBrandTenMl(ctx, dims, options) {
     sku = "",
     reconstituted = false,
     wpMark = null,
+    udMark = null,
     bacWater = "",
     concentration = "",
     doseRange = "",
@@ -890,7 +860,7 @@ function drawBrandTenMl(ctx, dims, options) {
 
   const sealR = bodyW * 0.24;
   const sealCy = sleeveTop + (bodyBottom - sleeveTop) * 0.28;
-  drawWpSeal(ctx, cx, sealCy, sealR, wpMark || wpMarkCache);
+  drawUdSeal(ctx, cx, sealCy, sealR, udMark || wpMark || udMarkCache);
 
   const massNum = mass !== "" && mass != null ? mass : "";
   const massLabel = massNum !== "" ? `${massNum} ${String(unit || "mg").toUpperCase()}` : "";
@@ -1646,7 +1616,7 @@ function drawLabelSpineMark(ctx, cx, cy, r) {
  */
 /**
  * Draw a blank wrap from the folder photo at the vial’s physical label size.
- * 3 mL → 40×20 mm (2:1), using undisclosed-label-blank (U mark, no peptide fill).
+ * 3 mL → 40×20 mm (2:1), using undisclosed-label-blank (UD mark, no peptide fill).
  * QR always encodes the public site (or an explicit qrPayload / coaUrl).
  */
 export function drawBlankLabelFromImage(canvas, options = {}) {

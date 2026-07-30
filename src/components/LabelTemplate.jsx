@@ -3,7 +3,7 @@ import { Download } from "lucide-react";
 import {
   drawLabelTemplate,
   downloadVialPng,
-  loadWpMark,
+  loadUdMark,
   loadBlankLabelImage,
   labelSpecForVialMl,
   SITE_QR_URL,
@@ -29,7 +29,7 @@ export default function LabelTemplate({
 }) {
   const canvasRef = useRef(null);
   const [png, setPng] = useState("");
-  const [wpMark, setWpMark] = useState(null);
+  const [udMark, setUdMark] = useState(null);
   const [blankLabelImage, setBlankLabelImage] = useState(null);
 
   const spec = labelSpecForVialMl(vialMl);
@@ -37,8 +37,8 @@ export default function LabelTemplate({
 
   useEffect(() => {
     let alive = true;
-    loadWpMark().then((img) => {
-      if (alive) setWpMark(img);
+    loadUdMark().then((img) => {
+      if (alive) setUdMark(img);
     });
     return () => {
       alive = false;
@@ -71,7 +71,7 @@ export default function LabelTemplate({
         sku: blank ? "" : sku,
         size,
         vialMl,
-        wpMark,
+        udMark,
         blankLabelImage,
         qrPayload: blank ? qrPayload || SITE_QR_URL : qrPayload,
         coaUrl: blank ? "" : coaUrl,
@@ -91,7 +91,7 @@ export default function LabelTemplate({
     sku,
     size,
     vialMl,
-    wpMark,
+    udMark,
     blankLabelImage,
     qrPayload,
     coaUrl,

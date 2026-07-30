@@ -6,13 +6,17 @@ import {
   resolveVialMl,
   loadBrandVial,
   loadBrandVial10,
+  loadBrandImage,
+  loadUdMark,
   CATALOG_VIAL_TEMPLATE,
 } from "../utils/vialArt";
 import { resolveCalculatorLabelFields } from "../utils/automation";
 import { resolveCoaQrPayload } from "../utils/coaStore";
 
-// Warm the photoreal vial photos so first paint is fast.
+// Warm Undisclosed brand plate (UD), seal, and photoreal vials.
 if (typeof window !== "undefined") {
+  loadBrandImage();
+  loadUdMark();
   loadBrandVial();
   loadBrandVial10();
 }
