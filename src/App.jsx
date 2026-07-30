@@ -2669,6 +2669,9 @@ function CartPage({
                       Full name
                       <input
                         required
+                        name="name"
+                        autoComplete="name"
+                        enterKeyHint="next"
                         value={customer.name}
                         onChange={(e) =>
                           setCustomer((c) => ({ ...c, name: e.target.value }))
@@ -2680,6 +2683,10 @@ function CartPage({
                       <input
                         required
                         type="email"
+                        name="email"
+                        autoComplete="email"
+                        inputMode="email"
+                        enterKeyHint="next"
                         value={customer.email}
                         onChange={(e) =>
                           setCustomer((c) => ({ ...c, email: e.target.value }))
@@ -2696,6 +2703,9 @@ function CartPage({
                     Address
                     <input
                       required
+                      name="address1"
+                      autoComplete="address-line1"
+                      enterKeyHint="next"
                       value={customer.address1}
                       onChange={(e) =>
                         setCustomer((c) => ({ ...c, address1: e.target.value }))
@@ -2706,6 +2716,9 @@ function CartPage({
                   <label className="field">
                     Address line 2
                     <input
+                      name="address2"
+                      autoComplete="address-line2"
+                      enterKeyHint="next"
                       value={customer.address2}
                       onChange={(e) =>
                         setCustomer((c) => ({ ...c, address2: e.target.value }))
@@ -2718,6 +2731,9 @@ function CartPage({
                       City
                       <input
                         required
+                        name="city"
+                        autoComplete="address-level2"
+                        enterKeyHint="next"
                         value={customer.city}
                         onChange={(e) =>
                           setCustomer((c) => ({ ...c, city: e.target.value }))
@@ -2728,7 +2744,11 @@ function CartPage({
                       State
                       <input
                         required
+                        name="state"
+                        autoComplete="address-level1"
+                        autoCapitalize="characters"
                         maxLength={2}
+                        enterKeyHint="next"
                         value={customer.state}
                         onChange={(e) =>
                           setCustomer((c) => ({
@@ -2743,6 +2763,10 @@ function CartPage({
                       ZIP
                       <input
                         required
+                        name="zip"
+                        autoComplete="postal-code"
+                        inputMode="numeric"
+                        enterKeyHint="next"
                         value={customer.zip}
                         onChange={(e) =>
                           setCustomer((c) => ({ ...c, zip: e.target.value }))
@@ -2755,6 +2779,11 @@ function CartPage({
                   <label className="field">
                     Phone (optional)
                     <input
+                      type="tel"
+                      name="phone"
+                      autoComplete="tel"
+                      inputMode="tel"
+                      enterKeyHint="done"
                       value={customer.phone}
                       onChange={(e) =>
                         setCustomer((c) => ({ ...c, phone: e.target.value }))
