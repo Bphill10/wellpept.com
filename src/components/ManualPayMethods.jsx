@@ -156,14 +156,23 @@ export default function ManualPayMethods({
 
       {(config.solanaUsdc || config.ethUsdc) && (
         <div className="manual-pay-card">
-          <h3>Crypto (USDC or USDT)</h3>
+          <h3>Crypto — USDC or USDT only</h3>
+          <p className="meta">
+            Do not send SOL, ETH, or any other coin. Only USDC or USDT on the
+            matching network.
+          </p>
           {config.solanaUsdc && (
-            <CopyRow label="Solana address" value={config.solanaUsdc} />
+            <CopyRow
+              label="Solana (USDC or USDT)"
+              value={config.solanaUsdc}
+            />
           )}
           {config.ethUsdc && (
-            <CopyRow label="Ethereum address" value={config.ethUsdc} />
+            <CopyRow
+              label="Ethereum (USDC or USDT)"
+              value={config.ethUsdc}
+            />
           )}
-          <p className="meta">Send USDC or USDT on that network only.</p>
           <CopyRow label="Memo / reference" value={orderId} />
           <div className="row-actions">
             {config.solanaUsdc && (
@@ -173,7 +182,7 @@ export default function ManualPayMethods({
                 disabled={disabled || sent}
                 onClick={() => confirmPaid("crypto_solana")}
               >
-                I’ve paid on Solana
+                I’ve sent USDC/USDT on Solana
               </button>
             )}
             {config.ethUsdc && (
@@ -183,7 +192,7 @@ export default function ManualPayMethods({
                 disabled={disabled || sent}
                 onClick={() => confirmPaid("crypto_eth")}
               >
-                I’ve paid on Ethereum
+                I’ve sent USDC/USDT on Ethereum
               </button>
             )}
           </div>

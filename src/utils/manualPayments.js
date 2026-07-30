@@ -15,7 +15,7 @@ export const EMPTY_MANUAL_PAY = {
   zelleQrUrl: "",
   solanaUsdc: "",
   ethUsdc: "",
-  note: "Include your order ID in the payment memo. USDC or USDT accepted on the listed networks.",
+  note: "Include your order ID in the payment memo. Crypto: USDC or USDT only — do not send SOL, ETH, or other tokens.",
 };
 
 function envDefaults() {
@@ -29,7 +29,7 @@ function envDefaults() {
     ethUsdc: String(import.meta.env.VITE_CRYPTO_ETH_USDC || ""),
     note: String(
       import.meta.env.VITE_MANUAL_PAY_NOTE ||
-        "Include your order ID in the payment memo. USDC or USDT accepted on the listed networks."
+        "Include your order ID in the payment memo. Crypto: USDC or USDT only — do not send SOL, ETH, or other tokens."
     ),
   };
 }
@@ -141,11 +141,11 @@ export function formatManualPayText({
     lines.push(`  Memo / note: ${orderId}`);
   }
   if (config.solanaUsdc) {
-    lines.push(`Solana USDC or USDT: ${config.solanaUsdc}`);
+    lines.push(`Solana — USDC or USDT only (not SOL): ${config.solanaUsdc}`);
     lines.push(`  Network: Solana · Memo: ${orderId}`);
   }
   if (config.ethUsdc) {
-    lines.push(`Ethereum USDC or USDT: ${config.ethUsdc}`);
+    lines.push(`Ethereum — USDC or USDT only (not ETH): ${config.ethUsdc}`);
     lines.push(`  Network: Ethereum · Memo: ${orderId}`);
   }
   if (config.note) {

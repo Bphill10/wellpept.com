@@ -2609,7 +2609,7 @@ function CartPage({
             <h1>Pay order {payInvoice.orderId}</h1>
             <p className="lede">
               Supply confirmed. Pay the quoted total with Venmo, Zelle, or
-              crypto (USDC / USDT).
+              crypto (USDC or USDT only on Solana / Ethereum).
             </p>
             <div className="notice" style={{ marginTop: "0.75rem" }}>
               <strong>Amount due:</strong> {formatMoney(payInvoice.total)}
@@ -3591,7 +3591,7 @@ function AdminPanel({
               />
             </label>
             <label className="field">
-              Solana address (USDC or USDT)
+              Solana wallet (USDC or USDT only — not SOL)
               <input
                 value={payConfig.solanaUsdc}
                 onChange={(e) =>
@@ -3602,7 +3602,7 @@ function AdminPanel({
               />
             </label>
             <label className="field">
-              Ethereum address (USDC or USDT)
+              Ethereum wallet (USDC or USDT only — not ETH)
               <input
                 value={payConfig.ethUsdc}
                 onChange={(e) =>

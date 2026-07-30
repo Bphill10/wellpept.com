@@ -72,9 +72,8 @@ Test with a small live charge first, then Instant Payout if you need funds today
 
 ## Crypto
 
-Solana USDC (preferred) and Ethereum USDC are supported on the customer pay
-page once wallet addresses are saved in Admin or env. Customers should put the
-**order ID** in the transfer memo.
+Solana and Ethereum wallets accept **USDC or USDT only** — not native SOL/ETH
+or other tokens. Customers should put the **order ID** in the transfer memo.
 
 ## Chargebee (optional later)
 
