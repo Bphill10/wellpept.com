@@ -42,6 +42,16 @@ export function isChangshaFocused(name) {
   }
   if (n.includes("cjc") && n.includes("ipa")) return true; // CJC/IPA
   if (n === "ipamorelin" || n.startsWith("ipa ")) return true;
+  // No CJC with DAC (CJC W DAC)
+  if (
+    n.includes("cjc") &&
+    n.includes("dac") &&
+    !n.includes("no dac") &&
+    !n.includes("without dac") &&
+    !n.includes("whitout dac")
+  ) {
+    return false;
+  }
   if (n.includes("cjc")) return true;
   if (n.startsWith("tirzepatide") || n.startsWith("triz")) return true; // Triz
   if (n.startsWith("retatrutide") || n === "reta") return true;
