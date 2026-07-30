@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Calculator, RotateCcw, Link2 } from "lucide-react";
+import { ArrowLeft, Calculator, RotateCcw, Link2, Download } from "lucide-react";
 import LabelTemplate from "./LabelTemplate";
 import {
   calculatorOptionsFromListings,
@@ -556,6 +556,50 @@ export default function PeptideCalculator({
                 />
               </div>
             </div>
+          </div>
+
+          <div className="calc-print-panel">
+            <div className="calc-card-head">
+              <h2>3D print the kit case</h2>
+            </div>
+            <p className="meta">
+              Printable case for the 10-vial kit in the product photo — 2×5
+              vial pockets, spare-cap trough, hinged lid. STL in millimeters.
+            </p>
+            <div className="calc-print-actions">
+              <a
+                className="primary-btn"
+                href="/printables/undisclosed-vial-case-plate.stl"
+                download="undisclosed-vial-case-plate.stl"
+              >
+                <Download size={16} /> Download full plate STL
+              </a>
+              <a
+                className="soft-btn"
+                href="/printables/undisclosed-vial-case-base.stl"
+                download="undisclosed-vial-case-base.stl"
+              >
+                Base
+              </a>
+              <a
+                className="soft-btn"
+                href="/printables/undisclosed-vial-case-lid.stl"
+                download="undisclosed-vial-case-lid.stl"
+              >
+                Lid
+              </a>
+              <a
+                className="soft-btn"
+                href="/printables/undisclosed-vial-case-pin.stl"
+                download="undisclosed-vial-case-pin.stl"
+              >
+                Pin
+              </a>
+            </div>
+            <p className="meta" style={{ marginTop: "0.65rem" }}>
+              ~141 × 50 mm · PETG or PLA · 0.2 mm layers · no supports. Scale
+              ±1–3% if vials are tight.
+            </p>
           </div>
 
           <div className="notice warn" style={{ marginTop: "1.25rem" }}>

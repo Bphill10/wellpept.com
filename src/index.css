@@ -4563,6 +4563,35 @@ body:has(.app-shell--undisclosed)::before {
   border-radius: 2px;
 }
 
+.calc-print-panel {
+  margin-top: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.app-shell--undisclosed .calc-print-panel {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(0, 71, 171, 0.28);
+}
+
+.calc-print-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+  margin-top: 0.75rem;
+}
+
+.calc-print-actions a.primary-btn,
+.calc-print-actions a.soft-btn {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 @media (max-width: 900px) {
   .calc-layout {
     grid-template-columns: 1fr;
