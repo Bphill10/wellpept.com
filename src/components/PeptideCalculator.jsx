@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Calculator, RotateCcw, Link2, Download } from "lucide-react";
 import LabelTemplate from "./LabelTemplate";
 import {
+  CATEGORIES,
   calculatorOptionsFromListings,
   matchCalculatorOption,
 } from "../data/products";
@@ -129,7 +130,11 @@ export default function PeptideCalculator({
       if (!map.has(cat)) map.set(cat, []);
       map.get(cat).push(opt);
     }
-    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+    const rank = (cat) => {
+      const i = CATEGORIES.indexOf(cat);
+      return i === -1 ? CATEGORIES.length : i;
+    };
+    return [...map.entries()].sort((a, b) => rank(a[0]) - rank(b[0]));
   }, [options]);
   const quickPicks = useMemo(() => buildQuickPicks(options), [options]);
 

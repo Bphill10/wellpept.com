@@ -45,12 +45,12 @@ export function displayVendorName(name, vendorId = "") {
 
 export const CATEGORIES = [
   "All",
+  "Metabolic",
   "Recovery",
+  "Longevity",
   "Growth",
   "Cellular",
   "Cognitive",
-  "Metabolic",
-  "Longevity",
   "Research",
 ];
 
