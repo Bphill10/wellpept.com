@@ -1,22 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Undisclosed U monogram">
-  <!-- White hex outer -->
   <polygon
-    points="64,6 118,37 118,91 64,122 10,91 10,37"
+    points="64,4 120,36 120,92 64,124 8,92 8,36"
     fill="#ffffff"
   />
-  <!-- Black hex inner -->
   <polygon
-    points="64,18 108,43 108,85 64,110 20,85 20,43"
+    points="64,14 112,41 112,87 64,114 16,87 16,41"
     fill="#0a0a0a"
   />
-  <text
-    x="64"
-    y="82"
-    text-anchor="middle"
-    font-family="Arial Black, Arial, sans-serif"
-    font-size="58"
-    font-weight="800"
-    fill="#ffffff"
-    letter-spacing="0"
-  >U</text>
+  <!-- Wide, optically centered U (slight upward bias so it doesn’t sit on the hex point) -->
+  <g transform="translate(64 62) scale(1.08) translate(-64 -64)">
+    <path
+      fill="#ffffff"
+      d="
+        M 30 30
+        L 50 30
+        L 50 66
+        Q 50 84 64 84
+        Q 78 84 78 66
+        L 78 30
+        L 98 30
+        L 98 68
+        Q 98 104 64 104
+        Q 30 104 30 68
+        Z
+      "
+    />
+  </g>
 </svg>
