@@ -124,6 +124,20 @@ export default function ManualPayMethods({
       {config.zelleContact && (
         <div className="manual-pay-card">
           <h3>Zelle</h3>
+          {config.zelleQrUrl ? (
+            <>
+              <p className="meta">
+                Scan this code in your bank’s app, or send to the email below.
+              </p>
+              <img
+                src={config.zelleQrUrl}
+                alt="Zelle QR code — scan in your bank app"
+                className="manual-pay-qr"
+              />
+            </>
+          ) : (
+            <p className="meta">Send via Zelle to the email below.</p>
+          )}
           <CopyRow label="Send to" value={config.zelleContact} />
           {config.zelleName ? (
             <p className="meta">Name: {config.zelleName}</p>

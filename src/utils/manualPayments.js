@@ -11,6 +11,8 @@ export const EMPTY_MANUAL_PAY = {
   venmoCodeUrl: "",
   zelleContact: "",
   zelleName: "",
+  /** Path or URL to Zelle QR image, e.g. /zelle-qr.png */
+  zelleQrUrl: "",
   solanaUsdc: "",
   ethUsdc: "",
   note: "Include your order ID in the payment memo. USDC or USDT accepted on the listed networks.",
@@ -22,6 +24,7 @@ function envDefaults() {
     venmoCodeUrl: String(import.meta.env.VITE_VENMO_CODE_URL || "").trim(),
     zelleContact: String(import.meta.env.VITE_ZELLE_CONTACT || ""),
     zelleName: String(import.meta.env.VITE_ZELLE_NAME || "WellPept"),
+    zelleQrUrl: String(import.meta.env.VITE_ZELLE_QR_URL || "").trim(),
     solanaUsdc: String(import.meta.env.VITE_CRYPTO_SOLANA_USDC || ""),
     ethUsdc: String(import.meta.env.VITE_CRYPTO_ETH_USDC || ""),
     note: String(

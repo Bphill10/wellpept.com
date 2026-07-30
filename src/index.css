@@ -5822,6 +5822,16 @@ html:has(.app-shell--undisclosed) {
   text-decoration: none;
 }
 
+.manual-pay-qr {
+  display: block;
+  width: min(100%, 220px);
+  height: auto;
+  margin: 0.15rem auto;
+  border-radius: 8px;
+  background: #fff;
+  padding: 0.5rem;
+}
+
 .manual-pay-raw {
   margin-top: 0.35rem;
   font-size: 0.85rem;

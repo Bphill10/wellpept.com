@@ -3574,15 +3574,29 @@ function AdminPanel({
                 />
               </label>
               <label className="field">
-                Note on pay page
+                Zelle QR image URL (optional)
                 <input
-                  value={payConfig.note}
+                  value={payConfig.zelleQrUrl || ""}
                   onChange={(e) =>
-                    setPayConfig((c) => ({ ...c, note: e.target.value }))
+                    setPayConfig((c) => ({
+                      ...c,
+                      zelleQrUrl: e.target.value.trim(),
+                    }))
                   }
+                  placeholder="/zelle-qr.png"
+                  spellCheck={false}
                 />
               </label>
             </div>
+            <label className="field">
+              Note on pay page
+              <input
+                value={payConfig.note}
+                onChange={(e) =>
+                  setPayConfig((c) => ({ ...c, note: e.target.value }))
+                }
+              />
+            </label>
             <label className="field">
               Solana address (USDC or USDT)
               <input
