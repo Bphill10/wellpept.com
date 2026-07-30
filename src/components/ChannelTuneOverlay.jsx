@@ -1,84 +1,186 @@
 import { useEffect, useMemo, useRef } from "react";
 
-const TUNE_MS = 4800;
+const TUNE_MS = 6800;
 const REDUCED_MS = 160;
-const FLAKE_COUNT = 56;
+const FLAKE_COUNT = 72;
 
 function makeFlakes(count) {
   return Array.from({ length: count }, (_, i) => {
-    const size = 4 + ((i * 17) % 28);
+    const size = 3 + ((i * 19) % 34);
     return {
       id: i,
       left: `${(i * 37 + 13) % 100}%`,
       top: `${(i * 53 + 7) % 100}%`,
       size,
-      delay: `${((i * 97) % 900) / 1000}s`,
-      duration: `${1.6 + ((i * 41) % 220) / 100}s`,
-      blur: size > 18 ? 2.5 : size > 10 ? 1.4 : 0.6,
-      opacity: 0.25 + ((i * 13) % 55) / 100,
+      delay: `${((i * 97) % 1200) / 1000}s`,
+      duration: `${1.8 + ((i * 41) % 260) / 100}s`,
+      blur: size > 20 ? 3.2 : size > 12 ? 1.6 : 0.7,
+      opacity: 0.2 + ((i * 13) % 60) / 100,
     };
   });
 }
 
-/** Generate looping white-noise / TV static via Web Audio. */
-function startStaticAudio() {
+function makeNoiseBuffer(ctx, seconds = 2) {
+  const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * seconds), ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < data.length; i += 1) {
+    const n = Math.random() * 2 - 1;
+    const crackle = Math.random() > 0.993 ? (Math.random() * 2 - 1) * 1.6 : 0;
+    data[i] = n * 0.7 + crackle;
+  }
+  return buffer;
+}
+
+/**
+ * Original eerie dimension-shift score + TV static.
+ * (Inspired by classic late-night sci-fi TV mood — not a licensed theme.)
+ */
+function startTwilightAudio() {
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
   if (!AudioCtx) return () => {};
 
   const ctx = new AudioCtx();
-  const seconds = 2;
-  const buffer = ctx.createBuffer(1, ctx.sampleRate * seconds, ctx.sampleRate);
-  const data = buffer.getChannelData(0);
-  for (let i = 0; i < data.length; i += 1) {
-    // Harsh TV snow + occasional crackle spikes
-    const n = Math.random() * 2 - 1;
-    const crackle = Math.random() > 0.992 ? (Math.random() * 2 - 1) * 1.8 : 0;
-    data[i] = n * 0.72 + crackle;
-  }
-
-  const source = ctx.createBufferSource();
-  source.buffer = buffer;
-  source.loop = true;
-
-  const highpass = ctx.createBiquadFilter();
-  highpass.type = "highpass";
-  highpass.frequency.value = 180;
-
-  const band = ctx.createBiquadFilter();
-  band.type = "peaking";
-  band.frequency.value = 2200;
-  band.Q.value = 0.7;
-  band.gain.value = 6;
-
-  const gain = ctx.createGain();
   const now = ctx.currentTime;
-  gain.gain.setValueAtTime(0.0001, now);
-  gain.gain.exponentialRampToValueAtTime(0.24, now + 0.15);
-  // Fluttering reception
   const end = now + TUNE_MS / 1000;
-  let t = now + 0.2;
-  while (t < end - 0.7) {
-    const peak = 0.16 + Math.random() * 0.12;
-    gain.gain.linearRampToValueAtTime(peak, t);
-    t += 0.12 + Math.random() * 0.18;
-  }
-  gain.gain.linearRampToValueAtTime(0.2, end - 0.55);
-  gain.gain.exponentialRampToValueAtTime(0.0001, end);
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(0.0001, now);
+  master.gain.exponentialRampToValueAtTime(0.85, now + 0.25);
+  master.gain.setValueAtTime(0.85, end - 0.7);
+  master.gain.exponentialRampToValueAtTime(0.0001, end);
+  master.connect(ctx.destination);
 
-  source.connect(highpass);
-  highpass.connect(band);
-  band.connect(gain);
-  gain.connect(ctx.destination);
+  // --- TV static bed ---
+  const noiseSrc = ctx.createBufferSource();
+  noiseSrc.buffer = makeNoiseBuffer(ctx, 2);
+  noiseSrc.loop = true;
+  const noiseHp = ctx.createBiquadFilter();
+  noiseHp.type = "highpass";
+  noiseHp.frequency.value = 220;
+  const noisePeak = ctx.createBiquadFilter();
+  noisePeak.type = "peaking";
+  noisePeak.frequency.value = 2400;
+  noisePeak.Q.value = 0.6;
+  noisePeak.gain.value = 5;
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.0001, now);
+  noiseGain.gain.exponentialRampToValueAtTime(0.16, now + 0.2);
+  // swell mid-transition then settle
+  noiseGain.gain.linearRampToValueAtTime(0.28, now + 2.2);
+  noiseGain.gain.linearRampToValueAtTime(0.12, now + 4.5);
+  noiseGain.gain.exponentialRampToValueAtTime(0.0001, end);
+  noiseSrc.connect(noiseHp);
+  noiseHp.connect(noisePeak);
+  noisePeak.connect(noiseGain);
+  noiseGain.connect(master);
+
+  // --- Deep dimension drone ---
+  const drone = ctx.createOscillator();
+  drone.type = "sawtooth";
+  drone.frequency.setValueAtTime(55, now);
+  drone.frequency.linearRampToValueAtTime(48, end);
+  const droneFilter = ctx.createBiquadFilter();
+  droneFilter.type = "lowpass";
+  droneFilter.frequency.setValueAtTime(180, now);
+  droneFilter.frequency.linearRampToValueAtTime(90, end);
+  droneFilter.Q.value = 4;
+  const droneGain = ctx.createGain();
+  droneGain.gain.setValueAtTime(0.0001, now);
+  droneGain.gain.exponentialRampToValueAtTime(0.12, now + 0.8);
+  droneGain.gain.setValueAtTime(0.12, end - 0.8);
+  droneGain.gain.exponentialRampToValueAtTime(0.0001, end);
+  drone.connect(droneFilter);
+  droneFilter.connect(droneGain);
+  droneGain.connect(master);
+
+  // Sub pulse (slow, uneasy)
+  const pulse = ctx.createOscillator();
+  pulse.type = "sine";
+  pulse.frequency.value = 36;
+  const pulseGain = ctx.createGain();
+  pulseGain.gain.setValueAtTime(0, now);
+  // Soft heart-ish swells
+  for (let t = now + 0.6; t < end - 0.9; t += 1.15) {
+    pulseGain.gain.setValueAtTime(0.001, t);
+    pulseGain.gain.linearRampToValueAtTime(0.09, t + 0.18);
+    pulseGain.gain.linearRampToValueAtTime(0.001, t + 0.55);
+  }
+  pulse.connect(pulseGain);
+  pulseGain.connect(master);
+
+  // --- Theremin-like lead (original contour — mysterious, not a cover) ---
+  const lead = ctx.createOscillator();
+  lead.type = "sine";
+  const leadGain = ctx.createGain();
+  leadGain.gain.setValueAtTime(0.0001, now);
+  leadGain.gain.exponentialRampToValueAtTime(0.11, now + 1.0);
+
+  // Slow vibrato
+  const vib = ctx.createOscillator();
+  vib.type = "sine";
+  vib.frequency.value = 4.2;
+  const vibDepth = ctx.createGain();
+  vibDepth.gain.value = 7;
+  vib.connect(vibDepth);
+  vibDepth.connect(lead.frequency);
+
+  // Original eerie contour (Hz) — descending / floating, original path
+  const melody = [
+    [0.9, 392],
+    [1.6, 349],
+    [2.2, 415],
+    [2.9, 311],
+    [3.6, 370],
+    [4.3, 277],
+    [5.0, 330],
+    [5.7, 247],
+  ];
+  melody.forEach(([at, freq]) => {
+    lead.frequency.setValueAtTime(freq, now + at);
+  });
+  leadGain.gain.setValueAtTime(0.11, end - 1.0);
+  leadGain.gain.exponentialRampToValueAtTime(0.0001, end);
+
+  const leadFilter = ctx.createBiquadFilter();
+  leadFilter.type = "lowpass";
+  leadFilter.frequency.value = 1800;
+  lead.connect(leadFilter);
+  leadFilter.connect(leadGain);
+  leadGain.connect(master);
+
+  // Ghost harmony (fifth below, quieter)
+  const ghost = ctx.createOscillator();
+  ghost.type = "triangle";
+  ghost.frequency.setValueAtTime(196, now + 1.2);
+  ghost.frequency.linearRampToValueAtTime(165, now + 4.5);
+  const ghostGain = ctx.createGain();
+  ghostGain.gain.setValueAtTime(0.0001, now);
+  ghostGain.gain.exponentialRampToValueAtTime(0.045, now + 1.5);
+  ghostGain.gain.exponentialRampToValueAtTime(0.0001, end);
+  ghost.connect(ghostGain);
+  ghostGain.connect(master);
 
   if (ctx.state === "suspended") {
     ctx.resume().catch(() => {});
   }
 
-  source.start();
+  noiseSrc.start();
+  drone.start();
+  pulse.start();
+  lead.start();
+  vib.start();
+  ghost.start();
+
+  const nodes = [noiseSrc, drone, pulse, lead, vib, ghost];
 
   return () => {
     try {
-      source.stop();
+      nodes.forEach((n) => {
+        try {
+          n.stop();
+        } catch {
+          /* ignore */
+        }
+      });
       ctx.close();
     } catch {
       /* ignore */
@@ -87,7 +189,7 @@ function startStaticAudio() {
 }
 
 /**
- * Long B&W CRT static wipe — WellPept → Undisclosed (5 logo taps).
+ * Twilight-dimension CRT wipe — WellPept → Undisclosed (5 logo taps).
  */
 export default function ChannelTuneOverlay({ active, onDone }) {
   const onDoneRef = useRef(onDone);
@@ -108,7 +210,7 @@ export default function ChannelTuneOverlay({ active, onDone }) {
     let stopAudio = () => {};
     if (!reduced) {
       try {
-        stopAudio = startStaticAudio();
+        stopAudio = startTwilightAudio();
       } catch {
         stopAudio = () => {};
       }
@@ -132,7 +234,7 @@ export default function ChannelTuneOverlay({ active, onDone }) {
 
   return (
     <div
-      className="tv-tune"
+      className="tv-tune tv-tune--twilight"
       role="presentation"
       aria-hidden="true"
       style={{ "--tv-tune-dur": `${TUNE_MS}ms` }}
@@ -162,6 +264,9 @@ export default function ChannelTuneOverlay({ active, onDone }) {
 
       <div className="tv-tune-screen">
         <div className="tv-tune-void" />
+        <div className="tv-tune-spiral" />
+        <div className="tv-tune-doorway" />
+
         <div className="tv-tune-noise" />
         <div className="tv-tune-snow" />
         <div className="tv-tune-snow tv-tune-snow--coarse" />
@@ -199,6 +304,12 @@ export default function ChannelTuneOverlay({ active, onDone }) {
         <div className="tv-tune-scanlines" />
         <div className="tv-tune-beam" />
 
+        <div className="tv-tune-titlecard">
+          <p className="tv-tune-epigraph">Submitted for your approval</p>
+          <h2 className="tv-tune-dimension">Another dimension</h2>
+          <p className="tv-tune-tagline">of sight · of sound · of mind</p>
+        </div>
+
         <div className="tv-tune-hud">
           <div className="tv-tune-hud-row">
             <span className="tv-tune-ch">CH</span>
@@ -208,9 +319,9 @@ export default function ChannelTuneOverlay({ active, onDone }) {
           <p className="tv-tune-name">UNDISCLOSED</p>
           <p className="tv-tune-signal">
             <span />
-            NO SIGNAL · TUNING
+            ENTERING · SIGNAL LOCK
           </p>
-          <p className="tv-tune-mhz">···· STATIC ····</p>
+          <p className="tv-tune-mhz">···· DIMENSION SHIFT ····</p>
         </div>
 
         <div className="tv-tune-corner tv-tune-corner--tl" />

@@ -5744,9 +5744,9 @@ html:has(.app-shell--undisclosed) {
   }
 }
 
-/* ---------- CRT channel-tune unlock (WellPept → Undisclosed) ---------- */
+/* ---------- Twilight CRT unlock (WellPept → Undisclosed) ---------- */
 .tv-tune {
-  --tv-tune-dur: 4.8s;
+  --tv-tune-dur: 6.8s;
   position: fixed;
   inset: 0;
   z-index: 200;
@@ -5778,8 +5778,49 @@ html:has(.app-shell--undisclosed) {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at center, #1a1a1a 0%, #050505 55%, #000 100%);
+    radial-gradient(ellipse at center, #1c1c1c 0%, #080808 50%, #000 100%);
   animation: tv-tune-void var(--tv-tune-dur) ease both;
+}
+
+/* Hypnotic dimension spiral */
+.tv-tune-spiral {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: min(140vmax, 1600px);
+  height: min(140vmax, 1600px);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(
+      from 0deg,
+      #fff 0deg 8deg,
+      #000 8deg 16deg
+    );
+  opacity: 0;
+  filter: contrast(1.3) blur(0.4px);
+  animation: tv-tune-spiral var(--tv-tune-dur) cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  mix-blend-mode: screen;
+  z-index: 1;
+}
+
+.tv-tune-doorway {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 18vmin;
+  height: 42vmin;
+  transform: translate(-50%, -50%);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(180, 180, 180, 0.35) 40%, rgba(0, 0, 0, 0.2));
+  box-shadow:
+    0 0 40px 12px rgba(255, 255, 255, 0.35),
+    0 0 120px 40px rgba(255, 255, 255, 0.12),
+    inset 0 0 30px rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  animation: tv-tune-doorway var(--tv-tune-dur) ease both;
+  z-index: 2;
+  border-radius: 2px 2px 0 0;
 }
 
 .tv-tune-noise {
@@ -5790,6 +5831,7 @@ html:has(.app-shell--undisclosed) {
   opacity: 0.75;
   mix-blend-mode: screen;
   animation: tv-tune-noise var(--tv-tune-dur) linear both;
+  z-index: 3;
 }
 
 .tv-tune-snow {
@@ -5812,9 +5854,10 @@ html:has(.app-shell--undisclosed) {
     );
   background-size: 2px 3px, 4px 2px;
   opacity: 0.95;
-  animation: tv-tune-snow var(--tv-tune-dur) steps(36) both;
+  animation: tv-tune-snow var(--tv-tune-dur) steps(42) both;
   filter: contrast(1.7) brightness(1.2) grayscale(1);
   mix-blend-mode: screen;
+  z-index: 3;
 }
 
 .tv-tune-snow--coarse {
@@ -5841,7 +5884,7 @@ html:has(.app-shell--undisclosed) {
 .tv-tune-flakes {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: 4;
   overflow: hidden;
   pointer-events: none;
 }
@@ -5871,25 +5914,25 @@ html:has(.app-shell--undisclosed) {
   grid-template-columns: repeat(7, 1fr);
   opacity: 0;
   animation: tv-tune-bars var(--tv-tune-dur) ease both;
-  filter: grayscale(0.85) contrast(1.15);
+  filter: grayscale(0.9) contrast(1.15);
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.7);
   overflow: hidden;
   z-index: 2;
 }
 
 .tv-tune-bars span:nth-child(1) { background: #e8e8e8; }
-.tv-tune-bars span:nth-child(2) { background: #c8c800; }
-.tv-tune-bars span:nth-child(3) { background: #00b8b8; }
-.tv-tune-bars span:nth-child(4) { background: #00a800; }
-.tv-tune-bars span:nth-child(5) { background: #a000a0; }
-.tv-tune-bars span:nth-child(6) { background: #a00000; }
-.tv-tune-bars span:nth-child(7) { background: #0000a0; }
+.tv-tune-bars span:nth-child(2) { background: #bdbdbd; }
+.tv-tune-bars span:nth-child(3) { background: #8e8e8e; }
+.tv-tune-bars span:nth-child(4) { background: #6a6a6a; }
+.tv-tune-bars span:nth-child(5) { background: #484848; }
+.tv-tune-bars span:nth-child(6) { background: #2a2a2a; }
+.tv-tune-bars span:nth-child(7) { background: #0e0e0e; }
 
 .tv-tune-glitch {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 4;
+  z-index: 5;
 }
 
 .tv-tune-glitch span {
@@ -5980,6 +6023,53 @@ html:has(.app-shell--undisclosed) {
   opacity: 0;
   animation: tv-tune-beam var(--tv-tune-dur) cubic-bezier(0.4, 0, 0.2, 1) both;
   z-index: 8;
+}
+
+/* Classic late-night title card */
+.tv-tune-titlecard {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  padding: 1.5rem;
+  opacity: 0;
+  animation: tv-tune-titlecard var(--tv-tune-dur) ease both;
+  pointer-events: none;
+}
+
+.tv-tune-epigraph {
+  margin: 0;
+  font-family: "Cormorant Garamond", "Times New Roman", serif;
+  font-style: italic;
+  font-size: clamp(0.85rem, 2.8vw, 1.15rem);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(235, 235, 235, 0.75);
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+}
+
+.tv-tune-dimension {
+  margin: 0.85rem 0 0.55rem;
+  font-family: "Cormorant Garamond", "Times New Roman", serif;
+  font-weight: 600;
+  font-size: clamp(2rem, 9vw, 4.2rem);
+  letter-spacing: 0.08em;
+  color: #fff;
+  text-shadow:
+    0 0 20px rgba(255, 255, 255, 0.45),
+    0 2px 0 rgba(0, 0, 0, 0.8);
+  line-height: 1.05;
+}
+
+.tv-tune-tagline {
+  margin: 0;
+  font-family: "Cormorant Garamond", "Times New Roman", serif;
+  font-style: italic;
+  font-size: clamp(0.95rem, 3vw, 1.35rem);
+  letter-spacing: 0.18em;
+  color: rgba(220, 220, 220, 0.85);
 }
 
 .tv-tune-hud {
@@ -6100,8 +6190,8 @@ html:has(.app-shell--undisclosed) {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at center, transparent 28%, rgba(0, 0, 0, 0.88) 100%);
-  box-shadow: inset 0 0 140px rgba(0, 0, 0, 0.85);
+    radial-gradient(ellipse at center, transparent 22%, rgba(0, 0, 0, 0.92) 100%);
+  box-shadow: inset 0 0 160px rgba(0, 0, 0, 0.9);
   z-index: 7;
   pointer-events: none;
 }
@@ -6134,14 +6224,75 @@ html:has(.app-shell--undisclosed) {
 
 @keyframes tv-tune-hold {
   0%,
-  90% { opacity: 1; }
+  92% { opacity: 1; }
   100% { opacity: 0; }
 }
 
 @keyframes tv-tune-void {
   0%,
-  70% { opacity: 1; }
-  100% { opacity: 0.4; }
+  75% { opacity: 1; }
+  100% { opacity: 0.35; }
+}
+
+@keyframes tv-tune-spiral {
+  0%,
+  8% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2) rotate(0deg);
+  }
+  18% {
+    opacity: 0.55;
+    transform: translate(-50%, -50%) scale(0.55) rotate(120deg);
+  }
+  45% {
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(1.05) rotate(480deg);
+  }
+  62% {
+    opacity: 0.35;
+    transform: translate(-50%, -50%) scale(1.35) rotate(720deg);
+  }
+  78%,
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.8) rotate(980deg);
+  }
+}
+
+@keyframes tv-tune-doorway {
+  0%,
+  28% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scaleY(0.05) scaleX(0.4);
+  }
+  38% {
+    opacity: 0.85;
+    transform: translate(-50%, -50%) scaleY(1) scaleX(1);
+  }
+  55% {
+    opacity: 0.55;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+  70% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(2.4);
+    filter: blur(2px);
+  }
+  82%,
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(6);
+    filter: blur(8px);
+  }
+}
+
+@keyframes tv-tune-titlecard {
+  0%,
+  22% { opacity: 0; transform: scale(1.04); filter: blur(4px); }
+  30% { opacity: 1; transform: scale(1); filter: blur(0); }
+  52% { opacity: 1; }
+  62% { opacity: 0; transform: scale(0.96); filter: blur(3px); }
+  100% { opacity: 0; }
 }
 
 @keyframes tv-tune-screen {
@@ -6150,26 +6301,26 @@ html:has(.app-shell--undisclosed) {
     filter: brightness(2.6) contrast(1.5);
     border-radius: 50%;
   }
-  6% {
+  5% {
     transform: scale(1.02, 0.28);
     filter: brightness(1.5);
     border-radius: 10%;
   }
-  12% {
+  10% {
     transform: scale(1.01, 1.02);
     filter: brightness(1.1);
     border-radius: 0;
   }
-  78% {
+  82% {
     transform: scale(1);
     filter: brightness(1) contrast(1.1);
   }
-  88% {
+  90% {
     transform: scale(1.03, 0.035);
     filter: brightness(2.2);
     border-radius: 42%;
   }
-  94% {
+  95% {
     transform: scale(0.18, 0.01);
     filter: brightness(3);
   }
@@ -6182,8 +6333,8 @@ html:has(.app-shell--undisclosed) {
 
 @keyframes tv-tune-noise {
   0%,
-  72% { opacity: 0.8; }
-  85% { opacity: 0.25; }
+  78% { opacity: 0.75; }
+  88% { opacity: 0.2; }
   100% { opacity: 0; }
 }
 
@@ -6195,8 +6346,8 @@ html:has(.app-shell--undisclosed) {
   20% { transform: translate3d(-2.5%, 2%, 0); opacity: 0.95; }
   40% { transform: translate3d(3%, -2.5%, 0); opacity: 0.85; }
   55% { transform: translate3d(-2%, 3%, 0); opacity: 1; }
-  70% { transform: translate3d(2%, -1%, 0); opacity: 0.7; }
-  85% { opacity: 0.35; }
+  72% { transform: translate3d(2%, -1%, 0); opacity: 0.65; }
+  88% { opacity: 0.3; }
   100% {
     transform: translate3d(0, 0, 0);
     opacity: 0;
@@ -6218,27 +6369,17 @@ html:has(.app-shell--undisclosed) {
 }
 
 @keyframes tv-tune-flake-drift {
-  from {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  to {
-    transform: translate3d(18px, 42px, 0) scale(1.35);
-  }
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(18px, 42px, 0) scale(1.35); }
 }
 
 @keyframes tv-tune-bars {
   0%,
-  18% {
-    opacity: 0;
-    transform: scaleY(1.15) skewX(-2deg);
-  }
-  24% {
-    opacity: 0.55;
-    transform: scaleY(1) skewX(0);
-  }
-  32% { opacity: 0.08; }
-  38% { opacity: 0.45; }
-  48% { opacity: 0; }
+  12% { opacity: 0; transform: scaleY(1.15) skewX(-2deg); }
+  16% { opacity: 0.4; transform: scaleY(1) skewX(0); }
+  22% { opacity: 0.05; }
+  26% { opacity: 0.35; }
+  34% { opacity: 0; }
   100% { opacity: 0; }
 }
 
@@ -6281,50 +6422,50 @@ html:has(.app-shell--undisclosed) {
 
 @keyframes tv-tune-beam {
   0%,
-  78% { opacity: 0; top: 8%; }
-  82% { opacity: 1; top: 8%; }
-  90% { opacity: 1; top: 92%; }
-  94%,
+  84% { opacity: 0; top: 8%; }
+  87% { opacity: 1; top: 8%; }
+  93% { opacity: 1; top: 92%; }
+  96%,
   100% { opacity: 0; top: 98%; }
 }
 
 @keyframes tv-tune-hud {
   0%,
-  20% { opacity: 0; }
-  24%,
-  82% { opacity: 1; }
-  90%,
+  48% { opacity: 0; }
+  54%,
+  86% { opacity: 1; }
+  92%,
   100% { opacity: 0; }
 }
 
 @keyframes tv-tune-from {
   0%,
-  32% { opacity: 0.7; }
-  40%,
+  52% { opacity: 0.7; }
+  60%,
   100% { opacity: 0.25; }
 }
 
 @keyframes tv-tune-name-in {
   0%,
-  34% {
+  52% {
     opacity: 0;
     letter-spacing: 0.5em;
     filter: blur(6px);
   }
-  44% {
+  60% {
     opacity: 1;
     letter-spacing: 0.22em;
     filter: blur(0);
   }
-  82% { opacity: 1; }
+  86% { opacity: 1; }
   100% { opacity: 0; }
 }
 
 @keyframes tv-tune-corners {
   0%,
-  22% { opacity: 0; }
-  28%,
-  80% { opacity: 0.75; }
+  18% { opacity: 0; }
+  24%,
+  86% { opacity: 0.75; }
   100% { opacity: 0; }
 }
 
@@ -6335,9 +6476,9 @@ html:has(.app-shell--undisclosed) {
 
 @keyframes tv-tune-cut {
   0%,
-  84% { opacity: 0; }
-  88% { opacity: 0.95; }
-  94% { opacity: 0.2; }
+  88% { opacity: 0; }
+  91% { opacity: 0.95; }
+  96% { opacity: 0.2; }
   100% { opacity: 0; }
 }
 
@@ -6356,6 +6497,9 @@ html:has(.app-shell--undisclosed) {
   .tv-tune,
   .tv-tune-screen,
   .tv-tune-void,
+  .tv-tune-spiral,
+  .tv-tune-doorway,
+  .tv-tune-titlecard,
   .tv-tune-snow,
   .tv-tune-noise,
   .tv-tune-scanlines,
