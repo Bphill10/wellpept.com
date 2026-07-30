@@ -965,7 +965,7 @@ export async function drawGeneratedVial(canvas, options = {}) {
     qrPayload = "",
     coaUrl = "",
     catalogTemplate = true,
-    showLabel = false,
+    showLabel = true,
   } = options;
 
   // Catalog hero always uses the same 3 mL bottle plate for identical framing
@@ -1062,18 +1062,57 @@ export const CATALOG_VIAL_TEMPLATE = {
 
 /**
  * Photoreal catalog vial — identical camera/lighting for every product.
- * Plain studio bottle only (no wrap label).
+ * When showLabel is true, draws the clinical wrap (name, mg, dosage, QR).
  */
 function drawPhotorealVial(ctx, dims, options) {
   const {
     photo,
+    name = "Peptide",
     isTen = false,
+    mass,
+    unit,
+    sku = "",
+    bacWater,
+    concentration,
+    doseRange,
+    qrPayload,
+    coaUrl,
+    showLabel = true,
   } = options;
 
   ctx.fillStyle = "#000000";
   ctx.fillRect(0, 0, dims.w, dims.h);
   // Same bottle framing for every SKU (3 mL plate is the catalog hero)
   drawZoomedVialPhoto(ctx, photo, dims.w, dims.h, isTen ? 1.38 : 1.52);
+
+  if (!showLabel) return;
+
+  // Label band: mid-body wrap, ~full glass width
+  const bodyW = dims.w * (isTen ? 0.4 : 0.38);
+  const bodyX = dims.w / 2 - bodyW / 2;
+  const sleeveTop = dims.h * (isTen ? 0.3 : 0.29);
+  const sleeveH = dims.h * (isTen ? 0.33 : 0.32);
+
+  const wrapBmp = createWrapLabelBitmap({
+    name,
+    mass,
+    unit,
+    bacWater,
+    concentration,
+    doseRange,
+    sku,
+    qrPayload: qrPayload || CATALOG_VIAL_TEMPLATE.qrPayload,
+    coaUrl: coaUrl || "",
+    footerText: CATALOG_VIAL_TEMPLATE.footerText,
+  });
+
+  drawCatalogWrapOnVial(ctx, wrapBmp, {
+    bodyX,
+    bodyW,
+    sleeveTop,
+    sleeveH,
+    radius: Math.max(3, bodyW * 0.04),
+  });
 }
 
 /** Cover-fit with zoom so the vial reads like a close product shot. */

@@ -41,8 +41,8 @@ export default function GeneratedVial({
   className = "",
   /** Storefront framing lock: same 3 mL plate. */
   catalogTemplate = true,
-  /** Clinical wrap label — off by default (plain studio bottle). */
-  showLabel = false,
+  /** Clinical wrap label on the photoreal vial PNG. */
+  showLabel = true,
 }) {
   const canvasRef = useRef(null);
   const [png, setPng] = useState("");

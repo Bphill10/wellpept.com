@@ -143,7 +143,7 @@ function VialPreview({ product, size = "md", showDownload = false }) {
       </div>
     );
   }
-  // Plain studio vial. no wrap label
+  // Studio vial with clinical wrap label (name · mg · dosage · QR)
   return (
     <GeneratedVial
       name={product.name}
@@ -158,7 +158,7 @@ function VialPreview({ product, size = "md", showDownload = false }) {
       coaUrl={product.coaUrl || ""}
       size={size}
       showDownload={showDownload}
-      showLabel={false}
+      showLabel
       catalogTemplate
     />
   );

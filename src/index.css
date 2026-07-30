@@ -2687,12 +2687,14 @@ body:has(.app-shell--undisclosed)::before {
 }
 
 .app-shell--undisclosed .search-dept {
-  background: rgba(255, 255, 255, 0.1);
-  color: #f4f6f8;
-  color-scheme: dark;
+  background: #ffffff;
+  color: #0a0a0a;
+  /* light scheme so the native menu is never white-on-white / black-on-black */
+  color-scheme: light;
 }
 
-.app-shell--undisclosed .search-dept option {
+.app-shell--undisclosed .search-dept option,
+.app-shell--undisclosed .search-dept optgroup {
   background-color: #ffffff;
   color: #0a0a0a;
 }
@@ -2716,16 +2718,12 @@ body:has(.app-shell--undisclosed)::before {
   color: #f4f6f8;
 }
 
-/* Beat label.field’s light fill so closed + open menus stay readable */
+/* Inputs stay dark; native <select> menus use a light popup for readability */
 .app-shell--undisclosed .field input,
-.app-shell--undisclosed .field select,
 .app-shell--undisclosed .field textarea,
 .app-shell--undisclosed label.field input,
-.app-shell--undisclosed label.field select,
 .app-shell--undisclosed label.field textarea,
 .app-shell--undisclosed .checkout-form input,
-.app-shell--undisclosed .checkout-form select,
-.app-shell--undisclosed select,
 .app-shell--undisclosed textarea {
   background: #0a0a0a;
   border-color: rgba(255, 255, 255, 0.18);
@@ -2733,10 +2731,30 @@ body:has(.app-shell--undisclosed)::before {
   color-scheme: dark;
 }
 
-/* Native <option> menus often ignore parent color; force dark-on-light list */
+.app-shell--undisclosed .field select,
+.app-shell--undisclosed label.field select,
+.app-shell--undisclosed .checkout-form select,
+.app-shell--undisclosed .strength-field select,
+.app-shell--undisclosed .buy-box select,
+.app-shell--undisclosed .product-card select,
+.app-shell--undisclosed .search-dept,
+.app-shell--undisclosed select {
+  background: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #0a0a0a !important;
+  /* Critical: dark color-scheme makes many browsers paint unreadable option text */
+  color-scheme: light;
+}
+
 .app-shell--undisclosed select option,
+.app-shell--undisclosed select optgroup,
 .app-shell--undisclosed .field select option,
-.app-shell--undisclosed label.field select option {
+.app-shell--undisclosed .field select optgroup,
+.app-shell--undisclosed label.field select option,
+.app-shell--undisclosed label.field select optgroup,
+.app-shell--undisclosed .strength-field select option,
+.app-shell--undisclosed .search-dept option,
+.app-shell--undisclosed .search-dept optgroup {
   background-color: #ffffff;
   color: #0a0a0a;
 }
