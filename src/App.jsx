@@ -65,6 +65,7 @@ import PeptideCalculator, {
 } from "./components/PeptideCalculator";
 import GeneratedVial from "./components/GeneratedVial";
 import SkincareHome from "./components/SkincareHome";
+import ChannelTuneOverlay from "./components/ChannelTuneOverlay";
 import PriceListDropzone from "./components/PriceListDropzone";
 import PriceCompare from "./components/PriceCompare";
 import LiveChat, { openLiveChat, contactEmail } from "./components/LiveChat";
@@ -175,6 +176,8 @@ export default function App() {
   const [logoClicks, setLogoClicks] = useState([]);
   const logoClicksRef = useRef([]);
   const lastBrandTapRef = useRef(0);
+  const [channelTuning, setChannelTuning] = useState(false);
+  const channelTuneLockRef = useRef(false);
   const [skinProduct, setSkinProduct] = useState(null);
   const [view, setView] = useState(() => {
     const openLab =
@@ -335,6 +338,18 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function finishChannelTune() {
+    channelTuneLockRef.current = false;
+    setChannelTuning(false);
+    unlockLabMenu("Undisclosed unlocked");
+  }
+
+  function startChannelTuneUnlock() {
+    if (channelTuneLockRef.current || channelTuning || labUnlocked) return;
+    channelTuneLockRef.current = true;
+    setChannelTuning(true);
+  }
+
   function lockLabMenu() {
     setLabUnlocked(false);
     setLabUnlockedState(false);
@@ -369,7 +384,7 @@ export default function App() {
       if (next.length >= 5) {
         logoClicksRef.current = [];
         setLogoClicks([]);
-        unlockLabMenu("Undisclosed unlocked");
+        startChannelTuneUnlock();
         return;
       }
       // Stay on skincare without thrashing navigation on every tap.
@@ -1121,6 +1136,10 @@ export default function App() {
           </nav>
         )}
       </header>
+
+      {channelTuning && (
+        <ChannelTuneOverlay active onDone={finishChannelTune} />
+      )}
 
       {flash && (
         <div className="container" style={{ paddingTop: "0.85rem" }}>
