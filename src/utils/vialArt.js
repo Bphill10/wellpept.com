@@ -286,29 +286,77 @@ function drawDarkStudio(ctx, w, h) {
 }
 
 /**
- * Cobalt circular W monogram.
+ * Cobalt circular W monogram (custom display W fallback).
  * Used when the brand seal image is not yet loaded.
  */
 function drawWpMonogramSeal(ctx, cx, cy, r) {
   const cobalt = ctx.createRadialGradient(cx - r * 0.25, cy - r * 0.3, 1, cx, cy, r);
-  cobalt.addColorStop(0, "#3d7fd6");
-  cobalt.addColorStop(0.4, "#0047ab");
-  cobalt.addColorStop(0.78, "#002f75");
-  cobalt.addColorStop(1, "#001a45");
+  cobalt.addColorStop(0, "#4a8ae0");
+  cobalt.addColorStop(0.38, "#0047ab");
+  cobalt.addColorStop(0.72, "#002f75");
+  cobalt.addColorStop(1, "#001536");
   ellipse(ctx, cx, cy, r, r);
   ctx.fillStyle = cobalt;
   ctx.fill();
 
   ellipse(ctx, cx, cy, r * 0.92, r * 0.92);
-  ctx.strokeStyle = "rgba(158, 182, 255, 0.4)";
+  ctx.strokeStyle = "rgba(184, 201, 255, 0.45)";
   ctx.lineWidth = Math.max(1, r * 0.035);
   ctx.stroke();
 
-  ctx.fillStyle = "#ffffff";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.font = `800 ${Math.max(16, r * 0.95)}px Outfit, "Arial Black", sans-serif`;
-  ctx.fillText("W", cx, cy + r * 0.04);
+  ellipse(ctx, cx, cy, r * 0.84, r * 0.84);
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
+  ctx.lineWidth = Math.max(0.6, r * 0.015);
+  ctx.stroke();
+
+  // Diamond ornament
+  const dy = cy - r * 0.55;
+  const ds = r * 0.08;
+  ctx.beginPath();
+  ctx.moveTo(cx, dy - ds);
+  ctx.lineTo(cx + ds * 0.7, dy);
+  ctx.lineTo(cx, dy + ds);
+  ctx.lineTo(cx - ds * 0.7, dy);
+  ctx.closePath();
+  ctx.fillStyle = "rgba(220, 230, 255, 0.9)";
+  ctx.fill();
+
+  // Fancy W path in local 128-space → seal radius
+  const s = (r * 2) / 128;
+  const ox = cx - r;
+  const oy = cy - r;
+  ctx.save();
+  ctx.translate(ox, oy);
+  ctx.scale(s, s);
+  ctx.beginPath();
+  ctx.moveTo(22.5, 34);
+  ctx.lineTo(33.5, 34);
+  ctx.lineTo(37.2, 36.2);
+  ctx.lineTo(48.8, 86);
+  ctx.lineTo(57.6, 52.5);
+  ctx.lineTo(61.2, 52.5);
+  ctx.lineTo(64, 63.5);
+  ctx.lineTo(66.8, 52.5);
+  ctx.lineTo(70.4, 52.5);
+  ctx.lineTo(79.2, 86);
+  ctx.lineTo(90.8, 36.2);
+  ctx.lineTo(94.5, 34);
+  ctx.lineTo(105.5, 34);
+  ctx.lineTo(106.8, 37.5);
+  ctx.lineTo(90.2, 104);
+  ctx.lineTo(79.8, 104);
+  ctx.lineTo(64, 58.5);
+  ctx.lineTo(48.2, 104);
+  ctx.lineTo(37.8, 104);
+  ctx.lineTo(21.2, 37.5);
+  ctx.closePath();
+  const wGrad = ctx.createLinearGradient(20, 24, 108, 104);
+  wGrad.addColorStop(0, "#ffffff");
+  wGrad.addColorStop(0.45, "#f2f6ff");
+  wGrad.addColorStop(1, "#c5d4f5");
+  ctx.fillStyle = wGrad;
+  ctx.fill();
+  ctx.restore();
 }
 
 /** Draw the circular WP brand mark image, or fall back to the monogram. */
@@ -664,7 +712,7 @@ function drawBrandThreeMl(ctx, dims, options) {
   ctx.lineTo(bodyX + bodyW - 1, sleeveTop + bodyW * 0.12);
   ctx.stroke();
 
-  // Gold WP seal — P in front of W, from brand mark image
+  // Gold W seal from brand mark image
   const sealR = bodyW * 0.28;
   const sealCy = sleeveTop + sleeveH * 0.32;
   drawWpSeal(ctx, cx, sealCy, sealR, wpMark || wpMarkCache);

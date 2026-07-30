@@ -1,22 +1,76 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="WellPept W monogram">
   <defs>
-    <radialGradient id="g" cx="32%" cy="28%" r="75%">
-      <stop offset="0%" stop-color="#3d7fd6"/>
-      <stop offset="40%" stop-color="#0047ab"/>
-      <stop offset="78%" stop-color="#002f75"/>
-      <stop offset="100%" stop-color="#001a45"/>
+    <radialGradient id="disc" cx="32%" cy="28%" r="78%">
+      <stop offset="0%" stop-color="#4a8ae0"/>
+      <stop offset="38%" stop-color="#0047ab"/>
+      <stop offset="72%" stop-color="#002f75"/>
+      <stop offset="100%" stop-color="#001536"/>
     </radialGradient>
+    <linearGradient id="wFill" x1="20" y1="24" x2="108" y2="104" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="45%" stop-color="#f2f6ff"/>
+      <stop offset="100%" stop-color="#c5d4f5"/>
+    </linearGradient>
+    <linearGradient id="wEdge" x1="64" y1="26" x2="64" y2="102" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#9eb6ff" stop-opacity="0.55"/>
+    </linearGradient>
   </defs>
-  <circle cx="64" cy="64" r="62" fill="url(#g)"/>
-  <circle cx="64" cy="64" r="56.5" fill="none" stroke="#9eb6ff" stroke-width="1" opacity="0.35"/>
-  <text
-    x="64"
-    y="82"
-    text-anchor="middle"
-    font-family="Arial Black, Helvetica Neue, Arial, sans-serif"
-    font-size="64"
-    font-weight="800"
-    letter-spacing="0"
-    fill="#ffffff"
-  >W</text>
+
+  <circle cx="64" cy="64" r="62" fill="url(#disc)"/>
+  <circle cx="64" cy="64" r="57" fill="none" stroke="#b8c9ff" stroke-width="1.25" opacity="0.42"/>
+  <circle cx="64" cy="64" r="52.5" fill="none" stroke="#ffffff" stroke-width="0.6" opacity="0.18"/>
+
+  <!-- Ornamental diamond mark above the W -->
+  <path
+    d="M64 22 L67.2 28 L64 34 L60.8 28 Z"
+    fill="#dce6ff"
+    opacity="0.9"
+  />
+
+  <!-- Custom display W: pointed valleys, flared tops, thick/thin contrast -->
+  <path
+    fill="url(#wFill)"
+    d="
+      M 22.5 34
+      L 33.5 34
+      L 37.2 36.2
+      L 48.8 86
+      L 57.6 52.5
+      L 61.2 52.5
+      L 64 63.5
+      L 66.8 52.5
+      L 70.4 52.5
+      L 79.2 86
+      L 90.8 36.2
+      L 94.5 34
+      L 105.5 34
+      L 106.8 37.5
+      L 90.2 104
+      L 79.8 104
+      L 64 58.5
+      L 48.2 104
+      L 37.8 104
+      L 21.2 37.5
+      Z
+    "
+  />
+
+  <!-- Fine highlight edge for depth -->
+  <path
+    fill="none"
+    stroke="url(#wEdge)"
+    stroke-width="1.1"
+    stroke-linejoin="round"
+    opacity="0.55"
+    d="
+      M 24 35.5
+      L 36.5 88.5
+      L 48.5 48
+      L 64 78
+      L 79.5 48
+      L 91.5 88.5
+      L 104 35.5
+    "
+  />
 </svg>
