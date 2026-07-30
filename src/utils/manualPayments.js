@@ -32,8 +32,9 @@ function envDefaults() {
     zelleContact: String(import.meta.env.VITE_ZELLE_CONTACT || ""),
     zelleName: String(import.meta.env.VITE_ZELLE_NAME || "WellPept"),
     zelleQrUrl: String(
-      import.meta.env.VITE_ZELLE_QR_URL || "/receipt_c212e7f2.jpg"
-    ).trim(),
+      import.meta.env.VITE_ZELLE_QR_URL ||
+        "/receipt_c212e7f2.jpg"
+    ).trim() || "/receipt_c212e7f2.jpg",
     solanaUsdc: String(import.meta.env.VITE_CRYPTO_SOLANA_USDC || ""),
     solanaQrUrl: String(import.meta.env.VITE_CRYPTO_SOLANA_QR_URL || "").trim(),
     ethUsdc: String(import.meta.env.VITE_CRYPTO_ETH_USDC || ""),
