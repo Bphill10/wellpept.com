@@ -7,8 +7,11 @@ export const BRAND_IMAGE_SRC = "/undisclosed-brand.webp";
 export const BRAND_IMAGE_FALLBACK_SRC = "/undisclosed-brand.jpg";
 /** Photoreal unlabeled 3 mL research vial (studio photo). */
 export const BRAND_VIAL_SRC = "/real-vial-3ml.webp";
+/** Compact plate for catalog cards / phone grids. */
+export const BRAND_VIAL_CARD_SRC = "/real-vial-3ml-card.webp";
 /** Photoreal unlabeled 10 mL research vial (studio photo). */
 export const BRAND_VIAL_10_SRC = "/real-vial-10ml.webp";
+export const BRAND_VIAL_10_CARD_SRC = "/real-vial-10ml-card.webp";
 /** Blank clinical wrap (peptide fields cleared, UD spine mark). */
 export const BLANK_LABEL_SRC = "/undisclosed-label-blank.webp";
 /** Hex UD seal / monogram for Undisclosed. */
@@ -35,8 +38,12 @@ let brandImageCache = null;
 let brandImagePromise = null;
 let brandVialCache = null;
 let brandVialPromise = null;
+let brandVialCardCache = null;
+let brandVialCardPromise = null;
 let brandVial10Cache = null;
 let brandVial10Promise = null;
+let brandVial10CardCache = null;
+let brandVial10CardPromise = null;
 let blankLabelCache = null;
 let blankLabelPromise = null;
 let udMarkCache = null;
@@ -85,6 +92,20 @@ export function loadBrandVial() {
   return brandVialPromise;
 }
 
+/** Compact 3 mL plate for catalog / phone cards. */
+export function loadBrandVialCard() {
+  if (brandVialCardCache) return Promise.resolve(brandVialCardCache);
+  if (brandVialCardPromise) return brandVialCardPromise;
+  brandVialCardPromise = loadImage(BRAND_VIAL_CARD_SRC).then(async (img) => {
+    if (img) {
+      brandVialCardCache = img;
+      return img;
+    }
+    return loadBrandVial();
+  });
+  return brandVialCardPromise;
+}
+
 /** Prefetch the real studio 10 mL vial photo. */
 export function loadBrandVial10() {
   if (brandVial10Cache) return Promise.resolve(brandVial10Cache);
@@ -97,6 +118,19 @@ export function loadBrandVial10() {
     return loadBrandVial();
   });
   return brandVial10Promise;
+}
+
+export function loadBrandVial10Card() {
+  if (brandVial10CardCache) return Promise.resolve(brandVial10CardCache);
+  if (brandVial10CardPromise) return brandVial10CardPromise;
+  brandVial10CardPromise = loadImage(BRAND_VIAL_10_CARD_SRC).then(async (img) => {
+    if (img) {
+      brandVial10CardCache = img;
+      return img;
+    }
+    return loadBrandVial10();
+  });
+  return brandVial10CardPromise;
 }
 
 /** Prefetch the Undisclosed UD hex mark. */
@@ -948,26 +982,42 @@ export async function drawGeneratedVial(canvas, options = {}) {
       });
   const isTen = !catalogTemplate && vialMl >= 10;
 
-  const dims = {
-    sm: { w: 160, h: 240 },
-    md: { w: 280, h: 420 },
-    lg: { w: 360, h: 540 },
-  }[size] || { w: 280, h: 420 };
+  // Catalog cards are small on phones — keep canvas light
+  const dims = catalogTemplate
+    ? {
+        sm: { w: 120, h: 180 },
+        md: { w: 200, h: 300 },
+        lg: { w: 320, h: 480 },
+      }[size] || { w: 200, h: 300 }
+    : {
+        sm: { w: 160, h: 240 },
+        md: { w: 280, h: 420 },
+        lg: { w: 360, h: 540 },
+      }[size] || { w: 280, h: 420 };
 
+  const dprCap = catalogTemplate || size === "sm" ? 1.5 : 2;
   const dpr =
-    typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 2, 3) : 2;
-  canvas.width = dims.w * dpr;
-  canvas.height = dims.h * dpr;
+    typeof window !== "undefined"
+      ? Math.min(window.devicePixelRatio || 1.5, dprCap)
+      : 1.5;
+  canvas.width = Math.round(dims.w * dpr);
+  canvas.height = Math.round(dims.h * dpr);
   canvas.style.width = `${dims.w}px`;
   canvas.style.height = `${dims.h}px`;
 
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d", { alpha: false });
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, dims.w, dims.h);
   ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
+  ctx.imageSmoothingQuality = catalogTemplate ? "medium" : "high";
 
-  const photo = isTen ? await loadBrandVial10() : await loadBrandVial();
+  const photo = isTen
+    ? await (catalogTemplate || size !== "lg"
+        ? loadBrandVial10Card()
+        : loadBrandVial10())
+    : await (catalogTemplate || size !== "lg"
+        ? loadBrandVialCard()
+        : loadBrandVial());
   if (photo && photo.width) {
     drawPhotorealVial(ctx, dims, {
       photo,
@@ -1004,7 +1054,11 @@ export async function drawGeneratedVial(canvas, options = {}) {
     else drawLabeledThreeMl(ctx, dims, fallbackOpts);
   }
 
-  return canvas.toDataURL("image/png");
+  // Skip expensive PNG encode unless the caller wants a downloadable URL
+  if (options.exportPng) {
+    return canvas.toDataURL("image/png");
+  }
+  return "";
 }
 
 /** Cover-fit photo into canvas. */

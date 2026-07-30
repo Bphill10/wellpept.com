@@ -26,11 +26,11 @@ export const EMPTY_MANUAL_PAY = {
   venmoHandle: "",
   /** Full Venmo QR/code link, e.g. https://venmo.com/code?user_id=... */
   venmoCodeUrl: "",
-  /** Path or URL to Venmo QR image, e.g. /venmo-qr.png */
+  /** Path or URL to Venmo QR image, e.g. /venmo-qr-display.png */
   venmoQrUrl: "",
   zelleContact: "",
   zelleName: "",
-  /** Path or URL to Zelle QR image, e.g. /receipt_c212e7f2.jpg */
+  /** Path or URL to Zelle QR image, e.g. /zelle-qr.webp */
   zelleQrUrl: "",
   solanaUsdc: "",
   /** Path or URL to Solana receive QR, e.g. /solana-qr.png */
@@ -45,13 +45,14 @@ function envDefaults() {
   return {
     venmoHandle: String(import.meta.env.VITE_VENMO_HANDLE || "").replace(/^@/, ""),
     venmoCodeUrl: String(import.meta.env.VITE_VENMO_CODE_URL || "").trim(),
-    venmoQrUrl: String(import.meta.env.VITE_VENMO_QR_URL || "").trim(),
+    venmoQrUrl: String(
+      import.meta.env.VITE_VENMO_QR_URL || "/venmo-qr-display.png"
+    ).trim() || "/venmo-qr-display.png",
     zelleContact: String(import.meta.env.VITE_ZELLE_CONTACT || ""),
     zelleName: String(import.meta.env.VITE_ZELLE_NAME || "WellPept"),
     zelleQrUrl: String(
-      import.meta.env.VITE_ZELLE_QR_URL ||
-        "/receipt_c212e7f2.jpg"
-    ).trim() || "/receipt_c212e7f2.jpg",
+      import.meta.env.VITE_ZELLE_QR_URL || "/zelle-qr.webp"
+    ).trim() || "/zelle-qr.webp",
     solanaUsdc: String(import.meta.env.VITE_CRYPTO_SOLANA_USDC || ""),
     solanaQrUrl: String(import.meta.env.VITE_CRYPTO_SOLANA_QR_URL || "").trim(),
     ethUsdc: String(import.meta.env.VITE_CRYPTO_ETH_USDC || ""),

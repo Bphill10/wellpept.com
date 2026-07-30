@@ -390,7 +390,11 @@ export default function App() {
     if (channelTuneLockRef.current || channelTuning || labVisible) return;
     channelTuneLockRef.current = true;
     // Warm Undisclosed assets under the black cover so WellPept never flashes back
-    ["/black-marble.jpg", "/ud-monogram.svg", "/real-vial-3ml.webp"].forEach((href) => {
+    const warmMarble =
+      typeof window !== "undefined" && window.matchMedia("(max-width: 700px)").matches
+        ? "/black-marble-sm.webp"
+        : "/black-marble.webp";
+    [warmMarble, "/ud-monogram.svg", "/real-vial-3ml-card.webp"].forEach((href) => {
       const img = new Image();
       img.decoding = "async";
       img.src = href;
@@ -1587,12 +1591,16 @@ export default function App() {
                   </div>
                   <div className="featured-vendor-visual">
                     <img
-                      src="/undisclosed-hero-kit.webp"
+                      src="/undisclosed-hero-kit-sm.webp"
+                      srcSet="/undisclosed-hero-kit-sm.webp 800w, /undisclosed-hero-kit.webp 1200w"
+                      sizes="(max-width: 700px) 100vw, 42vw"
                       alt="Undisclosed KLOW 80 MG research kit"
                       className="featured-product-photo"
-                      width={1536}
-                      height={1024}
+                      width={800}
+                      height={534}
                       decoding="async"
+                      loading="lazy"
+                      fetchPriority="low"
                     />
                   </div>
                 </div>

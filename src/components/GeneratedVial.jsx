@@ -6,6 +6,7 @@ import {
   resolveVialMl,
   loadBrandVial,
   loadBrandVial10,
+  loadBrandVialCard,
   loadBrandImage,
   loadUdMark,
   CATALOG_VIAL_TEMPLATE,
@@ -17,8 +18,12 @@ import { resolveCoaQrPayload } from "../utils/coaStore";
 if (typeof window !== "undefined") {
   loadBrandImage();
   loadUdMark();
-  loadBrandVial();
-  loadBrandVial10();
+  loadBrandVialCard();
+  // Full plates only when likely needed (detail / calculator)
+  if (window.matchMedia("(min-width: 701px)").matches) {
+    loadBrandVial();
+    loadBrandVial10();
+  }
 }
 
 export default function GeneratedVial({
@@ -49,7 +54,9 @@ export default function GeneratedVial({
   showLabel = true,
 }) {
   const canvasRef = useRef(null);
+  const wrapRef = useRef(null);
   const [png, setPng] = useState("");
+  const [visible, setVisible] = useState(!catalogTemplate || size === "lg");
   const resolvedMl = catalogTemplate
     ? 3
     : resolveVialMl({ form: form || subtitle, vialMl, name });
@@ -62,7 +69,6 @@ export default function GeneratedVial({
       });
 
   const labelFields = useMemo(() => {
-    // Per-product name + mg/IU + dosage on every vial (catalog + calculator)
     return resolveCalculatorLabelFields({
       name,
       mass,
@@ -89,9 +95,31 @@ export default function GeneratedVial({
     subtitle,
   ]);
 
+  // Catalog grids: only paint vials once they scroll near the viewport
   useEffect(() => {
+    if (visible || !catalogTemplate) return undefined;
+    const el = wrapRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setVisible(true);
+      return undefined;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setVisible(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "180px 0px", threshold: 0.01 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [visible, catalogTemplate]);
+
+  useEffect(() => {
+    if (!visible) return undefined;
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) return undefined;
     let cancelled = false;
     (async () => {
       try {
@@ -116,8 +144,9 @@ export default function GeneratedVial({
           coaUrl: catalogTemplate ? "" : resolvedQr,
           catalogTemplate,
           showLabel,
+          exportPng: showDownload,
         });
-        if (!cancelled) setPng(dataUrl);
+        if (!cancelled && showDownload) setPng(dataUrl);
       } catch (err) {
         console.error("Vial render failed", err);
       }
@@ -126,6 +155,7 @@ export default function GeneratedVial({
       cancelled = true;
     };
   }, [
+    visible,
     name,
     subtitle,
     sku,
@@ -143,6 +173,7 @@ export default function GeneratedVial({
     resolvedQr,
     catalogTemplate,
     showLabel,
+    showDownload,
   ]);
 
   function handleDownload() {
@@ -152,7 +183,10 @@ export default function GeneratedVial({
   }
 
   return (
-    <div className={`generated-vial-wrap ${className}`.trim()}>
+    <div
+      ref={wrapRef}
+      className={`generated-vial-wrap ${className}`.trim()}
+    >
       <canvas
         ref={canvasRef}
         className={`generated-vial generated-vial--${size} generated-vial--${resolvedMl}ml`}

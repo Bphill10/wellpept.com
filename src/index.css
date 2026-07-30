@@ -2443,14 +2443,20 @@ body:has(.app-shell--skincare) {
   color: var(--ink);
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0.48) 100%),
-    url("/black-marble.jpg") center top / cover scroll no-repeat,
+    image-set(
+      url("/black-marble-sm.webp") 1x,
+      url("/black-marble.webp") 2x
+    ) center top / cover scroll no-repeat,
     #000;
 }
 
 body:has(.app-shell--undisclosed) {
   color: #f4f6f8;
   background:
-    url("/black-marble.jpg") center top / cover scroll no-repeat,
+    image-set(
+      url("/black-marble-sm.webp") 1x,
+      url("/black-marble.webp") 2x
+    ) center top / cover scroll no-repeat,
     #000;
 }
 
@@ -2458,13 +2464,19 @@ body:has(.app-shell--undisclosed) {
   .app-shell--undisclosed {
     background:
       linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0.48) 100%),
-      url("/black-marble.jpg") center top / cover fixed no-repeat,
+      image-set(
+        url("/black-marble-sm.webp") 1x,
+        url("/black-marble.webp") 2x
+      ) center top / cover fixed no-repeat,
       #000;
   }
 
   body:has(.app-shell--undisclosed) {
     background:
-      url("/black-marble.jpg") center top / cover fixed no-repeat,
+      image-set(
+        url("/black-marble-sm.webp") 1x,
+        url("/black-marble.webp") 2x
+      ) center top / cover fixed no-repeat,
       #000;
   }
 }
@@ -2897,7 +2909,10 @@ body:has(.app-shell--undisclosed)::before {
       rgba(255, 255, 255, 0.28) 70%,
       transparent 84%
     ),
-    url("/skincare/hero-wide.webp") right -24vw center / cover no-repeat !important;
+    image-set(
+      url("/skincare/hero-wide-sm.webp") 1x,
+      url("/skincare/hero-wide.webp") 2x
+    ) right -24vw center / cover no-repeat !important;
   animation: skin-hero-drift 22s ease-in-out infinite alternate;
 }
 
@@ -3211,7 +3226,10 @@ body:has(.app-shell--undisclosed)::before {
     border-top: 1px solid rgba(0, 47, 117, 0.1);
     background:
       #fff
-        url("/skincare/hero-wide.webp") center 30% / cover no-repeat !important;
+        image-set(
+          url("/skincare/hero-wide-sm.webp") 1x,
+          url("/skincare/hero-wide.webp") 2x
+        ) center 30% / cover no-repeat !important;
   }
 
   .hero--undisclosed .hero-media,
@@ -3222,7 +3240,7 @@ body:has(.app-shell--undisclosed)::before {
     border-top: 1px solid rgba(255, 255, 255, 0.12);
     background:
       #050505
-        url("/real-vial-3ml.webp") center / contain no-repeat !important;
+        url("/real-vial-3ml-card.webp") center / contain no-repeat !important;
     display: block !important;
     padding: 0 !important;
   }
@@ -4930,7 +4948,10 @@ body:has(.app-shell--undisclosed)::before {
   inset: 0;
   background:
     linear-gradient(115deg, rgba(255, 255, 255, 0.97) 0%, rgba(255, 255, 255, 0.9) 48%, rgba(255, 255, 255, 0.72) 100%),
-    url("/skincare/hero-wide.webp") right center / cover no-repeat;
+    image-set(
+      url("/skincare/hero-wide-sm.webp") 1x,
+      url("/skincare/hero-wide.webp") 2x
+    ) right center / cover no-repeat;
 }
 
 .auth-card {
@@ -5544,7 +5565,11 @@ body:has(.app-shell--undisclosed)::before {
   .skin-hero .hero-media,
   .skin-hero-media {
     border-top: 1px solid rgba(0, 47, 117, 0.1);
-    background: #fff url("/skincare/hero-wide.webp") center 32% / cover no-repeat !important;
+    background: #fff
+      image-set(
+        url("/skincare/hero-wide-sm.webp") 1x,
+        url("/skincare/hero-wide.webp") 2x
+      ) center 32% / cover no-repeat !important;
   }
 
   .hero--undisclosed .hero-media,
@@ -5553,7 +5578,7 @@ body:has(.app-shell--undisclosed)::before {
     min-height: 200px !important;
     max-height: 320px !important;
     border-top: 1px solid rgba(255, 255, 255, 0.12);
-    background: #050505 url("/real-vial-3ml.webp") center / contain no-repeat !important;
+    background: #050505 url("/real-vial-3ml-card.webp") center / contain no-repeat !important;
     display: block !important;
     padding: 0 !important;
   }
@@ -6730,7 +6755,10 @@ html:has(.app-shell--undisclosed) {
   inset: -20%;
   background:
     radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.55) 62%, #000 100%),
-    url("/black-marble.jpg") center / cover no-repeat;
+    image-set(
+      url("/black-marble-sm.webp") 1x,
+      url("/black-marble.webp") 2x
+    ) center / cover no-repeat;
   animation: rift-marble-spin var(--tv-tune-dur) linear both;
   filter: contrast(1.15) brightness(0.85);
 }
