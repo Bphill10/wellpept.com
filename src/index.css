@@ -1116,8 +1116,8 @@ button.linkish {
     linear-gradient(135deg, #0a0a0a 0%, #161616 55%, #1c1810 100%);
   color: #f4f4f4;
   padding: 2.75rem 0;
-  border-top: 1px solid rgba(196, 163, 90, 0.28);
-  border-bottom: 1px solid rgba(196, 163, 90, 0.28);
+  border-top: 1px solid rgba(0, 71, 171, 0.28);
+  border-bottom: 1px solid rgba(0, 71, 171, 0.28);
 }
 
 .mission-inner,
@@ -1192,7 +1192,7 @@ button.linkish {
 
 .thesis-card-accent {
   background: linear-gradient(160deg, #0a0a0a 0%, #1a1a1a 60%, #241e12 100%);
-  border-color: rgba(196, 163, 90, 0.35);
+  border-color: rgba(0, 71, 171, 0.35);
   color: #f4f4f4;
 }
 
@@ -1404,7 +1404,7 @@ button.linkish {
 
 .mission-band .section-kicker,
 .lab-band .section-kicker {
-  color: rgba(196, 163, 90, 0.95);
+  color: rgba(0, 71, 171, 0.95);
 }
 
 .section-head {
@@ -1576,7 +1576,7 @@ button.linkish {
     radial-gradient(ellipse at 50% 40%, #1c1c1c 0%, #080808 70%);
   border-radius: 16px;
   padding: 1rem 0.5rem;
-  border: 1px solid rgba(196, 163, 90, 0.22);
+  border: 1px solid rgba(0, 71, 171, 0.22);
 }
 
 .vial-download {
@@ -1625,11 +1625,11 @@ button.linkish {
   align-items: center;
   background: linear-gradient(
     135deg,
-    rgba(196, 163, 90, 0.1) 0%,
+    rgba(0, 71, 171, 0.1) 0%,
     rgba(255, 255, 255, 0.98) 48%,
-    rgba(196, 163, 90, 0.1) 100%
+    rgba(0, 71, 171, 0.1) 100%
   );
-  border-color: rgba(196, 163, 90, 0.22);
+  border-color: rgba(0, 71, 171, 0.22);
 }
 
 .featured-kicker {
@@ -1676,7 +1676,7 @@ button.linkish {
   border-radius: 16px;
   background:
     radial-gradient(ellipse at 50% 40%, #222 0%, #0a0a0a 70%);
-  border: 1px solid rgba(196, 163, 90, 0.28);
+  border: 1px solid rgba(0, 71, 171, 0.28);
 }
 
 .featured-product-photo {
@@ -1776,7 +1776,7 @@ a.cart-cta {
 }
 
 .cart-cta:hover {
-  background: linear-gradient(180deg, #edd9a0 0%, var(--gold) 100%);
+  background: linear-gradient(180deg, var(--cobalt-bright) 0%, var(--gold) 100%);
   transform: translateY(-1px);
 }
 
@@ -1958,7 +1958,7 @@ a.cart-cta {
 }
 
 .price-compare-scopes button.is-active {
-  border-color: var(--gold, #c9a227);
+  border-color: var(--cobalt);
   background: rgba(201, 162, 39, 0.12);
   color: var(--ink);
 }
@@ -2054,8 +2054,8 @@ label.field textarea {
 label.field input:focus,
 label.field select:focus,
 label.field textarea:focus {
-  border-color: rgba(196, 163, 90, 0.55);
-  box-shadow: 0 0 0 3px rgba(196, 163, 90, 0.14);
+  border-color: rgba(0, 71, 171, 0.55);
+  box-shadow: 0 0 0 3px rgba(0, 71, 171, 0.14);
 }
 
 .table-wrap {
@@ -2093,7 +2093,7 @@ th {
 }
 
 .status.pending {
-  background: rgba(196, 163, 90, 0.18);
+  background: rgba(0, 71, 171, 0.18);
   color: #8a5610;
 }
 
@@ -2116,16 +2116,16 @@ th {
 .notice {
   border-radius: 12px;
   padding: 0.85rem 1rem;
-  background: rgba(196, 163, 90, 0.1);
-  border: 1px solid rgba(196, 163, 90, 0.22);
+  background: rgba(0, 71, 171, 0.1);
+  border: 1px solid rgba(0, 71, 171, 0.22);
   color: var(--ink-soft);
   font-size: 0.92rem;
   margin-bottom: 1rem;
 }
 
 .notice.warn {
-  background: rgba(196, 163, 90, 0.12);
-  border-color: rgba(196, 163, 90, 0.3);
+  background: rgba(0, 71, 171, 0.12);
+  border-color: rgba(0, 71, 171, 0.3);
 }
 
 .notice.ok {
@@ -2204,12 +2204,12 @@ th {
 }
 
 .app-shell--undisclosed .consent-check {
-  border-color: color-mix(in srgb, var(--gold, #c9a227) 35%, transparent);
-  background: color-mix(in srgb, var(--gold, #c9a227) 8%, transparent);
+  border-color: color-mix(in srgb, var(--cobalt) 35%, transparent);
+  background: color-mix(in srgb, var(--cobalt) 8%, transparent);
 }
 
 .app-shell--undisclosed .consent-check input {
-  accent-color: var(--gold, #c9a227);
+  accent-color: var(--cobalt);
 }
 
 .form-row--3 {
@@ -2895,7 +2895,7 @@ body:has(.app-shell--undisclosed)::before {
 }
 
 .build-stamp {
-  color: #c4a35a;
+  color: var(--cobalt);
   font-weight: 700;
 }
 
@@ -3979,12 +3979,12 @@ body:has(.app-shell--undisclosed)::before {
   gap: 1rem;
   align-items: center;
   padding: 1.15rem 1.25rem;
-  border: 1.5px dashed rgba(196, 163, 90, 0.55);
+  border: 1.5px dashed rgba(0, 71, 171, 0.55);
   border-radius: 14px;
   background: linear-gradient(
     160deg,
     rgba(255, 255, 255, 0.95),
-    rgba(196, 163, 90, 0.06)
+    rgba(0, 71, 171, 0.06)
   );
   cursor: pointer;
   transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
@@ -3993,7 +3993,7 @@ body:has(.app-shell--undisclosed)::before {
 .price-dropzone:hover,
 .price-dropzone.dragging {
   border-color: var(--gold);
-  background: rgba(196, 163, 90, 0.1);
+  background: rgba(0, 71, 171, 0.1);
   transform: translateY(-1px);
 }
 
@@ -4079,7 +4079,7 @@ body:has(.app-shell--undisclosed)::before {
 }
 
 .price-line-card {
-  border-color: rgba(196, 163, 90, 0.22);
+  border-color: rgba(0, 71, 171, 0.22);
 }
 
 @keyframes spin {
@@ -4118,7 +4118,7 @@ body:has(.app-shell--undisclosed)::before {
     radial-gradient(ellipse at 50% 40%, #2a2a2a 0%, #0a0a0a 65%, #050505 100%);
   display: grid;
   place-items: center;
-  border: 1px solid rgba(196, 163, 90, 0.28);
+  border: 1px solid rgba(0, 71, 171, 0.28);
   padding: 1rem;
 }
 
@@ -4140,7 +4140,7 @@ body:has(.app-shell--undisclosed)::before {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--gold, #c9a227);
+  color: var(--cobalt);
 }
 
 .detail-blurb {
@@ -4161,7 +4161,7 @@ body:has(.app-shell--undisclosed)::before {
   margin: 0 0 0.65rem;
   padding: 0.75rem 0.85rem;
   border-left: 3px solid var(--gold);
-  background: rgba(196, 163, 90, 0.08);
+  background: rgba(0, 71, 171, 0.08);
   color: var(--ink-soft);
   line-height: 1.5;
   font-size: 0.95rem;
@@ -4312,7 +4312,7 @@ body:has(.app-shell--undisclosed)::before {
   display: grid;
   place-items: center;
   overflow: hidden;
-  border: 1px solid rgba(196, 163, 90, 0.25);
+  border: 1px solid rgba(0, 71, 171, 0.25);
 }
 
 .cart-thumb .generated-vial--sm {
@@ -4426,7 +4426,7 @@ body:has(.app-shell--undisclosed)::before {
   border-radius: 14px;
   display: grid;
   place-items: center;
-  background: rgba(196, 163, 90, 0.14);
+  background: rgba(0, 71, 171, 0.14);
   color: var(--teal-deep);
   flex-shrink: 0;
 }
@@ -4521,7 +4521,7 @@ body:has(.app-shell--undisclosed)::before {
   border-radius: 12px;
   background:
     radial-gradient(ellipse at 50% 40%, #1c1c1c 0%, #080808 70%);
-  border: 1px solid rgba(196, 163, 90, 0.22);
+  border: 1px solid rgba(0, 71, 171, 0.22);
 }
 
 .calc-label-stage {
@@ -4597,7 +4597,7 @@ body:has(.app-shell--undisclosed)::before {
 .calc-result {
   border-radius: 14px;
   border: 1px solid var(--line);
-  background: linear-gradient(160deg, rgba(196, 163, 90, 0.08), rgba(255, 255, 255, 0.9));
+  background: linear-gradient(160deg, rgba(0, 71, 171, 0.08), rgba(255, 255, 255, 0.9));
   padding: 1rem;
   margin-top: 0.85rem;
 }
@@ -4644,7 +4644,7 @@ body:has(.app-shell--undisclosed)::before {
 .syringe-fill {
   position: absolute;
   inset: 0 auto 0 0;
-  background: linear-gradient(90deg, rgba(196, 163, 90, 0.35), rgba(196, 163, 90, 0.75));
+  background: linear-gradient(90deg, rgba(0, 71, 171, 0.35), rgba(0, 71, 171, 0.75));
   transition: width 0.35s ease;
 }
 

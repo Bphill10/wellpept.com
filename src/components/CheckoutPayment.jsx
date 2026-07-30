@@ -13,7 +13,7 @@ import { createPaymentIntent, dollarsToCents } from "../utils/payments";
 const appearance = {
   theme: "stripe",
   variables: {
-    colorPrimary: "#c4a35a",
+    colorPrimary: "#0047ab",
     colorBackground: "#ffffff",
     colorText: "#111111",
     colorDanger: "#b42318",

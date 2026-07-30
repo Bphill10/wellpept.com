@@ -147,7 +147,7 @@ export function getVialPalette(seed = "", category = "Research") {
   return {
     seed: hashString(`${seed}-${category}`),
     labelTint: "#0a0a0a",
-    accent: "#c9a227",
+    accent: "#0047ab",
   };
 }
 
