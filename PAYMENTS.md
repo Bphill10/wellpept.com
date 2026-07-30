@@ -29,6 +29,7 @@ Optional env (Vercel / `.env`) so every device shares the same handles:
 ```
 VITE_VENMO_HANDLE=yourVenmoName
 VITE_VENMO_CODE_URL=https://venmo.com/code?user_id=…
+VITE_VENMO_QR_URL=/venmo-qr.png
 VITE_ZELLE_CONTACT=pay@wellpept.com
 VITE_ZELLE_NAME=WellPept
 VITE_ZELLE_QR_URL=/zelle-qr.png
@@ -36,8 +37,8 @@ VITE_CRYPTO_SOLANA_USDC=YourSolanaAddress
 VITE_CRYPTO_ETH_USDC=0xYourEthAddress
 ```
 
-Put the Zelle QR screenshot at `public/zelle-qr.png` (or any URL), then set
-`VITE_ZELLE_QR_URL` or Admin → **Zelle QR image URL**.
+Put the Venmo QR export at `public/venmo-qr.png` and the Zelle QR screenshot at
+`public/zelle-qr.png` (or any URL), then set the matching env vars or Admin fields.
 
 ## Stripe cards (optional later)
 

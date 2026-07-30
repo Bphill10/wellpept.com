@@ -9,6 +9,8 @@ export const EMPTY_MANUAL_PAY = {
   venmoHandle: "",
   /** Full Venmo QR/code link, e.g. https://venmo.com/code?user_id=... */
   venmoCodeUrl: "",
+  /** Path or URL to Venmo QR image, e.g. /venmo-qr.png */
+  venmoQrUrl: "",
   zelleContact: "",
   zelleName: "",
   /** Path or URL to Zelle QR image, e.g. /zelle-qr.png */
@@ -22,6 +24,7 @@ function envDefaults() {
   return {
     venmoHandle: String(import.meta.env.VITE_VENMO_HANDLE || "").replace(/^@/, ""),
     venmoCodeUrl: String(import.meta.env.VITE_VENMO_CODE_URL || "").trim(),
+    venmoQrUrl: String(import.meta.env.VITE_VENMO_QR_URL || "").trim(),
     zelleContact: String(import.meta.env.VITE_ZELLE_CONTACT || ""),
     zelleName: String(import.meta.env.VITE_ZELLE_NAME || "WellPept"),
     zelleQrUrl: String(import.meta.env.VITE_ZELLE_QR_URL || "").trim(),
@@ -59,6 +62,7 @@ export function manualPayConfigured(config = loadManualPayConfig()) {
   return Boolean(
     config.venmoHandle ||
       config.venmoCodeUrl ||
+      config.venmoQrUrl ||
       config.zelleContact ||
       config.solanaUsdc ||
       config.ethUsdc
@@ -66,7 +70,7 @@ export function manualPayConfigured(config = loadManualPayConfig()) {
 }
 
 export function hasVenmo(config = loadManualPayConfig()) {
-  return Boolean(config.venmoCodeUrl || config.venmoHandle);
+  return Boolean(config.venmoCodeUrl || config.venmoHandle || config.venmoQrUrl);
 }
 
 /** Username-style Venmo deep link. */

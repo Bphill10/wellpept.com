@@ -3555,6 +3555,20 @@ function AdminPanel({
                 spellCheck={false}
               />
             </label>
+            <label className="field">
+              Venmo QR image URL (optional)
+              <input
+                value={payConfig.venmoQrUrl || ""}
+                onChange={(e) =>
+                  setPayConfig((c) => ({
+                    ...c,
+                    venmoQrUrl: e.target.value.trim(),
+                  }))
+                }
+                placeholder="/venmo-qr.png"
+                spellCheck={false}
+              />
+            </label>
             <div className="form-row">
               <label className="field">
                 Zelle name (optional)

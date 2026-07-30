@@ -91,14 +91,24 @@ export default function ManualPayMethods({
       {hasVenmo(config) && (
         <div className="manual-pay-card">
           <h3>Venmo</h3>
+          {config.venmoQrUrl ? (
+            <>
+              <p className="meta">Scan in the Venmo app, or open the link below.</p>
+              <img
+                src={config.venmoQrUrl}
+                alt="Venmo QR code"
+                className="manual-pay-qr"
+              />
+            </>
+          ) : null}
           {config.venmoHandle ? (
             <CopyRow
               label="Handle"
               value={`@${String(config.venmoHandle).replace(/^@/, "")}`}
             />
-          ) : (
+          ) : !config.venmoQrUrl ? (
             <p className="meta">Pay via the Venmo button below.</p>
-          )}
+          ) : null}
           {venmo && (
             <a
               className="primary-btn manual-pay-open"
