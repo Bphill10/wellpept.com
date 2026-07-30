@@ -26,22 +26,25 @@ These are the live rails — no Stripe required.
 
 Optional env (Vercel / `.env`) so every device shares the same handles:
 
+Put payment QR files in **`inbox/`**, then run `.\scripts\push-inbox.ps1`
+(or tell the agent **check inbox** after pushing). Chat **file attach** also works.
+
+Default Zelle QR path: `/receipt_c212e7f2.jpg` (or set `VITE_ZELLE_QR_URL`).
+
 ```
 VITE_VENMO_HANDLE=yourVenmoName
 VITE_VENMO_CODE_URL=https://venmo.com/code?user_id=…
 VITE_VENMO_QR_URL=/venmo-qr.png
 VITE_ZELLE_CONTACT=pay@wellpept.com
 VITE_ZELLE_NAME=WellPept
-VITE_ZELLE_QR_URL=/zelle-qr.png
+VITE_ZELLE_QR_URL=/receipt_c212e7f2.jpg
 VITE_CRYPTO_SOLANA_USDC=YourSolanaAddress
 VITE_CRYPTO_SOLANA_QR_URL=/solana-qr.png
 VITE_CRYPTO_ETH_USDC=0xYourEthAddress
 VITE_CRYPTO_ETH_QR_URL=/eth-qr.png
 ```
 
-Put the Venmo QR export at `public/venmo-qr.png`, Zelle at `public/zelle-qr.png`,
-and Solana / Ethereum receive QRs at `public/solana-qr.png` / `public/eth-qr.png`
-(or any URL), then set the matching env vars or Admin fields.
+Or drop files in `inbox/` / `public/` and set matching Admin fields.
 
 ## Stripe cards (optional later)
 

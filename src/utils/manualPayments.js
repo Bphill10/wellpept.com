@@ -5,6 +5,23 @@
 
 const STORAGE_KEY = "wellpept-manual-pay-v1";
 
+/** 5% off when paying with USDC/USDT on Solana or Ethereum. */
+export const CRYPTO_PAY_DISCOUNT_RATE = 0.05;
+
+export function cryptoPayTotal(total) {
+  const base = Math.max(0, Number(total) || 0);
+  return Math.round(base * (1 - CRYPTO_PAY_DISCOUNT_RATE) * 100) / 100;
+}
+
+export function cryptoPaySavings(total) {
+  const base = Math.max(0, Number(total) || 0);
+  return Math.round((base - cryptoPayTotal(base)) * 100) / 100;
+}
+
+export function isCryptoPayProvider(provider = "") {
+  return String(provider || "").startsWith("crypto");
+}
+
 export const EMPTY_MANUAL_PAY = {
   venmoHandle: "",
   /** Full Venmo QR/code link, e.g. https://venmo.com/code?user_id=... */
@@ -13,7 +30,7 @@ export const EMPTY_MANUAL_PAY = {
   venmoQrUrl: "",
   zelleContact: "",
   zelleName: "",
-  /** Path or URL to Zelle QR image, e.g. /zelle-qr.png */
+  /** Path or URL to Zelle QR image, e.g. /receipt_c212e7f2.jpg */
   zelleQrUrl: "",
   solanaUsdc: "",
   /** Path or URL to Solana receive QR, e.g. /solana-qr.png */
@@ -31,7 +48,10 @@ function envDefaults() {
     venmoQrUrl: String(import.meta.env.VITE_VENMO_QR_URL || "").trim(),
     zelleContact: String(import.meta.env.VITE_ZELLE_CONTACT || ""),
     zelleName: String(import.meta.env.VITE_ZELLE_NAME || "WellPept"),
-    zelleQrUrl: String(import.meta.env.VITE_ZELLE_QR_URL || "").trim(),
+    zelleQrUrl: String(
+      import.meta.env.VITE_ZELLE_QR_URL ||
+        "/receipt_c212e7f2.jpg"
+    ).trim() || "/receipt_c212e7f2.jpg",
     solanaUsdc: String(import.meta.env.VITE_CRYPTO_SOLANA_USDC || ""),
     solanaQrUrl: String(import.meta.env.VITE_CRYPTO_SOLANA_QR_URL || "").trim(),
     ethUsdc: String(import.meta.env.VITE_CRYPTO_ETH_USDC || ""),
@@ -125,9 +145,13 @@ export function formatManualPayText({
   total,
   config = loadManualPayConfig(),
 }) {
+  const amount = Number(total) || 0;
+  const cryptoAmount = cryptoPayTotal(amount);
+  const savings = cryptoPaySavings(amount);
   const lines = [
     `WellPept payment for order ${orderId}`,
-    `Amount due: $${Number(total || 0).toFixed(2)}`,
+    `Amount due (Venmo / Zelle): $${amount.toFixed(2)}`,
+    `Crypto (USDC/USDT) amount: $${cryptoAmount.toFixed(2)} (5% off · save $${savings.toFixed(2)})`,
     "",
   ];
   if (hasVenmo(config)) {
@@ -139,24 +163,28 @@ export function formatManualPayText({
     const link = venmoPayUrl({
       handle: config.venmoHandle,
       codeUrl: config.venmoCodeUrl,
-      amount: total,
+      amount,
       note: orderId,
     });
     if (link) lines.push(`  Link: ${link}`);
+    lines.push(`  Amount: $${amount.toFixed(2)}`);
   }
   if (config.zelleContact) {
     lines.push(
       `Zelle: ${config.zelleContact}${config.zelleName ? ` (${config.zelleName})` : ""}`
     );
     lines.push(`  Memo / note: ${orderId}`);
+    lines.push(`  Amount: $${amount.toFixed(2)}`);
   }
   if (config.solanaUsdc) {
     lines.push(`Solana — USDC or USDT only (not SOL): ${config.solanaUsdc}`);
     lines.push(`  Network: Solana · Memo: ${orderId}`);
+    lines.push(`  Amount: $${cryptoAmount.toFixed(2)} (5% crypto discount)`);
   }
   if (config.ethUsdc) {
     lines.push(`Ethereum — USDC or USDT only (not ETH): ${config.ethUsdc}`);
     lines.push(`  Network: Ethereum · Memo: ${orderId}`);
+    lines.push(`  Amount: $${cryptoAmount.toFixed(2)} (5% crypto discount)`);
   }
   if (config.note) {
     lines.push("", config.note);

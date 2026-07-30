@@ -303,6 +303,8 @@ export function buildOrderPacket({
   subtotal,
   shipping,
   total,
+  discount = null,
+  tax = null,
   status = "awaiting_supply_review",
   waitConsent = false,
 }) {
@@ -347,6 +349,10 @@ export function buildOrderPacket({
     },
   }));
 
+  const discountAmount = Number(discount?.amount) || 0;
+  const discountCode = discount?.code || "";
+  const taxAmount = Number(tax?.amount) || 0;
+
   return {
     orderId,
     createdAt: new Date().toISOString(),
@@ -362,7 +368,30 @@ export function buildOrderPacket({
       phone: customer.phone || "",
       userId: customer.userId || "",
     },
-    totals: { subtotal, shipping, total },
+    discount: discountCode
+      ? {
+          code: discountCode,
+          amount: discountAmount,
+          label: discount?.label || discountCode,
+          type: discount?.type || "",
+          value: discount?.value ?? null,
+        }
+      : null,
+    tax: tax?.state
+      ? {
+          state: tax.state,
+          rate: tax.rate || 0,
+          amount: taxAmount,
+          label: tax.label || `${tax.state} sales tax`,
+        }
+      : null,
+    totals: {
+      subtotal,
+      discount: discountAmount,
+      tax: taxAmount,
+      shipping,
+      total,
+    },
     shipments,
     notes:
       "ORDER REQUEST — check supply first. Do not charge until confirmed. Reply to customer within 24 hours with payment instructions. Delivery takes 2–3 weeks. Drop-ship via Wellpept only. Do not share vendor storefront links with the customer.",
@@ -380,8 +409,24 @@ export function formatOrderPacketText(packet) {
     lines.push(`User ID: ${packet.customer.userId}`);
   }
   lines.push(`Ship: US only`);
+  const disc = Number(packet.totals?.discount) || 0;
+  const taxAmt = Number(packet.totals?.tax) || 0;
+  if (disc > 0 || packet.discount?.code) {
+    lines.push(
+      `Discount: ${packet.discount?.label || packet.discount?.code || "code"} (−$${disc.toFixed(2)})`
+    );
+  }
+  if (taxAmt > 0 || packet.tax?.state) {
+    lines.push(
+      `Sales tax (${packet.tax?.label || packet.tax?.state || "state"}): $${taxAmt.toFixed(2)}`
+    );
+  }
   lines.push(
-    `Quoted total $${packet.totals.subtotal.toFixed(2)} + ship $${packet.totals.shipping.toFixed(2)} = $${packet.totals.total.toFixed(2)} (NOT paid yet unless status is paid)`
+    `Quoted: subtotal $${Number(packet.totals.subtotal || 0).toFixed(2)}` +
+      (disc > 0 ? ` − discount $${disc.toFixed(2)}` : "") +
+      (taxAmt > 0 ? ` + tax $${taxAmt.toFixed(2)}` : "") +
+      ` + ship $${Number(packet.totals.shipping || 0).toFixed(2)}` +
+      ` = $${Number(packet.totals.total || 0).toFixed(2)} (NOT paid yet unless status is paid)`
   );
   if (packet.waitConsent) {
     lines.push(

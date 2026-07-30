@@ -61,7 +61,20 @@ import {
   saveManualPayConfig,
   formatManualPayText,
   manualPayConfigured,
+  cryptoPayTotal,
 } from "./utils/manualPayments";
+import {
+  loadDiscountCodes,
+  saveDiscountCodes,
+  applyDiscountCode,
+  formatDiscountRule,
+} from "./utils/discountCodes";
+import {
+  US_STATES,
+  calcSalesTax,
+  isValidUsState,
+  normalizeStateCode,
+} from "./utils/salesTax";
 import {
   getCoaMeta,
   setCoaUrl,
@@ -841,13 +854,27 @@ export default function App() {
   }
 
   async function placeOrder(customer, options = {}) {
-    const { payment = null, waitConsent = false, notify = true } = options;
+    const {
+      payment = null,
+      waitConsent = false,
+      notify = true,
+      discount = null,
+    } = options;
+    if (!session?.userId) {
+      setShowAuth(true);
+      setFlash("Create an account or sign in to submit an order request");
+      return null;
+    }
     if (!cart.length) {
       setFlash("Cart is empty");
       return null;
     }
     if (!isValidUsZip(customer.zip)) {
       setFlash("Enter a valid US ZIP code");
+      return null;
+    }
+    if (!isValidUsState(customer.state)) {
+      setFlash("Select a valid US state");
       return null;
     }
     if (!payment && !waitConsent) {
@@ -863,18 +890,44 @@ export default function App() {
     }
     let shipping = 0;
     for (const fee of shippingByVendor.values()) shipping += fee;
-    const total = subtotal + shipping;
+    const discountAmount = Math.min(
+      subtotal,
+      Math.max(0, Number(discount?.amount) || 0)
+    );
+    const taxInfo = calcSalesTax({
+      subtotal,
+      discount: discountAmount,
+      state: customer.state,
+    });
+    const total =
+      Math.max(0, subtotal - discountAmount) + taxInfo.amount + shipping;
     const packet = buildOrderPacket({
       orderId: createOrderId(),
       customer: {
         ...customer,
-        userId: customer.userId || session?.userId || "",
-        email: customer.email || session?.email || "",
+        state: normalizeStateCode(customer.state),
+        userId: session.userId,
+        email: session.email || customer.email || "",
       },
       cart,
       subtotal,
       shipping,
       total,
+      discount: discountAmount
+        ? {
+            code: discount?.code || "",
+            amount: discountAmount,
+            label: discount?.label || discount?.code || "",
+            type: discount?.type || "",
+            value: discount?.value ?? null,
+          }
+        : null,
+      tax: {
+        state: taxInfo.state,
+        rate: taxInfo.rate,
+        amount: taxInfo.amount,
+        label: taxInfo.label,
+      },
       status: payment ? "paid" : "awaiting_supply_review",
       waitConsent: Boolean(waitConsent) || Boolean(payment),
     });
@@ -1114,7 +1167,7 @@ export default function App() {
                 className="ghost-btn"
                 onClick={() => setShowAuth(true)}
               >
-                Sign in
+                Sign in / Create account
               </button>
             )}
             <button
@@ -1909,6 +1962,7 @@ export default function App() {
           <CartPage
             cart={cart}
             session={session}
+            onRequireAuth={() => setShowAuth(true)}
             onBack={goShop}
             onUpdateQty={updateQty}
             onRemove={removeLine}
@@ -2489,6 +2543,7 @@ function CoaStorePanel({ productId, productName, seedUrl = "", onChanged }) {
 function CartPage({
   cart,
   session = null,
+  onRequireAuth,
   onBack,
   onUpdateQty,
   onRemove,
@@ -2528,7 +2583,6 @@ function CartPage({
     }
   }
 
-  const total = subtotal + shipping;
   const [customer, setCustomer] = useState({
     name: "",
     email: session?.email || "",
@@ -2545,6 +2599,61 @@ function CartPage({
   const [packet, setPacket] = useState(null);
   const [packetMsg, setPacketMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [promoInput, setPromoInput] = useState("");
+  const [promoApplied, setPromoApplied] = useState(null);
+  const [promoMsg, setPromoMsg] = useState("");
+
+  useEffect(() => {
+    if (!session?.userId) return;
+    setCustomer((c) => ({
+      ...c,
+      email: session.email || c.email,
+      userId: session.userId,
+    }));
+  }, [session?.userId, session?.email]);
+
+  const discountAmount = promoApplied?.ok
+    ? Math.min(subtotal, Number(promoApplied.amount) || 0)
+    : 0;
+  const taxInfo = calcSalesTax({
+    subtotal,
+    discount: discountAmount,
+    state: customer.state,
+  });
+  const taxAmount = taxInfo.ok ? taxInfo.amount : 0;
+  const total =
+    Math.max(0, subtotal - discountAmount) + taxAmount + shipping;
+
+  useEffect(() => {
+    if (!promoApplied?.ok || !promoApplied.entry?.code) return;
+    const refreshed = applyDiscountCode(subtotal, promoApplied.entry.code);
+    if (!refreshed.ok) {
+      setPromoApplied(null);
+      setPromoMsg("Code no longer applies");
+      return;
+    }
+    if (refreshed.amount !== promoApplied.amount) {
+      setPromoApplied(refreshed);
+    }
+  }, [subtotal]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function tryApplyPromo(e) {
+    e?.preventDefault?.();
+    const result = applyDiscountCode(subtotal, promoInput);
+    if (!result.ok) {
+      setPromoApplied(null);
+      setPromoMsg(result.message || "That code isn’t valid");
+      return;
+    }
+    setPromoApplied(result);
+    setPromoMsg(result.message);
+  }
+
+  function clearPromo() {
+    setPromoApplied(null);
+    setPromoInput("");
+    setPromoMsg("");
+  }
 
   function finalizePacket(next, note) {
     setPacket(next);
@@ -2557,12 +2666,21 @@ function CartPage({
 
   async function handleSubmitRequest(e) {
     e.preventDefault();
+    if (!session?.userId) {
+      setPacketMsg("Create an account or sign in to submit an order request.");
+      onRequireAuth?.();
+      return;
+    }
     if (minOrderWarnings.length) {
       setPacketMsg("Meet each vendor minimum before submitting.");
       return;
     }
     if (!isValidUsZip(customer.zip)) {
       setPacketMsg("Enter a valid US ZIP code");
+      return;
+    }
+    if (!isValidUsState(customer.state)) {
+      setPacketMsg("Select a valid US state");
       return;
     }
     if (!waitConsent) {
@@ -2574,13 +2692,28 @@ function CartPage({
     setSubmitting(true);
     setPacketMsg("");
     try {
+      const live = promoApplied?.ok
+        ? applyDiscountCode(subtotal, promoApplied.entry?.code || promoInput)
+        : null;
       const next = await onPlaceOrder?.(
         {
           ...customer,
-          email: customer.email || session?.email || "",
-          userId: customer.userId || session?.userId || "",
+          email: session.email || customer.email || "",
+          userId: session.userId,
         },
-        { waitConsent: true, notify: true }
+        {
+          waitConsent: true,
+          notify: true,
+          discount: live?.ok
+            ? {
+                code: live.entry.code,
+                amount: live.amount,
+                label: live.label,
+                type: live.entry.type,
+                value: live.entry.value,
+              }
+            : null,
+        }
       );
       if (!next) return;
       finalizePacket(
@@ -2611,10 +2744,14 @@ function CartPage({
             <h1>Pay order {payInvoice.orderId}</h1>
             <p className="lede">
               Supply confirmed. Pay the quoted total with Venmo, Zelle, or
-              crypto (USDC or USDT only on Solana / Ethereum).
+              crypto (USDC or USDT only on Solana / Ethereum — 5% off for
+              crypto).
             </p>
             <div className="notice" style={{ marginTop: "0.75rem" }}>
               <strong>Amount due:</strong> {formatMoney(payInvoice.total)}
+              <div className="meta" style={{ marginTop: "0.35rem" }}>
+                Crypto: {formatMoney(cryptoPayTotal(payInvoice.total))} (5% off)
+              </div>
               <div className="meta" style={{ marginTop: "0.35rem" }}>
                 {payInvoice.customer?.name} · {payInvoice.customer?.email}
               </div>
@@ -2659,16 +2796,19 @@ function CartPage({
         <div className="panel" style={{ marginTop: "1rem" }}>
           <h1>Cart</h1>
           <p className="lede">
-            No payment at checkout. Submit a request, we confirm supply, then email
-            payment instructions within 24 hours. Delivery takes 2–3 weeks.
+            Create an account to order. No payment at checkout — we confirm
+            supply, then email payment instructions within 24 hours. Delivery
+            takes 2–3 weeks.
           </p>
 
           <div className="notice" style={{ marginTop: "0.75rem" }}>
             <strong>How ordering works</strong>
             <ol className="order-flow-steps">
-              <li>You submit this request (quoted total below is not charged yet).</li>
+              <li>Create an account (or sign in).</li>
+              <li>Submit this request (quoted total below is not charged yet).</li>
               <li>We check supply and get back to you within 24 hours.</li>
               <li>You pay only after we confirm we can fulfill.</li>
+              <li>Crypto (USDC/USDT) payments get 5% off.</li>
               <li>Ship after payment — 2–3 weeks delivery.</li>
             </ol>
           </div>
@@ -2732,7 +2872,24 @@ function CartPage({
                 </div>
               )}
 
-              {cart.length > 0 && step === "shipping" && (
+              {cart.length > 0 && step === "shipping" && !session?.userId && (
+                <div className="notice warn cart-auth-gate" style={{ marginTop: "1rem" }}>
+                  <strong>Account required</strong>
+                  <p style={{ margin: "0.45rem 0 0.75rem" }}>
+                    Create a free account (or sign in) to submit an order request.
+                    We’ll use it to email supply confirmation and your pay link.
+                  </p>
+                  <button
+                    type="button"
+                    className="primary-btn"
+                    onClick={() => onRequireAuth?.()}
+                  >
+                    Sign in / Create account
+                  </button>
+                </div>
+              )}
+
+              {cart.length > 0 && step === "shipping" && session?.userId && (
                 <form className="checkout-form" onSubmit={handleSubmitRequest}>
                   <h2>US shipping</h2>
                   <div className="form-row">
@@ -2759,17 +2916,14 @@ function CartPage({
                         inputMode="email"
                         enterKeyHint="next"
                         value={customer.email}
-                        onChange={(e) =>
-                          setCustomer((c) => ({ ...c, email: e.target.value }))
-                        }
+                        readOnly
+                        aria-readonly="true"
                       />
                     </label>
                   </div>
-                  {session?.userId && (
-                    <p className="meta" style={{ marginTop: "-0.35rem" }}>
-                      Account: {session.userId}
-                    </p>
-                  )}
+                  <p className="meta" style={{ marginTop: "-0.35rem" }}>
+                    Account: @{session.userId}
+                  </p>
                   <label className="field">
                     Address
                     <input
@@ -2813,22 +2967,25 @@ function CartPage({
                     </label>
                     <label className="field">
                       State
-                      <input
+                      <select
                         required
                         name="state"
                         autoComplete="address-level1"
-                        autoCapitalize="characters"
-                        maxLength={2}
-                        enterKeyHint="next"
                         value={customer.state}
                         onChange={(e) =>
                           setCustomer((c) => ({
                             ...c,
-                            state: e.target.value.toUpperCase(),
+                            state: normalizeStateCode(e.target.value),
                           }))
                         }
-                        placeholder="CA"
-                      />
+                      >
+                        <option value="">Select</option>
+                        {US_STATES.map((s) => (
+                          <option key={s.code} value={s.code}>
+                            {s.code} — {s.name}
+                          </option>
+                        ))}
+                      </select>
                     </label>
                     <label className="field">
                       ZIP
@@ -2877,9 +3034,74 @@ function CartPage({
                   </label>
 
                   <div className="cart-summary">
+                    <div className="discount-code-row">
+                      <label className="field discount-code-field">
+                        Discount code
+                        <input
+                          value={promoInput}
+                          onChange={(e) => {
+                            setPromoInput(e.target.value.toUpperCase());
+                            setPromoMsg("");
+                          }}
+                          placeholder="Enter code"
+                          autoComplete="off"
+                          spellCheck={false}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        className="soft-btn"
+                        onClick={tryApplyPromo}
+                      >
+                        Apply
+                      </button>
+                      {promoApplied?.ok ? (
+                        <button
+                          type="button"
+                          className="ghost-btn"
+                          onClick={clearPromo}
+                        >
+                          Remove
+                        </button>
+                      ) : null}
+                    </div>
+                    {promoMsg ? (
+                      <p
+                        className={`meta discount-code-msg${
+                          promoApplied?.ok ? " ok" : ""
+                        }`}
+                      >
+                        {promoMsg}
+                      </p>
+                    ) : null}
                     <div className="summary-row">
                       <span>Quoted subtotal</span>
                       <span>{formatMoney(subtotal)}</span>
+                    </div>
+                    {discountAmount > 0 ? (
+                      <div className="summary-row discount-row">
+                        <span>
+                          Discount
+                          {promoApplied?.label
+                            ? ` (${promoApplied.label})`
+                            : ""}
+                        </span>
+                        <span>−{formatMoney(discountAmount)}</span>
+                      </div>
+                    ) : null}
+                    <div className="summary-row">
+                      <span>
+                        {taxInfo.ok && taxInfo.label
+                          ? `Est. sales tax (${taxInfo.state})`
+                          : "Est. sales tax"}
+                      </span>
+                      <span>
+                        {taxInfo.ok
+                          ? formatMoney(taxAmount)
+                          : customer.state
+                            ? formatMoney(0)
+                            : "—"}
+                      </span>
                     </div>
                     <div className="summary-row">
                       <span>US shipping</span>
@@ -2922,6 +3144,22 @@ function CartPage({
                   </p>
                   <ul className="cart-confirm-meta">
                     <li>Quoted total: {formatMoney(packet.totals?.total || 0)}</li>
+                    {packet.discount?.code ? (
+                      <li>
+                        Discount {packet.discount.label || packet.discount.code}
+                        {packet.totals?.discount
+                          ? ` (−${formatMoney(packet.totals.discount)})`
+                          : ""}
+                      </li>
+                    ) : null}
+                    {packet.tax?.amount > 0 || packet.tax?.state ? (
+                      <li>
+                        {packet.tax.label || `${packet.tax.state} sales tax`}
+                        {packet.totals?.tax
+                          ? `: ${formatMoney(packet.totals.tax)}`
+                          : ""}
+                      </li>
+                    ) : null}
                     <li>Ship to: {packet.customer?.name}</li>
                     {packet.waitConsent ? (
                       <li>2–3 week delivery accepted</li>
@@ -3463,6 +3701,14 @@ function AdminPanel({
   const pendingItems = submissions.filter((s) => s.status === "pending");
   const vendorName = (id) => vendors.find((v) => v.id === id)?.name || id;
   const [payConfig, setPayConfig] = useState(() => loadManualPayConfig());
+  const [discountCodes, setDiscountCodes] = useState(() => loadDiscountCodes());
+  const [newCode, setNewCode] = useState({
+    code: "",
+    type: "percent",
+    value: "10",
+    note: "",
+    active: true,
+  });
 
   async function copyPayLink(order) {
     const url = buildStripePayUrl(order);
@@ -3501,6 +3747,51 @@ function AdminPanel({
         ? "Payment methods saved on this device"
         : "Add at least one Venmo, Zelle, or crypto address"
     );
+  }
+
+  function addDiscountCode(e) {
+    e.preventDefault();
+    const entry = {
+      code: newCode.code,
+      type: newCode.type,
+      value: Number(newCode.value),
+      note: newCode.note,
+      active: newCode.active !== false,
+    };
+    if (!String(entry.code || "").trim() || !(Number(entry.value) > 0)) {
+      onFlash?.("Enter a code and a value greater than 0");
+      return;
+    }
+    const without = discountCodes.filter(
+      (c) => c.code !== String(entry.code).trim().toUpperCase()
+    );
+    const next = saveDiscountCodes([...without, entry]);
+    setDiscountCodes(next);
+    setNewCode({
+      code: "",
+      type: "percent",
+      value: "10",
+      note: "",
+      active: true,
+    });
+    onFlash?.(`Discount code saved · ${entry.code.toUpperCase()}`);
+  }
+
+  function removeDiscountCode(code) {
+    const next = saveDiscountCodes(
+      discountCodes.filter((c) => c.code !== code)
+    );
+    setDiscountCodes(next);
+    onFlash?.(`Removed ${code}`);
+  }
+
+  function toggleDiscountCode(code) {
+    const next = saveDiscountCodes(
+      discountCodes.map((c) =>
+        c.code === code ? { ...c, active: !c.active } : c
+      )
+    );
+    setDiscountCodes(next);
   }
 
   return (
@@ -3590,7 +3881,7 @@ function AdminPanel({
                       zelleQrUrl: e.target.value.trim(),
                     }))
                   }
-                  placeholder="/zelle-qr.png"
+                  placeholder="/receipt_c212e7f2.jpg"
                   spellCheck={false}
                 />
               </label>
@@ -3660,6 +3951,119 @@ function AdminPanel({
             {!manualPayConfigured(payConfig) && (
               <p className="meta" style={{ marginTop: "0.5rem" }}>
                 Add at least one method so the customer pay page works today.
+              </p>
+            )}
+          </form>
+
+          <form className="manual-pay-admin discount-admin" onSubmit={addDiscountCode}>
+            <h2>Discount codes</h2>
+            <p className="meta">
+              Customers enter a code on the cart. Discount applies to merchandise
+              only (not shipping). Saved in this browser; optional env{" "}
+              <code>VITE_DISCOUNT_CODES=SAVE10:10%,FLAT25:25</code>.
+            </p>
+            <div className="form-row">
+              <label className="field">
+                Code
+                <input
+                  value={newCode.code}
+                  onChange={(e) =>
+                    setNewCode((c) => ({
+                      ...c,
+                      code: e.target.value.toUpperCase(),
+                    }))
+                  }
+                  placeholder="SAVE10"
+                  spellCheck={false}
+                />
+              </label>
+              <label className="field">
+                Type
+                <select
+                  value={newCode.type}
+                  onChange={(e) =>
+                    setNewCode((c) => ({ ...c, type: e.target.value }))
+                  }
+                >
+                  <option value="percent">Percent off</option>
+                  <option value="fixed">Fixed $ off</option>
+                </select>
+              </label>
+              <label className="field">
+                Value
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={newCode.value}
+                  onChange={(e) =>
+                    setNewCode((c) => ({ ...c, value: e.target.value }))
+                  }
+                  placeholder={newCode.type === "percent" ? "10" : "25"}
+                />
+              </label>
+            </div>
+            <label className="field">
+              Note (optional)
+              <input
+                value={newCode.note}
+                onChange={(e) =>
+                  setNewCode((c) => ({ ...c, note: e.target.value }))
+                }
+                placeholder="Launch promo"
+              />
+            </label>
+            <button type="submit" className="primary-btn">
+              Save discount code
+            </button>
+            {discountCodes.length > 0 ? (
+              <div className="table-wrap" style={{ marginTop: "0.85rem" }}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Deal</th>
+                      <th>Status</th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {discountCodes.map((c) => (
+                      <tr key={c.code}>
+                        <td>
+                          <strong>{c.code}</strong>
+                          {c.note ? (
+                            <div className="meta">{c.note}</div>
+                          ) : null}
+                        </td>
+                        <td>{formatDiscountRule(c)}</td>
+                        <td>{c.active ? "Active" : "Off"}</td>
+                        <td>
+                          <div className="row-actions">
+                            <button
+                              type="button"
+                              className="soft-btn"
+                              onClick={() => toggleDiscountCode(c.code)}
+                            >
+                              {c.active ? "Disable" : "Enable"}
+                            </button>
+                            <button
+                              type="button"
+                              className="danger-btn"
+                              onClick={() => removeDiscountCode(c.code)}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="meta" style={{ marginTop: "0.65rem" }}>
+                No codes yet — add one above (e.g. SAVE10 = 10% off).
               </p>
             )}
           </form>
@@ -3910,7 +4314,25 @@ function AdminPanel({
                           <div className="meta">via {o.payment.provider}</div>
                         ) : null}
                       </td>
-                      <td>{formatMoney(o.totals?.total || 0)}</td>
+                      <td>
+                        {formatMoney(o.totals?.total || 0)}
+                        {o.discount?.code ? (
+                          <div className="meta">
+                            {o.discount.label || o.discount.code}
+                            {o.totals?.discount
+                              ? ` (−${formatMoney(o.totals.discount)})`
+                              : ""}
+                          </div>
+                        ) : null}
+                        {o.tax?.state ? (
+                          <div className="meta">
+                            Tax {o.tax.state}
+                            {o.totals?.tax
+                              ? ` ${formatMoney(o.totals.tax)}`
+                              : ""}
+                          </div>
+                        ) : null}
+                      </td>
                       <td>
                         {o.status === "paid" ? (
                           <span className="meta">Paid</span>

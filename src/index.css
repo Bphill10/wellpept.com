@@ -5795,11 +5795,8 @@ html:has(.app-shell--undisclosed) {
   background: #fff;
 }
 
-.manual-pay-card h3 {
-  margin: 0;
-  font-size: 0.95rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.manual-pay-card--crypto {
+  border-color: rgba(46, 125, 90, 0.45);
 }
 
 .manual-pay-row {
@@ -5857,6 +5854,42 @@ html:has(.app-shell--undisclosed) {
 
 .manual-pay-admin .primary-btn {
   justify-self: start;
+}
+
+.discount-code-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-end;
+  margin-bottom: 0.65rem;
+}
+
+.discount-code-field {
+  flex: 1 1 10rem;
+  min-width: 8rem;
+}
+
+.discount-code-msg {
+  margin: -0.25rem 0 0.55rem;
+}
+
+.discount-code-msg.ok {
+  color: var(--ok, #2f6b4f);
+}
+
+.summary-row.discount-row span:last-child {
+  color: var(--ok, #2f6b4f);
+}
+
+.discount-admin select {
+  width: 100%;
+  min-height: 2.6rem;
+}
+
+.checkout-form select {
+  width: 100%;
+  min-height: 2.75rem;
+  font-size: 1rem;
 }
 
 .admin-pay-actions {
