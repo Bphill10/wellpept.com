@@ -11,7 +11,7 @@ import {
 import SerumBuilder from "./SerumBuilder";
 import { formatMoney } from "../data/products";
 
-function ProductCard({ product, onOpenProduct, onAddToCart }) {
+function ProductCard({ product, onOpenProduct, onAddToCart, priority = false }) {
   return (
     <article className="product-card skin-card">
       <button
@@ -25,7 +25,9 @@ function ProductCard({ product, onOpenProduct, onAddToCart }) {
               src={product.image}
               alt={product.name}
               className="skin-product-img"
-              loading="lazy"
+              loading={priority ? "eager" : "lazy"}
+              fetchPriority={priority ? "high" : "auto"}
+              decoding="async"
             />
           ) : (
             <div className="skin-bottle" aria-hidden="true">
@@ -76,6 +78,8 @@ export default function SkincareHome({
               className="hero-brand-mark"
               width={136}
               height={136}
+              fetchPriority="high"
+              decoding="async"
             />
             <h1 className="hero-brand">WellPept</h1>
           </div>
@@ -199,6 +203,9 @@ export default function SkincareHome({
                   src="/skincare/buffet-serum.png"
                   alt={FLAGSHIP_SERUM.name}
                   className="flagship-mix-img"
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
                 />
               </button>
             </div>
@@ -269,13 +276,20 @@ export default function SkincareHome({
           <div className="sk-mix-demo">
             <div className="sk-mix-demo-stills">
               <figure>
-                <img src="/skincare/buffet-serum.png" alt="Before: dry powder in the twist-cap" />
+                <img
+                  src="/skincare/buffet-serum.png"
+                  alt="Before: dry powder in the twist-cap"
+                  loading="lazy"
+                  decoding="async"
+                />
                 <figcaption>Before</figcaption>
               </figure>
               <figure>
                 <img
                   src="/skincare/buffet-serum-mixed.png"
                   alt="After: powder mixed into the serum"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <figcaption>After</figcaption>
               </figure>
@@ -305,12 +319,13 @@ export default function SkincareHome({
             </div>
           </div>
           <div className="product-grid skin-grid">
-            {SKINCARE_PRODUCTS.map((product) => (
+            {SKINCARE_PRODUCTS.map((product, index) => (
               <ProductCard
                 key={product.id}
                 product={product}
                 onOpenProduct={onOpenProduct}
                 onAddToCart={onAddToCart}
+                priority={index < 2}
               />
             ))}
           </div>

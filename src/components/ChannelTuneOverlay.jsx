@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 
-const TUNE_MS = 6800;
-const REVEAL_MS = 4200; // swap to Undisclosed under solid overlay before fade-out
+const TUNE_MS = 7200;
+const REVEAL_MS = 3800; // swap to Undisclosed under solid black before any fade
 const REDUCED_MS = 160;
 const FLAKE_COUNT = 72;
 
@@ -64,10 +64,12 @@ function startTwilightAudio() {
   noisePeak.gain.value = 5;
   const noiseGain = ctx.createGain();
   noiseGain.gain.setValueAtTime(0.0001, now);
-  noiseGain.gain.exponentialRampToValueAtTime(0.16, now + 0.2);
-  // swell mid-transition then settle
-  noiseGain.gain.linearRampToValueAtTime(0.28, now + 2.2);
-  noiseGain.gain.linearRampToValueAtTime(0.12, now + 4.5);
+  noiseGain.gain.exponentialRampToValueAtTime(0.22, now + 0.05);
+  // Faulty flicker burst, then settle into twilight bed
+  noiseGain.gain.linearRampToValueAtTime(0.32, now + 0.35);
+  noiseGain.gain.linearRampToValueAtTime(0.08, now + 1.1);
+  noiseGain.gain.linearRampToValueAtTime(0.28, now + 2.4);
+  noiseGain.gain.linearRampToValueAtTime(0.12, now + 4.8);
   noiseGain.gain.exponentialRampToValueAtTime(0.0001, end);
   noiseSrc.connect(noiseHp);
   noiseHp.connect(noisePeak);
@@ -258,6 +260,9 @@ export default function ChannelTuneOverlay({ active, onReveal, onDone }) {
       aria-hidden="true"
       style={{ "--tv-tune-dur": `${TUNE_MS}ms` }}
     >
+      {/* Full-bleed black — never scaled with the CRT tube, so WellPept cannot bleed */}
+      <div className="tv-tune-cover" />
+
       <svg className="tv-tune-svg" aria-hidden="true">
         <filter id="tv-noise-filter" x="0%" y="0%" width="100%" height="100%">
           <feTurbulence
@@ -281,8 +286,16 @@ export default function ChannelTuneOverlay({ active, onReveal, onDone }) {
         </filter>
       </svg>
 
+      {/* Faulty CRT: on/off flicker + spark before the dimension shift */}
+      <div className="tv-tune-fault" aria-hidden="true">
+        <div className="tv-tune-fault-black" />
+        <div className="tv-tune-fault-snow" />
+        <div className="tv-tune-spark tv-tune-spark--a" />
+        <div className="tv-tune-spark tv-tune-spark--b" />
+        <div className="tv-tune-spark tv-tune-spark--c" />
+      </div>
+
       <div className="tv-tune-screen">
-        <div className="tv-tune-matte" />
         <div className="tv-tune-void" />
         <div className="tv-tune-spiral" />
         <div className="tv-tune-doorway" />

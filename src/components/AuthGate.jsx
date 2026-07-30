@@ -171,8 +171,8 @@ export default function AuthGate({ onAuthed, onClose }) {
         </h1>
         <p className="auth-lead">
           {mode === "confirm"
-            ? "Confirm your email to save an account across visits. You can still browse and request orders without an account."
-            : "Optional account for a saved profile. You can browse and submit order requests as a guest."}
+            ? "Confirm your email so we can reach you about orders. You can keep browsing without signing in — an account is only needed when you place an order."
+            : "Browse freely without signing in. An account is only needed when you place an order — we’ll use it for supply updates and your pay link."}
         </p>
 
         {mode !== "confirm" && (

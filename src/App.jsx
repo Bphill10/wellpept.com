@@ -380,6 +380,12 @@ export default function App() {
   function startChannelTuneUnlock() {
     if (channelTuneLockRef.current || channelTuning || labVisible) return;
     channelTuneLockRef.current = true;
+    // Warm Undisclosed assets under the black cover so WellPept never flashes back
+    ["/black-marble.jpg", "/ud-monogram.svg", "/real-vial-3ml.png"].forEach((href) => {
+      const img = new Image();
+      img.decoding = "async";
+      img.src = href;
+    });
     setChannelTuning(true);
   }
 
@@ -1014,6 +1020,7 @@ export default function App() {
               className="brand-logo"
               width={44}
               height={44}
+              decoding="async"
             />
             <span className="brand-text">
               <span className="brand-mark">
@@ -1262,6 +1269,9 @@ export default function App() {
                         src={skinProduct.image}
                         alt={skinProduct.name}
                         className="skin-product-img skin-product-img--detail"
+                        loading="eager"
+                        fetchPriority="high"
+                        decoding="async"
                       />
                     ) : (
                       <div className="skin-bottle skin-bottle--lg" aria-hidden="true">
@@ -1274,6 +1284,8 @@ export default function App() {
                         src={skinProduct.gallery[1]}
                         alt="After mixing: active blended into the base"
                         className="skin-product-img skin-product-img--howto"
+                        loading="lazy"
+                        decoding="async"
                       />
                     )}
                     {skinProduct.video && (
