@@ -78,7 +78,6 @@ import {
   researchHelpFor,
 } from "./data/researchGuide";
 import {
-  isLabUnlocked,
   setLabUnlocked,
   labUnlockFromUrl,
   labUnlockFromPath,
@@ -160,13 +159,15 @@ export default function App() {
       ),
     []
   );
+  // Public `/` always starts as WellPept. Do not restore Undisclosed from
+  // localStorage (that made search/home reopen the lab after testing).
+  // Unlock only via /undisclosed path, query/hash, or the 5-tap ritual.
   const [labUnlocked, setLabUnlockedState] = useState(
     () =>
       urlWantsLabQuery ||
       labUnlockFromPath(
         typeof window !== "undefined" ? window.location.pathname : "/"
-      ) ||
-      isLabUnlocked()
+      )
   );
   const [routePath, setRoutePath] = useState(
     () => (typeof window !== "undefined" ? window.location.pathname : "/")
@@ -184,8 +185,7 @@ export default function App() {
       urlWantsLabQuery ||
       labUnlockFromPath(
         typeof window !== "undefined" ? window.location.pathname : "/"
-      ) ||
-      isLabUnlocked();
+      );
     if (calcFromUrl && openLab) return VIEWS.calculator;
     if (openLab) return VIEWS.shop;
     return VIEWS.skincare;
@@ -305,6 +305,14 @@ export default function App() {
     setFlash("Undisclosed unlocked");
   }, [urlWantsLabQuery]);
 
+  // Landing on public `/` clears any leftover unlock flag from prior testing.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const path = window.location.pathname || "/";
+    if (labUnlockFromPath(path) || urlWantsLabQuery) return;
+    setLabUnlocked(false);
+  }, [urlWantsLabQuery]);
+
   useEffect(() => {
     if (labVisible) return;
     if (
@@ -325,7 +333,7 @@ export default function App() {
     }
   }, [opsUnlocked, view, labVisible]);
 
-  function unlockLabMenu(message = "Undisclosed unlocked") {
+  function unlockLabMenu(message = "Undisclosed unlocked", { flashMsg = true } = {}) {
     setLabUnlocked(true);
     setLabUnlockedState(true);
     cleanLabUnlockUrl({ promotePath: true });
@@ -333,19 +341,24 @@ export default function App() {
     setRoutePath(
       typeof window !== "undefined" ? window.location.pathname : "/undisclosed"
     );
-    setFlash(message);
+    if (flashMsg && message) setFlash(message);
     setView(VIEWS.shop);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
+  /** Swap to Undisclosed while CRT overlay still covers the screen. */
+  function revealDuringChannelTune() {
+    unlockLabMenu("", { flashMsg: false });
   }
 
   function finishChannelTune() {
     channelTuneLockRef.current = false;
     setChannelTuning(false);
-    unlockLabMenu("Undisclosed unlocked");
+    setFlash("Undisclosed unlocked");
   }
 
   function startChannelTuneUnlock() {
-    if (channelTuneLockRef.current || channelTuning || labUnlocked) return;
+    if (channelTuneLockRef.current || channelTuning || labVisible) return;
     channelTuneLockRef.current = true;
     setChannelTuning(true);
   }
@@ -1138,7 +1151,11 @@ export default function App() {
       </header>
 
       {channelTuning && (
-        <ChannelTuneOverlay active onDone={finishChannelTune} />
+        <ChannelTuneOverlay
+          active
+          onReveal={revealDuringChannelTune}
+          onDone={finishChannelTune}
+        />
       )}
 
       {flash && (

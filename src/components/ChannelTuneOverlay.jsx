@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 
 const TUNE_MS = 6800;
+const REVEAL_MS = 4200; // swap to Undisclosed under solid overlay before fade-out
 const REDUCED_MS = 160;
 const FLAKE_COUNT = 72;
 
@@ -190,16 +191,21 @@ function startTwilightAudio() {
 
 /**
  * Twilight-dimension CRT wipe — WellPept → Undisclosed (5 logo taps).
+ * Calls onReveal while the overlay is still fully opaque, then onDone after fade.
  */
-export default function ChannelTuneOverlay({ active, onDone }) {
+export default function ChannelTuneOverlay({ active, onReveal, onDone }) {
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
+  const onRevealRef = useRef(onReveal);
+  onRevealRef.current = onReveal;
   const finishedRef = useRef(false);
+  const revealedRef = useRef(false);
   const flakes = useMemo(() => makeFlakes(FLAKE_COUNT), []);
 
   useEffect(() => {
     if (!active) {
       finishedRef.current = false;
+      revealedRef.current = false;
       return undefined;
     }
 
@@ -216,16 +222,29 @@ export default function ChannelTuneOverlay({ active, onDone }) {
       }
     }
 
-    const ms = reduced ? REDUCED_MS : TUNE_MS;
-    const t = window.setTimeout(() => {
+    const revealAt = reduced ? 40 : REVEAL_MS;
+    const doneAt = reduced ? REDUCED_MS : TUNE_MS;
+
+    const revealTimer = window.setTimeout(() => {
+      if (revealedRef.current) return;
+      revealedRef.current = true;
+      onRevealRef.current?.();
+    }, revealAt);
+
+    const doneTimer = window.setTimeout(() => {
       if (finishedRef.current) return;
       finishedRef.current = true;
+      if (!revealedRef.current) {
+        revealedRef.current = true;
+        onRevealRef.current?.();
+      }
       stopAudio();
       onDoneRef.current?.();
-    }, ms);
+    }, doneAt);
 
     return () => {
-      window.clearTimeout(t);
+      window.clearTimeout(revealTimer);
+      window.clearTimeout(doneTimer);
       stopAudio();
     };
   }, [active]);
@@ -263,6 +282,7 @@ export default function ChannelTuneOverlay({ active, onDone }) {
       </svg>
 
       <div className="tv-tune-screen">
+        <div className="tv-tune-matte" />
         <div className="tv-tune-void" />
         <div className="tv-tune-spiral" />
         <div className="tv-tune-doorway" />

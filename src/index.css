@@ -5751,11 +5751,13 @@ html:has(.app-shell--undisclosed) {
   inset: 0;
   z-index: 200;
   overflow: hidden;
-  pointer-events: none;
+  pointer-events: all;
   background: #000;
   display: grid;
   place-items: center;
   animation: tv-tune-hold var(--tv-tune-dur) cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* Never let WellPept bleed through snow / mix-blend layers */
+  isolation: isolate;
 }
 
 .tv-tune-svg {
@@ -5772,6 +5774,13 @@ html:has(.app-shell--undisclosed) {
   transform-origin: center;
   animation: tv-tune-screen var(--tv-tune-dur) cubic-bezier(0.16, 1, 0.3, 1) both;
   background: #000;
+}
+
+.tv-tune-matte {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: 0;
 }
 
 .tv-tune-void {
@@ -6223,8 +6232,9 @@ html:has(.app-shell--undisclosed) {
 }
 
 @keyframes tv-tune-hold {
+  /* Stay fully opaque until Undisclosed is mounted underneath, then fade */
   0%,
-  92% { opacity: 1; }
+  88% { opacity: 1; }
   100% { opacity: 0; }
 }
 
