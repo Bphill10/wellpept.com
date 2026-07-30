@@ -1240,10 +1240,11 @@ export default function App() {
             ) : (
               <button
                 type="button"
-                className="ghost-btn"
+                className="ghost-btn header-auth-btn"
                 onClick={() => setShowAuth(true)}
               >
-                Sign in / Create account
+                <span className="nav-label-full">Sign in / Create account</span>
+                <span className="nav-label-short">Sign in</span>
               </button>
             )}
             <button
