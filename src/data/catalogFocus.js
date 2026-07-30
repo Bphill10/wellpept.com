@@ -123,6 +123,17 @@ export function isChangshaFocused(name) {
     return true;
   }
 
+  // Vitamin B / B12
+  if (
+    n.includes("vitamin b") ||
+    n === "b12" ||
+    n.startsWith("b12") ||
+    n.includes("methylcobalamin") ||
+    (n.includes("b12") && !n.includes("lipo"))
+  ) {
+    return true;
+  }
+
   return false;
 }
 

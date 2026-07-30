@@ -163,6 +163,10 @@ const BLURBS = {
     "Immune-signaling peptide studied for T-cell and host-response research models.",
   "TA-1":
     "Thymosin Alpha-1 (TA-1). Immune-signaling peptide studied for T-cell and host-response research models.",
+  "Vitamin B12":
+    "Vitamin B12 (cobalamin) liquid research vial. Used in metabolic and coenzyme laboratory work.",
+  "Vitamin B":
+    "Vitamin B research line. Used in metabolic and coenzyme laboratory work.",
   DSIP:
     "Delta sleep-inducing peptide explored in sleep and stress-axis research.",
   Oxytocin:
@@ -254,6 +258,8 @@ const TAGLINES = {
   Thymalin: "Immune modulation research",
   "Thymosin Alpha-1": "T-cell signaling research",
   "TA-1": "T-cell signaling research (Thymosin Alpha-1)",
+  "Vitamin B12": "Cobalamin research liquid",
+  "Vitamin B": "B-vitamin research liquid",
   DSIP: "Sleep & stress-axis research",
   Oxytocin: "Neuropeptide research",
   "IGF-1 LR3": "Growth-factor research",
@@ -333,6 +339,8 @@ function resolveCompoundKey(name) {
   if (/\bKPV\b/.test(n)) return "KPV";
   if (/THYMALIN|THYMULIN/.test(n)) return "Thymalin";
   if (/THYMOSIN\s*ALPHA|TA-?1\b|Tα1/.test(n)) return "TA-1";
+  if (/VITAMIN\s*B\s*12|METHYLCOBALAMIN|\bB12\b/.test(n)) return "Vitamin B12";
+  if (/VITAMIN\s*B\b/.test(n)) return "Vitamin B";
   if (/\bDSIP\b/.test(n)) return "DSIP";
   if (/OXYTOCIN/.test(n)) return "Oxytocin";
   if (/IGF/.test(n)) return "IGF-1 LR3";
@@ -441,6 +449,15 @@ export function displayPeptideName(name = "") {
   ) {
     return "TA-1";
   }
+  if (
+    n.includes("vitamin b12") ||
+    n.includes("methylcobalamin") ||
+    n === "b12" ||
+    (n.includes("b12") && !n.includes("lipo"))
+  ) {
+    return "Vitamin B12";
+  }
+  if (n.includes("vitamin b")) return "Vitamin B";
   if (n.startsWith("bpc")) return "BPC-157";
   if (n.includes("retatrutide") || n === "reta") return "Retatrutide";
   if (n.includes("tirzepatide") || n.startsWith("triz")) return "Tirzepatide";
