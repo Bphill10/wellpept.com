@@ -1,50 +1,43 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="WellPept W monogram">
   <defs>
-    <!-- Aged cobalt medallion -->
     <radialGradient id="disc" cx="38%" cy="32%" r="72%">
       <stop offset="0%" stop-color="#3a6fb5"/>
       <stop offset="45%" stop-color="#003d8f"/>
       <stop offset="82%" stop-color="#002456"/>
       <stop offset="100%" stop-color="#00122e"/>
     </radialGradient>
-    <!-- Soft carved fill — bone / ivory, not bright white -->
-    <linearGradient id="carve" x1="64" y1="30" x2="64" y2="100" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#e8e4d8"/>
-      <stop offset="55%" stop-color="#d4cfc0"/>
-      <stop offset="100%" stop-color="#a8a090"/>
+    <linearGradient id="carve" x1="64" y1="22" x2="64" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f0ebe0"/>
+      <stop offset="55%" stop-color="#ddd6c6"/>
+      <stop offset="100%" stop-color="#b0a896"/>
     </linearGradient>
-    <!-- Shallow relief shadow -->
     <filter id="relief" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0.8" dy="1.2" stdDeviation="0.6" flood-color="#001018" flood-opacity="0.45"/>
+      <feDropShadow dx="1" dy="1.4" stdDeviation="0.7" flood-color="#001018" flood-opacity="0.5"/>
     </filter>
   </defs>
 
   <circle cx="64" cy="64" r="62" fill="url(#disc)"/>
-  <!-- Worn rim like an old coin -->
   <circle cx="64" cy="64" r="57.5" fill="none" stroke="#8fa8c8" stroke-width="2" opacity="0.35"/>
-  <circle cx="64" cy="64" r="53" fill="none" stroke="#c5d0e0" stroke-width="0.75" opacity="0.22"/>
+  <circle cx="64" cy="64" r="52" fill="none" stroke="#c5d0e0" stroke-width="0.75" opacity="0.2"/>
 
-  <!--
-    Relic W: classical inscription cut, even strokes, slight flare at feet.
-    Reads like stone / metal carving — not a logo flourish.
-  -->
+  <!-- Bigger, bolder relic W — heavy stems, fills the medallion -->
   <g filter="url(#relief)">
     <path
       fill="url(#carve)"
       d="
-        M 28 36
-        L 38 36
-        L 49 86
-        L 58 50
-        L 70 50
-        L 79 86
-        L 90 36
-        L 100 36
-        L 86 100
-        L 74 100
-        L 64 66
-        L 54 100
-        L 42 100
+        M 12 22
+        L 36 22
+        L 47 92
+        L 54 38
+        L 74 38
+        L 81 92
+        L 92 22
+        L 116 22
+        L 98 112
+        L 76 112
+        L 64 54
+        L 52 112
+        L 30 112
         Z
       "
     />
