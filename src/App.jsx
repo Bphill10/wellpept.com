@@ -982,7 +982,7 @@ export default function App() {
           <div className="container header-top-inner">
             <span className="header-top-msg">
               {labVisible
-                ? "Undisclosed · alternate universe · by WellPept"
+                ? "Take control · Ask questions · Your human right"
                 : "Request first · Pay after supply check · 2–3 weeks"}
             </span>
             <span className="header-top-links">
@@ -1027,7 +1027,7 @@ export default function App() {
                 {labVisible ? "Undisclosed" : "WellPept"}
               </span>
               <span className="brand-sub">
-                {labVisible ? "Brought to you by WellPept" : "Renew skincare"}
+                {labVisible ? "Research · your call" : "Renew skincare"}
               </span>
             </span>
           </button>
@@ -1388,7 +1388,7 @@ export default function App() {
               <div className="lab-banner">
                 <div className="container lab-banner-inner">
                   <span>
-                    Undisclosed · alternate universe · brought to you by WellPept
+                    Undisclosed · beyond the gatekeepers · brought to you by WellPept
                   </span>
                   <button type="button" className="ghost-btn" onClick={lockLabMenu}>
                     Exit to WellPept
@@ -1415,7 +1415,11 @@ export default function App() {
                 </div>
                 <div className="hero-brand-rule rise-delay" aria-hidden="true" />
                 <p className="hero-tagline rise-delay">
-                  Research peptides. Same molecule. Darker mirror of WellPept.
+                  Take control of your health. It&apos;s your human right.
+                </p>
+                <p className="hero-copy rise-delay">
+                  Research peptides outside the Big Pharma script. Same molecules.
+                  Fewer gatekeepers. Ask the questions they won&apos;t.
                 </p>
                 <div className="hero-cta rise-delay">
                   <button
@@ -1440,6 +1444,23 @@ export default function App() {
                     Calculator
                   </button>
                 </div>
+              </div>
+            </section>
+
+            <section className="ud-signal-strip" aria-label="Signal phrases">
+              <div className="ud-signal-track">
+                <span>FDA · APPROVED FOR WHO?</span>
+                <span>BIG PHARMA · FOLLOW THE MONEY</span>
+                <span>PEPTIDE TRUTH · ASK QUESTIONS</span>
+                <span>YOUR BODY · YOUR RESEARCH</span>
+                <span>TAKE CONTROL · HUMAN RIGHT</span>
+                <span>GATEKEEPERS · OPTIONAL</span>
+                <span>FDA · APPROVED FOR WHO?</span>
+                <span>BIG PHARMA · FOLLOW THE MONEY</span>
+                <span>PEPTIDE TRUTH · ASK QUESTIONS</span>
+                <span>YOUR BODY · YOUR RESEARCH</span>
+                <span>TAKE CONTROL · HUMAN RIGHT</span>
+                <span>GATEKEEPERS · OPTIONAL</span>
               </div>
             </section>
 
@@ -1650,17 +1671,13 @@ export default function App() {
               <div className="container mission-inner">
                 <div>
                   <p className="section-kicker">Why Undisclosed</p>
-                  <h2>Research equivalent. Not retail theater.</h2>
+                  <h2>They gatekeep. You decide.</h2>
                   <p>
-                    If a compound isn’t coming straight from a branded pharmacy
-                    line, it’s almost always made in the same research-chemical
-                    manufacturing corridors — largely China — then passed through
-                    resellers and storefronts. If it{" "}
-                    <em>is</em> pharma-sourced, you’re often paying a premium for
-                    packaging and distribution of the same active structure.
-                    Undisclosed is WellPept’s lab mirror: approved near-source
-                    vendors, documented batches, and a catalog built for the
-                    bench — not the brand story.
+                    Big Pharma and the FDA write the script: what you may ask,
+                    what you may access, and how much you pay for the privilege.
+                    Undisclosed is the darker mirror — research peptides, same
+                    molecules, fewer middlemen. Take control of your health
+                    literacy. Curiosity is not a crime. It&apos;s your human right.
                   </p>
                 </div>
                 <ul className="mission-points">
@@ -1819,42 +1836,45 @@ export default function App() {
                 <div className="section-head">
                   <div>
                     <p className="section-kicker">The thesis</p>
-                    <h2>Two supply stories. One molecule.</h2>
+                    <h2>FDA. Big Pharma. Same molecule.</h2>
                     <p>
-                      Either way, the structure on the vial is what matters for
-                      research — Undisclosed makes the source path clear.
+                      Follow the money. Ask who profits when access is locked
+                      behind a logo. Undisclosed puts the research path in your
+                      hands — for laboratory use only.
                     </p>
                   </div>
                 </div>
                 <div className="thesis-grid">
                   <article className="thesis-card panel">
-                    <p className="section-kicker">Not pharmacy-direct?</p>
-                    <h3>It’s already China-sourced research supply</h3>
+                    <p className="section-kicker">FDA theater?</p>
+                    <h3>Approved for who — and at what price</h3>
                     <p>
-                      Most “research peptide” inventory traces back to the same
-                      manufacturing hubs. Paying a domestic storefront premium
-                      doesn’t change the synthesis origin — it only changes who
-                      sits between the plant and your lab. We connect approved
-                      near-source vendors so you buy closer to manufacture.
+                      Regulation protects people. It also protects margins.
+                      When the sequence is public knowledge and the research
+                      supply already exists, the question isn&apos;t “does the
+                      molecule exist?” — it&apos;s who is allowed to talk about
+                      it, and who collects the toll.
                     </p>
                   </article>
                   <article className="thesis-card panel">
-                    <p className="section-kicker">Pharma-sourced?</p>
-                    <h3>Why pay brand tax for the same compound</h3>
+                    <p className="section-kicker">Big Pharma?</p>
+                    <h3>Brand tax on the same compound</h3>
                     <p>
                       When the active is the same sequence or small molecule,
                       the research question is purity, fill, and documentation —
-                      not the logo on the box. Undisclosed lists research-grade
-                      equivalents so you can judge the molecule on the bench.
+                      not the commercial name on the box. Pay for data. Don&apos;t
+                      pay for the conspiracy of silence around alternatives.
                     </p>
                   </article>
                   <article className="thesis-card panel thesis-card-accent">
-                    <p className="section-kicker">Undisclosed</p>
-                    <h3>Your generic research lane</h3>
+                    <p className="section-kicker">Your right</p>
+                    <h3>Take control. Ask questions.</h3>
                     <p>
-                      Admin-vetted vendors. Documented kits. US drop-ship only.
-                      For laboratory research use only; not for human
-                      consumption or medical use. Brought to you by WellPept.
+                      Take control of your health literacy. It&apos;s your human
+                      right to inquire. Undisclosed: admin-vetted vendors,
+                      documented kits, US drop-ship. Laboratory research use
+                      only — not for human consumption or medical use. Brought
+                      to you by WellPept.
                     </p>
                   </article>
                 </div>
@@ -2053,7 +2073,7 @@ export default function App() {
             <strong>{labVisible ? "Undisclosed" : "WellPept"}</strong>
             <div>
               {labVisible
-                ? "Brought to you by WellPept · research peptides for laboratory use"
+                ? "Brought to you by WellPept · ask questions · research use only"
                 : "Renew skincare. White light, cobalt signal"}
             </div>
             <p className="footer-contact">

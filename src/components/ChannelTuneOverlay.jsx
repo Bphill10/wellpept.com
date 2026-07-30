@@ -219,6 +219,22 @@ export default function ChannelTuneOverlay({ active, onReveal, onDone }) {
         <div className="tv-tune-noise tv-tune-noise--rift" />
         <div className="tv-tune-scanlines" />
 
+        {/* Conspiracy signal crawl during the rift */}
+        <div className="rift-ticker" aria-hidden="true">
+          <div className="rift-ticker-track">
+            <span>
+              FDA GATEKEEPERS · BIG PHARMA · FOLLOW THE MONEY · ASK QUESTIONS ·
+              PEPTIDE TRUTH · YOUR BODY YOUR DATA · HUMAN RIGHT · TAKE CONTROL ·
+              THEY PROFIT · YOU RESEARCH · UNDISCLOSED ·
+            </span>
+            <span>
+              FDA GATEKEEPERS · BIG PHARMA · FOLLOW THE MONEY · ASK QUESTIONS ·
+              PEPTIDE TRUTH · YOUR BODY YOUR DATA · HUMAN RIGHT · TAKE CONTROL ·
+              THEY PROFIT · YOU RESEARCH · UNDISCLOSED ·
+            </span>
+          </div>
+        </div>
+
         {/* 2. WellPept monogram → collapses into the rift */}
         <div className="rift-mark rift-mark--from">
           <img src="/wp-monogram.svg" alt="" width={120} height={120} />
@@ -240,7 +256,8 @@ export default function ChannelTuneOverlay({ active, onReveal, onDone }) {
         <div className="rift-mark rift-mark--to">
           <img src="/ud-monogram.svg" alt="" width={120} height={120} />
           <span>UNDISCLOSED</span>
-          <p>another dimension</p>
+          <p className="rift-manifesto">Take control of your health.</p>
+          <p className="rift-manifesto-sub">It&apos;s your human right.</p>
         </div>
 
         <div className="tv-tune-vignette" />

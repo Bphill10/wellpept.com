@@ -2520,6 +2520,39 @@ body:has(.app-shell--undisclosed)::before {
   letter-spacing: 0.12em;
 }
 
+.ud-signal-strip {
+  overflow: hidden;
+  border-block: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(90deg, #050505, #111 40%, #050505);
+  padding: 0.7rem 0;
+}
+
+.ud-signal-track {
+  display: flex;
+  width: max-content;
+  gap: 2.25rem;
+  animation: ud-signal-scroll 42s linear infinite;
+}
+
+.ud-signal-track span {
+  white-space: nowrap;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(244, 246, 248, 0.55);
+}
+
+@keyframes ud-signal-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ud-signal-track {
+    animation: none;
+  }
+}
+
 .app-shell--undisclosed .brand-sub {
   color: rgba(255, 255, 255, 0.55);
   letter-spacing: 0.12em;
@@ -6119,6 +6152,53 @@ html:has(.app-shell--undisclosed) {
   color: rgba(244, 246, 248, 0.55);
 }
 
+.rift-mark--to .rift-manifesto {
+  margin-top: 0.35rem;
+  font-family: var(--font-brand, "Cormorant Garamond", Georgia, serif);
+  font-size: clamp(1rem, 3.2vw, 1.35rem);
+  letter-spacing: 0.06em;
+  text-transform: none;
+  color: #f4f6f8;
+  font-style: italic;
+}
+
+.rift-mark--to .rift-manifesto-sub {
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.2em;
+  color: rgba(244, 246, 248, 0.7);
+}
+
+.rift-ticker {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 12%;
+  z-index: 7;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  animation: rift-ticker-in var(--tv-tune-dur) ease both;
+}
+
+.rift-ticker-track {
+  display: flex;
+  width: max-content;
+  gap: 0;
+  animation: rift-ticker-scroll 14s linear infinite;
+}
+
+.rift-ticker-track span {
+  white-space: nowrap;
+  padding-right: 2rem;
+  font-size: clamp(0.65rem, 2vw, 0.8rem);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(244, 246, 248, 0.42);
+  font-family: var(--font-ui, Manrope, system-ui, sans-serif);
+}
+
 .rift-portal {
   position: absolute;
   left: 50%;
@@ -6869,6 +6949,20 @@ html:has(.app-shell--undisclosed) {
   100% { opacity: 0; height: 90%; }
 }
 
+@keyframes rift-ticker-in {
+  0%,
+  18% { opacity: 0; }
+  26%,
+  72% { opacity: 1; }
+  86%,
+  100% { opacity: 0; }
+}
+
+@keyframes rift-ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
 @keyframes tv-tune-noise-rift {
   0%,
   16% { opacity: 0; }
@@ -7074,7 +7168,8 @@ html:has(.app-shell--undisclosed) {
   .rift-portal-marble,
   .rift-portal-core,
   .rift-portal-ring,
-  .rift-shatter span {
+  .rift-shatter span,
+  .rift-ticker {
     animation: none !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
@@ -7090,5 +7185,9 @@ html:has(.app-shell--undisclosed) {
 
   .rift-mark--to {
     opacity: 1;
+  }
+
+  .rift-ticker-track {
+    animation: none !important;
   }
 }
