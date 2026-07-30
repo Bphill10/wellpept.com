@@ -1607,6 +1607,11 @@ export default function App() {
             initial={calcInitial}
             listings={calculatorListings}
             autoSuggestBac={automation.autoSuggestBacFromProduct}
+            onBack={() => {
+              setCalcInitial(null);
+              goShop();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
           />
         )}
 

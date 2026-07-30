@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Calculator, RotateCcw, Link2 } from "lucide-react";
+import { ArrowLeft, Calculator, RotateCcw, Link2 } from "lucide-react";
 import LabelTemplate from "./LabelTemplate";
 import {
   calculatorOptionsFromListings,
@@ -113,6 +113,7 @@ export default function PeptideCalculator({
   initial = null,
   listings = [],
   autoSuggestBac = true,
+  onBack = null,
 }) {
   const options = useMemo(
     () => calculatorOptionsFromListings(listings),
@@ -311,7 +312,15 @@ export default function PeptideCalculator({
   return (
     <section className="panel-page fade">
       <div className="container">
-        <div className="panel calc-panel">
+        {typeof onBack === "function" && (
+          <button type="button" className="ghost-btn" onClick={onBack}>
+            <ArrowLeft size={16} /> Back to catalog
+          </button>
+        )}
+        <div
+          className="panel calc-panel"
+          style={typeof onBack === "function" ? { marginTop: "1rem" } : undefined}
+        >
           <div className="calc-hero">
             <div className="calc-hero-icon">
               <Calculator size={22} />
