@@ -51,6 +51,7 @@ export const CATEGORIES = [
   "Growth",
   "Cellular",
   "Cognitive",
+  "Hormone",
   "Research",
 ];
 
@@ -64,10 +65,16 @@ const CATEGORY_MAP = {
   "GHK-Cu": "Cellular",
   "CJC-1295 (no DAC)": "Growth",
   Ipamorelin: "Growth",
+  Tesamorelin: "Growth",
+  "Tesamorelin / Ipamorelin": "Growth",
+  "CJC-1295 / Ipamorelin": "Growth",
   "NAD+": "Cellular",
   Selank: "Cognitive",
   Semax: "Cognitive",
-  "MOTS-c": "Metabolic",
+  "MOTS-c": "Cellular",
+  "SS-31": "Cellular",
+  PT141: "Hormone",
+  "PT-141": "Hormone",
   Epithalon: "Longevity",
 };
 
@@ -140,7 +147,7 @@ const BLURBS = {
   "Melanotan 1":
     "α-MSH analogue used in pigmentation and photobiology research.",
   PT141:
-    "Melanocortin receptor agonist (bremelanotide class) studied in behavioral and receptor pharmacology research.",
+    "Melanocortin receptor agonist (bremelanotide class) studied in libido, sexual-desire, and receptor pharmacology research.",
   HCG:
     "Human chorionic gonadotropin used in reproductive-axis and LH-receptor laboratory research.",
   "NAD+":
@@ -246,7 +253,7 @@ const TAGLINES = {
   "SS-31": "Mitochondrial energy research",
   "Melanotan-2": "Melanocortin research",
   "Melanotan 1": "Pigmentation research",
-  PT141: "Melanocortin pharmacology",
+  PT141: "Libido / melanocortin research",
   HCG: "LH-receptor research",
   "NAD+": "Redox & energy research",
   Epithalon: "Telomerase / aging research",
@@ -394,9 +401,33 @@ export function guessCategory(name) {
   const n = name.toUpperCase();
   if (n.includes("BPC") || n.includes("TB ") || n.includes("KPV")) return "Recovery";
   if (n.includes("SEMAX") || n.includes("SELANK") || n.includes("DIHEXA")) return "Cognitive";
-  if (n.includes("CJC") || n.includes("IPAM") || n.includes("IGF") || n.includes("MGF") || n.includes("GH ")) return "Growth";
-  if (n.includes("NAD") || n.includes("GHK") || n.includes("LL37")) return "Cellular";
-  if (n.includes("MOTS") || n.includes("AOD") || n.includes("TIRZ") || n.includes("SEMA") || n.includes("LIRA")) return "Metabolic";
+  if (
+    n.includes("CJC") ||
+    n.includes("IPAM") ||
+    n.includes("TESA") ||
+    n.includes("IGF") ||
+    n.includes("MGF") ||
+    n.includes("GH ")
+  ) {
+    return "Growth";
+  }
+  if (
+    n.includes("NAD") ||
+    n.includes("GHK") ||
+    n.includes("LL37") ||
+    n.includes("MOTS") ||
+    n.includes("SS-31") ||
+    n.includes("SS31") ||
+    n.includes("ELAMIPRETIDE")
+  ) {
+    return "Cellular";
+  }
+  if (n.includes("PT-141") || n.includes("PT141") || n.includes("BREMELANOTIDE")) {
+    return "Hormone";
+  }
+  if (n.includes("AOD") || n.includes("TIRZ") || n.includes("SEMA") || n.includes("LIRA")) {
+    return "Metabolic";
+  }
   if (n.includes("EPITHAL")) return "Longevity";
   return "Research";
 }
