@@ -1731,8 +1731,10 @@ export default function App() {
                   <ul className="supply-example-notes">
                     <li>
                       <Package size={16} />
-                      Vendor min order{" "}
-                      {formatMoney(CHANGSHA_VENDOR.minOrder)}
+                      Shipping from{" "}
+                      {formatMoney(CHANGSHA_VENDOR.shippingFlat)}
+                      {" · "}
+                      {CHANGSHA_VENDOR.shippingNote || "US only"}
                     </li>
                     <li>
                       <Truck size={16} />
