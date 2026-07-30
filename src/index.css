@@ -5928,7 +5928,7 @@ html:has(.app-shell--undisclosed) {
 
 /* ---------- Twilight CRT unlock (WellPept → Undisclosed) ---------- */
 .tv-tune {
-  --tv-tune-dur: 7.2s;
+  --tv-tune-dur: 6.8s;
   position: fixed;
   inset: 0;
   z-index: 200;
@@ -6052,12 +6052,159 @@ html:has(.app-shell--undisclosed) {
   z-index: 1;
 }
 
+.tv-tune-screen--rift {
+  display: grid;
+  place-items: center;
+}
+
 .tv-tune-void {
   position: absolute;
   inset: 0;
   background:
     radial-gradient(ellipse at center, #1c1c1c 0%, #080808 50%, #000 100%);
   animation: tv-tune-void var(--tv-tune-dur) ease both;
+}
+
+/* —— Monogram rift portal —— */
+.rift-mark {
+  position: absolute;
+  z-index: 8;
+  display: grid;
+  justify-items: center;
+  gap: 0.85rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+.rift-mark img {
+  width: clamp(4.5rem, 18vw, 7.5rem);
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.25));
+}
+
+.rift-mark span {
+  font-family: var(--font-brand, "Cormorant Garamond", Georgia, serif);
+  font-size: clamp(1.1rem, 3.6vw, 1.65rem);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #f4f6f8;
+}
+
+.rift-mark--from {
+  animation: rift-mark-from var(--tv-tune-dur) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.rift-mark--from img {
+  border-radius: 50%;
+  background: #fff;
+}
+
+.rift-mark--to {
+  opacity: 0;
+  animation: rift-mark-to var(--tv-tune-dur) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.rift-mark--to img {
+  border-radius: 50%;
+  background: #0a0a0a;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.rift-mark--to p {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(244, 246, 248, 0.55);
+}
+
+.rift-portal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(140vmax, 1600px);
+  height: min(140vmax, 1600px);
+  transform: translate(-50%, -50%) scale(0.04);
+  border-radius: 50%;
+  z-index: 5;
+  pointer-events: none;
+  animation: rift-portal-bloom var(--tv-tune-dur) cubic-bezier(0.15, 0.85, 0.2, 1) both;
+  overflow: hidden;
+}
+
+.rift-portal-marble {
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.55) 62%, #000 100%),
+    url("/black-marble.jpg") center / cover no-repeat;
+  animation: rift-marble-spin var(--tv-tune-dur) linear both;
+  filter: contrast(1.15) brightness(0.85);
+}
+
+.rift-portal-core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 18%;
+  height: 18%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #fff 0%, rgba(255, 255, 255, 0.55) 22%, rgba(0, 0, 0, 0.9) 58%, #000 100%);
+  box-shadow:
+    0 0 40px 12px rgba(255, 255, 255, 0.35),
+    0 0 120px 40px rgba(255, 255, 255, 0.12);
+  animation: rift-core-pulse var(--tv-tune-dur) ease both;
+}
+
+.rift-portal-ring {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 0 24px rgba(255, 255, 255, 0.25),
+    inset 0 0 30px rgba(255, 255, 255, 0.12);
+  animation: rift-ring-expand var(--tv-tune-dur) cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.rift-portal-ring--delay {
+  inset: 18%;
+  border-color: rgba(255, 255, 255, 0.28);
+  animation-delay: 0.12s;
+}
+
+.rift-shatter {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.rift-shatter span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1px;
+  height: 55%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), transparent);
+  transform-origin: top center;
+  opacity: 0;
+  animation: rift-shatter-ray var(--tv-tune-dur) ease both;
+}
+
+.rift-shatter span:nth-child(1) { transform: translate(-50%, 0) rotate(0deg); animation-delay: 0s; }
+.rift-shatter span:nth-child(2) { transform: translate(-50%, 0) rotate(60deg); animation-delay: 0.03s; }
+.rift-shatter span:nth-child(3) { transform: translate(-50%, 0) rotate(120deg); animation-delay: 0.06s; }
+.rift-shatter span:nth-child(4) { transform: translate(-50%, 0) rotate(180deg); animation-delay: 0.02s; }
+.rift-shatter span:nth-child(5) { transform: translate(-50%, 0) rotate(240deg); animation-delay: 0.05s; }
+.rift-shatter span:nth-child(6) { transform: translate(-50%, 0) rotate(300deg); animation-delay: 0.04s; }
+
+.tv-tune-noise--rift {
+  opacity: 0.28;
+  mix-blend-mode: screen;
+  animation-name: tv-tune-noise-rift;
 }
 
 /* Hypnotic dimension spiral */
@@ -6510,8 +6657,8 @@ html:has(.app-shell--undisclosed) {
 
 @keyframes tv-tune-fault-wrap {
   0%,
-  18% { opacity: 1; visibility: visible; }
-  19%,
+  16% { opacity: 1; visibility: visible; }
+  17%,
   100% { opacity: 0; visibility: hidden; }
 }
 
@@ -6530,8 +6677,7 @@ html:has(.app-shell--undisclosed) {
   12.5% { opacity: 1; }
   13% { opacity: 0; }
   14.5% { opacity: 1; }
-  16% { opacity: 0; }
-  17.5%,
+  15.5%,
   100% { opacity: 0; }
 }
 
@@ -6549,8 +6695,7 @@ html:has(.app-shell--undisclosed) {
   12.5% { opacity: 0; }
   13% { opacity: 0.9; }
   14.5% { opacity: 0; }
-  16% { opacity: 1; }
-  17.5%,
+  15.5%,
   100% { opacity: 0; }
 }
 
@@ -6586,102 +6731,25 @@ html:has(.app-shell--undisclosed) {
 
 @keyframes tv-tune-void {
   0%,
-  16% { opacity: 0; }
-  22%,
-  78% { opacity: 1; }
-  100% { opacity: 0.35; }
+  14% { opacity: 0; }
+  20%,
+  82% { opacity: 1; }
+  100% { opacity: 0.4; }
 }
 
-@keyframes tv-tune-spiral {
-  0%,
-  16% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.2) rotate(0deg);
-  }
-  24% {
-    opacity: 0.55;
-    transform: translate(-50%, -50%) scale(0.55) rotate(120deg);
-  }
-  45% {
-    opacity: 0.7;
-    transform: translate(-50%, -50%) scale(1.05) rotate(480deg);
-  }
-  62% {
-    opacity: 0.35;
-    transform: translate(-50%, -50%) scale(1.35) rotate(720deg);
-  }
-  78%,
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(1.8) rotate(980deg);
-  }
-}
-
-@keyframes tv-tune-doorway {
-  0%,
-  32% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scaleY(0.05) scaleX(0.4);
-  }
-  40% {
-    opacity: 0.85;
-    transform: translate(-50%, -50%) scaleY(1) scaleX(1);
-  }
-  55% {
-    opacity: 0.55;
-    transform: translate(-50%, -50%) scale(1.15);
-  }
-  70% {
-    opacity: 0.9;
-    transform: translate(-50%, -50%) scale(2.4);
-    filter: blur(2px);
-  }
-  82%,
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(6);
-    filter: blur(8px);
-  }
-}
-
-@keyframes tv-tune-titlecard {
-  0%,
-  28% { opacity: 0; transform: scale(1.04); filter: blur(4px); }
-  34% { opacity: 1; transform: scale(1); filter: blur(0); }
-  52% { opacity: 1; }
-  62% { opacity: 0; transform: scale(0.96); filter: blur(3px); }
-  100% { opacity: 0; }
-}
-
-/* Full-bleed from the start — tube collapse only at the end, after Undisclosed is under cover */
+/* Full-bleed cover; soft end collapse after Undisclosed is under */
 @keyframes tv-tune-screen {
   0%,
-  16% {
-    transform: scale(1);
-    filter: brightness(0.15) contrast(1.2);
-    border-radius: 0;
-    opacity: 1;
-  }
-  20% {
-    transform: scale(1);
-    filter: brightness(1.1);
-    border-radius: 0;
-    opacity: 1;
-  }
   84% {
     transform: scale(1);
-    filter: brightness(1) contrast(1.1);
+    filter: brightness(1);
+    border-radius: 0;
     opacity: 1;
   }
-  91% {
-    transform: scale(1.02, 0.04);
-    filter: brightness(2.2);
-    border-radius: 42%;
-    opacity: 1;
-  }
-  96% {
-    transform: scale(0.2, 0.01);
-    filter: brightness(3);
+  92% {
+    transform: scale(1.02, 0.05);
+    filter: brightness(2);
+    border-radius: 40%;
     opacity: 1;
   }
   100% {
@@ -6689,6 +6757,125 @@ html:has(.app-shell--undisclosed) {
     filter: brightness(0);
     opacity: 0;
   }
+}
+
+@keyframes rift-mark-from {
+  0%,
+  14% {
+    opacity: 0;
+    transform: scale(0.86);
+    filter: blur(4px);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+  34% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  42% {
+    opacity: 0;
+    transform: scale(0.15);
+    filter: brightness(3) blur(2px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+@keyframes rift-mark-to {
+  0%,
+  48% {
+    opacity: 0;
+    transform: scale(0.7);
+    filter: blur(8px);
+  }
+  58% {
+    opacity: 1;
+    transform: scale(1.04);
+    filter: blur(0);
+  }
+  72% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  86% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.08);
+    filter: blur(3px);
+  }
+}
+
+@keyframes rift-portal-bloom {
+  0%,
+  28% {
+    transform: translate(-50%, -50%) scale(0.02);
+    opacity: 0;
+  }
+  36% {
+    transform: translate(-50%, -50%) scale(0.18);
+    opacity: 1;
+  }
+  55% {
+    transform: translate(-50%, -50%) scale(0.85);
+    opacity: 1;
+  }
+  78% {
+    transform: translate(-50%, -50%) scale(1.35);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.7);
+    opacity: 0.85;
+  }
+}
+
+@keyframes rift-marble-spin {
+  0% { transform: rotate(0deg) scale(1.1); }
+  100% { transform: rotate(28deg) scale(1.25); }
+}
+
+@keyframes rift-core-pulse {
+  0%,
+  30% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+  38% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  52% { opacity: 0.85; transform: translate(-50%, -50%) scale(1.35); }
+  68% { opacity: 0.35; transform: translate(-50%, -50%) scale(2.4); }
+  82%,
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(4); }
+}
+
+@keyframes rift-ring-expand {
+  0%,
+  32% { opacity: 0; transform: scale(0.4); }
+  40% { opacity: 1; transform: scale(0.7); }
+  62% { opacity: 0.65; transform: scale(1.15); }
+  85%,
+  100% { opacity: 0; transform: scale(1.6); }
+}
+
+@keyframes rift-shatter-ray {
+  0%,
+  34% { opacity: 0; height: 10%; }
+  38% { opacity: 1; height: 55%; }
+  48% { opacity: 0.55; height: 70%; }
+  60%,
+  100% { opacity: 0; height: 90%; }
+}
+
+@keyframes tv-tune-noise-rift {
+  0%,
+  16% { opacity: 0; }
+  22% { opacity: 0.35; }
+  48% { opacity: 0.22; }
+  78% { opacity: 0.12; }
+  100% { opacity: 0; }
 }
 
 @keyframes tv-tune-noise {
@@ -6880,7 +7067,14 @@ html:has(.app-shell--undisclosed) {
   .tv-tune-fault,
   .tv-tune-fault-black,
   .tv-tune-fault-snow,
-  .tv-tune-spark {
+  .tv-tune-spark,
+  .rift-mark--from,
+  .rift-mark--to,
+  .rift-portal,
+  .rift-portal-marble,
+  .rift-portal-core,
+  .rift-portal-ring,
+  .rift-shatter span {
     animation: none !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
@@ -6892,5 +7086,9 @@ html:has(.app-shell--undisclosed) {
 
   .tv-tune-fault {
     display: none;
+  }
+
+  .rift-mark--to {
+    opacity: 1;
   }
 }
