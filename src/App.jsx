@@ -63,6 +63,12 @@ import {
   manualPayConfigured,
 } from "./utils/manualPayments";
 import {
+  loadDiscountCodes,
+  saveDiscountCodes,
+  applyDiscountCode,
+  formatDiscountRule,
+} from "./utils/discountCodes";
+import {
   getCoaMeta,
   setCoaUrl,
   clearCoaUrl,
@@ -841,7 +847,12 @@ export default function App() {
   }
 
   async function placeOrder(customer, options = {}) {
-    const { payment = null, waitConsent = false, notify = true } = options;
+    const {
+      payment = null,
+      waitConsent = false,
+      notify = true,
+      discount = null,
+    } = options;
     if (!cart.length) {
       setFlash("Cart is empty");
       return null;
@@ -863,7 +874,11 @@ export default function App() {
     }
     let shipping = 0;
     for (const fee of shippingByVendor.values()) shipping += fee;
-    const total = subtotal + shipping;
+    const discountAmount = Math.min(
+      subtotal,
+      Math.max(0, Number(discount?.amount) || 0)
+    );
+    const total = Math.max(0, subtotal - discountAmount) + shipping;
     const packet = buildOrderPacket({
       orderId: createOrderId(),
       customer: {
@@ -875,6 +890,15 @@ export default function App() {
       subtotal,
       shipping,
       total,
+      discount: discountAmount
+        ? {
+            code: discount?.code || "",
+            amount: discountAmount,
+            label: discount?.label || discount?.code || "",
+            type: discount?.type || "",
+            value: discount?.value ?? null,
+          }
+        : null,
       status: payment ? "paid" : "awaiting_supply_review",
       waitConsent: Boolean(waitConsent) || Boolean(payment),
     });
@@ -2528,7 +2552,6 @@ function CartPage({
     }
   }
 
-  const total = subtotal + shipping;
   const [customer, setCustomer] = useState({
     name: "",
     email: session?.email || "",
@@ -2545,6 +2568,45 @@ function CartPage({
   const [packet, setPacket] = useState(null);
   const [packetMsg, setPacketMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [promoInput, setPromoInput] = useState("");
+  const [promoApplied, setPromoApplied] = useState(null);
+  const [promoMsg, setPromoMsg] = useState("");
+
+  const discountAmount = promoApplied?.ok
+    ? Math.min(subtotal, Number(promoApplied.amount) || 0)
+    : 0;
+  const total = Math.max(0, subtotal - discountAmount) + shipping;
+
+  useEffect(() => {
+    if (!promoApplied?.ok || !promoApplied.entry?.code) return;
+    const refreshed = applyDiscountCode(subtotal, promoApplied.entry.code);
+    if (!refreshed.ok) {
+      setPromoApplied(null);
+      setPromoMsg("Code no longer applies");
+      return;
+    }
+    if (refreshed.amount !== promoApplied.amount) {
+      setPromoApplied(refreshed);
+    }
+  }, [subtotal]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function tryApplyPromo(e) {
+    e?.preventDefault?.();
+    const result = applyDiscountCode(subtotal, promoInput);
+    if (!result.ok) {
+      setPromoApplied(null);
+      setPromoMsg(result.message || "That code isn’t valid");
+      return;
+    }
+    setPromoApplied(result);
+    setPromoMsg(result.message);
+  }
+
+  function clearPromo() {
+    setPromoApplied(null);
+    setPromoInput("");
+    setPromoMsg("");
+  }
 
   function finalizePacket(next, note) {
     setPacket(next);
@@ -2574,13 +2636,28 @@ function CartPage({
     setSubmitting(true);
     setPacketMsg("");
     try {
+      const live = promoApplied?.ok
+        ? applyDiscountCode(subtotal, promoApplied.entry?.code || promoInput)
+        : null;
       const next = await onPlaceOrder?.(
         {
           ...customer,
           email: customer.email || session?.email || "",
           userId: customer.userId || session?.userId || "",
         },
-        { waitConsent: true, notify: true }
+        {
+          waitConsent: true,
+          notify: true,
+          discount: live?.ok
+            ? {
+                code: live.entry.code,
+                amount: live.amount,
+                label: live.label,
+                type: live.entry.type,
+                value: live.entry.value,
+              }
+            : null,
+        }
       );
       if (!next) return;
       finalizePacket(
@@ -2877,10 +2954,61 @@ function CartPage({
                   </label>
 
                   <div className="cart-summary">
+                    <div className="discount-code-row">
+                      <label className="field discount-code-field">
+                        Discount code
+                        <input
+                          value={promoInput}
+                          onChange={(e) => {
+                            setPromoInput(e.target.value.toUpperCase());
+                            setPromoMsg("");
+                          }}
+                          placeholder="Enter code"
+                          autoComplete="off"
+                          spellCheck={false}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        className="soft-btn"
+                        onClick={tryApplyPromo}
+                      >
+                        Apply
+                      </button>
+                      {promoApplied?.ok ? (
+                        <button
+                          type="button"
+                          className="ghost-btn"
+                          onClick={clearPromo}
+                        >
+                          Remove
+                        </button>
+                      ) : null}
+                    </div>
+                    {promoMsg ? (
+                      <p
+                        className={`meta discount-code-msg${
+                          promoApplied?.ok ? " ok" : ""
+                        }`}
+                      >
+                        {promoMsg}
+                      </p>
+                    ) : null}
                     <div className="summary-row">
                       <span>Quoted subtotal</span>
                       <span>{formatMoney(subtotal)}</span>
                     </div>
+                    {discountAmount > 0 ? (
+                      <div className="summary-row discount-row">
+                        <span>
+                          Discount
+                          {promoApplied?.label
+                            ? ` (${promoApplied.label})`
+                            : ""}
+                        </span>
+                        <span>−{formatMoney(discountAmount)}</span>
+                      </div>
+                    ) : null}
                     <div className="summary-row">
                       <span>US shipping</span>
                       <span>{formatMoney(shipping)}</span>
@@ -2922,6 +3050,14 @@ function CartPage({
                   </p>
                   <ul className="cart-confirm-meta">
                     <li>Quoted total: {formatMoney(packet.totals?.total || 0)}</li>
+                    {packet.discount?.code ? (
+                      <li>
+                        Discount {packet.discount.label || packet.discount.code}
+                        {packet.totals?.discount
+                          ? ` (−${formatMoney(packet.totals.discount)})`
+                          : ""}
+                      </li>
+                    ) : null}
                     <li>Ship to: {packet.customer?.name}</li>
                     {packet.waitConsent ? (
                       <li>2–3 week delivery accepted</li>
@@ -3463,6 +3599,14 @@ function AdminPanel({
   const pendingItems = submissions.filter((s) => s.status === "pending");
   const vendorName = (id) => vendors.find((v) => v.id === id)?.name || id;
   const [payConfig, setPayConfig] = useState(() => loadManualPayConfig());
+  const [discountCodes, setDiscountCodes] = useState(() => loadDiscountCodes());
+  const [newCode, setNewCode] = useState({
+    code: "",
+    type: "percent",
+    value: "10",
+    note: "",
+    active: true,
+  });
 
   async function copyPayLink(order) {
     const url = buildStripePayUrl(order);
@@ -3501,6 +3645,51 @@ function AdminPanel({
         ? "Payment methods saved on this device"
         : "Add at least one Venmo, Zelle, or crypto address"
     );
+  }
+
+  function addDiscountCode(e) {
+    e.preventDefault();
+    const entry = {
+      code: newCode.code,
+      type: newCode.type,
+      value: Number(newCode.value),
+      note: newCode.note,
+      active: newCode.active !== false,
+    };
+    if (!String(entry.code || "").trim() || !(Number(entry.value) > 0)) {
+      onFlash?.("Enter a code and a value greater than 0");
+      return;
+    }
+    const without = discountCodes.filter(
+      (c) => c.code !== String(entry.code).trim().toUpperCase()
+    );
+    const next = saveDiscountCodes([...without, entry]);
+    setDiscountCodes(next);
+    setNewCode({
+      code: "",
+      type: "percent",
+      value: "10",
+      note: "",
+      active: true,
+    });
+    onFlash?.(`Discount code saved · ${entry.code.toUpperCase()}`);
+  }
+
+  function removeDiscountCode(code) {
+    const next = saveDiscountCodes(
+      discountCodes.filter((c) => c.code !== code)
+    );
+    setDiscountCodes(next);
+    onFlash?.(`Removed ${code}`);
+  }
+
+  function toggleDiscountCode(code) {
+    const next = saveDiscountCodes(
+      discountCodes.map((c) =>
+        c.code === code ? { ...c, active: !c.active } : c
+      )
+    );
+    setDiscountCodes(next);
   }
 
   return (
@@ -3660,6 +3849,119 @@ function AdminPanel({
             {!manualPayConfigured(payConfig) && (
               <p className="meta" style={{ marginTop: "0.5rem" }}>
                 Add at least one method so the customer pay page works today.
+              </p>
+            )}
+          </form>
+
+          <form className="manual-pay-admin discount-admin" onSubmit={addDiscountCode}>
+            <h2>Discount codes</h2>
+            <p className="meta">
+              Customers enter a code on the cart. Discount applies to merchandise
+              only (not shipping). Saved in this browser; optional env{" "}
+              <code>VITE_DISCOUNT_CODES=SAVE10:10%,FLAT25:25</code>.
+            </p>
+            <div className="form-row">
+              <label className="field">
+                Code
+                <input
+                  value={newCode.code}
+                  onChange={(e) =>
+                    setNewCode((c) => ({
+                      ...c,
+                      code: e.target.value.toUpperCase(),
+                    }))
+                  }
+                  placeholder="SAVE10"
+                  spellCheck={false}
+                />
+              </label>
+              <label className="field">
+                Type
+                <select
+                  value={newCode.type}
+                  onChange={(e) =>
+                    setNewCode((c) => ({ ...c, type: e.target.value }))
+                  }
+                >
+                  <option value="percent">Percent off</option>
+                  <option value="fixed">Fixed $ off</option>
+                </select>
+              </label>
+              <label className="field">
+                Value
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={newCode.value}
+                  onChange={(e) =>
+                    setNewCode((c) => ({ ...c, value: e.target.value }))
+                  }
+                  placeholder={newCode.type === "percent" ? "10" : "25"}
+                />
+              </label>
+            </div>
+            <label className="field">
+              Note (optional)
+              <input
+                value={newCode.note}
+                onChange={(e) =>
+                  setNewCode((c) => ({ ...c, note: e.target.value }))
+                }
+                placeholder="Launch promo"
+              />
+            </label>
+            <button type="submit" className="primary-btn">
+              Save discount code
+            </button>
+            {discountCodes.length > 0 ? (
+              <div className="table-wrap" style={{ marginTop: "0.85rem" }}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Deal</th>
+                      <th>Status</th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {discountCodes.map((c) => (
+                      <tr key={c.code}>
+                        <td>
+                          <strong>{c.code}</strong>
+                          {c.note ? (
+                            <div className="meta">{c.note}</div>
+                          ) : null}
+                        </td>
+                        <td>{formatDiscountRule(c)}</td>
+                        <td>{c.active ? "Active" : "Off"}</td>
+                        <td>
+                          <div className="row-actions">
+                            <button
+                              type="button"
+                              className="soft-btn"
+                              onClick={() => toggleDiscountCode(c.code)}
+                            >
+                              {c.active ? "Disable" : "Enable"}
+                            </button>
+                            <button
+                              type="button"
+                              className="danger-btn"
+                              onClick={() => removeDiscountCode(c.code)}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="meta" style={{ marginTop: "0.65rem" }}>
+                No codes yet — add one above (e.g. SAVE10 = 10% off).
               </p>
             )}
           </form>
@@ -3910,7 +4212,17 @@ function AdminPanel({
                           <div className="meta">via {o.payment.provider}</div>
                         ) : null}
                       </td>
-                      <td>{formatMoney(o.totals?.total || 0)}</td>
+                      <td>
+                        {formatMoney(o.totals?.total || 0)}
+                        {o.discount?.code ? (
+                          <div className="meta">
+                            {o.discount.label || o.discount.code}
+                            {o.totals?.discount
+                              ? ` (−${formatMoney(o.totals.discount)})`
+                              : ""}
+                          </div>
+                        ) : null}
+                      </td>
                       <td>
                         {o.status === "paid" ? (
                           <span className="meta">Paid</span>
