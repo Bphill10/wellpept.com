@@ -1560,23 +1560,24 @@ function drawLabelSpineMark(ctx, cx, cy, r) {
   ctx.fillStyle = "#0a0a0a";
   ctx.fill();
 
-  // Map 128×128 U path into the inner hex — larger + optically centered
+  // Map 128×128 U path into the inner hex — wider, less vertically stretched
   const box = inner * 2;
-  const s = (box / 128) * 1.42;
-  ctx.translate(cx, cy - inner * 0.015);
-  ctx.scale(s, s);
+  const sx = (box / 128) * 1.52;
+  const sy = (box / 128) * 1.28;
+  ctx.translate(cx, cy - inner * 0.01);
+  ctx.scale(sx, sy);
   ctx.translate(-64, -65);
   ctx.beginPath();
-  ctx.moveTo(28, 28);
-  ctx.lineTo(45, 28);
-  ctx.lineTo(45, 68);
-  ctx.quadraticCurveTo(45, 88, 64, 88);
-  ctx.quadraticCurveTo(83, 88, 83, 68);
-  ctx.lineTo(83, 28);
-  ctx.lineTo(100, 28);
-  ctx.lineTo(100, 70);
-  ctx.quadraticCurveTo(100, 106, 64, 106);
-  ctx.quadraticCurveTo(28, 106, 28, 70);
+  ctx.moveTo(24, 30);
+  ctx.lineTo(43, 30);
+  ctx.lineTo(43, 68);
+  ctx.quadraticCurveTo(43, 86, 64, 86);
+  ctx.quadraticCurveTo(85, 86, 85, 68);
+  ctx.lineTo(85, 30);
+  ctx.lineTo(104, 30);
+  ctx.lineTo(104, 70);
+  ctx.quadraticCurveTo(104, 104, 64, 104);
+  ctx.quadraticCurveTo(24, 104, 24, 70);
   ctx.closePath();
   ctx.fillStyle = "#ffffff";
   ctx.fill();
