@@ -13,7 +13,7 @@ export const EMPTY_MANUAL_PAY = {
   venmoQrUrl: "",
   zelleContact: "",
   zelleName: "",
-  /** Path or URL to Zelle QR image, e.g. /zelle-qr.png */
+  /** Path or URL to Zelle QR image, e.g. /receipt_c212e7f2.jpg */
   zelleQrUrl: "",
   solanaUsdc: "",
   /** Path or URL to Solana receive QR, e.g. /solana-qr.png */
@@ -31,7 +31,9 @@ function envDefaults() {
     venmoQrUrl: String(import.meta.env.VITE_VENMO_QR_URL || "").trim(),
     zelleContact: String(import.meta.env.VITE_ZELLE_CONTACT || ""),
     zelleName: String(import.meta.env.VITE_ZELLE_NAME || "WellPept"),
-    zelleQrUrl: String(import.meta.env.VITE_ZELLE_QR_URL || "").trim(),
+    zelleQrUrl: String(
+      import.meta.env.VITE_ZELLE_QR_URL || "/receipt_c212e7f2.jpg"
+    ).trim(),
     solanaUsdc: String(import.meta.env.VITE_CRYPTO_SOLANA_USDC || ""),
     solanaQrUrl: String(import.meta.env.VITE_CRYPTO_SOLANA_QR_URL || "").trim(),
     ethUsdc: String(import.meta.env.VITE_CRYPTO_ETH_USDC || ""),
