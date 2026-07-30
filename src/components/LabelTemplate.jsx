@@ -19,6 +19,8 @@ export default function LabelTemplate({
   coaUrl = "",
   showDownload = true,
   className = "",
+  /** Layout + brand chrome only — no peptide fields filled. */
+  blank = false,
 }) {
   const canvasRef = useRef(null);
   const [png, setPng] = useState("");
@@ -39,17 +41,18 @@ export default function LabelTemplate({
     if (!canvas) return;
     try {
       const dataUrl = drawLabelTemplate(canvas, {
-        name,
-        mass,
+        name: blank ? "" : name,
+        mass: blank ? "" : mass,
         unit,
-        bacWater,
-        concentration,
-        doseRange,
-        sku,
+        bacWater: blank ? "" : bacWater,
+        concentration: blank ? "" : concentration,
+        doseRange: blank ? "" : doseRange,
+        sku: blank ? "" : sku,
         size,
         wpMark,
-        qrPayload,
-        coaUrl,
+        qrPayload: blank ? "" : qrPayload,
+        coaUrl: blank ? "" : coaUrl,
+        blank,
       });
       setPng(dataUrl);
     } catch (err) {
@@ -67,12 +70,15 @@ export default function LabelTemplate({
     wpMark,
     qrPayload,
     coaUrl,
+    blank,
   ]);
 
   function handleDownload() {
     if (!png) return;
-    const safe = (name || "label").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
-    downloadVialPng(png, `wellpept-label-${safe || "template"}.png`);
+    const safe = blank
+      ? "blank"
+      : (name || "label").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+    downloadVialPng(png, `undisclosed-label-${safe || "template"}.png`);
   }
 
   return (

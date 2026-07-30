@@ -1,19 +1,16 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Calculator, RotateCcw, Link2 } from "lucide-react";
-import GeneratedVial from "./GeneratedVial";
+import LabelTemplate from "./LabelTemplate";
 import {
-  guessCategory,
   calculatorOptionsFromListings,
   matchCalculatorOption,
 } from "../data/products";
 import {
   buildCalculatorShareUrl,
   defaultsFromCatalogSelection,
-  formatDoseRangeLabel,
   normalizeDoseUnit,
   suggestedBacMl as suggestedBacFromAutomation,
 } from "../utils/automation";
-import { resolveCoaQrPayload } from "../utils/coaStore";
 
 function formatNum(v, digits = 2) {
   const n = Number(v);
@@ -297,20 +294,10 @@ export default function PeptideCalculator({
   }
 
   const fillPct = result ? Math.min(100, Math.max(0, result.units)) : 0;
-  const vialBac =
-    solution && Number(solution) > 0 ? `${formatNum(solution, 2)} mL` : "";
-  const vialConc = result?.concLabel || "";
-  const vialDose = result
-    ? formatDoseRangeLabel(dose, doseUnit === "IU" ? "IU" : "mg", 10)
-    : "";
-  const vialCategory = guessCategory(name || "Research");
   const doseUnitOptions =
     vialUnit === "IU"
       ? [{ value: "IU", label: "IU" }]
       : [{ value: "mg", label: "mg" }];
-  const calcCoaQr = resolveCoaQrPayload({
-    fallback: shareUrl,
-  });
 
   return (
     <section className="panel-page fade">
@@ -532,27 +519,14 @@ export default function PeptideCalculator({
 
             <div className="calc-vial-panel">
               <div className="calc-card-head">
-                <h2>Brand vial</h2>
+                <h2>Blank label</h2>
               </div>
               <p className="meta">
-                Studio vial preview for the selected peptide. No wrap label.
+                Empty clinical wrap template. Brand chrome only; fill fields at
+                the bench.
               </p>
-              <div className="calc-vial-stage">
-                <GeneratedVial
-                  name={name || "Peptide"}
-                  mass={mass}
-                  unit={vialUnit || "mg"}
-                  category={vialCategory}
-                  bacWater={vialBac}
-                  concentration={vialConc}
-                  doseRange={vialDose}
-                  reconstituted={Boolean(solution && parseFloat(solution) > 0)}
-                  vialMl={vialMl || 3}
-                  size="lg"
-                  qrPayload={calcCoaQr}
-                  showDownload
-                  catalogTemplate={false}
-                />
+              <div className="calc-label-stage">
+                <LabelTemplate blank size="md" showDownload />
               </div>
             </div>
           </div>

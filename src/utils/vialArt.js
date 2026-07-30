@@ -1560,23 +1560,23 @@ function drawLabelSpineMark(ctx, cx, cy, r) {
   ctx.fillStyle = "#0a0a0a";
   ctx.fill();
 
-  // Map 128×128 U path into the inner hex, optically centered
+  // Map 128×128 U path into the inner hex — larger + optically centered
   const box = inner * 2;
-  const s = (box / 128) * 1.08;
-  ctx.translate(cx, cy - inner * 0.02);
+  const s = (box / 128) * 1.34;
+  ctx.translate(cx, cy - inner * 0.01);
   ctx.scale(s, s);
-  ctx.translate(-64, -64);
+  ctx.translate(-64, -66);
   ctx.beginPath();
-  ctx.moveTo(30, 30);
-  ctx.lineTo(50, 30);
-  ctx.lineTo(50, 66);
-  ctx.quadraticCurveTo(50, 84, 64, 84);
-  ctx.quadraticCurveTo(78, 84, 78, 66);
-  ctx.lineTo(78, 30);
-  ctx.lineTo(98, 30);
-  ctx.lineTo(98, 68);
-  ctx.quadraticCurveTo(98, 104, 64, 104);
-  ctx.quadraticCurveTo(30, 104, 30, 68);
+  ctx.moveTo(26, 26);
+  ctx.lineTo(44, 26);
+  ctx.lineTo(44, 70);
+  ctx.quadraticCurveTo(44, 90, 64, 90);
+  ctx.quadraticCurveTo(84, 90, 84, 70);
+  ctx.lineTo(84, 26);
+  ctx.lineTo(102, 26);
+  ctx.lineTo(102, 72);
+  ctx.quadraticCurveTo(102, 108, 64, 108);
+  ctx.quadraticCurveTo(26, 108, 26, 72);
   ctx.closePath();
   ctx.fillStyle = "#ffffff";
   ctx.fill();
@@ -1630,6 +1630,8 @@ function paintLabelTemplate(ctx, dims, options = {}) {
     qrPayload = "",
     coaUrl = "",
     footerText = "PEPTIDE POWER | 20%",
+    /** Empty clinical wrap — layout + brand chrome only, no filled fields. */
+    blank = false,
   } = options;
 
   const spineW = Math.round(dims.w * 0.1);
@@ -1717,24 +1719,26 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   ctx.fillStyle = ink;
   ctx.fillRect(ruleX, rule1Y, ruleW, hair);
 
-  // Product name — large block (KLOW)
-  const product = String(name || "PEPTIDE")
-    .replace(/\(.*?\)/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toUpperCase();
-  const nameFamily = '"Bebas Neue", "Arial Black", Impact, sans-serif';
-  const nameSize = fitCenteredText(
-    ctx,
-    product,
-    contentW * 0.98,
-    Math.max(36, dims.h * 0.22),
-    nameFamily
-  );
-  ctx.font = `400 ${nameSize}px ${nameFamily}`;
-  ctx.fillStyle = ink;
-  ctx.textAlign = "center";
-  ctx.fillText(product, midCx, dims.h * 0.245);
+  // Product name — large block (KLOW). Blank mode leaves the band empty.
+  if (!blank) {
+    const product = String(name || "PEPTIDE")
+      .replace(/\(.*?\)/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toUpperCase();
+    const nameFamily = '"Bebas Neue", "Arial Black", Impact, sans-serif';
+    const nameSize = fitCenteredText(
+      ctx,
+      product,
+      contentW * 0.98,
+      Math.max(36, dims.h * 0.22),
+      nameFamily
+    );
+    ctx.font = `400 ${nameSize}px ${nameFamily}`;
+    ctx.fillStyle = ink;
+    ctx.textAlign = "center";
+    ctx.fillText(product, midCx, dims.h * 0.245);
+  }
 
   // Rule under name
   const rule2Y = dims.h * 0.35;
@@ -1742,7 +1746,7 @@ function paintLabelTemplate(ctx, dims, options = {}) {
 
   // Mass — large number + smaller unit (80 MG)
   const massNum =
-    mass !== "" && mass != null ? String(mass).trim() : "";
+    !blank && mass !== "" && mass != null ? String(mass).trim() : "";
   const massUnit = String(unit || "mg").toUpperCase();
   const massBandMid = (rule2Y + dims.h * 0.52) / 2;
   if (massNum) {
@@ -1773,11 +1777,17 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   const gridH = Math.max(28, gridBottom - gridTop);
   const colW = contentW / 3;
   const gridLeft = ruleX;
-  const cells = [
-    { label: "BAC WATER", value: formatBacForLabel(bacWater) },
-    { label: "CONCENTRATION", value: String(concentration || "—") },
-    { label: "DOSE RANGE", value: String(doseRange || "—") },
-  ];
+  const cells = blank
+    ? [
+        { label: "BAC WATER", value: "" },
+        { label: "CONCENTRATION", value: "" },
+        { label: "DOSE RANGE", value: "" },
+      ]
+    : [
+        { label: "BAC WATER", value: formatBacForLabel(bacWater) },
+        { label: "CONCENTRATION", value: String(concentration || "—") },
+        { label: "DOSE RANGE", value: String(doseRange || "—") },
+      ];
 
   cells.forEach((cell, i) => {
     const cellCx = gridLeft + colW * (i + 0.5);
@@ -1796,7 +1806,8 @@ function paintLabelTemplate(ctx, dims, options = {}) {
     ctx.fillText(cell.label, cellCx, gridTop + gridH * 0.22);
 
     // Dose range mock: "2.5 - 5 mg" / "(10 - 20 u)" on two lines
-    const rawVal = String(cell.value || "—");
+    const rawVal = String(cell.value ?? "");
+    if (!rawVal) return;
     const split = rawVal.match(/^(.*?)\s*(\([^)]+\))\s*$/);
     if (split) {
       const line1 = split[1].trim();
@@ -1845,25 +1856,27 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   roundRect(ctx, qrX, qrY, qrBox, qrBox, Math.max(4, qrBox * 0.04));
   ctx.stroke();
 
-  const qrInset = qrBox * 0.08;
-  const payload = qrPayloadFromOptions({ qrPayload, coaUrl });
-  drawQrCode(
-    ctx,
-    qrX + qrInset,
-    qrY + qrInset,
-    qrBox - qrInset * 2,
-    qrSeedFromOptions({
-      name,
-      mass,
-      unit,
-      bacWater,
-      concentration,
-      doseRange,
-      sku,
-    }),
-    false,
-    payload
-  );
+  if (!blank) {
+    const qrInset = qrBox * 0.08;
+    const payload = qrPayloadFromOptions({ qrPayload, coaUrl });
+    drawQrCode(
+      ctx,
+      qrX + qrInset,
+      qrY + qrInset,
+      qrBox - qrInset * 2,
+      qrSeedFromOptions({
+        name,
+        mass,
+        unit,
+        bacWater,
+        concentration,
+        doseRange,
+        sku,
+      }),
+      false,
+      payload
+    );
+  }
 
   ctx.fillStyle = ink;
   ctx.textAlign = "center";
