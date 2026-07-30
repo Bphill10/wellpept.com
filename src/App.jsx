@@ -1738,7 +1738,7 @@ export default function App() {
                     </li>
                     <li>
                       <Truck size={16} />
-                      US shipping only · allow 2–3 weeks delivery
+                      US shipping only · 2–3 weeks delivery
                     </li>
                     <li>
                       <ShieldCheck size={16} />
@@ -2918,8 +2918,7 @@ function CartPage({
                     We will check supply and email you at{" "}
                     <strong>{packet.customer?.email}</strong> within 24 hours
                     with next steps for payment. Do not send payment until you
-                    hear from us. Allow 2–3 weeks delivery for
-                    fulfillment.
+                    hear from us. Allow 2–3 weeks after payment for delivery.
                   </p>
                   <ul className="cart-confirm-meta">
                     <li>Quoted total: {formatMoney(packet.totals?.total || 0)}</li>
