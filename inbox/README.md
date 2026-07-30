@@ -1,8 +1,28 @@
 # Agent inbox (drop files here)
 
-Drop images/PDFs in this folder so the cloud agent can grab them after you push.
+Drop images/PDFs/spreadsheets here so the cloud agent can grab them after you push.
 
-## On Windows
+## JEC price list (priority)
+
+Drop Aria’s full list as **`.xlsx` / `.csv` / `.pdf` / clear photo of the sheet**.
+
+Suggested name: `JEC_Price_List.xlsx` (any name with `jec` or `jce` works).
+
+Fastest path — **attach in this Cursor chat** with the paperclip (no git).
+
+Or on Windows:
+
+```powershell
+cd $HOME\Documents\Ben_Phillips_Resume
+git checkout cursor/undisclosed-peptide-site-bfad
+git pull origin cursor/undisclosed-peptide-site-bfad
+copy $HOME\Downloads\JEC*.xlsx inbox\
+.\scripts\push-inbox.ps1
+```
+
+Then say: **check inbox** — I’ll replace the promo seed with the full JEC catalog.
+
+## On Windows (any file)
 
 1. Copy your file into this folder, e.g.:
    ```powershell
@@ -10,7 +30,7 @@ Drop images/PDFs in this folder so the cloud agent can grab them after you push.
    ```
 2. Push it:
    ```powershell
-   cd C:\Users\bphil\Documents\GitHub\Ben_Phillips_Resume
+   cd $HOME\Documents\Ben_Phillips_Resume
    git add inbox
    git commit -m "inbox: add files"
    git push origin cursor/undisclosed-peptide-site-bfad
