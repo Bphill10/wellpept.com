@@ -286,8 +286,8 @@ function drawDarkStudio(ctx, w, h) {
 }
 
 /**
- * Cobalt circular W monogram — relic / carved-seal fallback.
- * Used when the brand seal image is not yet loaded.
+ * Cobalt circular W monogram — Cormorant-style serif fallback
+ * (matches WellPept wordmark; SVG seal is preferred when loaded).
  */
 function drawWpMonogramSeal(ctx, cx, cy, r) {
   const cobalt = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.28, 1, cx, cy, r);
@@ -304,43 +304,11 @@ function drawWpMonogramSeal(ctx, cx, cy, r) {
   ctx.lineWidth = Math.max(1.2, r * 0.04);
   ctx.stroke();
 
-  ellipse(ctx, cx, cy, r * 0.85, r * 0.85);
-  ctx.strokeStyle = "rgba(197, 208, 224, 0.22)";
-  ctx.lineWidth = Math.max(0.6, r * 0.015);
-  ctx.stroke();
-
-  const s = (r * 2) / 128;
-  const ox = cx - r;
-  const oy = cy - r;
-  ctx.save();
-  ctx.translate(ox, oy);
-  ctx.scale(s, s);
-  ctx.beginPath();
-  ctx.moveTo(12, 22);
-  ctx.lineTo(36, 22);
-  ctx.lineTo(47, 92);
-  ctx.lineTo(54, 38);
-  ctx.lineTo(74, 38);
-  ctx.lineTo(81, 92);
-  ctx.lineTo(92, 22);
-  ctx.lineTo(116, 22);
-  ctx.lineTo(98, 112);
-  ctx.lineTo(76, 112);
-  ctx.lineTo(64, 54);
-  ctx.lineTo(52, 112);
-  ctx.lineTo(30, 112);
-  ctx.closePath();
-  const carve = ctx.createLinearGradient(64, 22, 64, 112);
-  carve.addColorStop(0, "#f0ebe0");
-  carve.addColorStop(0.55, "#ddd6c6");
-  carve.addColorStop(1, "#b0a896");
-  ctx.shadowColor = "rgba(0, 16, 24, 0.5)";
-  ctx.shadowBlur = 1.4;
-  ctx.shadowOffsetX = 1;
-  ctx.shadowOffsetY = 1.4;
-  ctx.fillStyle = carve;
-  ctx.fill();
-  ctx.restore();
+  ctx.fillStyle = "#f4f0e8";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `600 ${Math.max(18, r * 1.15)}px "Cormorant Garamond", Georgia, "Times New Roman", serif`;
+  ctx.fillText("W", cx, cy + r * 0.04);
 }
 
 /** Draw the circular WP brand mark image, or fall back to the monogram. */
