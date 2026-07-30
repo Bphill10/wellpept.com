@@ -904,7 +904,7 @@ function drawBrandTenMl(ctx, dims, options) {
     y += bodyW * 0.12;
   });
   if (massLabel) {
-    ctx.fillStyle = "#c8d0d8";
+    ctx.fillStyle = "#5b9fff";
     ctx.font = `700 ${Math.max(12, bodyW * 0.14)}px Outfit, "Segoe UI", sans-serif`;
     ctx.fillText(massLabel, cx, y + bodyW * 0.02);
     y += bodyW * 0.16;
