@@ -30,13 +30,13 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
       const has = prev.peptideIds.includes(id)
       if (has) {
         if (prev.peptideIds.length <= 1) {
-          setError('Keep at least one peptide in your serum.')
+          setError('Keep at least one active in your formula.')
           return prev
         }
         return { ...prev, peptideIds: prev.peptideIds.filter((x) => x !== id) }
       }
       if (prev.peptideIds.length >= 4) {
-        setError('Maximum four peptides per serum. Deselect one to swap.')
+        setError('Maximum four actives per formula. Deselect one to swap.')
         return prev
       }
       return { ...prev, peptideIds: [...prev.peptideIds, id] }
@@ -68,11 +68,11 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
 
   function handleAdd() {
     if (!agreed) {
-      setError('Confirm the peptide research / cosmetic use acknowledgment to continue.')
+      setError('Confirm the cosmetic use acknowledgment to continue.')
       return
     }
     if (!product) {
-      setError('Choose a base and at least one peptide.')
+      setError('Choose a base and at least one active.')
       return
     }
     onAdd?.(product)
@@ -81,12 +81,12 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
   return (
     <section className="sk-builder" id="build">
       <div className="sk-section-head">
-        <p className="sk-eyebrow">Build your serum</p>
-        <h2>Add 1, 2, 3, or all four peptides to one serum or the cream.</h2>
+        <p className="sk-eyebrow">Build your formula</p>
+        <h2>Add 1, 2, 3, or all four actives to one serum or cream.</h2>
         <p>
           Four cores: GHK-Cu (staple), Matrixyl 3000, Syn-Ake, SNAP-8. Choose Renew
-          serum, peptide cream, or eye serum. Optional Eyeseryl / Argireline / extra
-          copper as customs. Fine dry powder stays sealed until you activate.
+          serum, cream, or eye serum. Optional Eyeseryl / Argireline / extra
+          copper as add-ons. Fine dry powder stays sealed until you activate.
         </p>
       </div>
 
@@ -110,8 +110,8 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
 
       <div className="sk-builder-grid">
         <div className="sk-builder-col">
-          <h3>1. Choose your vehicle</h3>
-          <p className="sk-step-note">Two serums + one cream. One mix per order line.</p>
+          <h3>1. Choose your base</h3>
+          <p className="sk-step-note">Two serums + one cream. One formula per order line.</p>
           <div className="sk-option-list">
             {SERUM_BASES.map((base) => (
               <label
@@ -141,7 +141,7 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
         </div>
 
         <div className="sk-builder-col">
-          <h3>2. Add peptides ({peptideCount}/4)</h3>
+          <h3>2. Add actives ({peptideCount}/4)</h3>
           <p className="sk-step-note">Select any combination, one through all four.</p>
           <div className="sk-option-list">
             {PEPTIDES.map((pep) => {
@@ -168,7 +168,7 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
 
         <div className="sk-builder-col">
           <h3>3. Optional custom add-ons</h3>
-          <p className="sk-step-note">Extra peptide load for a personalized order.</p>
+          <p className="sk-step-note">Extra actives for a personalized order.</p>
           <div className="sk-option-list">
             {CUSTOM_PEPTIDES.map((c) => {
               const on = build.customIds.includes(c.id)
@@ -191,8 +191,8 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
       <aside className="sk-builder-summary">
         <div className="sk-summary-top">
           <div>
-            <p className="sk-eyebrow">Your mix</p>
-            <h3>{product?.name || 'Select peptides'}</h3>
+            <p className="sk-eyebrow">Your formula</p>
+            <h3>{product?.name || 'Select actives'}</h3>
             <p>{product?.subtitle}</p>
           </div>
           <p className="sk-summary-price">${price.toFixed(0)}</p>
@@ -204,18 +204,18 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
               <strong>Base</strong> {product.buildSummary.base}
             </li>
             <li>
-              <strong>Peptides</strong> {product.buildSummary.peptides.join(', ')}
+              <strong>Actives</strong> {product.buildSummary.peptides.join(', ')}
             </li>
             {product.buildSummary.customs.length > 0 && (
               <li>
-                <strong>Custom</strong> {product.buildSummary.customs.join(', ')}
+                <strong>Add-ons</strong> {product.buildSummary.customs.join(', ')}
               </li>
             )}
           </ul>
         )}
 
         <div className="sk-legal-box">
-          <p className="sk-legal-title">Peptide acknowledgment</p>
+          <p className="sk-legal-title">Cosmetic use acknowledgment</p>
           <p>{PEPTIDE_LEGAL.medium}</p>
           <label className="sk-legal-check">
             <input
@@ -227,8 +227,9 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
               }}
             />
             <span>
-              I understand these are cosmetic topical peptide products, not drugs or
-              medical treatments, and I am 18+ ordering for personal cosmetic use.
+              I understand these are cosmetic skincare products for external use,
+              not drugs or medical treatments, and I am 18+ ordering for personal
+              cosmetic use.
             </span>
           </label>
         </div>
@@ -237,7 +238,7 @@ export default function SerumBuilder({ onAdd, onOpenProduct }) {
 
         <div className="sk-summary-actions">
           <button type="button" className="primary-btn" onClick={handleAdd} disabled={!product}>
-            Add mix to bag (${price.toFixed(0)})
+            Add formula to bag (${price.toFixed(0)})
           </button>
           {product && (
             <button type="button" className="soft-btn" onClick={() => onOpenProduct?.(product)}>

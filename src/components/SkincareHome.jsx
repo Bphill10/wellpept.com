@@ -81,11 +81,11 @@ export default function SkincareHome({
           </div>
           <div className="hero-brand-rule rise-delay" aria-hidden="true" />
           <p className="hero-tagline rise-delay">
-            Renewal peptides. Serum or cream. Activated when you are.
+            Fresh-mix skincare. Serums and creams made for how you renew.
           </p>
           <p className="hero-copy rise-delay">
-            Anti-aging focused GHK-Cu with Matrixyl 3000, Syn-Ake, and SNAP-8.
-            Fine dry powder in the twist-cap. Dropper beside until you activate.
+            Build a firmer, smoother-looking routine with copper, matrix, and
+            expression-line actives — sealed fresh until you activate at home.
           </p>
           <div className="hero-cta rise-delay">
             <button
@@ -95,14 +95,14 @@ export default function SkincareHome({
                 document.getElementById("build")?.scrollIntoView({ behavior: "smooth" })
               }
             >
-              Build your serum
+              Build your formula
             </button>
             <button
               type="button"
               className="soft-btn"
               onClick={() => onOpenProduct?.(FLAGSHIP_SERUM)}
             >
-              Flagship GHK-Cu
+              Shop flagship serum
             </button>
           </div>
         </div>
@@ -113,25 +113,25 @@ export default function SkincareHome({
           <div className="trust-item">
             <FlaskConical size={22} />
             <div>
-              <strong>4 peptides, different jobs</strong>
+              <strong>Four actives, clear jobs</strong>
               <p>
-                GHK-Cu (staple), Matrixyl 3000, Syn-Ake, and SNAP-8 for firmness,
-                matrix support, and expression zones.
+                Copper for firmness and glow, Matrixyl for support, plus
+                expression-line care for Syn-Ake and SNAP-8 zones.
               </p>
             </div>
           </div>
           <div className="trust-item">
             <Droplets size={22} />
             <div>
-              <strong>2 serums + 1 cream</strong>
-              <p>Multi-peptide serum, cream base, or eye serum. Then load peptides.</p>
+              <strong>Serum or cream bases</strong>
+              <p>Face serum, moisture cream, or eye serum — then add the actives you want.</p>
             </div>
           </div>
           <div className="trust-item">
             <Sparkles size={22} />
             <div>
-              <strong>Custom add-ons</strong>
-              <p>Optional Eyeseryl, Argireline, or extra GHK-Cu on the same order.</p>
+              <strong>Optional add-ons</strong>
+              <p>Under-eye and expression-line boosters available on the same order.</p>
             </div>
           </div>
           <div className="trust-item">
@@ -139,7 +139,7 @@ export default function SkincareHome({
             <div>
               <strong>Request first, pay later</strong>
               <p>
-                We check supply, then email payment within 24 hours. Allow up to
+                We confirm supply, then email payment within 24 hours. Allow up to
                 4 weeks for fulfillment.
               </p>
             </div>
@@ -152,18 +152,17 @@ export default function SkincareHome({
           <div className="section-head">
             <div>
               <p className="section-kicker">Renew</p>
-              <h2>Anti-aging peptides. One personal mix.</h2>
+              <h2>Your anti-aging formula, built to order.</h2>
               <p>
-                Choose a multi-peptide serum, cream, or eye serum, then load the
-                renewal peptides you want. Optional custom peptides ship as extra
-                dry vials on the same order.
+                Choose a serum or cream base, then add the renewal actives that
+                match your goals. Optional boosters ship with the same order.
               </p>
             </div>
           </div>
 
           <div className="sk-lineup">
             <div>
-              <p className="sk-lineup-label">Peptides</p>
+              <p className="sk-lineup-label">Actives</p>
               <ul>
                 {PEPTIDES.map((p) => (
                   <li key={p.id}>
@@ -208,12 +207,12 @@ export default function SkincareHome({
               <h3>{FLAGSHIP_SERUM.name}</h3>
               <p>{FLAGSHIP_SERUM.blurb}</p>
               <ul className="flagship-mix-points">
-                <li>1 g dry GHK-Cu sealed in the twist-cap chamber</li>
-                <li>30 mL Renew multi-peptide serum in the bottle</li>
-                <li>Dropper ships beside. Seat it after you activate.</li>
-                <li>Cosmetic use only. Peptide acknowledgment at checkout.</li>
-                <li>Request first — pay only after we confirm supply (within 24 hours).</li>
-                <li>Allow up to 4 weeks after payment, or until inventory replenishes.</li>
+                <li>Fresh copper active sealed until you twist to activate</li>
+                <li>30 mL Renew face serum in the bottle</li>
+                <li>Dropper ships beside the bottle — seat it after activation</li>
+                <li>For external cosmetic use on intact skin only</li>
+                <li>Request first — pay only after we confirm supply (within 24 hours)</li>
+                <li>Allow up to 4 weeks after payment, or until inventory replenishes</li>
               </ul>
               <div className="price-row" style={{ margin: "0.85rem 0 1rem" }}>
                 <strong>{formatMoney(FLAGSHIP_SERUM.price)}</strong>
@@ -253,8 +252,8 @@ export default function SkincareHome({
               <p className="section-kicker">How it works</p>
               <h2>Pick. Mix. Activate.</h2>
               <p>
-                One vehicle (serum or cream), up to four peptides, optional customs.
-                Activate when you’re ready.
+                Choose a serum or cream base, add up to four actives, then
+                activate when you’re ready.
               </p>
             </div>
           </div>
@@ -321,7 +320,7 @@ export default function SkincareHome({
       <section className="section" id="peptide-legal">
         <div className="container sk-legal-page">
           <p className="section-kicker">Important</p>
-          <h2>Peptide product notices</h2>
+          <h2>Product notices</h2>
           <p className="sk-legal-lead">{PEPTIDE_LEGAL.medium}</p>
           <ul className="sk-legal-long">
             {PEPTIDE_LEGAL.long.map((line) => (
@@ -346,8 +345,8 @@ export default function SkincareHome({
               phone.
             </p>
             <p className="meta" style={{ marginTop: "1rem" }}>
-              Ships to United States addresses only. For external cosmetic use. Not for
-              injection or medical use.
+              Ships to United States addresses only. External cosmetic use on
+              intact skin. Not a drug and not for medical use.
             </p>
           </div>
           <div className="skin-about-actions">
@@ -381,9 +380,10 @@ export default function SkincareHome({
             <p className="section-kicker">About</p>
             <h2>WellPept skincare</h2>
             <p>
-              Renew keeps anti-aging topical peptides as fine dry powder until you
-              activate them into your chosen base. Ready formulas handle the rest with
-              restrained textures, white light, and a cobalt signal.
+              Renew is built for people who want fresher anti-aging skincare —
+              actives sealed until you activate them into serum or cream. Ready
+              formulas cover the rest of the ritual with clean textures and quiet
+              finish.
             </p>
           </div>
           <button
@@ -393,7 +393,7 @@ export default function SkincareHome({
               document.getElementById("build")?.scrollIntoView({ behavior: "smooth" })
             }
           >
-            Build a serum <ArrowRight size={16} />
+            Build a formula <ArrowRight size={16} />
           </button>
         </div>
       </section>

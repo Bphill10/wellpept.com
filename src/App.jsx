@@ -418,7 +418,7 @@ export default function App() {
       ships: "Up to 4 weeks after payment",
       legalNote:
         product.kind === "mix"
-          ? "Cosmetic topical peptides only. Not for injection or medical use."
+          ? "Cosmetic skincare only. Not for injection or medical use."
           : undefined,
     });
     setFlash(
@@ -960,7 +960,7 @@ export default function App() {
                   setQuery(e.target.value);
                   setView(VIEWS.shop);
                 }}
-                placeholder="Search peptides, vendors…"
+                placeholder="Search catalog…"
                 aria-label="Search catalog"
               />
               <button
@@ -988,7 +988,7 @@ export default function App() {
                     ?.scrollIntoView({ behavior: "smooth" });
                 }}
               >
-                <span className="nav-label-full">Build serum</span>
+                <span className="nav-label-full">Build formula</span>
                 <span className="nav-label-short">Build</span>
               </button>
               <button
@@ -1175,7 +1175,7 @@ export default function App() {
                     {skinProduct.gallery?.[1] && skinProduct.gallery[1] !== skinProduct.image && (
                       <img
                         src={skinProduct.gallery[1]}
-                        alt="After mixing: peptide activated into the base"
+                        alt="After mixing: active blended into the base"
                         className="skin-product-img skin-product-img--howto"
                       />
                     )}
@@ -1207,9 +1207,9 @@ export default function App() {
                       <div className="mix-panel">
                         <p className="mix-lead">
                           {skinProduct.form === "cream"
-                            ? `Dry peptides mix into a leave-on cream vehicle (${skinProduct.mixYield}).`
+                            ? `Dry actives mix into a leave-on cream base (${skinProduct.mixYield}).`
                             : skinProduct.packaging === "twist-cap"
-                              ? `Dry peptide powder lives in the twist-cap. The dropper ships beside the bottle. Seat it after you activate (${skinProduct.mixYield}).`
+                              ? `Dry active powder lives in the twist-cap. The dropper ships beside the bottle. Seat it after you activate (${skinProduct.mixYield}).`
                               : `Fresh ingredients ship separated. You mix at home (${skinProduct.mixYield}).`}
                           {skinProduct.shelfAfterMix
                             ? ` ${skinProduct.shelfAfterMix}`
@@ -1251,7 +1251,7 @@ export default function App() {
                     </div>
                     {skinProduct.kind === "mix" && skinProduct.legal && (
                       <div className="sk-legal-box sk-legal-box--pdp">
-                        <p className="sk-legal-title">Peptide acknowledgment</p>
+                        <p className="sk-legal-title">Cosmetic use acknowledgment</p>
                         <p>{skinProduct.legal.medium}</p>
                         <ul className="sk-legal-long sk-legal-long--compact">
                           {skinProduct.legal.long.map((line) => (
@@ -1949,11 +1949,11 @@ export default function App() {
               </>
             ) : (
               <>
-                WellPept Renew products contain topical cosmetic peptides for
-                external use on intact skin only. Not for injection, ingestion, or
-                medical use. Not evaluated by the FDA. Not intended to diagnose,
-                treat, cure, or prevent any disease. Ships to United States
-                addresses only. Questions: {contactEmail()}.
+                WellPept Renew is cosmetic skincare for external use on intact
+                skin only. Not for injection, ingestion, or medical use. Not
+                evaluated by the FDA. Not intended to diagnose, treat, cure, or
+                prevent any disease. Ships to United States addresses only.
+                Questions: {contactEmail()}.
               </>
             )}
           </p>

@@ -1,18 +1,18 @@
-/** Public WellPept skincare: mix-and-match topical peptides and ready formulas. */
+/** Public WellPept skincare: mix-and-match actives and ready formulas. */
 
-/** Shared legal language for any peptide-containing product. */
+/** Shared legal language for cosmetic Renew products. */
 export const PEPTIDE_LEGAL = {
   short:
-    "For external cosmetic use only. Not for injection, ingestion, inhalation, or any clinical or medical use. Not evaluated by the FDA. Not intended to diagnose, treat, cure, or prevent any disease.",
+    "For external cosmetic use only. Not for injection, ingestion, or medical use. Not evaluated by the FDA. Not intended to diagnose, treat, cure, or prevent any disease.",
   medium:
-    "WellPept Renew products contain cosmetic-grade topical peptides sold for external use on intact skin only. They are not drugs, not sterile injectables, and not for compounding into injectable preparations. Keep out of reach of children. Discontinue if irritation occurs. Consult a qualified professional if you are pregnant, nursing, or under medical care.",
+    "WellPept Renew products are cosmetic skincare for external use on intact skin only. They are not drugs, not sterile injectables, and not for compounding into injectable preparations. Keep out of reach of children. Discontinue if irritation occurs. Consult a qualified professional if you are pregnant, nursing, or under medical care.",
   long: [
     "COSMETIC USE ONLY. External application on intact skin. Not for injection, IV, IM, SQ, oral, nasal, ocular (unless labeled as an eye serum for periocular skin), or any other route.",
     "NOT A DRUG. These products are not intended to diagnose, treat, cure, or prevent any disease. No therapeutic or medical claims are made.",
     "NOT FDA EVALUATED. Statements have not been evaluated by the U.S. Food and Drug Administration.",
-    "NOT FOR RESEARCH OR CLINICAL COMPOUNDING. Do not use as a starting material for sterile compounding, pharmacy preparations, or laboratory assays requiring research-grade reagents.",
-    "FRESH ACTIVATION. Dry peptides are sealed separately to limit shelf degradation. Once mixed into the base, use within the stated window and refrigerate when directed. Potency after activation is not guaranteed beyond labeled guidance.",
-    "ASSUMPTION OF RISK. By purchasing you confirm you understand topical peptides may cause irritation or sensitization, will follow mix instructions, and will not misrepresent or misuse these products.",
+    "NOT FOR RESEARCH OR CLINICAL COMPOUNDING. Do not use as a starting material for sterile compounding, pharmacy preparations, or laboratory assays.",
+    "FRESH ACTIVATION. Key actives are sealed separately to limit shelf degradation. Once mixed into the base, use within the stated window and refrigerate when directed. Results after activation are not guaranteed beyond labeled guidance.",
+    "ASSUMPTION OF RISK. By purchasing you confirm you understand cosmetic actives may cause irritation or sensitization, will follow mix instructions, and will not misuse these products.",
     "AGE AND JURISDICTION. You must be 18+ and purchasing for lawful personal cosmetic use in the United States. Void where prohibited.",
   ],
 };
@@ -57,7 +57,7 @@ export const SKINCARE_PRODUCTS = [
 ];
 
 /**
- * Four core topical peptides, each with a different job.
+ * Four core cosmetic actives, each with a different job.
  * GHK-Cu is the staple; pick 1 to 4 into one vehicle (serum or cream).
  */
 export const PEPTIDES = [
@@ -72,7 +72,7 @@ export const PEPTIDES = [
     image: "/skincare/buffet-serum.png",
     packaging: "twist-cap",
     blurb:
-      "The staple. Flagship copper peptide ships dry in a twist-cap so it doesn’t fade on the shelf.",
+      "The staple. Flagship copper active ships dry in a twist-cap so it stays fresh on the shelf.",
   },
   {
     id: "pep-matrixyl",
@@ -85,7 +85,7 @@ export const PEPTIDES = [
     image: "/skincare/peptide-vial-matrixyl.png",
     packaging: "vial",
     blurb:
-      "Classic matrix-signal pair for the look of smoother static lines. Sealed dry until you mix.",
+      "Classic matrix-support pair for the look of smoother static lines. Sealed dry until you mix.",
   },
   {
     id: "pep-synake",
@@ -98,26 +98,26 @@ export const PEPTIDES = [
     image: "/skincare/peptide-vial-synake.png",
     packaging: "vial",
     blurb:
-      "Snake-venom inspired peptide for expression-line zones. Works differently than SNAP-8’s Argireline-family pathway.",
+      "Expression-line active inspired by snake-venom pathways. Works differently than SNAP-8.",
   },
   {
     id: "pep-snap8",
     name: "SNAP-8",
     inci: "Acetyl Octapeptide-3",
     need: "Expression, soften",
-    job: "Expression lines via Argireline-family octapeptide",
+    job: "Expression lines via Argireline-family pathway",
     amount: "200 mg dry powder",
     price: 38,
     image: "/skincare/peptide-vial-snap8.png",
     packaging: "vial",
     blurb:
-      "Fourth core. SNAP-8 for the look of softer expression lines, a longer cousin of Argireline, sealed dry until mix.",
+      "Fourth core. SNAP-8 for the look of softer expression lines — sealed dry until you mix.",
   },
 ];
 
 /**
  * Three vehicles: two serums and one cream.
- * Pick one, then load 1 to 4 peptides.
+ * Pick one, then load 1 to 4 actives.
  */
 export const SERUM_BASES = [
   {
@@ -128,25 +128,25 @@ export const SERUM_BASES = [
     price: 28,
     image: "/skincare/buffet-serum.png",
     blurb:
-      "Anti-aging multi-peptide / HA / amino-acid face serum. Best all-rounder vehicle for 1 to 4 dry peptides.",
-    bestFor: "Face serum, daily, 1 to 4 peptides",
+      "Anti-aging face serum with HA and amino acids. Best all-rounder base for 1 to 4 dry actives.",
+    bestFor: "Face serum, daily, 1 to 4 actives",
     shelfAfterMix: "Use within 21 to 30 days after activation. Refrigerate if GHK-Cu included.",
   },
   {
     id: "base-cream",
-    name: "Peptide Cream Base",
+    name: "Renew Cream Base",
     form: "cream",
     volume: "50 mL",
     price: 32,
     image: "/skincare/peptide-cream.png",
     blurb:
-      "Silken moisture cream in a soft powder-blue finish. Mix dry peptides into a leave-on cream instead of a dropper serum.",
+      "Silken moisture cream in a soft powder-blue finish. Mix dry actives into a leave-on cream instead of a dropper serum.",
     bestFor: "Face cream, richer feel, day or night",
     shelfAfterMix: "Use within 30 days after activation. Keep cool and dark. Refrigerate if GHK-Cu included.",
   },
   {
     id: "base-eye",
-    name: "Eye Serum Vehicle",
+    name: "Eye Serum Base",
     form: "serum",
     volume: "15 mL",
     price: 24,
@@ -159,7 +159,7 @@ export const SERUM_BASES = [
 ];
 
 /**
- * Optional add-on custom peptides beyond the core four.
+ * Optional add-on actives beyond the core four.
  * Added as extra dry vials on the same order.
  */
 export const CUSTOM_PEPTIDES = [
@@ -169,7 +169,7 @@ export const CUSTOM_PEPTIDES = [
     inci: "Acetyl Tetrapeptide-5",
     amount: "150 mg dry",
     price: 28,
-    blurb: "Under-eye puff and rested-look add-on. Optional with the eye serum vehicle.",
+    blurb: "Under-eye puff and rested-look add-on. Optional with the eye serum base.",
   },
   {
     id: "custom-argireline",
@@ -177,7 +177,7 @@ export const CUSTOM_PEPTIDES = [
     inci: "Acetyl Hexapeptide-8",
     amount: "300 mg dry",
     price: 32,
-    blurb: "Optional hexapeptide to stack with SNAP-8 or Syn-Ake.",
+    blurb: "Optional expression-line booster to stack with SNAP-8 or Syn-Ake.",
   },
   {
     id: "custom-copper",
@@ -192,18 +192,18 @@ export const CUSTOM_PEPTIDES = [
 export const SKINCARE_RITUAL = [
   {
     step: "01",
-    title: "Pick a vehicle",
-    copy: "Renew multi-peptide serum, peptide cream, or eye serum. One base per mix.",
+    title: "Pick a base",
+    copy: "Renew face serum, moisture cream, or eye serum. One base per formula.",
   },
   {
     step: "02",
-    title: "Add 1 to 4 peptides",
-    copy: "GHK-Cu (staple), Matrixyl 3000, Syn-Ake, SNAP-8. Mix freely. Add Eyeseryl and other customs if you want.",
+    title: "Add 1 to 4 actives",
+    copy: "GHK-Cu (staple), Matrixyl 3000, Syn-Ake, SNAP-8. Mix freely. Add Eyeseryl and other boosters if you want.",
   },
   {
     step: "03",
     title: "Activate fresh",
-    copy: "Twist-cap or tip dry powder into serum or cream. Mix. Use while potent.",
+    copy: "Twist-cap or tip dry powder into serum or cream. Mix. Use while fresh.",
   },
 ];
 
@@ -220,7 +220,7 @@ export function getCustomPeptide(id) {
 }
 
 /**
- * Price a custom serum: one base + selected core peptides + optional customs.
+ * Price a custom formula: one base + selected core actives + optional customs.
  */
 export function priceSerumBuild({ baseId, peptideIds = [], customIds = [] }) {
   const base = getBase(baseId);
@@ -238,7 +238,7 @@ export function priceSerumBuild({ baseId, peptideIds = [], customIds = [] }) {
 
 /**
  * Build a cart-ready product from mix-and-match selections.
- * Requires base + at least one core peptide (1 to 4).
+ * Requires base + at least one core active (1 to 4).
  * Legal acknowledgment is enforced in the UI before add-to-bag.
  */
 export function buildSerumProduct({
@@ -266,32 +266,32 @@ export function buildSerumProduct({
   const title =
     uniquePep.length === 1
       ? `${uniquePep[0].name} in ${base.name}`
-      : `Custom ${uniquePep.length}-Peptide ${isCream ? "Cream" : "Serum"}`;
+      : `Custom ${uniquePep.length}-active ${isCream ? "cream" : "serum"}`;
 
   const hasGhk = uniquePep.some((p) => p.id === "pep-ghk");
   const packaging = hasGhk ? "twist-cap" : "vial";
-  const subtitle = `${uniquePep.length} peptide${uniquePep.length > 1 ? "s" : ""}, ${base.volume} ${base.name}`;
+  const subtitle = `${uniquePep.length} active${uniquePep.length > 1 ? "s" : ""}, ${base.volume} ${base.name}`;
 
   const creamSteps = [
-    "Open the cream jar. Keep peptides dry until ready.",
+    "Open the cream jar. Keep actives dry until ready.",
     hasGhk
       ? "Twist the GHK-Cu powder cap over the cream (or tip powder in), then add any other dry vials."
-      : "Tip each dry peptide vial into the cream (spatula / funnel included).",
+      : "Tip each dry active vial into the cream (spatula / funnel included).",
     "Fold and stir 60 to 90 seconds until evenly dispersed with no dry pockets.",
     "Seal. Use on intact skin only. Follow the labeled use-by window after mixing.",
   ];
 
   const serumTwistSteps = [
     "Keep upright. Do not shake before activating.",
-    "Twist any GHK-Cu powder cap until the chamber breaks. Dry peptide drops into the serum.",
-    "Tip any additional dry peptide vials into the bottle (funnel included).",
+    "Twist any GHK-Cu powder cap until the chamber breaks. Dry active drops into the serum.",
+    "Tip any additional dry active vials into the bottle (funnel included).",
     "Seat the dropper (ships beside the bottle) after activation. Shake 45 to 60 seconds until even.",
     "Use as directed. Follow refrigeration guidance.",
   ];
 
   const serumVialSteps = [
     "Confirm the serum base is in the dropper bottle.",
-    "Tip each dry peptide vial into the base (funnel included).",
+    "Tip each dry active vial into the base (funnel included).",
     "Cap and shake 40 to 60 seconds until fully dissolved.",
     "Use on intact skin only. Follow the labeled use-by window after mixing.",
   ];
@@ -300,8 +300,8 @@ export function buildSerumProduct({
   if (isCream) steps = creamSteps;
   else if (packaging === "twist-cap") steps = serumTwistSteps;
 
-  let texture = "Mix-at-home peptide serum";
-  if (isCream) texture = "Mix-at-home peptide cream";
+  let texture = "Mix-at-home face serum";
+  if (isCream) texture = "Mix-at-home face cream";
   else if (packaging === "twist-cap") texture = "Twist-cap activated serum";
 
   return {
@@ -316,7 +316,7 @@ export function buildSerumProduct({
     packaging,
     form: base.form || "serum",
     price,
-    size: `${base.volume}, ${uniquePep.length} peptide${uniquePep.length > 1 ? "s" : ""}`,
+    size: `${base.volume}, ${uniquePep.length} active${uniquePep.length > 1 ? "s" : ""}`,
     image: hasGhk && !isCream ? "/skincare/buffet-serum.png" : base.image,
     gallery:
       hasGhk && !isCream
@@ -326,7 +326,7 @@ export function buildSerumProduct({
           : [base.image],
     video: hasGhk && !isCream ? "/skincare/mix-activation.mp4" : null,
     videoPoster: hasGhk && !isCream ? "/skincare/buffet-serum-mixing.png" : null,
-    blurb: `Your mix: ${names.join(" + ")} in ${base.name}. Dry peptides stay sealed until you activate into the ${vehicleWord}.`,
+    blurb: `Your formula: ${names.join(" + ")} in ${base.name}. Dry actives stay sealed until you activate into the ${vehicleWord}.`,
     focus: uniquePep.map((p) => p.need).join(", "),
     texture,
     mixYield: base.volume,
@@ -355,7 +355,7 @@ export function buildSerumProduct({
   };
 }
 
-/** Default featured build: Renew multi-peptide serum + GHK-Cu staple. */
+/** Default featured build: Renew face serum + GHK-Cu staple. */
 export const FLAGSHIP_BUILD = {
   baseId: "base-buffet",
   peptideIds: ["pep-ghk"],
@@ -377,7 +377,7 @@ export const SERUM_PRESETS = [
   {
     id: "preset-lines",
     name: "Lines + expression",
-    blurb: "Matrixyl + Syn-Ake + SNAP-8 in peptide cream.",
+    blurb: "Matrixyl + Syn-Ake + SNAP-8 in Renew cream.",
     baseId: "base-cream",
     peptideIds: ["pep-matrixyl", "pep-synake", "pep-snap8"],
     customIds: [],
@@ -392,7 +392,7 @@ export const SERUM_PRESETS = [
   },
   {
     id: "preset-all",
-    name: "All four peptides",
+    name: "All four actives",
     blurb: "GHK-Cu, Matrixyl, Syn-Ake, and SNAP-8 in one Renew serum.",
     baseId: "base-buffet",
     peptideIds: ["pep-ghk", "pep-matrixyl", "pep-synake", "pep-snap8"],
