@@ -200,7 +200,7 @@ export default function SkincareHome({
                 onClick={() => onOpenProduct?.(FLAGSHIP_SERUM)}
               >
                 <img
-                  src="/skincare/buffet-serum.png"
+                  src="/skincare/buffet-serum.webp"
                   alt={FLAGSHIP_SERUM.name}
                   className="flagship-mix-img"
                   loading="eager"
@@ -277,7 +277,7 @@ export default function SkincareHome({
             <div className="sk-mix-demo-stills">
               <figure>
                 <img
-                  src="/skincare/buffet-serum.png"
+                  src="/skincare/buffet-serum.webp"
                   alt="Before: dry powder in the twist-cap"
                   loading="lazy"
                   decoding="async"
@@ -286,7 +286,7 @@ export default function SkincareHome({
               </figure>
               <figure>
                 <img
-                  src="/skincare/buffet-serum-mixed.png"
+                  src="/skincare/buffet-serum-mixed.webp"
                   alt="After: powder mixed into the serum"
                   loading="lazy"
                   decoding="async"
@@ -301,7 +301,7 @@ export default function SkincareHome({
               playsInline
               loop
               preload="metadata"
-              poster="/skincare/buffet-serum-mixing.png"
+              poster="/skincare/buffet-serum-mixing.webp"
             >
               <source src="/skincare/mix-activation.mp4" type="video/mp4" />
             </video>

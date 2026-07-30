@@ -381,7 +381,7 @@ export default function App() {
     if (channelTuneLockRef.current || channelTuning || labVisible) return;
     channelTuneLockRef.current = true;
     // Warm Undisclosed assets under the black cover so WellPept never flashes back
-    ["/black-marble.jpg", "/ud-monogram.svg", "/real-vial-3ml.png"].forEach((href) => {
+    ["/black-marble.jpg", "/ud-monogram.svg", "/real-vial-3ml.webp"].forEach((href) => {
       const img = new Image();
       img.decoding = "async";
       img.src = href;
@@ -1514,7 +1514,7 @@ export default function App() {
                   </div>
                   <div className="featured-vendor-visual">
                     <img
-                      src="/undisclosed-hero-kit.png"
+                      src="/undisclosed-hero-kit.webp"
                       alt="Undisclosed KLOW 80 MG research kit"
                       className="featured-product-photo"
                       width={1536}

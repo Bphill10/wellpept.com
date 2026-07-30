@@ -723,7 +723,7 @@ svg {
       rgba(255, 255, 255, 0.55) 38%,
       rgba(255, 255, 255, 0.12) 100%
     ),
-    url("/wellpept-hero-blue.png") right center / cover no-repeat;
+    url("/wellpept-hero-blue.webp") right center / cover no-repeat;
   transform: scale(1.02);
   animation: hero-drift 18s ease-in-out infinite alternate;
 }
@@ -830,7 +830,7 @@ svg {
       rgba(0, 0, 0, 0.2) 58%,
       rgba(0, 0, 0, 0.05) 100%
     ),
-    url("/real-vial-3ml.png") right 8% center / contain no-repeat,
+    url("/real-vial-3ml.webp") right 8% center / contain no-repeat,
     #000;
   background-color: #000;
 }
@@ -2724,7 +2724,7 @@ body:has(.app-shell--undisclosed)::before {
       rgba(255, 255, 255, 0.28) 70%,
       transparent 84%
     ),
-    url("/skincare/hero-wide.png") right -24vw center / cover no-repeat !important;
+    url("/skincare/hero-wide.webp") right -24vw center / cover no-repeat !important;
   animation: skin-hero-drift 22s ease-in-out infinite alternate;
 }
 
@@ -3038,7 +3038,7 @@ body:has(.app-shell--undisclosed)::before {
     border-top: 1px solid rgba(0, 47, 117, 0.1);
     background:
       #fff
-        url("/skincare/hero-wide.png") center 30% / cover no-repeat !important;
+        url("/skincare/hero-wide.webp") center 30% / cover no-repeat !important;
   }
 
   .hero--undisclosed .hero-media,
@@ -3049,7 +3049,7 @@ body:has(.app-shell--undisclosed)::before {
     border-top: 1px solid rgba(255, 255, 255, 0.12);
     background:
       #050505
-        url("/real-vial-3ml.png") center / contain no-repeat !important;
+        url("/real-vial-3ml.webp") center / contain no-repeat !important;
     display: block !important;
     padding: 0 !important;
   }
@@ -4691,7 +4691,7 @@ body:has(.app-shell--undisclosed)::before {
   inset: 0;
   background:
     linear-gradient(115deg, rgba(255, 255, 255, 0.97) 0%, rgba(255, 255, 255, 0.9) 48%, rgba(255, 255, 255, 0.72) 100%),
-    url("/skincare/hero-wide.png") right center / cover no-repeat;
+    url("/skincare/hero-wide.webp") right center / cover no-repeat;
 }
 
 .auth-card {
@@ -5223,7 +5223,7 @@ body:has(.app-shell--undisclosed)::before {
   .skin-hero .hero-media,
   .skin-hero-media {
     border-top: 1px solid rgba(0, 47, 117, 0.1);
-    background: #fff url("/skincare/hero-wide.png") center 32% / cover no-repeat !important;
+    background: #fff url("/skincare/hero-wide.webp") center 32% / cover no-repeat !important;
   }
 
   .hero--undisclosed .hero-media,
@@ -5232,7 +5232,7 @@ body:has(.app-shell--undisclosed)::before {
     min-height: 200px !important;
     max-height: 320px !important;
     border-top: 1px solid rgba(255, 255, 255, 0.12);
-    background: #050505 url("/real-vial-3ml.png") center / contain no-repeat !important;
+    background: #050505 url("/real-vial-3ml.webp") center / contain no-repeat !important;
     display: block !important;
     padding: 0 !important;
   }

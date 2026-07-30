@@ -2,11 +2,11 @@ import QRCode from "qrcode";
 
 /** Wellpept / Undisclosed vial art — photoreal glass vial + compact clinical sticker. */
 
-export const BRAND_IMAGE_SRC = "/wellpept-brand.png";
+export const BRAND_IMAGE_SRC = "/wellpept-brand.jpg";
 /** Photoreal unlabeled 3 mL research vial (studio photo). */
-export const BRAND_VIAL_SRC = "/real-vial-3ml.png";
+export const BRAND_VIAL_SRC = "/real-vial-3ml.webp";
 /** Photoreal unlabeled 10 mL research vial (studio photo). */
-export const BRAND_VIAL_10_SRC = "/real-vial-10ml.png";
+export const BRAND_VIAL_10_SRC = "/real-vial-10ml.webp";
 /** Circular W seal / monogram. */
 export const WP_MARK_SRC = "/wp-monogram.svg";
 /** Vector W monogram. */

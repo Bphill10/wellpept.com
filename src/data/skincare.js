@@ -32,7 +32,7 @@ export const SKINCARE_PRODUCTS = [
     kind: "ready",
     price: 55,
     size: "50 mL",
-    image: "/skincare/cream-veil.png",
+    image: "/skincare/cream-veil.webp",
     blurb: "Quiet hydration with a soft matte finish for day-to-night wear.",
     focus: "Barrier, softness",
     texture: "Silken cream",
@@ -44,7 +44,7 @@ export const SKINCARE_PRODUCTS = [
     kind: "ready",
     price: 30,
     size: "100 mL",
-    image: "/skincare/mist-calm.png",
+    image: "/skincare/mist-calm.webp",
     blurb: "A mineral mist to reset skin between steps. Never sticky, never loud.",
     focus: "Reset, comfort",
     texture: "Fine mist",
@@ -56,7 +56,7 @@ export const SKINCARE_PRODUCTS = [
     kind: "ready",
     price: 70,
     size: "30 mL",
-    image: "/skincare/oil-signal.png",
+    image: "/skincare/oil-signal.webp",
     blurb: "A measured oil blend for glow without weight. Last step, lights low.",
     focus: "Glow, seal",
     texture: "Dry-touch oil",
@@ -76,7 +76,7 @@ export const PEPTIDES = [
     job: "Staple copper for a firmer, brighter look",
     amount: "1 g dry powder",
     price: 50,
-    image: "/skincare/buffet-serum.png",
+    image: "/skincare/buffet-serum.webp",
     packaging: "twist-cap",
     blurb:
       "The staple. Flagship copper active ships dry in a twist-cap so it stays fresh on the shelf.",
@@ -89,7 +89,7 @@ export const PEPTIDES = [
     job: "Matrix support for the look of deeper lines",
     amount: "600 mg dry complex",
     price: 35,
-    image: "/skincare/peptide-vial-matrixyl.png",
+    image: "/skincare/peptide-vial-matrixyl.webp",
     packaging: "vial",
     blurb:
       "Classic matrix-support pair for the look of smoother static lines. Sealed dry until you mix.",
@@ -102,7 +102,7 @@ export const PEPTIDES = [
     job: "Expression zones via the Syn-Ake pathway",
     amount: "250 mg dry powder",
     price: 35,
-    image: "/skincare/peptide-vial-synake.png",
+    image: "/skincare/peptide-vial-synake.webp",
     packaging: "vial",
     blurb:
       "Expression-line active inspired by snake-venom pathways. Works differently than SNAP-8.",
@@ -115,7 +115,7 @@ export const PEPTIDES = [
     job: "Expression lines via Argireline-family pathway",
     amount: "200 mg dry powder",
     price: 40,
-    image: "/skincare/peptide-vial-snap8.png",
+    image: "/skincare/peptide-vial-snap8.webp",
     packaging: "vial",
     blurb:
       "Fourth core. SNAP-8 for the look of softer expression lines — sealed dry until you mix.",
@@ -133,7 +133,7 @@ export const SERUM_BASES = [
     form: "serum",
     volume: "30 mL",
     price: 30,
-    image: "/skincare/buffet-serum.png",
+    image: "/skincare/buffet-serum.webp",
     blurb:
       "Anti-aging face serum with HA and amino acids. Best all-rounder base for 1 to 4 dry actives.",
     bestFor: "Face serum, daily, 1 to 4 actives",
@@ -145,7 +145,7 @@ export const SERUM_BASES = [
     form: "cream",
     volume: "50 mL",
     price: 30,
-    image: "/skincare/peptide-cream.png",
+    image: "/skincare/peptide-cream.webp",
     blurb:
       "Silken moisture cream in a soft powder-blue finish. Mix dry actives into a leave-on cream instead of a dropper serum.",
     bestFor: "Face cream, richer feel, day or night",
@@ -157,7 +157,7 @@ export const SERUM_BASES = [
     form: "serum",
     volume: "15 mL",
     price: 25,
-    image: "/skincare/eye-serum.png",
+    image: "/skincare/eye-serum.webp",
     blurb:
       "Cooling periocular serum. Pair with SNAP-8 or Syn-Ake for crow’s feet, or add Eyeseryl as a custom.",
     bestFor: "Under-eye, crow’s feet, expression",
@@ -325,15 +325,15 @@ export function buildSerumProduct({
     form: base.form || "serum",
     price,
     size: `${base.volume}, ${uniquePep.length} active${uniquePep.length > 1 ? "s" : ""}`,
-    image: hasGhk && !isCream ? "/skincare/buffet-serum.png" : base.image,
+    image: hasGhk && !isCream ? "/skincare/buffet-serum.webp" : base.image,
     gallery:
       hasGhk && !isCream
-        ? ["/skincare/buffet-serum.png", "/skincare/buffet-serum-mixed.png"]
+        ? ["/skincare/buffet-serum.webp", "/skincare/buffet-serum-mixed.webp"]
         : isCream
-          ? ["/skincare/peptide-cream.png"]
+          ? ["/skincare/peptide-cream.webp"]
           : [base.image],
     video: hasGhk && !isCream ? "/skincare/mix-activation.mp4" : null,
-    videoPoster: hasGhk && !isCream ? "/skincare/buffet-serum-mixing.png" : null,
+    videoPoster: hasGhk && !isCream ? "/skincare/buffet-serum-mixing.webp" : null,
     blurb: `Your formula: ${names.join(" + ")} in ${base.name}. Dry actives stay sealed until you activate into the ${vehicleWord}.`,
     focus: uniquePep.map((p) => p.need).join(", "),
     texture,
