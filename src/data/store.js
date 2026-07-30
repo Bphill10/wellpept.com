@@ -9,7 +9,7 @@ import { CHANGSHA_VENDOR } from "./changshaPremium";
 import { isFocusedSubmission } from "./catalogFocus";
 
 /** Bump when focused vendors/catalog must replace stale local data. */
-const STORAGE_KEY = "wellpept-marketplace-v9";
+const STORAGE_KEY = "wellpept-marketplace-v10";
 
 function syncVendor(v) {
   if (!v || !ACTIVE_VENDOR_IDS.has(v.id)) return null;

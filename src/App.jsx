@@ -3969,7 +3969,7 @@ function AdminPanel({
                         {p.sku} · {p.mg}mg
                       </div>
                     </td>
-                    <td>{p.vendor}</td>
+                    <td>—</td>
                     <td>{formatMoney(p.price)}</td>
                     <td>
                       {formatMoney(p.shippingFlat)}

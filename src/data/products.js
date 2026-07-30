@@ -31,16 +31,16 @@ export const ACTIVE_VENDOR_IDS = new Set([
   "v-changsha-premium",
 ]);
 
-/** Always show Changsha — never “Premium” or stale vendor names. */
+/** Never expose supply-source names on the storefront. */
 export function displayVendorName(name, vendorId = "") {
   const id = String(vendorId || "");
-  if (id === "v-changsha-premium" || id === "v-changsha") return "Changsha";
+  if (id === "v-changsha-premium" || id === "v-changsha") return "";
   const cleaned = String(name || "")
     .replace(/\bpremium\b/gi, "")
     .replace(/\s+/g, " ")
     .trim();
-  if (/changsha/i.test(cleaned)) return "Changsha";
-  return cleaned || "Partner";
+  if (/changsha/i.test(cleaned)) return "";
+  return cleaned;
 }
 
 export const CATEGORIES = [
@@ -809,7 +809,8 @@ export function buildCatalog(vendors, submissions) {
       blurb: guessBlurb(displayName),
       tagline: guessTagline(displayName),
       vendorId: item.vendorId,
-      vendor: displayVendorName(item.vendor.name, item.vendorId),
+      // Blank on purpose — never show supply source (e.g. Changsha) to customers.
+      vendor: "",
       vendorCost,
       price,
       priceLabel: null,
