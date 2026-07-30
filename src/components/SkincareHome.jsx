@@ -140,7 +140,7 @@ export default function SkincareHome({
               <strong>Request first, pay later</strong>
               <p>
                 We confirm supply, then email payment within 24 hours. Allow up to
-                4 weeks for fulfillment.
+                2–3 weeks for delivery.
               </p>
             </div>
           </div>
@@ -212,7 +212,7 @@ export default function SkincareHome({
                 <li>Dropper ships beside the bottle — seat it after activation</li>
                 <li>For external cosmetic use on intact skin only</li>
                 <li>Request first — pay only after we confirm supply (within 24 hours)</li>
-                <li>Allow up to 4 weeks after payment, or until inventory replenishes</li>
+                <li>Allow 2–3 weeks after payment for delivery</li>
               </ul>
               <div className="price-row" style={{ margin: "0.85rem 0 1rem" }}>
                 <strong>{formatMoney(FLAGSHIP_SERUM.price)}</strong>

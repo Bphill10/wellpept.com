@@ -88,7 +88,7 @@ Checkout does **not** charge the card. Flow:
 1. Customer submits an order request
 2. You get an email at **info@wellpept.com** (Resend) or a mailto draft if email isn’t configured yet, plus a local queue entry
 3. Check supply and reply within **24 hours** with payment instructions
-4. After payment, fulfill (customer accepted up to **4 weeks** / inventory wait)
+4. After payment, fulfill (customer accepted **2–3 weeks** delivery)
 
 Stripe keys are optional for when you invoice after supply check (see `PAYMENTS.md`).
 

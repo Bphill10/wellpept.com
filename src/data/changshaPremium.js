@@ -7,7 +7,7 @@ export const CHANGSHA_VENDOR = {
   "status": "approved",
   "minOrder": 0,
   "shippingFlat": 60,
-  "shippingNote": "US shipping only \u00b7 Dedicated Line ~10\u201315 days ($60) \u00b7 FedEx ~1 week ($90)",
+  "shippingNote": "US shipping only \u00b7 2\u20133 weeks delivery \u00b7 Dedicated Line ~10\u201315 days ($60) \u00b7 FedEx ~1 week ($90)",
   "priceListSource": "Changsha July 2026.xlsx",
   "createdAt": "2026-07-01T00:00:00.000Z"
 };

@@ -5,11 +5,11 @@ WellPept uses a **request-first** flow. Customers do **not** pay at checkout.
 ## Customer flow
 
 1. Customer submits an **order request** (shipping + quoted total)
-2. Customer must confirm they can wait **up to 4 weeks** / until inventory replenishes
+2. Customer must confirm they can wait **2–3 weeks** for delivery
 3. You (ops) check supply
 4. Within **24 hours**, email the customer a **pay link** (Admin → Copy pay link)
 5. Customer pays with **Venmo, Zelle, or crypto** → taps **I’ve paid** (or you **Mark paid**)
-6. After payment, fulfill (allow up to 4 weeks)
+6. After payment, fulfill (2–3 weeks delivery)
 
 Requests are stored in the browser order queue (admin panel). When Resend is configured, order packets are emailed to **info@wellpept.com**; otherwise a mailto draft opens.
 

@@ -450,7 +450,7 @@ export default function App() {
       skin: true,
       mix: product.kind === "mix",
       image: product.image || "",
-      ships: "Up to 4 weeks after payment",
+      ships: "2–3 weeks delivery",
       legalNote:
         product.kind === "mix"
           ? "Cosmetic skincare only. Not for injection or medical use."
@@ -851,7 +851,7 @@ export default function App() {
       return null;
     }
     if (!payment && !waitConsent) {
-      setFlash("Confirm you can wait up to 4 weeks for inventory");
+      setFlash("Confirm you can wait 2–3 weeks for delivery");
       return null;
     }
     const subtotal = cart.reduce((sum, line) => sum + line.price * line.qty, 0);
@@ -924,7 +924,7 @@ export default function App() {
             <span className="header-top-msg">
               {labVisible
                 ? "Undisclosed · alternate universe · by WellPept"
-                : "Request first · Pay after supply check · Up to 4 weeks"}
+                : "Request first · Pay after supply check · 2–3 weeks"}
             </span>
             <span className="header-top-links">
               {labVisible ? (
@@ -1395,7 +1395,7 @@ export default function App() {
                       <li>80 MG · BAC 3.2 mL template</li>
                       <li>Kit of 10 labeled vials</li>
                       <li>Request first · pay after supply check</li>
-                      <li>US shipping only · up to 4 weeks after payment</li>
+                      <li>US shipping only · 2–3 weeks delivery</li>
                     </ul>
                     <div className="hero-cta" style={{ marginTop: "0.85rem" }}>
                       <button
@@ -1553,7 +1553,7 @@ export default function App() {
                     <strong>Request → supply check → pay</strong>
                     <p>
                       All orders come to us first. We confirm inventory, then
-                      email payment within 24 hours. Allow up to 4 weeks.
+                      email payment within 24 hours. Allow 2–3 weeks for delivery.
                     </p>
                   </div>
                 </div>
@@ -1738,7 +1738,7 @@ export default function App() {
                     </li>
                     <li>
                       <Truck size={16} />
-                      US shipping only · allow up to 4 weeks after payment
+                      US shipping only · allow 2–3 weeks delivery
                     </li>
                     <li>
                       <ShieldCheck size={16} />
@@ -2567,7 +2567,7 @@ function CartPage({
     }
     if (!waitConsent) {
       setPacketMsg(
-        "Confirm you are willing to wait up to 4 weeks until inventory replenishes."
+        "Confirm you are willing to wait 2–3 weeks for delivery."
       );
       return;
     }
@@ -2660,7 +2660,7 @@ function CartPage({
           <h1>Cart</h1>
           <p className="lede">
             No payment at checkout. Submit a request, we confirm supply, then email
-            payment instructions within 24 hours. Fulfillment can take up to 4 weeks.
+            payment instructions within 24 hours. Delivery takes 2–3 weeks.
           </p>
 
           <div className="notice" style={{ marginTop: "0.75rem" }}>
@@ -2669,7 +2669,7 @@ function CartPage({
               <li>You submit this request (quoted total below is not charged yet).</li>
               <li>We check supply and get back to you within 24 hours.</li>
               <li>You pay only after we confirm we can fulfill.</li>
-              <li>Ship after payment — allow up to 4 weeks / until inventory replenishes.</li>
+              <li>Ship after payment — 2–3 weeks delivery.</li>
             </ol>
           </div>
 
@@ -2872,8 +2872,7 @@ function CartPage({
                     <span>
                       I understand there is no payment yet. After supply is
                       confirmed I will receive payment instructions within 24
-                      hours, and I am willing to wait up to 4 weeks (or until
-                      inventory replenishes) for fulfillment.
+                      hours, and I am willing to wait 2–3 weeks for delivery.
                     </span>
                   </label>
 
@@ -2919,14 +2918,14 @@ function CartPage({
                     We will check supply and email you at{" "}
                     <strong>{packet.customer?.email}</strong> within 24 hours
                     with next steps for payment. Do not send payment until you
-                    hear from us. Allow up to 4 weeks after payment for
+                    hear from us. Allow 2–3 weeks delivery for
                     fulfillment.
                   </p>
                   <ul className="cart-confirm-meta">
                     <li>Quoted total: {formatMoney(packet.totals?.total || 0)}</li>
                     <li>Ship to: {packet.customer?.name}</li>
                     {packet.waitConsent ? (
-                      <li>4-week wait accepted</li>
+                      <li>2–3 week delivery accepted</li>
                     ) : null}
                   </ul>
                   {packetMsg ? (
@@ -3906,7 +3905,7 @@ function AdminPanel({
                       <td>
                         {o.status || "awaiting_supply_review"}
                         {o.waitConsent ? (
-                          <div className="meta">4-week wait accepted</div>
+                          <div className="meta">2–3 week delivery accepted</div>
                         ) : null}
                         {o.payment?.provider ? (
                           <div className="meta">via {o.payment.provider}</div>

@@ -15,10 +15,10 @@ export const THE_LOBSTER_VENDOR = {
   featuredFor: "HGH",
   minOrder: 800,
   shippingFlat: 100,
-  shippingNote: "US only · $100 flat shipping · request first · pay after supply check · up to 4 weeks",
+  shippingNote: "US only · $100 flat shipping · request first · pay after supply check · 2–3 weeks",
   priceListSource: "Lobster International (Wayback 2026-06-27)",
   notes:
-    "Featured for HGH. Request first — confirm supply within 24h, then payment. US shipping only · $100 flat. Min order applies. Allow up to 4 weeks after payment. Drop-ship via Wellpept only — do not expose vendor site to customers.",
+    "Featured for HGH. Request first — confirm supply within 24h, then payment. US shipping only · $100 flat. Min order applies. Allow 2–3 weeks after payment. Drop-ship via Wellpept only — do not expose vendor site to customers.",
   createdAt: "2026-01-01T00:00:00.000Z",
 };
 

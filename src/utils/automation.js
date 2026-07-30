@@ -365,7 +365,7 @@ export function buildOrderPacket({
     totals: { subtotal, shipping, total },
     shipments,
     notes:
-      "ORDER REQUEST — check supply first. Do not charge until confirmed. Reply to customer within 24 hours with payment instructions. Fulfillment can take up to 4 weeks / until inventory replenishes. Drop-ship via Wellpept only. Do not share vendor storefront links with the customer.",
+      "ORDER REQUEST — check supply first. Do not charge until confirmed. Reply to customer within 24 hours with payment instructions. Delivery takes 2–3 weeks. Drop-ship via Wellpept only. Do not share vendor storefront links with the customer.",
   };
 }
 
@@ -385,7 +385,7 @@ export function formatOrderPacketText(packet) {
   );
   if (packet.waitConsent) {
     lines.push(
-      `Wait consent: YES — customer accepts up to 4 weeks / until inventory replenishes`
+      `Wait consent: YES — customer accepts 2–3 weeks delivery`
     );
   }
   lines.push("");

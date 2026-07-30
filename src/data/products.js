@@ -824,7 +824,7 @@ export function buildCatalog(vendors, submissions) {
       reviews: Number(item.reviews) || 0,
       inStock: true,
       ships:
-        "US only · request first · pay after supply check · up to 4 weeks",
+        "US only · request first · pay after supply check · 2–3 weeks",
       badge: featured ? "Featured" : null,
       featured,
     };
