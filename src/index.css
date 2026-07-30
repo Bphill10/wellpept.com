@@ -942,6 +942,69 @@ svg {
   margin: 0;
 }
 
+.hero--undisclosed-compact {
+  min-height: min(42vh, 360px);
+}
+
+.hero--undisclosed-compact .hero-content {
+  padding-top: 2.5rem;
+  padding-bottom: 2.25rem;
+}
+
+.hero--undisclosed-compact .hero-tagline {
+  margin-bottom: 1.1rem;
+  max-width: 28rem;
+}
+
+.catalog-sections {
+  display: grid;
+  gap: 2.25rem;
+  margin-top: 1.25rem;
+}
+
+.catalog-category {
+  scroll-margin-top: 5.5rem;
+}
+
+.catalog-category-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.catalog-category-head h3 {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.catalog-category-head span {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.app-shell--undisclosed .catalog-category-head {
+  border-bottom-color: rgba(255, 255, 255, 0.14);
+}
+
+.app-shell--undisclosed .catalog-category-head h3 {
+  color: #fff;
+}
+
+.app-shell--undisclosed .catalog-category-head span {
+  color: rgba(244, 246, 248, 0.55);
+}
+
 .hero-tagline {
   margin: 0 0 0.75rem;
   font-family: var(--font-display);

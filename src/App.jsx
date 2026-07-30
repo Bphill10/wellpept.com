@@ -5,7 +5,6 @@ import {
   Store,
   ShieldCheck,
   ArrowLeft,
-  ArrowRight,
   Plus,
   Minus,
   Check,
@@ -13,11 +12,6 @@ import {
   Package,
   Truck,
   Calculator,
-  FlaskConical,
-  Headset,
-  BadgeCheck,
-  Microscope,
-  Factory,
 } from "lucide-react";
 import {
   CATEGORIES,
@@ -91,12 +85,7 @@ import PriceCompare from "./components/PriceCompare";
 import LiveChat, { openLiveChat, contactEmail } from "./components/LiveChat";
 import AuthGate from "./components/AuthGate";
 import { getSession, logout as logoutAccount } from "./utils/auth";
-import { CHANGSHA_VENDOR } from "./data/changshaPremium";
-import {
-  LYOPHILIZED_QC,
-  RESEARCH_GLOSSARY,
-  researchHelpFor,
-} from "./data/researchGuide";
+import { researchHelpFor } from "./data/researchGuide";
 import {
   setLabUnlocked,
   labUnlockFromUrl,
@@ -522,34 +511,21 @@ export default function App() {
     return matchesQuery && matchesCategory;
   });
 
-  const bestsellers = useMemo(
-    () =>
-      [...listings]
-        .filter((l) => l.variants.some((v) => !v.externalOnly))
-        .sort((a, b) => {
-          const reviewDiff = (Number(b.reviews) || 0) - (Number(a.reviews) || 0);
-          if (reviewDiff !== 0) return reviewDiff;
-          if (Boolean(b.featured) !== Boolean(a.featured)) {
-            return Number(Boolean(b.featured)) - Number(Boolean(a.featured));
-          }
-          return a.name.localeCompare(b.name);
-        })
-        .slice(0, 8),
-    [listings]
-  );
-
-  const newArrivals = useMemo(
-    () =>
-      [...listings]
-        .filter((l) => l.variants.some((v) => !v.externalOnly))
-        .sort((a, b) => {
-          const aSku = a.variants[a.variants.length - 1]?.sku || "";
-          const bSku = b.variants[b.variants.length - 1]?.sku || "";
-          return String(bSku).localeCompare(String(aSku));
-        })
-        .slice(0, 8),
-    [listings]
-  );
+  const catalogSections = useMemo(() => {
+    const cats =
+      category === "All"
+        ? CATEGORIES.filter((c) => c !== "All")
+        : [category];
+    return cats
+      .map((cat) => ({
+        category: cat,
+        items: filtered
+          .filter((l) => l.category === cat)
+          .slice()
+          .sort((a, b) => a.name.localeCompare(b.name)),
+      }))
+      .filter((section) => section.items.length > 0);
+  }, [filtered, category]);
 
   function goShop() {
     setView(labVisible ? VIEWS.shop : VIEWS.skincare);
@@ -1205,9 +1181,13 @@ export default function App() {
                   onClick={() => {
                     setCategory(c);
                     setView(VIEWS.shop);
-                    document
-                      .getElementById("catalog")
-                      ?.scrollIntoView({ behavior: "smooth" });
+                    window.setTimeout(() => {
+                      const id =
+                        c === "All" ? "catalog" : `cat-${c.replace(/\s+/g, "-")}`;
+                      document
+                        .getElementById(id)
+                        ?.scrollIntoView({ behavior: "smooth" });
+                    }, 40);
                   }}
                 >
                   {c}
@@ -1385,17 +1365,18 @@ export default function App() {
 
         {view === VIEWS.shop && labVisible && (
           <>
-              <div className="lab-banner">
-                <div className="container lab-banner-inner">
-                  <span>
-                    Undisclosed · beyond the gatekeepers · brought to you by WellPept
-                  </span>
-                  <button type="button" className="ghost-btn" onClick={lockLabMenu}>
-                    Exit to WellPept
-                  </button>
-                </div>
+            <div className="lab-banner">
+              <div className="container lab-banner-inner">
+                <span>
+                  Undisclosed · research catalog · brought to you by WellPept
+                </span>
+                <button type="button" className="ghost-btn" onClick={lockLabMenu}>
+                  Exit to WellPept
+                </button>
               </div>
-            <section className="hero hero--undisclosed">
+            </div>
+
+            <section className="hero hero--undisclosed hero--undisclosed-compact">
               <div className="hero-media hero-media--undisclosed" aria-hidden="true" />
               <div className="container hero-content">
                 <div className="hero-brand-lockup rise">
@@ -1413,13 +1394,8 @@ export default function App() {
                     </p>
                   </div>
                 </div>
-                <div className="hero-brand-rule rise-delay" aria-hidden="true" />
                 <p className="hero-tagline rise-delay">
-                  Take control of your health. It&apos;s your human right.
-                </p>
-                <p className="hero-copy rise-delay">
-                  Research peptides outside the Big Pharma script. Same molecules.
-                  Fewer gatekeepers. Ask the questions they won&apos;t.
+                  Full research catalog. Pick a category and order.
                 </p>
                 <div className="hero-cta rise-delay">
                   <button
@@ -1427,11 +1403,11 @@ export default function App() {
                     className="primary-btn"
                     onClick={() =>
                       document
-                        .getElementById("featured")
+                        .getElementById("catalog")
                         ?.scrollIntoView({ behavior: "smooth" })
                     }
                   >
-                    Shop featured
+                    Browse catalog
                   </button>
                   <button
                     type="button"
@@ -1447,143 +1423,18 @@ export default function App() {
               </div>
             </section>
 
-            <section className="ud-signal-strip" aria-label="Signal phrases">
-              <div className="ud-signal-track">
-                <span>FDA · APPROVED FOR WHO?</span>
-                <span>BIG PHARMA · FOLLOW THE MONEY</span>
-                <span>PEPTIDE TRUTH · ASK QUESTIONS</span>
-                <span>YOUR BODY · YOUR RESEARCH</span>
-                <span>TAKE CONTROL · HUMAN RIGHT</span>
-                <span>GATEKEEPERS · OPTIONAL</span>
-                <span>FDA · APPROVED FOR WHO?</span>
-                <span>BIG PHARMA · FOLLOW THE MONEY</span>
-                <span>PEPTIDE TRUTH · ASK QUESTIONS</span>
-                <span>YOUR BODY · YOUR RESEARCH</span>
-                <span>TAKE CONTROL · HUMAN RIGHT</span>
-                <span>GATEKEEPERS · OPTIONAL</span>
-              </div>
-            </section>
-
-            <section className="section featured-vendor-section" id="featured">
-              <div className="container">
-                <div className="featured-vendor panel">
-                  <div className="featured-vendor-copy">
-                    <span className="featured-kicker">Featured kit</span>
-                    <h2>KLOW</h2>
-                    <p>
-                      Signature Undisclosed kit photography. 10 × 80 MG
-                      lyophilized vials with clinical wrap labels, QR, and
-                      research-only marking. Request first; we confirm supply
-                      within 24 hours, then payment. US shipping only.
-                    </p>
-                    <ul className="featured-meta">
-                      <li>Featured kit photography</li>
-                      <li>80 MG · BAC 3.2 mL template</li>
-                      <li>Kit of 10 labeled vials</li>
-                      <li>Request first · pay after supply check</li>
-                      <li>US shipping only · 2-3 weeks delivery</li>
-                    </ul>
-                    <div className="hero-cta" style={{ marginTop: "0.85rem" }}>
-                      <button
-                        type="button"
-                        className="primary-btn"
-                        onClick={() => {
-                          setQuery("KLOW");
-                          setCategory("All");
-                          document
-                            .getElementById("catalog")
-                            ?.scrollIntoView({ behavior: "smooth" });
-                        }}
-                      >
-                        Shop KLOW
-                      </button>
-                      <button
-                        type="button"
-                        className="soft-btn"
-                        onClick={() => {
-                          setQuery("");
-                          setCategory("All");
-                          document
-                            .getElementById("catalog")
-                            ?.scrollIntoView({ behavior: "smooth" });
-                        }}
-                      >
-                        Full catalog
-                      </button>
-                    </div>
-                  </div>
-                  <div className="featured-vendor-visual">
-                    <img
-                      src="/undisclosed-hero-kit.webp"
-                      alt="Undisclosed KLOW 80 MG research kit"
-                      className="featured-product-photo"
-                      width={1536}
-                      height={1024}
-                      decoding="async"
-                    />
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section className="section">
+            <section className="section catalog-page" id="catalog">
               <div className="container">
                 <div className="section-head">
                   <div>
-                    <p className="section-kicker">This week</p>
-                    <h2>Bestsellers</h2>
-                    <p>Focused research lines from Changsha.</p>
-                  </div>
-                </div>
-                <div className="product-grid">
-                  {bestsellers.map((listing) => (
-                    <ProductCard
-                      key={`best-${listing.id}`}
-                      listing={listing}
-                      onOpen={openProduct}
-                      onAdd={addToCart}
-                    />
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            {!query.trim() && category === "All" && (
-              <section className="section section-tight">
-                <div className="container">
-                  <div className="section-head">
-                    <div>
-                      <p className="section-kicker">Just listed</p>
-                      <h2>New arrivals</h2>
-                      <p>Fresh lines from the latest approved price lists.</p>
-                    </div>
-                  </div>
-                  <div className="product-grid">
-                    {newArrivals.map((listing) => (
-                      <ProductCard
-                        key={`new-${listing.id}`}
-                        listing={listing}
-                        onOpen={openProduct}
-                        onAdd={addToCart}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </section>
-            )}
-
-            <section className="section" id="catalog">
-              <div className="container">
-                <div className="section-head">
-                  <div>
-                    <p className="section-kicker">Full marketplace</p>
-                    <h2>Catalog</h2>
+                    <p className="section-kicker">Research catalog</p>
+                    <h2>Full catalog</h2>
                     <p>
-                      {filtered.length} result
+                      {filtered.length} peptide
                       {filtered.length === 1 ? "" : "s"}
                       {category !== "All" ? ` in ${category}` : ""}
                       {query.trim() ? ` for “${query.trim()}”` : ""}. US
-                      shipping only.
+                      shipping only · request first, pay after supply check.
                     </p>
                   </div>
                 </div>
@@ -1605,352 +1456,55 @@ export default function App() {
                       key={c}
                       type="button"
                       className={`chip ${category === c ? "active" : ""}`}
-                      onClick={() => setCategory(c)}
+                      onClick={() => {
+                        setCategory(c);
+                        if (c !== "All") {
+                          window.setTimeout(() => {
+                            document
+                              .getElementById(`cat-${c.replace(/\s+/g, "-")}`)
+                              ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                          }, 40);
+                        }
+                      }}
                     >
                       {c}
                     </button>
                   ))}
                 </div>
 
-                {filtered.length === 0 ? (
+                {catalogSections.length === 0 ? (
                   <div className="empty-state">
                     No approved products match this search yet.
                   </div>
                 ) : (
-                  <div className="product-grid">
-                    {filtered.map((listing) => (
-                      <ProductCard
-                        key={listing.id}
-                        listing={listing}
-                        onOpen={openProduct}
-                        onAdd={addToCart}
-                      />
+                  <div className="catalog-sections">
+                    {catalogSections.map((section) => (
+                      <section
+                        key={section.category}
+                        className="catalog-category"
+                        id={`cat-${section.category.replace(/\s+/g, "-")}`}
+                      >
+                        <div className="catalog-category-head">
+                          <h3>{section.category}</h3>
+                          <span>
+                            {section.items.length} item
+                            {section.items.length === 1 ? "" : "s"}
+                          </span>
+                        </div>
+                        <div className="product-grid">
+                          {section.items.map((listing) => (
+                            <ProductCard
+                              key={listing.id}
+                              listing={listing}
+                              onOpen={openProduct}
+                              onAdd={addToCart}
+                            />
+                          ))}
+                        </div>
+                      </section>
                     ))}
                   </div>
                 )}
-              </div>
-            </section>
-
-            <section className="trust-strip">
-              <div className="container trust-grid">
-                <div className="trust-item">
-                  <Truck size={22} />
-                  <div>
-                    <strong>Request → supply check → pay</strong>
-                    <p>
-                      All orders come to us first. We confirm inventory, then
-                      email payment within 24 hours. Allow 2-3 weeks for delivery.
-                    </p>
-                  </div>
-                </div>
-                <div className="trust-item">
-                  <Microscope size={22} />
-                  <div>
-                    <strong>3rd-party lab tested</strong>
-                    <p>Vendors publish Janoshik / COA-backed purity claims.</p>
-                  </div>
-                </div>
-                <div className="trust-item">
-                  <BadgeCheck size={22} />
-                  <div>
-                    <strong>Admin-approved listings</strong>
-                    <p>Price lists reviewed before they hit the catalog.</p>
-                  </div>
-                </div>
-                <div className="trust-item">
-                  <Headset size={22} />
-                  <div>
-                    <strong>Research tools built in</strong>
-                    <p>Reconstitution calculator built in.</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section className="mission-band">
-              <div className="container mission-inner">
-                <div>
-                  <p className="section-kicker">Why Undisclosed</p>
-                  <h2>They gatekeep. You decide.</h2>
-                  <p>
-                    Big Pharma and the FDA write the script: what you may ask,
-                    what you may access, and how much that privilege costs.
-                    Undisclosed is the darker mirror. Same molecules. Fewer
-                    middlemen. Curiosity is not a crime. Your health literacy
-                    is your human right.
-                  </p>
-                </div>
-                <ul className="mission-points">
-                  <li>
-                    <FlaskConical size={18} /> Same compound identity. Research
-                    purity, not pharmacy branding
-                  </li>
-                  <li>
-                    <ShieldCheck size={18} /> Source closer to manufacture.
-                    Fewer hands between plant and bench
-                  </li>
-                  <li>
-                    <Microscope size={18} /> Compare COAs &amp; fill data before
-                    you commit inventory
-                  </li>
-                </ul>
-              </div>
-            </section>
-
-            <section className="section supply-chain" id="supply-chain">
-              <div className="container">
-                <div className="section-head">
-                  <div>
-                    <p className="section-kicker">How peptides are made</p>
-                    <h2>From source plant to your US lab</h2>
-                    <p>
-                      Most research peptides follow the same manufacturing path.
-                      Undisclosed sits after QC, connecting approved vendors to
-                      your bench without sending you to their storefront.
-                    </p>
-                  </div>
-                </div>
-
-                <ol className="supply-flow">
-                  <li className="supply-step">
-                    <span className="supply-step-icon" aria-hidden="true">
-                      <Factory size={22} />
-                    </span>
-                    <span className="supply-step-num">1</span>
-                    <strong>Synthesis</strong>
-                    <p>
-                      Sequences are built in research-chemical manufacturing
-                      hubs, the same corridors behind most “research” vials.
-                    </p>
-                  </li>
-                  <li className="supply-flow-arrow" aria-hidden="true">
-                    <ArrowRight size={20} />
-                  </li>
-                  <li className="supply-step">
-                    <span className="supply-step-icon" aria-hidden="true">
-                      <FlaskConical size={22} />
-                    </span>
-                    <span className="supply-step-num">2</span>
-                    <strong>Purify &amp; dry</strong>
-                    <p>
-                      Crude peptide is purified and lyophilized into stable
-                      powder ready for research vials.
-                    </p>
-                  </li>
-                  <li className="supply-flow-arrow" aria-hidden="true">
-                    <ArrowRight size={20} />
-                  </li>
-                  <li className="supply-step">
-                    <span className="supply-step-icon" aria-hidden="true">
-                      <Package size={22} />
-                    </span>
-                    <span className="supply-step-num">3</span>
-                    <strong>Vial &amp; kit</strong>
-                    <p>
-                      Every line ships as a kit of 10 lyophilized vials.
-                      White powder for most compounds, blue for KLOW.
-                    </p>
-                  </li>
-                  <li className="supply-flow-arrow" aria-hidden="true">
-                    <ArrowRight size={20} />
-                  </li>
-                  <li className="supply-step">
-                    <span className="supply-step-icon" aria-hidden="true">
-                      <Microscope size={22} />
-                    </span>
-                    <span className="supply-step-num">4</span>
-                    <strong>QC / COA</strong>
-                    <p>
-                      Batches are checked for purity and identity; third-party
-                      reports back the claim when available.
-                    </p>
-                  </li>
-                  <li className="supply-flow-arrow" aria-hidden="true">
-                    <ArrowRight size={20} />
-                  </li>
-                  <li className="supply-step">
-                    <span className="supply-step-icon" aria-hidden="true">
-                      <Truck size={22} />
-                    </span>
-                    <span className="supply-step-num">5</span>
-                    <strong>US drop-ship</strong>
-                    <p>
-                      You order on Undisclosed; the approved vendor ships to your
-                      US address. Vendor sites stay hidden.
-                    </p>
-                  </li>
-                </ol>
-
-                <div className="supply-example">
-                  <div className="supply-example-copy">
-                    <p className="section-kicker">Source path example</p>
-                    <h3>Tirzepatide kit · research supply</h3>
-                    <p>
-                      Same active structure whether it arrives via a branded
-                      pharmacy lane or a research manufacturer. We list the
-                      research path: plant → vial → COA → approved vendor →
-                      your lab.
-                    </p>
-                  </div>
-                  <ol className="source-path">
-                    <li>
-                      <span>Plant</span>
-                      Research-chemical synthesis corridor
-                    </li>
-                    <li>
-                      <span>Fill</span>
-                      Lyophilized kit at labeled strength
-                    </li>
-                    <li>
-                      <span>Proof</span>
-                      Purity / identity documentation
-                    </li>
-                    <li>
-                      <span>Fulfill</span>
-                      Vendor drop-ships US-only via Undisclosed
-                    </li>
-                  </ol>
-                  <ul className="supply-example-notes">
-                    <li>
-                      <Package size={16} />
-                      Shipping from{" "}
-                      {formatMoney(CHANGSHA_VENDOR.shippingFlat)}
-                      {" · "}
-                      {CHANGSHA_VENDOR.shippingNote || "US only"}
-                    </li>
-                    <li>
-                      <Truck size={16} />
-                      US shipping only · 2-3 weeks delivery
-                    </li>
-                    <li>
-                      <ShieldCheck size={16} />
-                      Request first · we confirm supply · then you pay
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </section>
-
-            <section className="value-thesis section">
-              <div className="container">
-                <div className="section-head">
-                  <div>
-                    <p className="section-kicker">The thesis</p>
-                    <h2>FDA. Big Pharma. Same molecule.</h2>
-                    <p>
-                      Follow the money. Ask who profits when access is locked
-                      behind a logo. Undisclosed puts the research path in your
-                      hands. Laboratory use only.
-                    </p>
-                  </div>
-                </div>
-                <div className="thesis-grid">
-                  <article className="thesis-card panel">
-                    <p className="section-kicker">FDA theater?</p>
-                    <h3>Approved for who, and at what price</h3>
-                    <p>
-                      Regulation protects people. It also protects margins.
-                      When the sequence is public knowledge and the research
-                      supply already exists, the question isn&apos;t “does the
-                      molecule exist?” It’s who is allowed to talk about
-                      it, and who collects the toll.
-                    </p>
-                  </article>
-                  <article className="thesis-card panel">
-                    <p className="section-kicker">Big Pharma?</p>
-                    <h3>Brand tax on the same compound</h3>
-                    <p>
-                      When the active is the same sequence or small molecule,
-                      judge purity, fill, and the paperwork, not the name on
-                      the box. Pay for data. Don&apos;t pay for the silence
-                      around alternatives.
-                    </p>
-                  </article>
-                  <article className="thesis-card panel thesis-card-accent">
-                    <p className="section-kicker">Your right</p>
-                    <h3>Take control. Ask questions.</h3>
-                    <p>
-                      Take control of your health literacy. It&apos;s your human
-                      right to inquire. Undisclosed: admin-vetted vendors,
-                      documented kits, US drop-ship. Laboratory research use
-                      only. Not for human consumption or medical use. Brought
-                      to you by WellPept.
-                    </p>
-                  </article>
-                </div>
-              </div>
-            </section>
-
-            <section className="lab-band">
-              <div className="container lab-inner">
-                <div>
-                  <p className="section-kicker">Documentation</p>
-                  <h2>Judge the molecule on the data</h2>
-                  <p>
-                    Research equivalents earn trust with verifiable purity and
-                    fill data. Independent COAs let your lab compare batches the
-                    same way you’d compare any analytical standard, without
-                    paying for a pharmacy label.
-                  </p>
-                </div>
-                <ul className="lab-points">
-                  <li>Batch transparency for the bench</li>
-                  <li>Unbiased third-party reports</li>
-                  <li>Purity &amp; fill over packaging</li>
-                </ul>
-              </div>
-            </section>
-
-            <section className="section research-guide" id="research-guide">
-              <div className="container">
-                <div className="section-head">
-                  <div>
-                    <p className="section-kicker">Lab literacy</p>
-                    <h2>What to check before you assay</h2>
-                    <p>
-                      Quick visual and testing cues for lyophilized research
-                      peptides. Layer these with third-party COAs. For
-                      laboratory research use only.
-                    </p>
-                  </div>
-                </div>
-                <div className="qc-grid">
-                  <article className="panel qc-card">
-                    <h3>Looks good</h3>
-                    <ul>
-                      {LYOPHILIZED_QC.good.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </article>
-                  <article className="panel qc-card">
-                    <h3>Pause / retest</h3>
-                    <ul>
-                      {LYOPHILIZED_QC.caution.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </article>
-                  <article className="panel qc-card">
-                    <h3>Worth testing</h3>
-                    <ul>
-                      {LYOPHILIZED_QC.testing.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </article>
-                </div>
-                <div className="glossary-block">
-                  <h3>Research glossary</h3>
-                  <div className="glossary-grid">
-                    {RESEARCH_GLOSSARY.map((g) => (
-                      <div key={g.term} className="glossary-item">
-                        <strong>{g.term}</strong>
-                        <p>{g.def}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             </section>
           </>
