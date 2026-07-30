@@ -55,6 +55,13 @@ import {
 import { fetchChargebeeConfig } from "./utils/chargebeeClient";
 import { fetchPaymentConfig } from "./utils/payments";
 import CheckoutPayment from "./components/CheckoutPayment";
+import ManualPayMethods from "./components/ManualPayMethods";
+import {
+  loadManualPayConfig,
+  saveManualPayConfig,
+  formatManualPayText,
+  manualPayConfigured,
+} from "./utils/manualPayments";
 import {
   getCoaMeta,
   setCoaUrl,
@@ -785,9 +792,10 @@ export default function App() {
   }
 
   function handleStripePaid(orderId, payment) {
+    const provider = payment?.provider || "stripe";
     let updated = markOrderPaid(orderId, {
       ...payment,
-      provider: "stripe",
+      provider,
     });
     if (!updated && payInvoice?.orderId === orderId) {
       updated = {
@@ -803,13 +811,13 @@ export default function App() {
           total: payInvoice.total,
         },
         shipments: [],
-        notes: "Paid via Stripe pay link",
+        notes: `Paid via ${provider}`,
         payment: {
-          provider: "stripe",
+          provider,
           paymentIntentId: payment.id || payment.paymentIntentId || "",
           status: payment.status || "succeeded",
           amountCents: payment.amount || payment.amountCents || null,
-          methods: payment.methods || "card_or_affirm",
+          methods: payment.methods || provider,
         },
       };
       setOrders(saveOrder(updated));
@@ -828,7 +836,7 @@ export default function App() {
     } catch {
       /* ignore */
     }
-    setFlash(`Payment received · order ${orderId}`);
+    setFlash(`Payment received · order ${orderId} · ${provider}`);
     setView(VIEWS.cart);
   }
 
@@ -1958,6 +1966,15 @@ export default function App() {
             onApproveAllPending={approveAllPending}
             onApproveAllLines={approveAllPendingLines}
             onRejectAllLines={rejectAllPendingLines}
+            onMarkOrderPaid={(orderId, provider) => {
+              const updated = markOrderPaid(orderId, {
+                provider,
+                status: "succeeded",
+                methods: provider,
+              });
+              if (updated) setOrders(loadOrders());
+              setFlash(`Marked paid · ${orderId} · ${provider}`);
+            }}
             onFlash={setFlash}
           />
         )}
@@ -2592,8 +2609,8 @@ function CartPage({
           <div className="panel" style={{ marginTop: "1rem" }}>
             <h1>Pay order {payInvoice.orderId}</h1>
             <p className="lede">
-              Secure Stripe checkout for your confirmed WellPept order. Cards and
-              Affirm (when enabled) are accepted.
+              Supply confirmed. Pay the quoted total with Venmo, Zelle, or USDC
+              crypto. Cards via Stripe when configured.
             </p>
             <div className="notice" style={{ marginTop: "0.75rem" }}>
               <strong>Amount due:</strong> {formatMoney(payInvoice.total)}
@@ -2601,14 +2618,20 @@ function CartPage({
                 {payInvoice.customer?.name} · {payInvoice.customer?.email}
               </div>
             </div>
-            {!stripeConfig?.enabled || !stripeConfig?.publishableKey ? (
-              <div className="notice warn" style={{ marginTop: "1rem" }}>
-                Stripe is not configured yet. Add live keys on Vercel (
-                <code>VITE_STRIPE_PUBLISHABLE_KEY</code> +{" "}
-                <code>STRIPE_SECRET_KEY</code>) and redeploy.
-              </div>
-            ) : (
-              <div style={{ marginTop: "1rem" }}>
+
+            <div style={{ marginTop: "1rem" }}>
+              <ManualPayMethods
+                orderId={payInvoice.orderId}
+                total={payInvoice.total}
+                onPaid={(payment) =>
+                  onStripePaid?.(payInvoice.orderId, payment)
+                }
+              />
+            </div>
+
+            {stripeConfig?.enabled && stripeConfig?.publishableKey ? (
+              <div style={{ marginTop: "1.25rem" }}>
+                <h2>Or pay by card</h2>
                 <CheckoutPayment
                   publishableKey={stripeConfig.publishableKey}
                   total={payInvoice.total}
@@ -2622,6 +2645,11 @@ function CartPage({
                   }
                 />
               </div>
+            ) : (
+              <p className="meta" style={{ marginTop: "1rem" }}>
+                Card checkout is optional — Venmo / Zelle / crypto above work
+                now. Stripe can be added later on Vercel.
+              </p>
             )}
             {packetMsg && (
               <div className="notice warn" style={{ marginTop: "0.75rem" }}>
@@ -3435,11 +3463,13 @@ function AdminPanel({
   onApproveAllPending,
   onApproveAllLines,
   onRejectAllLines,
+  onMarkOrderPaid,
   onFlash,
 }) {
   const pendingVendors = vendors.filter((v) => v.status === "pending");
   const pendingItems = submissions.filter((s) => s.status === "pending");
   const vendorName = (id) => vendors.find((v) => v.id === id)?.name || id;
+  const [payConfig, setPayConfig] = useState(() => loadManualPayConfig());
 
   async function copyPayLink(order) {
     const url = buildStripePayUrl(order);
@@ -3449,10 +3479,35 @@ function AdminPanel({
     }
     try {
       await navigator.clipboard.writeText(url);
-      onFlash?.(`Stripe pay link copied · ${order.orderId}`);
+      onFlash?.(`Customer pay link copied · ${order.orderId}`);
     } catch {
-      window.prompt("Copy Stripe pay link", url);
+      window.prompt("Copy customer pay link", url);
     }
+  }
+
+  async function copyPayInstructions(order) {
+    const text = formatManualPayText({
+      orderId: order.orderId,
+      total: order.totals?.total || 0,
+      config: payConfig,
+    });
+    try {
+      await navigator.clipboard.writeText(text);
+      onFlash?.(`Venmo/Zelle/crypto instructions copied · ${order.orderId}`);
+    } catch {
+      window.prompt("Copy payment instructions", text);
+    }
+  }
+
+  function savePayMethods(e) {
+    e.preventDefault();
+    const next = saveManualPayConfig(payConfig);
+    setPayConfig(next);
+    onFlash?.(
+      manualPayConfigured(next)
+        ? "Payment methods saved on this device"
+        : "Add at least one Venmo, Zelle, or crypto address"
+    );
   }
 
   return (
@@ -3461,10 +3516,93 @@ function AdminPanel({
         <div className="panel">
           <h1>Approval desk</h1>
           <p className="lede">
-            New vendors stay human-gated. Everything else can run on autopilot —
-            bulk approve, trusted updates, and order requests awaiting supply
-            review.
+            New vendors stay human-gated. Configure Venmo / Zelle / crypto here,
+            then send customers a pay link after supply check.
           </p>
+
+          <form className="manual-pay-admin" onSubmit={savePayMethods}>
+            <h2>Payment methods (Venmo · Zelle · Crypto)</h2>
+            <p className="meta">
+              Saved in this browser (and optional Vercel env). Needed before
+              customers can pay without Stripe.
+            </p>
+            <div className="form-row">
+              <label className="field">
+                Venmo handle
+                <input
+                  value={payConfig.venmoHandle}
+                  onChange={(e) =>
+                    setPayConfig((c) => ({
+                      ...c,
+                      venmoHandle: e.target.value.replace(/^@/, ""),
+                    }))
+                  }
+                  placeholder="yourVenmoName"
+                />
+              </label>
+              <label className="field">
+                Zelle email or phone
+                <input
+                  value={payConfig.zelleContact}
+                  onChange={(e) =>
+                    setPayConfig((c) => ({ ...c, zelleContact: e.target.value }))
+                  }
+                  placeholder="pay@wellpept.com"
+                />
+              </label>
+            </div>
+            <div className="form-row">
+              <label className="field">
+                Zelle name (optional)
+                <input
+                  value={payConfig.zelleName}
+                  onChange={(e) =>
+                    setPayConfig((c) => ({ ...c, zelleName: e.target.value }))
+                  }
+                  placeholder="WellPept"
+                />
+              </label>
+              <label className="field">
+                Note on pay page
+                <input
+                  value={payConfig.note}
+                  onChange={(e) =>
+                    setPayConfig((c) => ({ ...c, note: e.target.value }))
+                  }
+                />
+              </label>
+            </div>
+            <label className="field">
+              Solana USDC address
+              <input
+                value={payConfig.solanaUsdc}
+                onChange={(e) =>
+                  setPayConfig((c) => ({ ...c, solanaUsdc: e.target.value }))
+                }
+                placeholder="Your Solana wallet"
+                spellCheck={false}
+              />
+            </label>
+            <label className="field">
+              Ethereum USDC address
+              <input
+                value={payConfig.ethUsdc}
+                onChange={(e) =>
+                  setPayConfig((c) => ({ ...c, ethUsdc: e.target.value }))
+                }
+                placeholder="0x…"
+                spellCheck={false}
+              />
+            </label>
+            <button type="submit" className="primary-btn">
+              Save payment methods
+            </button>
+            {!manualPayConfigured(payConfig) && (
+              <p className="meta" style={{ marginTop: "0.5rem" }}>
+                Add at least one method so the customer pay page works today.
+              </p>
+            )}
+          </form>
 
           <div className="notice warn">
             {pendingVendors.length} vendor
@@ -3472,6 +3610,7 @@ function AdminPanel({
             price-list line{pendingItems.length === 1 ? "" : "s"} awaiting
             review · {products.length} live products · {orders.length} order
             request{orders.length === 1 ? "" : "s"}
+            {stripeEnabled ? " · Stripe ready" : " · Stripe optional"}
           </div>
 
           <div className="automation-bar">
@@ -3678,7 +3817,7 @@ function AdminPanel({
                   <th>Customer</th>
                   <th>Status</th>
                   <th>Quoted total</th>
-                  <th>Pay link</th>
+                  <th>Collect payment</th>
                 </tr>
               </thead>
               <tbody>
@@ -3707,19 +3846,40 @@ function AdminPanel({
                         {o.waitConsent ? (
                           <div className="meta">4-week wait accepted</div>
                         ) : null}
+                        {o.payment?.provider ? (
+                          <div className="meta">via {o.payment.provider}</div>
+                        ) : null}
                       </td>
                       <td>{formatMoney(o.totals?.total || 0)}</td>
                       <td>
                         {o.status === "paid" ? (
                           <span className="meta">Paid</span>
                         ) : (
-                          <button
-                            type="button"
-                            className="soft-btn"
-                            onClick={() => copyPayLink(o)}
-                          >
-                            Copy Stripe link
-                          </button>
+                          <div className="row-actions admin-pay-actions">
+                            <button
+                              type="button"
+                              className="soft-btn"
+                              onClick={() => copyPayLink(o)}
+                            >
+                              Copy pay link
+                            </button>
+                            <button
+                              type="button"
+                              className="soft-btn"
+                              onClick={() => copyPayInstructions(o)}
+                            >
+                              Copy Venmo/Zelle/crypto
+                            </button>
+                            <button
+                              type="button"
+                              className="ghost-btn"
+                              onClick={() =>
+                                onMarkOrderPaid?.(o.orderId, "manual")
+                              }
+                            >
+                              Mark paid
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>

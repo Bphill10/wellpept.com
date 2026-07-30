@@ -12,7 +12,26 @@ WellPept uses a **request-first** flow. Customers do **not** pay at checkout.
 
 Requests are stored in the browser order queue (admin panel). When Resend is configured, order packets are emailed to **info@wellpept.com**; otherwise a mailto draft opens.
 
-## Activate Stripe (live) today
+## Activate Venmo / Zelle / crypto today (no Stripe required)
+
+1. Unlock Undisclosed Admin (`?ops=1` once)
+2. Open **Approval desk → Payment methods**
+3. Save your **Venmo handle**, **Zelle email/phone**, and/or **USDC wallets**
+4. After an order request + supply check: **Copy pay link** (or **Copy Venmo/Zelle/crypto**)
+5. Customer opens the link → pays → taps **I’ve paid**
+6. Or you tap **Mark paid** when funds arrive
+
+Optional env (Vercel / `.env`) so every device shares the same handles:
+
+```
+VITE_VENMO_HANDLE=yourVenmoName
+VITE_ZELLE_CONTACT=pay@wellpept.com
+VITE_ZELLE_NAME=WellPept
+VITE_CRYPTO_SOLANA_USDC=YourSolanaAddress
+VITE_CRYPTO_ETH_USDC=0xYourEthAddress
+```
+
+## Activate Stripe (live) later
 
 Your app already has Stripe checkout. Turn on live keys:
 
@@ -43,9 +62,11 @@ STRIPE_CURRENCY=usd
 
 Test with a small live charge first, then Instant Payout if you need funds today.
 
-## Crypto (next)
+## Crypto
 
-Stripe first. Crypto (Solana/ETH USDC to your wallet) can be added after live Stripe works.
+Solana USDC (preferred) and Ethereum USDC are supported on the customer pay
+page once wallet addresses are saved in Admin or env. Customers should put the
+**order ID** in the transfer memo.
 
 ## Chargebee (optional later)
 
