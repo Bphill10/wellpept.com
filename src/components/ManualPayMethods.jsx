@@ -1,8 +1,12 @@
 import { useMemo, useState } from "react";
 import { Copy, Check, ExternalLink } from "lucide-react";
 import {
+  CRYPTO_PAY_DISCOUNT_RATE,
+  cryptoPaySavings,
+  cryptoPayTotal,
   formatManualPayText,
   hasVenmo,
+  isCryptoPayProvider,
   loadManualPayConfig,
   manualPayConfigured,
   venmoPayUrl,
@@ -39,6 +43,7 @@ function CopyRow({ label, value }) {
 
 /**
  * Customer-facing Venmo / Zelle / crypto instructions on the pay page.
+ * Crypto (USDC/USDT) gets 5% off the quoted total.
  */
 export default function ManualPayMethods({
   orderId,
@@ -51,6 +56,10 @@ export default function ManualPayMethods({
   const [method, setMethod] = useState("");
   const [sent, setSent] = useState(false);
   const amount = Number(total) || 0;
+  const cryptoAmount = cryptoPayTotal(amount);
+  const cryptoSavings = cryptoPaySavings(amount);
+  const cryptoPct = Math.round(CRYPTO_PAY_DISCOUNT_RATE * 100);
+  const hasCrypto = Boolean(config.solanaUsdc || config.ethUsdc);
   const venmo = venmoPayUrl({
     handle: config.venmoHandle,
     codeUrl: config.venmoCodeUrl,
@@ -68,13 +77,17 @@ export default function ManualPayMethods({
   }
 
   function confirmPaid(provider) {
+    const paidAmount = isCryptoPayProvider(provider) ? cryptoAmount : amount;
     setMethod(provider);
     setSent(true);
     onPaid?.({
       provider,
       status: "submitted_by_customer",
       methods: provider,
-      amountCents: Math.round(amount * 100),
+      amountCents: Math.round(paidAmount * 100),
+      discountPercent: isCryptoPayProvider(provider)
+        ? CRYPTO_PAY_DISCOUNT_RATE * 100
+        : 0,
       id: `${provider}-${orderId}-${Date.now()}`,
     });
   }
@@ -83,14 +96,28 @@ export default function ManualPayMethods({
     <div className="manual-pay">
       <h2>Pay with Venmo, Zelle, or crypto</h2>
       <p className="lede">
-        Amount due <strong>{formatMoney(amount)}</strong>. Put{" "}
-        <strong>{orderId}</strong> in the memo / note so we can match your
+        Amount due <strong>{formatMoney(amount)}</strong>
+        {hasCrypto ? (
+          <>
+            {" "}
+            · crypto (USDC/USDT){" "}
+            <strong>{formatMoney(cryptoAmount)}</strong> ({cryptoPct}% off)
+          </>
+        ) : null}
+        . Put <strong>{orderId}</strong> in the memo / note so we can match your
         payment.
       </p>
+      {hasCrypto ? (
+        <div className="notice ok" style={{ marginBottom: "0.35rem" }}>
+          Pay with USDC or USDT and save {cryptoPct}% (
+          {formatMoney(cryptoSavings)} off).
+        </div>
+      ) : null}
 
       {hasVenmo(config) && (
         <div className="manual-pay-card">
           <h3>Venmo</h3>
+          <p className="meta">Send {formatMoney(amount)}</p>
           {config.venmoQrUrl ? (
             <>
               <p className="meta">Scan in the Venmo app, or open the link below.</p>
@@ -134,6 +161,7 @@ export default function ManualPayMethods({
       {config.zelleContact && (
         <div className="manual-pay-card">
           <h3>Zelle</h3>
+          <p className="meta">Send {formatMoney(amount)}</p>
           {config.zelleQrUrl ? (
             <>
               <p className="meta">
@@ -165,10 +193,11 @@ export default function ManualPayMethods({
       )}
 
       {config.solanaUsdc && (
-        <div className="manual-pay-card">
-          <h3>Solana — USDC or USDT only</h3>
+        <div className="manual-pay-card manual-pay-card--crypto">
+          <h3>Solana — USDC or USDT only · {cryptoPct}% off</h3>
           <p className="meta">
-            Scan in Phantom (or your wallet), then send USDC or USDT — not SOL.
+            Send <strong>{formatMoney(cryptoAmount)}</strong> (save{" "}
+            {formatMoney(cryptoSavings)}). USDC or USDT only — not SOL.
           </p>
           {config.solanaQrUrl ? (
             <img
@@ -178,6 +207,7 @@ export default function ManualPayMethods({
             />
           ) : null}
           <CopyRow label="Solana address" value={config.solanaUsdc} />
+          <CopyRow label="Amount (USDC/USDT)" value={cryptoAmount.toFixed(2)} />
           <CopyRow label="Memo / reference" value={orderId} />
           <button
             type="button"
@@ -191,10 +221,11 @@ export default function ManualPayMethods({
       )}
 
       {config.ethUsdc && (
-        <div className="manual-pay-card">
-          <h3>Ethereum — USDC or USDT only</h3>
+        <div className="manual-pay-card manual-pay-card--crypto">
+          <h3>Ethereum — USDC or USDT only · {cryptoPct}% off</h3>
           <p className="meta">
-            Scan in your wallet, then send USDC or USDT on Ethereum — not ETH.
+            Send <strong>{formatMoney(cryptoAmount)}</strong> (save{" "}
+            {formatMoney(cryptoSavings)}). USDC or USDT only — not ETH.
           </p>
           {config.ethQrUrl ? (
             <img
@@ -204,6 +235,7 @@ export default function ManualPayMethods({
             />
           ) : null}
           <CopyRow label="Ethereum address" value={config.ethUsdc} />
+          <CopyRow label="Amount (USDC/USDT)" value={cryptoAmount.toFixed(2)} />
           <CopyRow label="Memo / reference" value={orderId} />
           <button
             type="button"
@@ -218,8 +250,11 @@ export default function ManualPayMethods({
 
       {sent && (
         <div className="notice ok" style={{ marginTop: "0.85rem" }}>
-          Thanks — marked as paid via <strong>{method}</strong>. We’ll verify
-          and start fulfillment. Keep your order ID: {orderId}.
+          Thanks — marked as paid via <strong>{method}</strong>
+          {isCryptoPayProvider(method)
+            ? ` · ${formatMoney(cryptoAmount)} (5% crypto discount)`
+            : ` · ${formatMoney(amount)}`}
+          . We’ll verify and start fulfillment. Keep your order ID: {orderId}.
         </div>
       )}
 

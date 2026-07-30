@@ -5795,11 +5795,8 @@ html:has(.app-shell--undisclosed) {
   background: #fff;
 }
 
-.manual-pay-card h3 {
-  margin: 0;
-  font-size: 0.95rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.manual-pay-card--crypto {
+  border-color: rgba(46, 125, 90, 0.45);
 }
 
 .manual-pay-row {

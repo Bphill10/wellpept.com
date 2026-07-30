@@ -61,6 +61,7 @@ import {
   saveManualPayConfig,
   formatManualPayText,
   manualPayConfigured,
+  cryptoPayTotal,
 } from "./utils/manualPayments";
 import {
   loadDiscountCodes,
@@ -2743,10 +2744,14 @@ function CartPage({
             <h1>Pay order {payInvoice.orderId}</h1>
             <p className="lede">
               Supply confirmed. Pay the quoted total with Venmo, Zelle, or
-              crypto (USDC or USDT only on Solana / Ethereum).
+              crypto (USDC or USDT only on Solana / Ethereum — 5% off for
+              crypto).
             </p>
             <div className="notice" style={{ marginTop: "0.75rem" }}>
               <strong>Amount due:</strong> {formatMoney(payInvoice.total)}
+              <div className="meta" style={{ marginTop: "0.35rem" }}>
+                Crypto: {formatMoney(cryptoPayTotal(payInvoice.total))} (5% off)
+              </div>
               <div className="meta" style={{ marginTop: "0.35rem" }}>
                 {payInvoice.customer?.name} · {payInvoice.customer?.email}
               </div>
@@ -2803,6 +2808,7 @@ function CartPage({
               <li>Submit this request (quoted total below is not charged yet).</li>
               <li>We check supply and get back to you within 24 hours.</li>
               <li>You pay only after we confirm we can fulfill.</li>
+              <li>Crypto (USDC/USDT) payments get 5% off.</li>
               <li>Ship after payment — 2–3 weeks delivery.</li>
             </ol>
           </div>
