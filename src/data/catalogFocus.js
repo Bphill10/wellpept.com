@@ -100,6 +100,28 @@ export function isChangshaFocused(name) {
   if (n.startsWith("mots-c") || n.startsWith("mots c")) return true;
   if (n === "pt141" || n === "pt-141" || n.startsWith("pt 141")) return true;
 
+  // TB-500 / TB500 (standalone — not only inside Wolverine/KLOW blends)
+  if (
+    n === "tb500" ||
+    n === "tb-500" ||
+    n === "tb 500" ||
+    n.startsWith("tb500") ||
+    n.startsWith("tb-500")
+  ) {
+    return true;
+  }
+
+  // Thymosin Alpha-1 / TA-1
+  if (
+    n.includes("thymosin alpha") ||
+    n === "ta-1" ||
+    n === "ta1" ||
+    n.startsWith("ta-1") ||
+    n.startsWith("ta1 ")
+  ) {
+    return true;
+  }
+
   return false;
 }
 

@@ -47,8 +47,10 @@ const QUICK_PREF = [
   "retatrutide",
   "wolverine",
   "bpc 157",
+  "tb-500",
+  "tb500",
+  "ta-1",
   "tirzepatide",
-  "tb 4",
   "ipamorelin",
   "klow",
 ];

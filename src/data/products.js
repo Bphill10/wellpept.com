@@ -325,7 +325,7 @@ function resolveCompoundKey(name) {
   if (/LL-?37/.test(n)) return "LL-37";
   if (/\bKPV\b/.test(n)) return "KPV";
   if (/THYMALIN|THYMULIN/.test(n)) return "Thymalin";
-  if (/THYMOSIN\s*ALPHA|TA1|Tα1/.test(n)) return "Thymosin Alpha-1";
+  if (/THYMOSIN\s*ALPHA|TA-?1\b|Tα1/.test(n)) return "TA-1";
   if (/\bDSIP\b/.test(n)) return "DSIP";
   if (/OXYTOCIN/.test(n)) return "Oxytocin";
   if (/IGF/.test(n)) return "IGF-1 LR3";
@@ -422,7 +422,18 @@ export function displayPeptideName(name = "") {
   if (n.includes("tb-4") || n.includes("tb4") || n.includes("thymosin beta")) {
     return "TB-500";
   }
-  if (n.includes("tb-500") || n.includes("tb500")) return "TB-500";
+  if (n.includes("tb-500") || n.includes("tb500") || n === "tb 500") {
+    return "TB-500";
+  }
+  if (
+    n.includes("thymosin alpha") ||
+    n === "ta-1" ||
+    n === "ta1" ||
+    n.startsWith("ta-1") ||
+    n.startsWith("ta1 ")
+  ) {
+    return "TA-1";
+  }
   if (n.startsWith("bpc")) return "BPC-157";
   if (n.includes("retatrutide") || n === "reta") return "Retatrutide";
   if (n.includes("tirzepatide") || n.startsWith("triz")) return "Tirzepatide";
