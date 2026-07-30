@@ -2609,8 +2609,8 @@ function CartPage({
           <div className="panel" style={{ marginTop: "1rem" }}>
             <h1>Pay order {payInvoice.orderId}</h1>
             <p className="lede">
-              Supply confirmed. Pay the quoted total with Venmo, Zelle, or USDC
-              crypto. Cards via Stripe when configured.
+              Supply confirmed. Pay the quoted total with Venmo, Zelle, or
+              crypto (USDC / USDT).
             </p>
             <div className="notice" style={{ marginTop: "0.75rem" }}>
               <strong>Amount due:</strong> {formatMoney(payInvoice.total)}
@@ -2645,12 +2645,7 @@ function CartPage({
                   }
                 />
               </div>
-            ) : (
-              <p className="meta" style={{ marginTop: "1rem" }}>
-                Card checkout is optional — Venmo / Zelle / crypto above work
-                now. Stripe can be added later on Vercel.
-              </p>
-            )}
+            ) : null}
             {packetMsg && (
               <div className="notice warn" style={{ marginTop: "0.75rem" }}>
                 {packetMsg}
@@ -3635,7 +3630,9 @@ function AdminPanel({
             price-list line{pendingItems.length === 1 ? "" : "s"} awaiting
             review · {products.length} live products · {orders.length} order
             request{orders.length === 1 ? "" : "s"}
-            {stripeEnabled ? " · Stripe ready" : " · Stripe optional"}
+            {manualPayConfigured(payConfig)
+              ? " · Venmo / Zelle / crypto ready"
+              : " · add payment methods above"}
           </div>
 
           <div className="automation-bar">
@@ -3828,11 +3825,9 @@ function AdminPanel({
 
           <h2>Order requests (supply review)</h2>
           <p className="meta" style={{ marginBottom: "0.75rem" }}>
-            After you confirm supply, copy the Stripe pay link and email it to the
-            customer.{" "}
-            {stripeEnabled
-              ? "Stripe is enabled."
-              : "Add live Stripe keys on Vercel to collect payment."}
+            After you confirm supply, copy the pay link (or Venmo / Zelle /
+            crypto instructions) and email it to the customer. Mark paid when
+            funds arrive.
           </p>
           <div className="table-wrap" style={{ marginBottom: "1.5rem" }}>
             <table>

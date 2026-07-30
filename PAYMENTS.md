@@ -7,16 +7,19 @@ WellPept uses a **request-first** flow. Customers do **not** pay at checkout.
 1. Customer submits an **order request** (shipping + quoted total)
 2. Customer must confirm they can wait **up to 4 weeks** / until inventory replenishes
 3. You (ops) check supply
-4. Within **24 hours**, email the customer a **Stripe pay link** (Admin → Copy Stripe link)
-5. After payment, fulfill (allow up to 4 weeks)
+4. Within **24 hours**, email the customer a **pay link** (Admin → Copy pay link)
+5. Customer pays with **Venmo, Zelle, or crypto** → taps **I’ve paid** (or you **Mark paid**)
+6. After payment, fulfill (allow up to 4 weeks)
 
 Requests are stored in the browser order queue (admin panel). When Resend is configured, order packets are emailed to **info@wellpept.com**; otherwise a mailto draft opens.
 
-## Activate Venmo / Zelle / crypto today (no Stripe required)
+## Payment options (Venmo · Zelle · crypto)
+
+These are the live rails — no Stripe required.
 
 1. Unlock Undisclosed Admin (`?ops=1` once)
 2. Open **Approval desk → Payment methods**
-3. Save your **Venmo handle**, **Zelle email/phone**, and/or **USDC wallets**
+3. Save **Venmo code URL**, **Zelle email + name** (and optional QR), **Solana / ETH** wallets
 4. After an order request + supply check: **Copy pay link** (or **Copy Venmo/Zelle/crypto**)
 5. Customer opens the link → pays → taps **I’ve paid**
 6. Or you tap **Mark paid** when funds arrive
@@ -36,9 +39,9 @@ VITE_CRYPTO_ETH_USDC=0xYourEthAddress
 Put the Zelle QR screenshot at `public/zelle-qr.png` (or any URL), then set
 `VITE_ZELLE_QR_URL` or Admin → **Zelle QR image URL**.
 
-## Activate Stripe (live) later
+## Stripe cards (optional later)
 
-Your app already has Stripe checkout. Turn on live keys:
+Not needed for Venmo / Zelle / crypto. The app can show card checkout if you add live keys later:
 
 1. Open https://dashboard.stripe.com (use your existing account)
 2. Complete business / identity verification if prompted
