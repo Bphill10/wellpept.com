@@ -715,7 +715,7 @@ function drawBrandThreeMl(ctx, dims, options) {
   ctx.lineTo(bodyX + bodyW - 1, sleeveTop + bodyW * 0.12);
   ctx.stroke();
 
-  // Gold W seal from brand mark image
+  // Cobalt UD seal from brand mark image
   const sealR = bodyW * 0.28;
   const sealCy = sleeveTop + sleeveH * 0.32;
   drawWpSeal(ctx, cx, sealCy, sealR, wpMark || wpMarkCache);
@@ -737,7 +737,7 @@ function drawBrandThreeMl(ctx, dims, options) {
 
   let metaY = titleY + titleLines.length * bodyW * 0.12 + bodyW * 0.02;
   if (massLabel) {
-    ctx.fillStyle = "#c8d0d8";
+    ctx.fillStyle = "#5b9fff";
     ctx.font = `700 ${Math.max(10, bodyW * 0.13)}px Outfit, "Segoe UI", sans-serif`;
     ctx.fillText(massLabel, cx, metaY + bodyW * 0.06);
     metaY += bodyW * 0.14;

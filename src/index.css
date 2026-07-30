@@ -1861,7 +1861,7 @@ a.cart-cta {
 }
 
 .compare-table tr.is-selected {
-  background: rgba(201, 162, 39, 0.08);
+  background: rgba(0, 71, 171, 0.08);
 }
 
 .compare-table tr:last-child td {
@@ -1880,7 +1880,7 @@ a.cart-cta {
   margin-left: 0.35rem;
   padding: 0.1rem 0.35rem;
   border-radius: 4px;
-  background: rgba(201, 162, 39, 0.18);
+  background: rgba(0, 71, 171, 0.18);
   color: #7a5f12;
   font-size: 0.62rem;
   font-weight: 700;
@@ -1959,7 +1959,7 @@ a.cart-cta {
 
 .price-compare-scopes button.is-active {
   border-color: var(--cobalt);
-  background: rgba(201, 162, 39, 0.12);
+  background: rgba(0, 71, 171, 0.12);
   color: var(--ink);
 }
 
@@ -4658,8 +4658,18 @@ body:has(.app-shell--undisclosed)::before {
   font-family: var(--font-display);
   font-size: 1.55rem;
   font-weight: 750;
-  color: var(--navy);
+  color: var(--cobalt);
   margin-bottom: 0.35rem;
+}
+
+.calc-result-main strong {
+  color: var(--cobalt-bright);
+  font-weight: 800;
+}
+
+.app-shell--undisclosed .calc-result-main,
+.app-shell--undisclosed .calc-result-main strong {
+  color: #5b9fff;
 }
 
 .calc-refs {
@@ -4691,7 +4701,12 @@ body:has(.app-shell--undisclosed)::before {
 .syringe-fill {
   position: absolute;
   inset: 0 auto 0 0;
-  background: linear-gradient(90deg, rgba(0, 71, 171, 0.35), rgba(0, 71, 171, 0.75));
+  background: linear-gradient(
+    90deg,
+    rgba(0, 71, 171, 0.4),
+    rgba(26, 95, 212, 0.85),
+    #0047ab
+  );
   transition: width 0.35s ease;
 }
 
@@ -4700,10 +4715,11 @@ body:has(.app-shell--undisclosed)::before {
   top: -2px;
   width: 3px;
   height: calc(100% + 4px);
-  background: var(--navy);
+  background: var(--cobalt-bright);
   border-radius: 2px;
   transform: translateX(-50%);
   transition: left 0.35s ease;
+  box-shadow: 0 0 0 1px rgba(0, 71, 171, 0.35);
 }
 
 .syringe-ticks {
