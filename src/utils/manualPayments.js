@@ -16,7 +16,11 @@ export const EMPTY_MANUAL_PAY = {
   /** Path or URL to Zelle QR image, e.g. /zelle-qr.png */
   zelleQrUrl: "",
   solanaUsdc: "",
+  /** Path or URL to Solana receive QR, e.g. /solana-qr.png */
+  solanaQrUrl: "",
   ethUsdc: "",
+  /** Path or URL to Ethereum receive QR, e.g. /eth-qr.png */
+  ethQrUrl: "",
   note: "Include your order ID in the payment memo. Crypto: USDC or USDT only — do not send SOL, ETH, or other tokens.",
 };
 
@@ -29,7 +33,9 @@ function envDefaults() {
     zelleName: String(import.meta.env.VITE_ZELLE_NAME || "WellPept"),
     zelleQrUrl: String(import.meta.env.VITE_ZELLE_QR_URL || "").trim(),
     solanaUsdc: String(import.meta.env.VITE_CRYPTO_SOLANA_USDC || ""),
+    solanaQrUrl: String(import.meta.env.VITE_CRYPTO_SOLANA_QR_URL || "").trim(),
     ethUsdc: String(import.meta.env.VITE_CRYPTO_ETH_USDC || ""),
+    ethQrUrl: String(import.meta.env.VITE_CRYPTO_ETH_QR_URL || "").trim(),
     note: String(
       import.meta.env.VITE_MANUAL_PAY_NOTE ||
         "Include your order ID in the payment memo. Crypto: USDC or USDT only — do not send SOL, ETH, or other tokens."

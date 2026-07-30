@@ -164,48 +164,55 @@ export default function ManualPayMethods({
         </div>
       )}
 
-      {(config.solanaUsdc || config.ethUsdc) && (
+      {config.solanaUsdc && (
         <div className="manual-pay-card">
-          <h3>Crypto — USDC or USDT only</h3>
+          <h3>Solana — USDC or USDT only</h3>
           <p className="meta">
-            Do not send SOL, ETH, or any other coin. Only USDC or USDT on the
-            matching network.
+            Scan in Phantom (or your wallet), then send USDC or USDT — not SOL.
           </p>
-          {config.solanaUsdc && (
-            <CopyRow
-              label="Solana (USDC or USDT)"
-              value={config.solanaUsdc}
+          {config.solanaQrUrl ? (
+            <img
+              src={config.solanaQrUrl}
+              alt="Solana receive QR"
+              className="manual-pay-qr"
             />
-          )}
-          {config.ethUsdc && (
-            <CopyRow
-              label="Ethereum (USDC or USDT)"
-              value={config.ethUsdc}
-            />
-          )}
+          ) : null}
+          <CopyRow label="Solana address" value={config.solanaUsdc} />
           <CopyRow label="Memo / reference" value={orderId} />
-          <div className="row-actions">
-            {config.solanaUsdc && (
-              <button
-                type="button"
-                className="soft-btn"
-                disabled={disabled || sent}
-                onClick={() => confirmPaid("crypto_solana")}
-              >
-                I’ve sent USDC/USDT on Solana
-              </button>
-            )}
-            {config.ethUsdc && (
-              <button
-                type="button"
-                className="soft-btn"
-                disabled={disabled || sent}
-                onClick={() => confirmPaid("crypto_eth")}
-              >
-                I’ve sent USDC/USDT on Ethereum
-              </button>
-            )}
-          </div>
+          <button
+            type="button"
+            className="soft-btn"
+            disabled={disabled || sent}
+            onClick={() => confirmPaid("crypto_solana")}
+          >
+            I’ve sent USDC/USDT on Solana
+          </button>
+        </div>
+      )}
+
+      {config.ethUsdc && (
+        <div className="manual-pay-card">
+          <h3>Ethereum — USDC or USDT only</h3>
+          <p className="meta">
+            Scan in your wallet, then send USDC or USDT on Ethereum — not ETH.
+          </p>
+          {config.ethQrUrl ? (
+            <img
+              src={config.ethQrUrl}
+              alt="Ethereum receive QR"
+              className="manual-pay-qr"
+            />
+          ) : null}
+          <CopyRow label="Ethereum address" value={config.ethUsdc} />
+          <CopyRow label="Memo / reference" value={orderId} />
+          <button
+            type="button"
+            className="soft-btn"
+            disabled={disabled || sent}
+            onClick={() => confirmPaid("crypto_eth")}
+          >
+            I’ve sent USDC/USDT on Ethereum
+          </button>
         </div>
       )}
 

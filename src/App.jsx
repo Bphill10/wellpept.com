@@ -3616,6 +3616,20 @@ function AdminPanel({
               />
             </label>
             <label className="field">
+              Solana QR image URL (optional)
+              <input
+                value={payConfig.solanaQrUrl || ""}
+                onChange={(e) =>
+                  setPayConfig((c) => ({
+                    ...c,
+                    solanaQrUrl: e.target.value.trim(),
+                  }))
+                }
+                placeholder="/solana-qr.png"
+                spellCheck={false}
+              />
+            </label>
+            <label className="field">
               Ethereum wallet (USDC or USDT only — not ETH)
               <input
                 value={payConfig.ethUsdc}
@@ -3623,6 +3637,20 @@ function AdminPanel({
                   setPayConfig((c) => ({ ...c, ethUsdc: e.target.value }))
                 }
                 placeholder="0x…"
+                spellCheck={false}
+              />
+            </label>
+            <label className="field">
+              Ethereum QR image URL (optional)
+              <input
+                value={payConfig.ethQrUrl || ""}
+                onChange={(e) =>
+                  setPayConfig((c) => ({
+                    ...c,
+                    ethQrUrl: e.target.value.trim(),
+                  }))
+                }
+                placeholder="/eth-qr.png"
                 spellCheck={false}
               />
             </label>

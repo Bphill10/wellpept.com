@@ -34,11 +34,14 @@ VITE_ZELLE_CONTACT=pay@wellpept.com
 VITE_ZELLE_NAME=WellPept
 VITE_ZELLE_QR_URL=/zelle-qr.png
 VITE_CRYPTO_SOLANA_USDC=YourSolanaAddress
+VITE_CRYPTO_SOLANA_QR_URL=/solana-qr.png
 VITE_CRYPTO_ETH_USDC=0xYourEthAddress
+VITE_CRYPTO_ETH_QR_URL=/eth-qr.png
 ```
 
-Put the Venmo QR export at `public/venmo-qr.png` and the Zelle QR screenshot at
-`public/zelle-qr.png` (or any URL), then set the matching env vars or Admin fields.
+Put the Venmo QR export at `public/venmo-qr.png`, Zelle at `public/zelle-qr.png`,
+and Solana / Ethereum receive QRs at `public/solana-qr.png` / `public/eth-qr.png`
+(or any URL), then set the matching env vars or Admin fields.
 
 ## Stripe cards (optional later)
 
