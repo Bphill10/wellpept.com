@@ -1005,6 +1005,35 @@ svg {
   color: rgba(244, 246, 248, 0.55);
 }
 
+.catalog-request-note {
+  margin: 0.85rem 0 1.25rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.app-shell--undisclosed .catalog-request-note {
+  color: rgba(244, 246, 248, 0.72);
+}
+
+button.linkish {
+  display: inline;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+
+.app-shell--undisclosed button.linkish {
+  color: #fff;
+}
+
 .hero-tagline {
   margin: 0 0 0.75rem;
   font-family: var(--font-display);

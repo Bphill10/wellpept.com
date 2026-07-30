@@ -1479,9 +1479,28 @@ export default function App() {
                   ))}
                 </div>
 
+                <p className="catalog-request-note">
+                  Message me if there is a specific peptide you are looking for
+                  that is not on this list.{" "}
+                  <button
+                    type="button"
+                    className="linkish"
+                    onClick={() => {
+                      if (!openLiveChat()) {
+                        window.location.href = `mailto:${contactEmail()}?subject=${encodeURIComponent(
+                          "Peptide request"
+                        )}`;
+                      }
+                    }}
+                  >
+                    Message
+                  </button>
+                </p>
+
                 {catalogSections.length === 0 ? (
                   <div className="empty-state">
-                    No approved products match this search yet.
+                    No approved products match this search yet. Message me if
+                    you are looking for a specific peptide not on this list.
                   </div>
                 ) : (
                   <div className="catalog-sections">
