@@ -2613,13 +2613,29 @@ body:has(.app-shell--undisclosed)::before {
   color: #f4f6f8;
 }
 
+/* Beat label.field’s light fill so closed + open menus stay readable */
 .app-shell--undisclosed .field input,
+.app-shell--undisclosed .field select,
+.app-shell--undisclosed .field textarea,
+.app-shell--undisclosed label.field input,
+.app-shell--undisclosed label.field select,
+.app-shell--undisclosed label.field textarea,
 .app-shell--undisclosed .checkout-form input,
+.app-shell--undisclosed .checkout-form select,
 .app-shell--undisclosed select,
 .app-shell--undisclosed textarea {
   background: #0a0a0a;
   border-color: rgba(255, 255, 255, 0.18);
   color: #f4f6f8;
+  color-scheme: dark;
+}
+
+/* Native <option> menus often ignore parent color; force dark-on-light list */
+.app-shell--undisclosed select option,
+.app-shell--undisclosed .field select option,
+.app-shell--undisclosed label.field select option {
+  background-color: #ffffff;
+  color: #0a0a0a;
 }
 
 .app-shell--undisclosed .footer {
