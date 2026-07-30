@@ -2399,7 +2399,7 @@ function CartPage({
     );
   }
 
-  function handleSubmitRequest(e) {
+  async function handleSubmitRequest(e) {
     e.preventDefault();
     if (minOrderWarnings.length) {
       setPacketMsg("Meet each vendor minimum before submitting.");
@@ -2417,20 +2417,23 @@ function CartPage({
     }
     setSubmitting(true);
     setPacketMsg("");
-    const next = onPlaceOrder?.(
-      {
-        ...customer,
-        email: customer.email || session?.email || "",
-        userId: customer.userId || session?.userId || "",
-      },
-      { waitConsent: true, notify: false }
-    );
-    setSubmitting(false);
-    if (!next) return;
-    finalizePacket(
-      next,
-      "Request saved. We’ll check supply and reply within 24 hours."
-    );
+    try {
+      const next = await onPlaceOrder?.(
+        {
+          ...customer,
+          email: customer.email || session?.email || "",
+          userId: customer.userId || session?.userId || "",
+        },
+        { waitConsent: true, notify: true }
+      );
+      if (!next) return;
+      finalizePacket(
+        next,
+        "Request saved. We’ll check supply and reply within 24 hours."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
