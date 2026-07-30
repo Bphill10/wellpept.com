@@ -1,7 +1,7 @@
 /**
  * Focused Undisclosed catalog.
  * Changsha only for now (more vendors later).
- * Popular research lines (no pure GLP-1 like Semaglutide / Liraglutide).
+ * Popular research lines for the shop; calculator can list every sellable peptide.
  */
 
 function norm(name) {
@@ -12,23 +12,59 @@ function norm(name) {
     .trim();
 }
 
+/** Supplies / non-peptide lines — not sold as catalog peptides. */
+export function isChangshaSupply(name) {
+  const n = norm(name);
+  if (!n) return true;
+  if (n === "water" || n === "bac water" || n.includes("bac water")) return true;
+  if (n === "acetic acid") return true;
+  if (n === "1mg/ml" || n.startsWith("1mg/ml")) return true;
+  return false;
+}
+
+/** CJC with DAC was removed from the focused / sellable set. */
+export function isCjcWithDac(name) {
+  const n = norm(name);
+  if (!n.includes("cjc") || !n.includes("dac")) return false;
+  if (n.includes("no dac") || n.includes("without dac") || n.includes("whitout dac")) {
+    return false;
+  }
+  return true;
+}
+
 /**
- * Changsha keepers from the storefront brief, plus 5 popular non-GLP-1 picks:
- * BPC-157, GHK-Cu, Epithalon, MOTS-c, PT-141.
+ * Every research peptide we can sell from the Changsha list
+ * (excludes supplies and CJC with DAC).
+ */
+export function isChangshaSellable(name) {
+  if (!name) return false;
+  if (isChangshaSupply(name)) return false;
+  if (isCjcWithDac(name)) return false;
+  return true;
+}
+
+/**
+ * Changsha keepers for the storefront brief, plus popular non-GLP-1 picks:
+ * BPC-157, GHK-Cu, Epithalon, MOTS-c, PT-141, KLOW, etc.
  */
 export function isChangshaFocused(name) {
   const n = norm(name);
   if (!n) return false;
+  if (!isChangshaSellable(name)) return false;
 
-  // Explicitly out: classic GLP-1s and GLP-1 combo kits
+  // Explicitly out of the compact shop: classic GLP-1s and GLP-1 combo kits
   if (n.includes("semaglutide") || n.includes("liraglutide")) return false;
   if (n.includes("cagri sema") || n.includes("cagrisema")) return false;
-  if (n.includes("mazdutide") || n.includes("survodutide") || n.includes("eloralintide")) {
+  if (
+    n.includes("mazdutide") ||
+    n.includes("survodutide") ||
+    n.includes("eloralintide")
+  ) {
     return false;
   }
 
-  // Requested popular set
-  if (n === "klow" || n.includes("wolverine")) return true;
+  // Requested popular set (KLOW name is "KLOW(...)" — match includes)
+  if (n.includes("klow") || n.includes("wolverine")) return true;
   if (n.startsWith("bpc") && n.includes("tb")) return true; // Wolverine-style BPC+TB
   if (n.startsWith("tesamorelin") || n.startsWith("tesa")) return true; // Tessa
   if (
@@ -42,16 +78,6 @@ export function isChangshaFocused(name) {
   }
   if (n.includes("cjc") && n.includes("ipa")) return true; // CJC/IPA
   if (n === "ipamorelin" || n.startsWith("ipa ")) return true;
-  // No CJC with DAC (CJC W DAC)
-  if (
-    n.includes("cjc") &&
-    n.includes("dac") &&
-    !n.includes("no dac") &&
-    !n.includes("without dac") &&
-    !n.includes("whitout dac")
-  ) {
-    return false;
-  }
   if (n.includes("cjc")) return true;
   if (n.startsWith("tirzepatide") || n.startsWith("triz")) return true; // Triz
   if (n.startsWith("retatrutide") || n === "reta") return true;
@@ -60,8 +86,13 @@ export function isChangshaFocused(name) {
   if (n.includes("semax")) return true;
   if (n.includes("selank")) return true;
 
-  // 5 additional popular non-GLP-1 lines
-  if (n === "bpc 157" || n === "bpc-157" || n.startsWith("bpc-157") || n.startsWith("bpc 157")) {
+  // Additional popular non-GLP-1 lines
+  if (
+    n === "bpc 157" ||
+    n === "bpc-157" ||
+    n.startsWith("bpc-157") ||
+    n.startsWith("bpc 157")
+  ) {
     return true;
   }
   if (n === "ghk-cu" || n === "ghk cu") return true;
@@ -76,6 +107,15 @@ export function isFocusedSubmission(submission) {
   if (!submission) return false;
   if (submission.vendorId === "v-changsha-premium") {
     return isChangshaFocused(submission.name);
+  }
+  return false;
+}
+
+/** Full sellable Changsha lines for calculator / label peptide dropdown. */
+export function isSellableSubmission(submission) {
+  if (!submission) return false;
+  if (submission.vendorId === "v-changsha-premium") {
+    return isChangshaSellable(submission.name);
   }
   return false;
 }

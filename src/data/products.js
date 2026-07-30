@@ -2,7 +2,7 @@ import {
   CHANGSHA_SUBMISSIONS,
   CHANGSHA_VENDOR,
 } from "./changshaPremium";
-import { isChangshaFocused } from "./catalogFocus";
+import { isChangshaFocused, isChangshaSellable } from "./catalogFocus";
 import { resolveVialMl, resolveVialUnit, resolvePowderColor } from "../utils/vialArt";
 
 export { resolveVialMl, resolveVialUnit, resolvePowderColor };
@@ -364,9 +364,14 @@ export function guessTagline(name) {
 /** Active vendor for now: Changsha only (more vendors later). */
 export const SEED_VENDORS = [CHANGSHA_VENDOR];
 
-/** Focused seed submissions (popular Changsha research lines). */
+/** Focused seed submissions (popular Changsha research lines) for the shop. */
 export const SEED_SUBMISSIONS = [
   ...CHANGSHA_SUBMISSIONS.filter((s) => isChangshaFocused(s.name)),
+];
+
+/** Every sellable Changsha peptide (calculator / label dropdown). */
+export const CALCULATOR_SUBMISSIONS = [
+  ...CHANGSHA_SUBMISSIONS.filter((s) => isChangshaSellable(s.name)),
 ];
 
 export function guessCategory(name) {
@@ -660,6 +665,7 @@ export function calculatorOptionsFromListings(listings = []) {
             unit,
             packVials: Number(s.packVials) || 1,
             vialMl,
+            form: s.form || "",
             label:
               s.label ||
               formatStrengthLabel({
@@ -672,16 +678,27 @@ export function calculatorOptionsFromListings(listings = []) {
           };
         });
       if (!strengths.length) return null;
+      const name = displayPeptideName(listing.name) || listing.name;
       return {
         id: listing.id,
-        name: listing.name,
-        category: listing.category || "Research",
+        name,
+        rawName: listing.name,
+        category: listing.category || guessCategory(listing.name),
         key: listing.key || normalizeCompoundKey(listing.name),
         strengths,
       };
     })
     .filter(Boolean)
     .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * Full sellable peptide list for the calculator dropdown
+ * (every Changsha research line, not only the compact shop focus).
+ */
+export function buildCalculatorListings(vendors = SEED_VENDORS) {
+  const products = buildCatalog(vendors, CALCULATOR_SUBMISSIONS);
+  return groupCatalog(products);
 }
 
 /** Match a calculator seed (URL / product CTA) to a catalog option. */

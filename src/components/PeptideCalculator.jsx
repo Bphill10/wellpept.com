@@ -118,6 +118,15 @@ export default function PeptideCalculator({
     () => calculatorOptionsFromListings(listings),
     [listings]
   );
+  const optionsByCategory = useMemo(() => {
+    const map = new Map();
+    for (const opt of options) {
+      const cat = opt.category || "Research";
+      if (!map.has(cat)) map.set(cat, []);
+      map.get(cat).push(opt);
+    }
+    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  }, [options]);
   const quickPicks = useMemo(() => buildQuickPicks(options), [options]);
 
   const matched = useMemo(
@@ -342,7 +351,7 @@ export default function PeptideCalculator({
             <div className="calc-card">
               <div className="form-grid">
                 <label className="field">
-                  Peptide
+                  Peptide ({options.length || 0})
                   <select
                     value={selectedPeptide?.id || ""}
                     onChange={(e) => onPeptideChange(e.target.value)}
@@ -351,11 +360,14 @@ export default function PeptideCalculator({
                     {!options.length && (
                       <option value="">No catalog peptides</option>
                     )}
-                    {options.map((o) => (
-                      <option key={o.id} value={o.id}>
-                        {o.name}
-                        {o.category ? ` · ${o.category}` : ""}
-                      </option>
+                    {optionsByCategory.map(([category, items]) => (
+                      <optgroup key={category} label={category}>
+                        {items.map((o) => (
+                          <option key={o.id} value={o.id}>
+                            {o.name}
+                          </option>
+                        ))}
+                      </optgroup>
                     ))}
                   </select>
                 </label>

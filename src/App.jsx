@@ -25,6 +25,7 @@ import {
   strengthForProduct,
   resolveVialMl,
   resolveVialUnit,
+  buildCalculatorListings,
 } from "./data/products";
 import {
   getInitialMarketplace,
@@ -482,6 +483,8 @@ export default function App() {
   }, [flash]);
 
   const listings = useMemo(() => groupCatalog(products), [products]);
+  /** Full sellable peptide set for calculator / blank-label dropdown. */
+  const calculatorListings = useMemo(() => buildCalculatorListings(), []);
   const selectedListing =
     listings.find((l) => l.id === selectedId) || null;
   const selectedVariant =
@@ -1602,7 +1605,7 @@ export default function App() {
         {view === VIEWS.calculator && labVisible && (
           <PeptideCalculator
             initial={calcInitial}
-            listings={listings}
+            listings={calculatorListings}
             autoSuggestBac={automation.autoSuggestBacFromProduct}
           />
         )}
