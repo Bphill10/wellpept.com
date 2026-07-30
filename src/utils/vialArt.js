@@ -286,42 +286,29 @@ function drawDarkStudio(ctx, w, h) {
 }
 
 /**
- * Cobalt circular W monogram (custom display W fallback).
+ * Cobalt circular W monogram — relic / carved-seal fallback.
  * Used when the brand seal image is not yet loaded.
  */
 function drawWpMonogramSeal(ctx, cx, cy, r) {
-  const cobalt = ctx.createRadialGradient(cx - r * 0.25, cy - r * 0.3, 1, cx, cy, r);
-  cobalt.addColorStop(0, "#4a8ae0");
-  cobalt.addColorStop(0.38, "#0047ab");
-  cobalt.addColorStop(0.72, "#002f75");
-  cobalt.addColorStop(1, "#001536");
+  const cobalt = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.28, 1, cx, cy, r);
+  cobalt.addColorStop(0, "#3a6fb5");
+  cobalt.addColorStop(0.45, "#003d8f");
+  cobalt.addColorStop(0.82, "#002456");
+  cobalt.addColorStop(1, "#00122e");
   ellipse(ctx, cx, cy, r, r);
   ctx.fillStyle = cobalt;
   ctx.fill();
 
-  ellipse(ctx, cx, cy, r * 0.92, r * 0.92);
-  ctx.strokeStyle = "rgba(184, 201, 255, 0.45)";
-  ctx.lineWidth = Math.max(1, r * 0.035);
+  ellipse(ctx, cx, cy, r * 0.93, r * 0.93);
+  ctx.strokeStyle = "rgba(143, 168, 200, 0.35)";
+  ctx.lineWidth = Math.max(1.2, r * 0.04);
   ctx.stroke();
 
-  ellipse(ctx, cx, cy, r * 0.84, r * 0.84);
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
+  ellipse(ctx, cx, cy, r * 0.85, r * 0.85);
+  ctx.strokeStyle = "rgba(197, 208, 224, 0.22)";
   ctx.lineWidth = Math.max(0.6, r * 0.015);
   ctx.stroke();
 
-  // Diamond ornament
-  const dy = cy - r * 0.55;
-  const ds = r * 0.08;
-  ctx.beginPath();
-  ctx.moveTo(cx, dy - ds);
-  ctx.lineTo(cx + ds * 0.7, dy);
-  ctx.lineTo(cx, dy + ds);
-  ctx.lineTo(cx - ds * 0.7, dy);
-  ctx.closePath();
-  ctx.fillStyle = "rgba(220, 230, 255, 0.9)";
-  ctx.fill();
-
-  // Fancy W path in local 128-space → seal radius
   const s = (r * 2) / 128;
   const ox = cx - r;
   const oy = cy - r;
@@ -329,32 +316,29 @@ function drawWpMonogramSeal(ctx, cx, cy, r) {
   ctx.translate(ox, oy);
   ctx.scale(s, s);
   ctx.beginPath();
-  ctx.moveTo(22.5, 34);
-  ctx.lineTo(33.5, 34);
-  ctx.lineTo(37.2, 36.2);
-  ctx.lineTo(48.8, 86);
-  ctx.lineTo(57.6, 52.5);
-  ctx.lineTo(61.2, 52.5);
-  ctx.lineTo(64, 63.5);
-  ctx.lineTo(66.8, 52.5);
-  ctx.lineTo(70.4, 52.5);
-  ctx.lineTo(79.2, 86);
-  ctx.lineTo(90.8, 36.2);
-  ctx.lineTo(94.5, 34);
-  ctx.lineTo(105.5, 34);
-  ctx.lineTo(106.8, 37.5);
-  ctx.lineTo(90.2, 104);
-  ctx.lineTo(79.8, 104);
-  ctx.lineTo(64, 58.5);
-  ctx.lineTo(48.2, 104);
-  ctx.lineTo(37.8, 104);
-  ctx.lineTo(21.2, 37.5);
+  ctx.moveTo(28, 36);
+  ctx.lineTo(38, 36);
+  ctx.lineTo(49, 86);
+  ctx.lineTo(58, 50);
+  ctx.lineTo(70, 50);
+  ctx.lineTo(79, 86);
+  ctx.lineTo(90, 36);
+  ctx.lineTo(100, 36);
+  ctx.lineTo(86, 100);
+  ctx.lineTo(74, 100);
+  ctx.lineTo(64, 66);
+  ctx.lineTo(54, 100);
+  ctx.lineTo(42, 100);
   ctx.closePath();
-  const wGrad = ctx.createLinearGradient(20, 24, 108, 104);
-  wGrad.addColorStop(0, "#ffffff");
-  wGrad.addColorStop(0.45, "#f2f6ff");
-  wGrad.addColorStop(1, "#c5d4f5");
-  ctx.fillStyle = wGrad;
+  const carve = ctx.createLinearGradient(64, 30, 64, 100);
+  carve.addColorStop(0, "#e8e4d8");
+  carve.addColorStop(0.55, "#d4cfc0");
+  carve.addColorStop(1, "#a8a090");
+  ctx.shadowColor = "rgba(0, 16, 24, 0.45)";
+  ctx.shadowBlur = 1.2;
+  ctx.shadowOffsetX = 0.8;
+  ctx.shadowOffsetY = 1.2;
+  ctx.fillStyle = carve;
   ctx.fill();
   ctx.restore();
 }
