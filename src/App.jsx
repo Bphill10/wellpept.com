@@ -3528,7 +3528,7 @@ function AdminPanel({
             </p>
             <div className="form-row">
               <label className="field">
-                Venmo handle
+                Venmo handle (optional)
                 <input
                   value={payConfig.venmoHandle}
                   onChange={(e) =>
@@ -3551,6 +3551,17 @@ function AdminPanel({
                 />
               </label>
             </div>
+            <label className="field">
+              Venmo QR / code link
+              <input
+                value={payConfig.venmoCodeUrl || ""}
+                onChange={(e) =>
+                  setPayConfig((c) => ({ ...c, venmoCodeUrl: e.target.value.trim() }))
+                }
+                placeholder="https://venmo.com/code?user_id=…"
+                spellCheck={false}
+              />
+            </label>
             <div className="form-row">
               <label className="field">
                 Zelle name (optional)
@@ -3573,7 +3584,7 @@ function AdminPanel({
               </label>
             </div>
             <label className="field">
-              Solana USDC address
+              Solana address (USDC or USDT)
               <input
                 value={payConfig.solanaUsdc}
                 onChange={(e) =>
@@ -3584,7 +3595,7 @@ function AdminPanel({
               />
             </label>
             <label className="field">
-              Ethereum USDC address
+              Ethereum address (USDC or USDT)
               <input
                 value={payConfig.ethUsdc}
                 onChange={(e) =>

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Copy, Check, ExternalLink } from "lucide-react";
 import {
   formatManualPayText,
+  hasVenmo,
   loadManualPayConfig,
   manualPayConfigured,
   venmoPayUrl,
@@ -52,6 +53,7 @@ export default function ManualPayMethods({
   const amount = Number(total) || 0;
   const venmo = venmoPayUrl({
     handle: config.venmoHandle,
+    codeUrl: config.venmoCodeUrl,
     amount,
     note: orderId,
   });
@@ -86,13 +88,17 @@ export default function ManualPayMethods({
         payment.
       </p>
 
-      {config.venmoHandle && (
+      {hasVenmo(config) && (
         <div className="manual-pay-card">
           <h3>Venmo</h3>
-          <CopyRow
-            label="Handle"
-            value={`@${String(config.venmoHandle).replace(/^@/, "")}`}
-          />
+          {config.venmoHandle ? (
+            <CopyRow
+              label="Handle"
+              value={`@${String(config.venmoHandle).replace(/^@/, "")}`}
+            />
+          ) : (
+            <p className="meta">Pay via the Venmo button below.</p>
+          )}
           {venmo && (
             <a
               className="primary-btn manual-pay-open"
@@ -103,6 +109,7 @@ export default function ManualPayMethods({
               Open Venmo <ExternalLink size={14} />
             </a>
           )}
+          <CopyRow label="Memo" value={orderId} />
           <button
             type="button"
             className="soft-btn"
@@ -135,13 +142,14 @@ export default function ManualPayMethods({
 
       {(config.solanaUsdc || config.ethUsdc) && (
         <div className="manual-pay-card">
-          <h3>Crypto (USDC)</h3>
+          <h3>Crypto (USDC or USDT)</h3>
           {config.solanaUsdc && (
-            <CopyRow label="Solana USDC" value={config.solanaUsdc} />
+            <CopyRow label="Solana address" value={config.solanaUsdc} />
           )}
           {config.ethUsdc && (
-            <CopyRow label="Ethereum USDC" value={config.ethUsdc} />
+            <CopyRow label="Ethereum address" value={config.ethUsdc} />
           )}
+          <p className="meta">Send USDC or USDT on that network only.</p>
           <CopyRow label="Memo / reference" value={orderId} />
           <div className="row-actions">
             {config.solanaUsdc && (
@@ -149,9 +157,9 @@ export default function ManualPayMethods({
                 type="button"
                 className="soft-btn"
                 disabled={disabled || sent}
-                onClick={() => confirmPaid("crypto_solana_usdc")}
+                onClick={() => confirmPaid("crypto_solana")}
               >
-                I’ve paid Solana USDC
+                I’ve paid on Solana
               </button>
             )}
             {config.ethUsdc && (
@@ -159,9 +167,9 @@ export default function ManualPayMethods({
                 type="button"
                 className="soft-btn"
                 disabled={disabled || sent}
-                onClick={() => confirmPaid("crypto_eth_usdc")}
+                onClick={() => confirmPaid("crypto_eth")}
               >
-                I’ve paid ETH USDC
+                I’ve paid on Ethereum
               </button>
             )}
           </div>
