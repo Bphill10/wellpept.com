@@ -736,7 +736,7 @@ export default function App() {
     setFlash("Vendor shipping & minimum order updated");
   }
 
-  function placeOrder(customer, options = {}) {
+  async function placeOrder(customer, options = {}) {
     const { payment = null, waitConsent = false, notify = true } = options;
     if (!cart.length) {
       setFlash("Cart is empty");
@@ -792,7 +792,7 @@ export default function App() {
     setOrders(saveOrder(packet));
     setCart([]);
     if (notify && !payment) {
-      notifyOrderRequest(packet);
+      await notifyOrderRequest(packet);
     }
     setFlash(
       payment

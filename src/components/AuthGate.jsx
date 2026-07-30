@@ -79,7 +79,9 @@ export default function AuthGate({ onAuthed, onClose }) {
           setConfirmLink(result.confirmLink || "");
           setMode("confirm");
           setInfo(
-            "Account created. Confirm your email before shopping — we opened a message to your inbox. Send it, then enter the 6-digit code or open the link."
+            result.emailVia === "resend"
+              ? "Account created. We emailed you a confirmation code — enter it below or open the link in that message."
+              : "Account created. Confirm your email before shopping — we opened a message to your inbox. Send it, then enter the 6-digit code or open the link."
           );
           return;
         }
@@ -94,7 +96,9 @@ export default function AuthGate({ onAuthed, onClose }) {
           setConfirmLink(result.confirmLink || "");
           setMode("confirm");
           setInfo(
-            "Confirm your email before signing in. Send the confirmation message, then enter the code or open the link."
+            result.emailVia === "resend"
+              ? "Confirm your email before signing in. Check your inbox for the code or confirmation link."
+              : "Confirm your email before signing in. Send the confirmation message, then enter the code or open the link."
           );
           setError("");
           return;
@@ -108,22 +112,29 @@ export default function AuthGate({ onAuthed, onClose }) {
     }
   }
 
-  function handleResend() {
+  async function handleResend() {
     setError("");
     setInfo("");
-    const result = resendEmailConfirmation({
-      email: pending?.email || email,
-      userId: pending?.userId || userId,
-    });
-    if (!result.ok) {
-      setError(result.error);
-      return;
+    setBusy(true);
+    try {
+      const result = await resendEmailConfirmation({
+        email: pending?.email || email,
+        userId: pending?.userId || userId,
+      });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setPending(result.pending);
+      setConfirmLink(result.confirmLink || "");
+      setInfo(
+        result.emailVia === "resend"
+          ? "New confirmation email sent. Enter the new 6-digit code from your inbox."
+          : "New confirmation message opened. Send it to your email, then enter the new 6-digit code."
+      );
+    } finally {
+      setBusy(false);
     }
-    setPending(result.pending);
-    setConfirmLink(result.confirmLink || "");
-    setInfo(
-      "New confirmation message opened. Send it to your email, then enter the new 6-digit code."
-    );
   }
 
   const pwHint = password ? validatePassword(password) : "";

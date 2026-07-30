@@ -10,7 +10,8 @@ WellPept uses a **request-first** flow. Customers do **not** pay at checkout.
 4. Within **24 hours**, email the customer payment instructions
 5. After payment, fulfill (allow up to 4 weeks)
 
-Requests are stored in the browser order queue (admin panel) and open a mailto to **info@wellpept.com** with the packet.
+Requests are stored in the browser order queue (admin panel). When Resend is configured, order packets are emailed to **info@wellpept.com**; otherwise a mailto draft opens.
+
 
 ## Stripe / Chargebee (optional, after supply check)
 
@@ -33,7 +34,8 @@ Vercel issues free HTTPS after the domain is connected.
 2. Framework: Vite. Build: `npm run build`. Output: `dist`
 3. Add env vars if you use Stripe/Chargebee/Crisp
 4. Domains: `wellpept.com` and `www.wellpept.com`
-5. Create mailbox for **info@wellpept.com** (order requests go here)
+5. Create mailbox for **info@wellpept.com** and configure Resend (`RESEND_API_KEY`, `EMAIL_FROM`) so order requests arrive automatically
+
 
 ## Notes
 

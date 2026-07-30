@@ -422,25 +422,44 @@ export function formatOrderPacketText(packet) {
   return lines.join("\n");
 }
 
-  /** Open a mailto so Ben gets the request at info@wellpept.com. */
-export function notifyOrderRequest(packet) {
+  /** Notify ops at info@wellpept.com — Resend when configured, else mailto. */
+export async function notifyOrderRequest(packet) {
   const body = formatOrderPacketText(packet);
-  const subject = encodeURIComponent(
-    `WellPept order request ${packet.orderId} — supply check`
-  );
-  const mailto = `mailto:${ORDER_NOTIFY_EMAIL}?subject=${subject}&body=${encodeURIComponent(body)}`;
+  const subject = `WellPept order request ${packet.orderId} — supply check`;
+
   try {
-    const a = document.createElement("a");
-    a.href = mailto;
-    a.rel = "noopener";
-    a.style.display = "none";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  } catch {
-    /* ignore if blocked */
+    const { fetchEmailConfig, sendTransactionalEmail, openMailto } = await import(
+      "./emailClient"
+    );
+    const cfg = await fetchEmailConfig();
+    if (cfg?.enabled) {
+      await sendTransactionalEmail({
+        type: "order_request",
+        subject,
+        text: body,
+        replyTo: packet?.customer?.email || undefined,
+      });
+      return { ok: true, via: "resend" };
+    }
+    const mailto = openMailto({
+      to: ORDER_NOTIFY_EMAIL,
+      subject,
+      body,
+    });
+    return { ok: true, via: "mailto", mailto };
+  } catch (err) {
+    try {
+      const { openMailto } = await import("./emailClient");
+      const mailto = openMailto({
+        to: ORDER_NOTIFY_EMAIL,
+        subject,
+        body,
+      });
+      return { ok: false, via: "mailto", mailto, error: err?.message };
+    } catch {
+      return { ok: false, error: err?.message || "notify failed" };
+    }
   }
-  return mailto;
 }
 
 const ORDERS_KEY = "wellpept-orders-v1";

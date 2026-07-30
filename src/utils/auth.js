@@ -191,58 +191,78 @@ export function buildConfirmUrl(token) {
   return url.toString();
 }
 
-export function openConfirmEmailDraft(user, { verifyToken, verifyCode } = {}) {
+export async function openConfirmEmailDraft(user, { verifyToken, verifyCode } = {}) {
   const token = verifyToken || user.verifyToken;
   const code = verifyCode || user.verifyCode;
   if (!token || !code) return null;
   const link = buildConfirmUrl(token);
-  const subject = encodeURIComponent("Confirm your WellPept email");
-  const body = encodeURIComponent(
-    [
-      "Confirm your WellPept account email.",
-      "",
-      `User ID: ${user.userId}`,
-      `Confirmation code: ${code}`,
-      "",
-      "Open this link on the same device/browser where you signed up:",
-      link,
-      "",
-      "Or sign in and enter the 6-digit code on the confirmation screen.",
-      "",
-      "If you did not create a WellPept account, ignore this message.",
-    ].join("\n")
-  );
-  const mailto = `mailto:${encodeURIComponent(user.email)}?subject=${subject}&body=${body}`;
+  const textBody = [
+    "Confirm your WellPept account email.",
+    "",
+    `User ID: ${user.userId}`,
+    `Confirmation code: ${code}`,
+    "",
+    "Open this link on the same device/browser where you signed up:",
+    link,
+    "",
+    "Or sign in and enter the 6-digit code on the confirmation screen.",
+    "",
+    "If you did not create a WellPept account, ignore this message.",
+  ].join("\n");
+
   try {
-    const a = document.createElement("a");
-    a.href = mailto;
-    a.rel = "noopener";
-    a.style.display = "none";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    const { fetchEmailConfig, sendTransactionalEmail, openMailto } = await import(
+      "./emailClient"
+    );
+    const cfg = await fetchEmailConfig();
+    if (cfg?.enabled) {
+      await sendTransactionalEmail({
+        type: "auth_confirm",
+        to: user.email,
+        userId: user.userId,
+        code,
+        link,
+      });
+      return { via: "resend", link, code };
+    }
+    const mailto = openMailto({
+      to: user.email,
+      subject: "Confirm your WellPept email",
+      body: textBody,
+    });
+    return { via: "mailto", mailto, link, code };
   } catch {
-    /* ignore */
+    try {
+      const { openMailto } = await import("./emailClient");
+      const mailto = openMailto({
+        to: user.email,
+        subject: "Confirm your WellPept email",
+        body: textBody,
+      });
+      return { via: "mailto", mailto, link, code };
+    } catch {
+      return { via: "none", link, code };
+    }
   }
-  return { mailto, link, code };
 }
 
-function notifyOpsNewSignup(user) {
-  const subject = encodeURIComponent(
-    `WellPept signup pending email confirm · ${user.userId}`
-  );
-  const body = encodeURIComponent(
-    [
-      "New WellPept account (awaiting email confirmation):",
-      `User ID: ${user.userId}`,
-      `Email: ${user.email}`,
-      `Created: ${user.createdAt}`,
-      "",
-      "They cannot shop until they confirm their email.",
-    ].join("\n")
-  );
-  // Ops copy only — do not auto-open; signup already opens customer mailto.
-  return `mailto:${AUTH_NOTIFY_EMAIL}?subject=${subject}&body=${body}`;
+async function notifyOpsNewSignup(user) {
+  try {
+    const { fetchEmailConfig, sendTransactionalEmail } = await import(
+      "./emailClient"
+    );
+    const cfg = await fetchEmailConfig();
+    if (!cfg?.enabled) return { ok: false, via: "skipped" };
+    await sendTransactionalEmail({
+      type: "ops_signup",
+      userId: user.userId,
+      email: user.email,
+      createdAt: user.createdAt,
+    });
+    return { ok: true, via: "resend" };
+  } catch (err) {
+    return { ok: false, error: err?.message };
+  }
 }
 
 export async function registerAccount({
@@ -296,14 +316,16 @@ export async function registerAccount({
   saveUsers(users);
   logout();
   const pending = setPendingVerify(user);
-  const draft = openConfirmEmailDraft(user, issued);
+  const draft = await openConfirmEmailDraft(user, issued);
+  // Fire-and-forget ops ping when Resend is configured
+  notifyOpsNewSignup(user);
   return {
     ok: true,
     needsEmailConfirm: true,
     pending,
     confirmLink: draft?.link || buildConfirmUrl(issued.verifyToken),
     confirmCode: issued.verifyCode,
-    opsMailto: notifyOpsNewSignup(user),
+    emailVia: draft?.via || "none",
   };
 }
 
@@ -333,15 +355,18 @@ export async function loginAccount({ login, password }) {
       saveUsers(users);
     }
     setPendingVerify(user);
-    openConfirmEmailDraft(user);
+    const draft = await openConfirmEmailDraft(user);
     return {
       ok: false,
       needsEmailConfirm: true,
       error:
-        "Confirm your email before signing in. We opened a confirmation message — send it to yourself, then use the link or 6-digit code.",
+        draft?.via === "resend"
+          ? "Confirm your email before signing in. We sent a confirmation message — enter the 6-digit code or open the link."
+          : "Confirm your email before signing in. We opened a confirmation message — send it to yourself, then use the link or 6-digit code.",
       pending: getPendingVerify(),
       confirmCode: user.verifyCode,
       confirmLink: buildConfirmUrl(user.verifyToken),
+      emailVia: draft?.via || "none",
     };
   }
   const session = writeSession(user);
@@ -415,7 +440,7 @@ export function confirmEmailWithCode({ email, userId, code }) {
   return { ok: true, session };
 }
 
-export function resendEmailConfirmation({ email, userId } = {}) {
+export async function resendEmailConfirmation({ email, userId } = {}) {
   const users = loadUsers();
   const pending = getPendingVerify();
   const mail = normalizeEmail(email || pending?.email);
@@ -432,12 +457,13 @@ export function resendEmailConfirmation({ email, userId } = {}) {
   const issued = issueVerification(user);
   saveUsers(users);
   setPendingVerify(user);
-  const draft = openConfirmEmailDraft(user, issued);
+  const draft = await openConfirmEmailDraft(user, issued);
   return {
     ok: true,
     pending: getPendingVerify(),
     confirmLink: draft?.link,
     confirmCode: issued.verifyCode,
+    emailVia: draft?.via || "none",
   };
 }
 
