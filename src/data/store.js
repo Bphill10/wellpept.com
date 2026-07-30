@@ -6,11 +6,10 @@ import {
   buildCatalog,
 } from "./products";
 import { CHANGSHA_VENDOR } from "./changshaPremium";
-import { THE_LOBSTER_VENDOR } from "./theLobster";
 import { isFocusedSubmission } from "./catalogFocus";
 
 /** Bump when focused vendors/catalog must replace stale local data. */
-const STORAGE_KEY = "wellpept-marketplace-v8";
+const STORAGE_KEY = "wellpept-marketplace-v9";
 
 function syncVendor(v) {
   if (!v || !ACTIVE_VENDOR_IDS.has(v.id)) return null;
@@ -23,19 +22,6 @@ function syncVendor(v) {
       shippingFlat: CHANGSHA_VENDOR.shippingFlat,
       shippingNote: CHANGSHA_VENDOR.shippingNote,
       minOrder: CHANGSHA_VENDOR.minOrder,
-      status: "approved",
-    };
-  }
-  if (v.id === THE_LOBSTER_VENDOR.id) {
-    return {
-      ...v,
-      id: THE_LOBSTER_VENDOR.id,
-      name: "Lobster",
-      featured: true,
-      featuredFor: "HGH",
-      shippingFlat: THE_LOBSTER_VENDOR.shippingFlat,
-      shippingNote: THE_LOBSTER_VENDOR.shippingNote,
-      notes: THE_LOBSTER_VENDOR.notes,
       status: "approved",
     };
   }
@@ -52,7 +38,7 @@ function loadState() {
     const parsed = JSON.parse(raw);
     if (!parsed?.vendors || !parsed?.submissions) return null;
     const vendors = parsed.vendors.map(syncVendor).filter(Boolean);
-    // Public catalog always reseeds focused lines; drop ERP / Sema / other vendors.
+    // Public catalog always reseeds focused lines; drop other vendors.
     const submissions = SEED_SUBMISSIONS.filter(isFocusedSubmission);
     if (!vendors.length) return null;
     return { vendors, submissions };
@@ -74,7 +60,7 @@ function saveState(state) {
 export function getInitialMarketplace() {
   const saved = loadState();
   const vendors = SEED_VENDORS.map((seed) => syncVendor(seed)).filter(Boolean);
-  // Prefer seed catalog so only Changsha + Lobster focused lines show.
+  // Prefer seed catalog so only Changsha focused lines show.
   const submissions = SEED_SUBMISSIONS;
   // Keep seed vendor objects even if something was saved.
   void saved;
@@ -87,7 +73,7 @@ export function getInitialMarketplace() {
 
 export function persistMarketplace(vendors, submissions) {
   const cleanVendors = vendors.map(syncVendor).filter(Boolean);
-  // Ensure both live vendors always exist.
+  // Ensure the live vendor always exists.
   for (const seed of SEED_VENDORS) {
     if (!cleanVendors.some((v) => v.id === seed.id)) {
       cleanVendors.push(syncVendor(seed));

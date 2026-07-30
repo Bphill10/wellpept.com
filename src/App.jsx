@@ -78,7 +78,7 @@ import PriceCompare from "./components/PriceCompare";
 import LiveChat, { openLiveChat, contactEmail } from "./components/LiveChat";
 import AuthGate from "./components/AuthGate";
 import { getSession, logout as logoutAccount } from "./utils/auth";
-import { THE_LOBSTER_VENDOR } from "./data/theLobster";
+import { CHANGSHA_VENDOR } from "./data/changshaPremium";
 import {
   LYOPHILIZED_QC,
   RESEARCH_GLOSSARY,
@@ -1446,7 +1446,7 @@ export default function App() {
                   <div>
                     <p className="section-kicker">This week</p>
                     <h2>Bestsellers</h2>
-                    <p>Focused research lines from Changsha and Lobster.</p>
+                    <p>Focused research lines from Changsha.</p>
                   </div>
                 </div>
                 <div className="product-grid">
@@ -1731,8 +1731,8 @@ export default function App() {
                   <ul className="supply-example-notes">
                     <li>
                       <Package size={16} />
-                      Featured vendor min order{" "}
-                      {formatMoney(THE_LOBSTER_VENDOR.minOrder)}
+                      Vendor min order{" "}
+                      {formatMoney(CHANGSHA_VENDOR.minOrder)}
                     </li>
                     <li>
                       <Truck size={16} />

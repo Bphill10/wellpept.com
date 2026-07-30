@@ -2,11 +2,7 @@ import {
   CHANGSHA_SUBMISSIONS,
   CHANGSHA_VENDOR,
 } from "./changshaPremium";
-import {
-  THE_LOBSTER_SUBMISSIONS,
-  THE_LOBSTER_VENDOR,
-} from "./theLobster";
-import { isChangshaFocused, isLobsterFocused } from "./catalogFocus";
+import { isChangshaFocused } from "./catalogFocus";
 import { resolveVialMl, resolveVialUnit, resolvePowderColor } from "../utils/vialArt";
 
 export { resolveVialMl, resolveVialUnit, resolvePowderColor };
@@ -33,20 +29,17 @@ export function formatMoney(n) {
 /** Live Undisclosed vendors only. */
 export const ACTIVE_VENDOR_IDS = new Set([
   "v-changsha-premium",
-  "v-the-lobster",
 ]);
 
-/** Always show Changsha / Lobster — never “Premium” or stale vendor names. */
+/** Always show Changsha — never “Premium” or stale vendor names. */
 export function displayVendorName(name, vendorId = "") {
   const id = String(vendorId || "");
   if (id === "v-changsha-premium" || id === "v-changsha") return "Changsha";
-  if (id === "v-the-lobster") return "Lobster";
   const cleaned = String(name || "")
     .replace(/\bpremium\b/gi, "")
     .replace(/\s+/g, " ")
     .trim();
   if (/changsha/i.test(cleaned)) return "Changsha";
-  if (/lobster/i.test(cleaned)) return "Lobster";
   return cleaned || "Vendor";
 }
 
@@ -368,13 +361,12 @@ export function guessTagline(name) {
   if (key && TAGLINES[key]) return TAGLINES[key];
   return "Laboratory research compound";
 }
-/** Active vendors for now: Changsha + Lobster (featured for HGH). */
-export const SEED_VENDORS = [CHANGSHA_VENDOR, THE_LOBSTER_VENDOR];
+/** Active vendor for now: Changsha only (more vendors later). */
+export const SEED_VENDORS = [CHANGSHA_VENDOR];
 
-/** Focused seed submissions only (popular Changsha + Lobster HGH/Reta/TB4/Wolverine). */
+/** Focused seed submissions (popular Changsha research lines). */
 export const SEED_SUBMISSIONS = [
   ...CHANGSHA_SUBMISSIONS.filter((s) => isChangshaFocused(s.name)),
-  ...THE_LOBSTER_SUBMISSIONS.filter((s) => isLobsterFocused(s.name)),
 ];
 
 export function guessCategory(name) {
@@ -763,7 +755,7 @@ export function strengthForProduct(listing, product) {
 /**
  * Build the public catalog from approved submissions.
  * One retail offer per vendor SKU (vendorId + sku).
- * Only Changsha + Lobster are live.
+ * Changsha is the live vendor for now.
  */
 export function buildCatalog(vendors, submissions) {
   const vendorById = Object.fromEntries(
@@ -831,12 +823,9 @@ export function buildCatalog(vendors, submissions) {
       rating: item.rating != null ? Number(item.rating) : null,
       reviews: Number(item.reviews) || 0,
       inStock: true,
-      ships: featured
-        ? "US only · request first · pay after supply check · up to 4 weeks"
-        : "US only · request first · pay after supply check · up to 4 weeks",
-      badge: featured
-        ? "Featured · Lobster"
-        : null,
+      ships:
+        "US only · request first · pay after supply check · up to 4 weeks",
+      badge: featured ? "Featured" : null,
       featured,
     };
   });

@@ -1,7 +1,7 @@
 /**
  * Focused Undisclosed catalog.
- * Lobster: HGH, Reta, TB-4 / Wolverine blend only.
- * Changsha: popular research lines (no pure GLP-1 like Semaglutide / Liraglutide).
+ * Changsha only for now (more vendors later).
+ * Popular research lines (no pure GLP-1 like Semaglutide / Liraglutide).
  */
 
 function norm(name) {
@@ -10,27 +10,6 @@ function norm(name) {
     .replace(/[·•]/g, ".")
     .replace(/\s+/g, " ")
     .trim();
-}
-
-/** Lobster keepers: HGH family, Retatrutide, TB-500, Wolverine (BPC+TB). */
-export function isLobsterFocused(name) {
-  const n = norm(name);
-  if (!n) return false;
-  if (n === "hgh" || n.includes("prolobster") || n.includes("plus hgh")) return true;
-  if (n.startsWith("retatrutide") || n === "reta") return true;
-  if (
-    n.includes("tb-4") ||
-    n.includes("tb4") ||
-    n.includes("tb-500") ||
-    n.includes("tb500") ||
-    n.includes("thymosin beta")
-  ) {
-    return true;
-  }
-  // Wolverine stack on Lobster list
-  if (n.includes("bpc") && n.includes("tb")) return true;
-  if (n.includes("wolverine")) return true;
-  return false;
 }
 
 /**
@@ -85,7 +64,8 @@ export function isChangshaFocused(name) {
 
 export function isFocusedSubmission(submission) {
   if (!submission) return false;
-  if (submission.vendorId === "v-the-lobster") return isLobsterFocused(submission.name);
-  if (submission.vendorId === "v-changsha-premium") return isChangshaFocused(submission.name);
+  if (submission.vendorId === "v-changsha-premium") {
+    return isChangshaFocused(submission.name);
+  }
   return false;
 }
