@@ -286,29 +286,47 @@ function drawDarkStudio(ctx, w, h) {
 }
 
 /**
- * Cobalt circular W monogram — Cormorant-style serif fallback
- * (matches WellPept wordmark; SVG seal is preferred when loaded).
+ * Cobalt circular W monogram — classic crossed-W fallback
+ * (center peak on the same line as the outer peaks).
  */
 function drawWpMonogramSeal(ctx, cx, cy, r) {
   const cobalt = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.28, 1, cx, cy, r);
   cobalt.addColorStop(0, "#3a6fb5");
-  cobalt.addColorStop(0.45, "#003d8f");
-  cobalt.addColorStop(0.82, "#002456");
+  cobalt.addColorStop(0.45, "#0047ab");
+  cobalt.addColorStop(0.82, "#002f75");
   cobalt.addColorStop(1, "#00122e");
   ellipse(ctx, cx, cy, r, r);
   ctx.fillStyle = cobalt;
   ctx.fill();
 
-  ellipse(ctx, cx, cy, r * 0.93, r * 0.93);
-  ctx.strokeStyle = "rgba(143, 168, 200, 0.35)";
-  ctx.lineWidth = Math.max(1.2, r * 0.04);
+  ellipse(ctx, cx, cy, r * 0.89, r * 0.89);
+  ctx.strokeStyle = "rgba(197, 208, 224, 0.35)";
+  ctx.lineWidth = Math.max(1, r * 0.03);
   ctx.stroke();
 
+  const s = (r * 2) / 128;
+  const ox = cx - r;
+  const oy = cy - r;
+  ctx.save();
+  ctx.translate(ox, oy);
+  ctx.scale(s, s);
+  ctx.beginPath();
+  ctx.moveTo(28, 38);
+  ctx.lineTo(39, 38);
+  ctx.lineTo(50, 86);
+  ctx.lineTo(64, 38);
+  ctx.lineTo(78, 86);
+  ctx.lineTo(89, 38);
+  ctx.lineTo(100, 38);
+  ctx.lineTo(84, 98);
+  ctx.lineTo(73, 98);
+  ctx.lineTo(64, 66);
+  ctx.lineTo(55, 98);
+  ctx.lineTo(44, 98);
+  ctx.closePath();
   ctx.fillStyle = "#f4f0e8";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.font = `600 ${Math.max(16, r * 0.95)}px "Cormorant Garamond", Georgia, "Times New Roman", serif`;
-  ctx.fillText("W", cx, cy + r * 0.04);
+  ctx.fill();
+  ctx.restore();
 }
 
 /** Draw the circular WP brand mark image, or fall back to the monogram. */

@@ -348,10 +348,10 @@ svg {
   width: 3.1rem;
   height: 3.1rem;
   border-radius: 50%;
-  object-fit: cover;
+  object-fit: contain;
   border: 1px solid rgba(0, 71, 171, 0.22);
   box-shadow: 0 6px 18px rgba(0, 71, 171, 0.14);
-  background: #fff;
+  background: #002f75;
 }
 
 .app-shell--undisclosed .brand-logo {
@@ -767,10 +767,10 @@ svg {
   width: clamp(5.5rem, 14vw, 8.5rem);
   height: clamp(5.5rem, 14vw, 8.5rem);
   border-radius: 50%;
-  object-fit: cover;
+  object-fit: contain;
   border: 1px solid rgba(0, 71, 171, 0.35);
   box-shadow: 0 16px 48px rgba(0, 71, 171, 0.18);
-  background: #fff;
+  background: #002f75;
   flex-shrink: 0;
 }
 
@@ -4748,8 +4748,10 @@ body:has(.app-shell--undisclosed)::before {
   width: 4.25rem;
   height: 4.25rem;
   border-radius: 50%;
+  object-fit: contain;
   border: 1px solid rgba(0, 47, 117, 0.18);
   margin-bottom: 0.75rem;
+  background: #002f75;
 }
 
 .auth-kicker {
