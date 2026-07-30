@@ -444,8 +444,9 @@ svg {
   border-radius: 999px;
   padding: 0.5rem 0.55rem;
   max-width: 7.5rem;
-  font-size: 0.8rem;
+  font-size: 16px;
   font-weight: 650;
+  min-height: 44px;
 }
 
 .search-wrap input {
@@ -453,7 +454,9 @@ svg {
   outline: 0;
   background: transparent;
   width: 100%;
+  min-width: 0;
   padding: 0.45rem 0.25rem;
+  font-size: 16px;
 }
 
 .search-go {
@@ -463,6 +466,9 @@ svg {
   font-weight: 700;
   padding: 0.58rem 0.95rem;
   border-radius: 999px;
+  min-height: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .search-go:hover {
@@ -2304,15 +2310,30 @@ body:has(.app-shell--skincare) {
   color: var(--ink);
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0.48) 100%),
-    url("/black-marble.jpg") center top / cover fixed no-repeat,
+    url("/black-marble.jpg") center top / cover scroll no-repeat,
     #000;
 }
 
 body:has(.app-shell--undisclosed) {
   color: #f4f6f8;
   background:
-    url("/black-marble.jpg") center top / cover fixed no-repeat,
+    url("/black-marble.jpg") center top / cover scroll no-repeat,
     #000;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .app-shell--undisclosed {
+    background:
+      linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0.48) 100%),
+      url("/black-marble.jpg") center top / cover fixed no-repeat,
+      #000;
+  }
+
+  body:has(.app-shell--undisclosed) {
+    background:
+      url("/black-marble.jpg") center top / cover fixed no-repeat,
+      #000;
+  }
 }
 
 body:has(.app-shell--undisclosed)::before {
@@ -5262,7 +5283,7 @@ body:has(.app-shell--undisclosed)::before {
   }
 
   .app-shell--undisclosed .lab-banner .ghost-btn {
-    min-height: 40px;
+    min-height: 44px;
     padding: 0.45rem 0.75rem;
     font-size: 0.65rem;
   }
@@ -5270,10 +5291,18 @@ body:has(.app-shell--undisclosed)::before {
   .app-shell--undisclosed .search-wrap {
     border-radius: 10px;
     padding: 0.15rem;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .app-shell--undisclosed .search-wrap svg {
+    flex-shrink: 0;
+    opacity: 0.55;
   }
 
   .app-shell--undisclosed .search-go {
-    min-height: 40px;
+    min-height: 44px;
     padding: 0.5rem 0.75rem;
   }
 
@@ -5281,14 +5310,51 @@ body:has(.app-shell--undisclosed)::before {
     display: none;
   }
 
+  .app-shell--undisclosed .header-actions .ghost-btn,
+  .app-shell--undisclosed .header-actions .soft-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
   .app-shell--undisclosed .dept-bar {
     padding: 0.35rem 0;
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  .app-shell--undisclosed .dept-bar-inner {
+    gap: 0.35rem;
   }
 
   .app-shell--undisclosed .dept-link {
-    padding: 0.45rem 0.7rem;
+    padding: 0.55rem 0.75rem;
     font-size: 0.75rem;
-    min-height: 40px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-shell--undisclosed .filters .chip {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .app-shell--undisclosed .qty-controls button {
+    background: #1a1a1a;
+    color: #f4f6f8;
+    border-color: rgba(255, 255, 255, 0.22);
+  }
+
+  .app-shell--undisclosed .calc-card,
+  .app-shell--undisclosed .calc-example,
+  .app-shell--undisclosed .calc-result {
+    background: rgba(20, 20, 20, 0.92);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: #f4f6f8;
   }
 
   .app-shell--undisclosed .product-grid,
@@ -5303,6 +5369,21 @@ body:has(.app-shell--undisclosed)::before {
 
   .app-shell--undisclosed .thesis-grid {
     grid-template-columns: 1fr;
+  }
+
+  .app-shell--undisclosed .featured-vendor,
+  .app-shell--undisclosed .featured-vendor-section .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .app-shell--undisclosed .cart-item {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .app-shell--undisclosed .panel {
+    overflow-x: clip;
+    max-width: 100%;
   }
 
   .hero-cta {
@@ -5571,9 +5652,9 @@ body:has(.app-shell--undisclosed)::before {
 
   .hero--undisclosed .hero-media,
   .hero-media--undisclosed {
-    height: 240px !important;
-    min-height: 240px !important;
-    max-height: 240px !important;
+    height: 160px !important;
+    min-height: 160px !important;
+    max-height: 160px !important;
   }
 
   .skin-hero .hero-brand {
@@ -5594,8 +5675,29 @@ body:has(.app-shell--undisclosed)::before {
 #skin-catalog,
 #contact-wellpept,
 #peptide-legal,
-#about {
+#about,
+#catalog,
+#featured {
   scroll-margin-top: calc(5.75rem + env(safe-area-inset-top, 0px));
+}
+
+/* Undisclosed sticky chrome is taller (search + dept bar) */
+html:has(.app-shell--undisclosed) {
+  scroll-padding-top: calc(10.5rem + env(safe-area-inset-top, 0px));
+}
+
+.app-shell--undisclosed #catalog,
+.app-shell--undisclosed #featured {
+  scroll-margin-top: calc(10.5rem + env(safe-area-inset-top, 0px));
+}
+
+@media (max-width: 700px) {
+  .app-shell--undisclosed .hero--undisclosed .hero-media,
+  .app-shell--undisclosed .hero-media--undisclosed {
+    height: 180px !important;
+    min-height: 180px !important;
+    max-height: 180px !important;
+  }
 }
 
 @media (max-width: 360px) {
@@ -5612,6 +5714,16 @@ body:has(.app-shell--undisclosed)::before {
   .sk-option-body span {
     overflow-wrap: anywhere;
   }
+
+  .app-shell--undisclosed .search-go {
+    padding-left: 0.65rem;
+    padding-right: 0.65rem;
+  }
+
+  .app-shell--undisclosed .dept-link {
+    padding-left: 0.55rem;
+    padding-right: 0.55rem;
+  }
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -5620,7 +5732,9 @@ body:has(.app-shell--undisclosed)::before {
   .chip,
   .sk-option,
   .sk-preset,
-  .product-card-main {
+  .product-card-main,
+  .dept-link,
+  .search-go {
     -webkit-tap-highlight-color: transparent;
   }
 

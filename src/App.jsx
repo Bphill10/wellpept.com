@@ -915,7 +915,7 @@ export default function App() {
           <button
             className="brand"
             type="button"
-            aria-label="WellPept home"
+            aria-label={labVisible ? "Undisclosed home" : "WellPept home"}
             onPointerUp={handleBrandActivate}
             onClick={handleBrandClick}
           >
@@ -953,7 +953,7 @@ export default function App() {
                   </option>
                 ))}
               </select>
-              <Search size={16} strokeWidth={2} />
+              <Search size={16} strokeWidth={2} aria-hidden="true" />
               <input
                 value={query}
                 onChange={(e) => {
