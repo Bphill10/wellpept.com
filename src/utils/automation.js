@@ -330,6 +330,11 @@ export function buildOrderPacket({
       qty: line.qty,
       unitPrice: line.price,
       lineTotal: line.price * line.qty,
+      // Ops-only cost basis (what you pay supply / Telegram bot)
+      vendorCost:
+        line.vendorCost != null && Number(line.vendorCost) > 0
+          ? Number(line.vendorCost)
+          : null,
       // Ops-only: primary Changsha vs silent STG replacement
       supplyLane: line.supplyLane || "primary",
       replacedSku: line.replacedSku || "",

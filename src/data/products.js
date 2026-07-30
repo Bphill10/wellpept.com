@@ -8,14 +8,33 @@ import { resolveVialMl, resolveVialUnit, resolvePowderColor } from "../utils/via
 
 export { resolveVialMl, resolveVialUnit, resolvePowderColor };
 
-/** Retail = 2× Changsha vendor cost, then rounded UP to the nearest $5. */
+/** Default retail = 2× vendor cost, then rounded UP to the nearest $5. */
 export const RETAIL_MULTIPLIER = 2;
 /** @deprecated use RETAIL_MULTIPLIER — kept as alias (markup fraction = multiplier − 1). */
 export const MARKUP = RETAIL_MULTIPLIER - 1;
 
-export function retailFromVendor(vendorCost) {
-  const marked =
-    Math.round(Number(vendorCost) * RETAIL_MULTIPLIER * 100) / 100;
+/**
+ * Effective catalog multiplier. When QSC dropship profile enables
+ * useMarkupForCatalog, uses that profile's markup (e.g. 1.5 = 50%).
+ */
+export function getRetailMultiplier() {
+  try {
+    if (typeof localStorage === "undefined") return RETAIL_MULTIPLIER;
+    const raw = localStorage.getItem("wellpept-qsc-dropship-v1");
+    if (!raw) return RETAIL_MULTIPLIER;
+    const p = JSON.parse(raw);
+    if (p?.useMarkupForCatalog && Number(p.markupMultiplier) > 0) {
+      return Number(p.markupMultiplier);
+    }
+  } catch {
+    /* keep default */
+  }
+  return RETAIL_MULTIPLIER;
+}
+
+export function retailFromVendor(vendorCost, multiplier = null) {
+  const m = multiplier != null ? Number(multiplier) : getRetailMultiplier();
+  const marked = Math.round(Number(vendorCost) * m * 100) / 100;
   if (!Number.isFinite(marked) || marked <= 0) return 0;
   return Math.ceil(marked / 5) * 5;
 }

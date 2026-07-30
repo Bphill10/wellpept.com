@@ -105,6 +105,14 @@ import {
   loadCachedStgSubmissions,
 } from "./utils/stgSync";
 import { STG_VENDOR_ID, PRIMARY_VENDOR_ID } from "./data/stgBackup";
+import {
+  QSC_BOT_URL,
+  QSC_MARKUP_MULTIPLIER,
+  loadDropshipProfile,
+  saveDropshipProfile,
+  copyAndOpenQscBot,
+  formatQscBotOrderText,
+} from "./utils/qscTelegramRelay";
 
 const VIEWS = {
   skincare: "skincare",
@@ -1811,6 +1819,12 @@ export default function App() {
                 return [...primary, ...stgSubs];
               });
             }}
+            onDropshipPricingChanged={() => {
+              // Rebuild products so retailFromVendor picks up new multiplier
+              setProducts(
+                persistMarketplace(vendors, submissions, supplyPolicy)
+              );
+            }}
             onUpdateAutomation={updateAutomation}
             onApproveSubmission={approveSubmission}
             onRejectSubmission={rejectSubmission}
@@ -3472,6 +3486,7 @@ function AdminPanel({
   supplyPolicy,
   onUpdateSupplyPolicy,
   onStgSynced,
+  onDropshipPricingChanged,
   onUpdateAutomation,
   onApproveSubmission,
   onRejectSubmission,
@@ -3508,6 +3523,7 @@ function AdminPanel({
   const [stgShipNote, setStgShipNote] = useState(
     () => supplyPolicy?.shippingNote || ""
   );
+  const [dropship, setDropship] = useState(() => loadDropshipProfile());
   const primaryRows = useMemo(() => {
     // Toggle OOS against raw primary submissions, not the fallback-collapsed shop list
     return submissions
@@ -3584,6 +3600,35 @@ function AdminPanel({
     if (next.has(key)) next.delete(key);
     else next.add(key);
     onUpdateSupplyPolicy?.({ unavailableKeys: [...next] });
+  }
+
+  function updateDropship(patch) {
+    const next = saveDropshipProfile(patch);
+    setDropship(next);
+    // Rebuild catalog prices if markup-for-catalog toggled
+    if (
+      Object.prototype.hasOwnProperty.call(patch, "useMarkupForCatalog") ||
+      Object.prototype.hasOwnProperty.call(patch, "markupMultiplier")
+    ) {
+      onFlash?.(
+        next.useMarkupForCatalog
+          ? `Catalog retail now ${Math.round((Number(next.markupMultiplier) - 1) * 100)}% markup (×${next.markupMultiplier}) — refresh shop`
+          : "Catalog retail back to default ×2 markup"
+      );
+      // Force marketplace rebuild via a no-op submission touch from parent if provided
+      onDropshipPricingChanged?.();
+    }
+  }
+
+  async function relayOrderToQsc(order) {
+    try {
+      const formatted = await copyAndOpenQscBot(order, dropship);
+      onFlash?.(
+        `Copied bot order · pay bot ~${formatMoney(formatted.botTotal)} · opened @${dropship.botUsername || "OrdersQSCbot"}`
+      );
+    } catch (err) {
+      onFlash?.(err?.message || "Could not open Telegram bot");
+    }
   }
 
   async function copyPayLink(order) {
@@ -3823,6 +3868,153 @@ function AdminPanel({
                 </tbody>
               </table>
             </div>
+          </div>
+
+          <div className="qsc-relay-admin panel" style={{ marginBottom: "1.5rem" }}>
+            <h2>QSC Telegram relay (@OrdersQSCbot)</h2>
+            <p className="meta">
+              Customers pay you on WellPept. You pay{" "}
+              <a href={QSC_BOT_URL} target="_blank" rel="noreferrer">
+                @{dropship.botUsername || "OrdersQSCbot"}
+              </a>{" "}
+              and place the order under <strong>your</strong> ship-to info, then
+              forward the kit to the customer. Telegram does not give this site
+              an API into that bot — relay copies the order text and opens the
+              chat.
+            </p>
+            <label className="toggle-row">
+              <input
+                type="checkbox"
+                checked={Boolean(dropship.enabled)}
+                onChange={(e) => updateDropship({ enabled: e.target.checked })}
+              />
+              <span>Show “Relay to QSC bot” on order requests</span>
+            </label>
+            <label className="toggle-row">
+              <input
+                type="checkbox"
+                checked={Boolean(dropship.useMarkupForCatalog)}
+                onChange={(e) =>
+                  updateDropship({ useMarkupForCatalog: e.target.checked })
+                }
+              />
+              <span>
+                Price catalog at 50% markup (×{dropship.markupMultiplier || QSC_MARKUP_MULTIPLIER}) instead of ×2
+              </span>
+            </label>
+            <div className="form-row" style={{ marginTop: "0.75rem" }}>
+              <label className="field">
+                Bot username
+                <input
+                  value={dropship.botUsername || ""}
+                  onChange={(e) =>
+                    updateDropship({
+                      botUsername: e.target.value.replace(/^@/, ""),
+                    })
+                  }
+                  placeholder="OrdersQSCbot"
+                />
+              </label>
+              <label className="field">
+                Markup multiplier
+                <input
+                  value={String(dropship.markupMultiplier ?? QSC_MARKUP_MULTIPLIER)}
+                  onChange={(e) =>
+                    updateDropship({
+                      markupMultiplier: Number(e.target.value) || QSC_MARKUP_MULTIPLIER,
+                    })
+                  }
+                  inputMode="decimal"
+                  placeholder="1.5"
+                />
+              </label>
+            </div>
+            <h3 style={{ marginTop: "1rem" }}>Your ship-to (for the bot)</h3>
+            <p className="meta">
+              Never put the customer address on the bot. Use your name / address
+              here; you re-ship after delivery.
+            </p>
+            <div className="form-row">
+              <label className="field">
+                Name
+                <input
+                  value={dropship.shipName || ""}
+                  onChange={(e) => updateDropship({ shipName: e.target.value })}
+                />
+              </label>
+              <label className="field">
+                Phone
+                <input
+                  value={dropship.shipPhone || ""}
+                  onChange={(e) =>
+                    updateDropship({ shipPhone: e.target.value })
+                  }
+                />
+              </label>
+              <label className="field">
+                Email
+                <input
+                  value={dropship.shipEmail || ""}
+                  onChange={(e) =>
+                    updateDropship({ shipEmail: e.target.value })
+                  }
+                />
+              </label>
+            </div>
+            <div className="form-row">
+              <label className="field" style={{ flex: 1 }}>
+                Address line 1
+                <input
+                  value={dropship.shipAddress1 || ""}
+                  onChange={(e) =>
+                    updateDropship({ shipAddress1: e.target.value })
+                  }
+                />
+              </label>
+              <label className="field">
+                Line 2
+                <input
+                  value={dropship.shipAddress2 || ""}
+                  onChange={(e) =>
+                    updateDropship({ shipAddress2: e.target.value })
+                  }
+                />
+              </label>
+            </div>
+            <div className="form-row">
+              <label className="field">
+                City
+                <input
+                  value={dropship.shipCity || ""}
+                  onChange={(e) => updateDropship({ shipCity: e.target.value })}
+                />
+              </label>
+              <label className="field">
+                State
+                <input
+                  value={dropship.shipState || ""}
+                  onChange={(e) =>
+                    updateDropship({ shipState: e.target.value })
+                  }
+                />
+              </label>
+              <label className="field">
+                ZIP
+                <input
+                  value={dropship.shipZip || ""}
+                  onChange={(e) => updateDropship({ shipZip: e.target.value })}
+                />
+              </label>
+            </div>
+            <label className="field" style={{ marginTop: "0.5rem" }}>
+              Note to include in bot paste
+              <input
+                value={dropship.telegramNote || ""}
+                onChange={(e) =>
+                  updateDropship({ telegramNote: e.target.value })
+                }
+              />
+            </label>
           </div>
 
           <form className="manual-pay-admin" onSubmit={savePayMethods}>
@@ -4355,35 +4547,69 @@ function AdminPanel({
                         ) : null}
                       </td>
                       <td>
-                        {o.status === "paid" ? (
-                          <span className="meta">Paid</span>
-                        ) : (
-                          <div className="row-actions admin-pay-actions">
+                        <div className="row-actions admin-pay-actions">
+                          {o.status === "paid" ? (
+                            <span className="meta">Paid</span>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                className="soft-btn"
+                                onClick={() => copyPayLink(o)}
+                              >
+                                Copy pay link
+                              </button>
+                              <button
+                                type="button"
+                                className="soft-btn"
+                                onClick={() => copyPayInstructions(o)}
+                              >
+                                Copy Venmo/Zelle/crypto
+                              </button>
+                              <button
+                                type="button"
+                                className="ghost-btn"
+                                onClick={() =>
+                                  onMarkOrderPaid?.(o.orderId, "manual")
+                                }
+                              >
+                                Mark paid
+                              </button>
+                            </>
+                          )}
+                          {dropship.enabled !== false ? (
                             <button
                               type="button"
-                              className="soft-btn"
-                              onClick={() => copyPayLink(o)}
+                              className="primary-btn"
+                              onClick={() => relayOrderToQsc(o)}
+                              title="Copy order under your ship-to and open @OrdersQSCbot"
                             >
-                              Copy pay link
+                              Relay to QSC bot
                             </button>
-                            <button
-                              type="button"
-                              className="soft-btn"
-                              onClick={() => copyPayInstructions(o)}
-                            >
-                              Copy Venmo/Zelle/crypto
-                            </button>
+                          ) : null}
+                          {dropship.enabled !== false ? (
                             <button
                               type="button"
                               className="ghost-btn"
-                              onClick={() =>
-                                onMarkOrderPaid?.(o.orderId, "manual")
-                              }
+                              onClick={async () => {
+                                const { text, botTotal } = formatQscBotOrderText(
+                                  o,
+                                  dropship
+                                );
+                                try {
+                                  await navigator.clipboard.writeText(text);
+                                  onFlash?.(
+                                    `Bot order copied · pay bot ~${formatMoney(botTotal)}`
+                                  );
+                                } catch {
+                                  window.prompt("Copy for Telegram bot", text);
+                                }
+                              }}
                             >
-                              Mark paid
+                              Copy bot text
                             </button>
-                          </div>
-                        )}
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   ))
