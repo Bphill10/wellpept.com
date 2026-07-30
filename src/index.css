@@ -4538,6 +4538,13 @@ body:has(.app-shell--undisclosed)::before {
   width: 100%;
 }
 
+.label-template-size {
+  margin: 0;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+
 .label-template {
   width: 100%;
   max-width: 760px;
@@ -4546,6 +4553,14 @@ body:has(.app-shell--undisclosed)::before {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
   border: 1px solid rgba(10, 10, 10, 0.1);
   background: #fff;
+}
+
+/* Physical 40×20 mm (and scaled size tokens) — width/height set in mm by canvas style */
+.label-template.label-template--physical {
+  width: auto;
+  max-width: none;
+  height: auto;
+  border-radius: 2px;
 }
 
 @media (max-width: 900px) {

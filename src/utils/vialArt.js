@@ -7,10 +7,25 @@ export const BRAND_IMAGE_SRC = "/wellpept-brand.jpg";
 export const BRAND_VIAL_SRC = "/real-vial-3ml.webp";
 /** Photoreal unlabeled 10 mL research vial (studio photo). */
 export const BRAND_VIAL_10_SRC = "/real-vial-10ml.webp";
+/** Blank clinical wrap (peptide fields cleared, U spine mark). */
+export const BLANK_LABEL_SRC = "/undisclosed-label-blank.webp";
 /** Circular W seal / monogram. */
 export const WP_MARK_SRC = "/wp-monogram.svg";
 /** Vector W monogram. */
 export const WP_MONOGRAM_SRC = "/wp-monogram.svg";
+
+/**
+ * Physical label size by vial bottle. 3 mL wraps use the 40×20 mm folder art.
+ * @type {Record<number, { widthMm: number, heightMm: number, src: string }>}
+ */
+export const LABEL_SPEC_BY_VIAL_ML = {
+  3: { widthMm: 40, heightMm: 20, src: BLANK_LABEL_SRC },
+};
+
+export function labelSpecForVialMl(vialMl = 3) {
+  const ml = Number(vialMl) || 3;
+  return LABEL_SPEC_BY_VIAL_ML[ml] || LABEL_SPEC_BY_VIAL_ML[3];
+}
 
 let brandImageCache = null;
 let brandImagePromise = null;
@@ -18,6 +33,8 @@ let brandVialCache = null;
 let brandVialPromise = null;
 let brandVial10Cache = null;
 let brandVial10Promise = null;
+let blankLabelCache = null;
+let blankLabelPromise = null;
 let wpMarkCache = null;
 let wpMarkPromise = null;
 
@@ -87,6 +104,22 @@ export function loadWpMark() {
     return png;
   });
   return wpMarkPromise;
+}
+
+/** Prefetch the blank 40×20 mm clinical wrap photo (peptide fields cleared). */
+export function loadBlankLabelImage() {
+  if (blankLabelCache) return Promise.resolve(blankLabelCache);
+  if (blankLabelPromise) return blankLabelPromise;
+  blankLabelPromise = loadImage(BLANK_LABEL_SRC).then(async (img) => {
+    if (img) {
+      blankLabelCache = img;
+      return img;
+    }
+    const jpg = await loadImage("/undisclosed-label-blank.jpg");
+    blankLabelCache = jpg;
+    return jpg;
+  });
+  return blankLabelPromise;
 }
 
 /** @deprecated use loadWpMark */
@@ -1588,8 +1621,66 @@ function drawLabelSpineMark(ctx, cx, cy, r) {
  * Flat printable Undisclosed wrap label — black spine + white data panel + QR.
  * Matching the clinical wrap-label mockup the customer receives.
  */
+/**
+ * Draw a blank wrap from the folder photo at the vial’s physical label size.
+ * 3 mL → 40×20 mm (2:1), using undisclosed-label-blank (U mark, no peptide fill).
+ */
+export function drawBlankLabelFromImage(canvas, options = {}) {
+  const {
+    vialMl = 3,
+    blankLabelImage = null,
+    size = "md",
+  } = options;
+  const spec = labelSpecForVialMl(vialMl);
+  // Screen CSS uses true mm; canvas keeps print-quality pixels (≈300 dpi).
+  const dpi = 300;
+  const printW = Math.round((spec.widthMm / 25.4) * dpi);
+  const printH = Math.round((spec.heightMm / 25.4) * dpi);
+
+  // Display scale by template size token (physical mm stays in CSS).
+  const cssScale = { sm: 0.85, md: 1, lg: 1.15 }[size] || 1;
+  const cssW = spec.widthMm * cssScale;
+  const cssH = spec.heightMm * cssScale;
+
+  const dpr =
+    typeof window !== "undefined"
+      ? Math.min(window.devicePixelRatio || 2, 3)
+      : 2;
+  canvas.width = printW * dpr;
+  canvas.height = printH * dpr;
+  canvas.style.width = `${cssW}mm`;
+  canvas.style.height = `${cssH}mm`;
+
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, printW, printH);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, printW, printH);
+
+  if (blankLabelImage && blankLabelImage.width) {
+    ctx.drawImage(blankLabelImage, 0, 0, printW, printH);
+  } else {
+    // Fallback: procedural blank chrome at 2:1
+    paintLabelTemplate(ctx, { w: printW, h: printH }, { ...options, blank: true });
+  }
+  return canvas.toDataURL("image/png");
+}
+
 export function drawLabelTemplate(canvas, options = {}) {
-  const { size = "md" } = options;
+  const { size = "md", blank = false, vialMl = 3, blankLabelImage = null } =
+    options;
+
+  // Blank 3 mL labels use the folder photo at 40×20 mm.
+  if (blank && (Number(vialMl) || 3) === 3) {
+    return drawBlankLabelFromImage(canvas, {
+      ...options,
+      vialMl: 3,
+      blankLabelImage,
+      size,
+    });
+  }
 
   const dims = {
     sm: { w: 520, h: 190 },

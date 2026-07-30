@@ -522,11 +522,17 @@ export default function PeptideCalculator({
                 <h2>Blank label</h2>
               </div>
               <p className="meta">
-                Empty clinical wrap template. Brand chrome only; fill fields at
-                the bench.
+                {Number(vialMl) === 3
+                  ? "3 mL vial wrap · 40 × 20 mm. Folder art with peptide fields cleared; U mark only."
+                  : "Empty clinical wrap template. Brand chrome only; fill fields at the bench."}
               </p>
               <div className="calc-label-stage">
-                <LabelTemplate blank size="md" showDownload />
+                <LabelTemplate
+                  blank
+                  size="md"
+                  vialMl={vialMl || 3}
+                  showDownload
+                />
               </div>
             </div>
           </div>
