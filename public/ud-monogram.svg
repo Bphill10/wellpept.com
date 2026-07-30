@@ -1,29 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Undisclosed U monogram">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Undisclosed UD monogram">
+  <!-- White hex outer -->
   <polygon
-    points="64,4 120,36 120,92 64,124 8,92 8,36"
+    points="64,6 118,37 118,91 64,122 10,91 10,37"
     fill="#ffffff"
   />
+  <!-- Black hex inner -->
   <polygon
-    points="64,14 112,41 112,87 64,114 16,87 16,41"
+    points="64,18 108,43 108,85 64,110 20,85 20,43"
     fill="#0a0a0a"
   />
-  <!-- Wider U (less tall/narrow stretch), optically centered -->
-  <g transform="translate(64 63) scale(1.52, 1.28) translate(-64 -65)">
-    <path
-      fill="#ffffff"
-      d="
-        M 24 30
-        L 43 30
-        L 43 68
-        Q 43 86 64 86
-        Q 85 86 85 68
-        L 85 30
-        L 104 30
-        L 104 70
-        Q 104 104 64 104
-        Q 24 104 24 70
-        Z
-      "
-    />
-  </g>
+  <text
+    x="64"
+    y="78"
+    text-anchor="middle"
+    font-family="Arial Black, Arial, sans-serif"
+    font-size="42"
+    font-weight="800"
+    fill="#ffffff"
+    letter-spacing="-1"
+  >UD</text>
 </svg>

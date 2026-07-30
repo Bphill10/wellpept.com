@@ -1565,7 +1565,7 @@ function fitCenteredText(ctx, text, maxWidth, basePx, family) {
   return size;
 }
 
-/** White hexagon with a bold centered U (Undisclosed print mark). */
+/** White hexagon with bold UD letters (Undisclosed print mark). */
 function drawLabelSpineMark(ctx, cx, cy, r) {
   ctx.save();
   ctx.beginPath();
@@ -1580,7 +1580,7 @@ function drawLabelSpineMark(ctx, cx, cy, r) {
   ctx.fillStyle = "#ffffff";
   ctx.fill();
 
-  const inner = r * 0.76;
+  const inner = r * 0.82;
   ctx.beginPath();
   for (let i = 0; i < 6; i += 1) {
     const a = (Math.PI / 180) * (60 * i - 30);
@@ -1593,27 +1593,11 @@ function drawLabelSpineMark(ctx, cx, cy, r) {
   ctx.fillStyle = "#0a0a0a";
   ctx.fill();
 
-  // Map 128×128 U path into the inner hex — wider, less vertically stretched
-  const box = inner * 2;
-  const sx = (box / 128) * 1.52;
-  const sy = (box / 128) * 1.28;
-  ctx.translate(cx, cy - inner * 0.01);
-  ctx.scale(sx, sy);
-  ctx.translate(-64, -65);
-  ctx.beginPath();
-  ctx.moveTo(24, 30);
-  ctx.lineTo(43, 30);
-  ctx.lineTo(43, 68);
-  ctx.quadraticCurveTo(43, 86, 64, 86);
-  ctx.quadraticCurveTo(85, 86, 85, 68);
-  ctx.lineTo(85, 30);
-  ctx.lineTo(104, 30);
-  ctx.lineTo(104, 70);
-  ctx.quadraticCurveTo(104, 104, 64, 104);
-  ctx.quadraticCurveTo(24, 104, 24, 70);
-  ctx.closePath();
   ctx.fillStyle = "#ffffff";
-  ctx.fill();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `800 ${Math.max(11, r * 0.85)}px Outfit, "Arial Black", sans-serif`;
+  ctx.fillText("UD", cx, cy + r * 0.04);
   ctx.restore();
 }
 

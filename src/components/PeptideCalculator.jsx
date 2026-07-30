@@ -544,7 +544,7 @@ export default function PeptideCalculator({
               </div>
               <p className="meta">
                 {Number(vialMl) === 3
-                  ? "3 mL vial wrap · 40 × 20 mm. Peptide fields cleared; U mark; QR → wellpept.com."
+                  ? "3 mL vial wrap · 40 × 20 mm. Peptide fields cleared; UD mark; QR → wellpept.com."
                   : "Empty clinical wrap template. Brand chrome only; QR → wellpept.com."}
               </p>
               <div className="calc-label-stage">
