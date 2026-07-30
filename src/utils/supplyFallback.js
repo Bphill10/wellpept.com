@@ -1,5 +1,5 @@
 /**
- * Primary (Changsha) catalog with STG-only replacement when unavailable.
+ * Primary (JEC) catalog with STG-only replacement when unavailable.
  * STG-only SKUs never expand the shop — they only fill gaps.
  */
 

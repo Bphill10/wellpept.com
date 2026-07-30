@@ -3725,7 +3725,7 @@ function AdminPanel({
             <h2>STG backup supply (silent)</h2>
             <p className="meta">
               Monitor the STG price sheet and shipping notes. STG prices only
-              replace a catalog line when you mark the primary (Changsha) match
+              replace a catalog line when you mark the primary (JEC) match
               unavailable. Customers never see vendor names.
             </p>
             <label className="field" style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>

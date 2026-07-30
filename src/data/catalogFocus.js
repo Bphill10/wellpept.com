@@ -1,8 +1,10 @@
 /**
  * Focused Undisclosed catalog.
- * Changsha only for now (more vendors later).
- * Popular research lines for the shop; calculator can list every sellable peptide.
+ * Primary supply: JEC (Jinan Elitepeptide). Changsha helpers kept for legacy rows.
+ * Shop lists every seeded JEC line; calculator uses the same sellable set.
  */
+
+import { JEC_VENDOR_ID } from "./jecPremium";
 
 function norm(name) {
   return String(name || "")
@@ -137,22 +139,35 @@ export function isChangshaFocused(name) {
   return false;
 }
 
+/** JEC seed is already curated — every approved JEC line is shop-visible. */
+export function isJecSellable(name) {
+  if (!name) return false;
+  if (isChangshaSupply(name)) return false;
+  return true;
+}
+
 export function isFocusedSubmission(submission) {
   if (!submission) return false;
+  if (submission.vendorId === JEC_VENDOR_ID || submission.vendorId === "v-jec") {
+    return isJecSellable(submission.name);
+  }
   if (submission.vendorId === "v-changsha-premium") {
     return isChangshaFocused(submission.name);
   }
   // STG backup rows are kept when they could replace a sellable primary line.
   // The shop only surfaces them via supply fallback — never as STG-only SKUs.
   if (submission.vendorId === "v-stg-backup") {
-    return isChangshaSellable(submission.name);
+    return isJecSellable(submission.name) || isChangshaSellable(submission.name);
   }
   return false;
 }
 
-/** Full sellable Changsha lines for calculator / label peptide dropdown. */
+/** Full sellable lines for calculator / label peptide dropdown. */
 export function isSellableSubmission(submission) {
   if (!submission) return false;
+  if (submission.vendorId === JEC_VENDOR_ID || submission.vendorId === "v-jec") {
+    return isJecSellable(submission.name);
+  }
   if (submission.vendorId === "v-changsha-premium") {
     return isChangshaSellable(submission.name);
   }

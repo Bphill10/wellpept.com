@@ -1,9 +1,6 @@
-import {
-  CHANGSHA_SUBMISSIONS,
-  CHANGSHA_VENDOR,
-} from "./changshaPremium";
+import { JEC_SUBMISSIONS, JEC_VENDOR, JEC_VENDOR_ID } from "./jecPremium";
 import { STG_VENDOR, STG_VENDOR_ID } from "./stgBackup";
-import { isChangshaFocused, isChangshaSellable } from "./catalogFocus";
+import { isJecSellable } from "./catalogFocus";
 import { resolveVialMl, resolveVialUnit, resolvePowderColor } from "../utils/vialArt";
 
 export { resolveVialMl, resolveVialUnit, resolvePowderColor };
@@ -27,21 +24,24 @@ export function formatMoney(n) {
   }).format(Number(n) || 0);
 }
 
-/** Live Undisclosed vendors (primary + silent STG backup). */
+/** Live Undisclosed vendors (primary JEC + silent STG backup). */
 export const ACTIVE_VENDOR_IDS = new Set([
-  "v-changsha-premium",
+  JEC_VENDOR_ID,
   STG_VENDOR_ID,
 ]);
 
 /** Never expose supply-source names on the storefront. */
 export function displayVendorName(name, vendorId = "") {
   const id = String(vendorId || "");
+  if (id === JEC_VENDOR_ID || id === "v-jec") return "";
   if (id === "v-changsha-premium" || id === "v-changsha") return "";
   if (id === STG_VENDOR_ID || id === "v-stg-backup") return "";
   const cleaned = String(name || "")
     .replace(/\bpremium\b/gi, "")
     .replace(/\s+/g, " ")
     .trim();
+  if (/^jec\b/i.test(cleaned) || /\bjce\b/i.test(cleaned)) return "";
+  if (/jinan elite/i.test(cleaned)) return "";
   if (/changsha/i.test(cleaned)) return "";
   if (/^stg\b/i.test(cleaned) || /\bstg\b/i.test(cleaned)) return "";
   return cleaned;
@@ -78,6 +78,13 @@ const CATEGORY_MAP = {
   "MOTS-c": "Cellular",
   "SS-31": "Cellular",
   PT141: "Hormone",
+  GLOW: "Recovery",
+  KLOW: "Recovery",
+  VIP: "Research",
+  HCG: "Hormone",
+  Cagrilintide: "Metabolic",
+  Glutathione: "Cellular",
+  "SNAP-8": "Research",
   "PT-141": "Hormone",
   Epithalon: "Longevity",
 };
@@ -387,17 +394,17 @@ export function guessTagline(name) {
   if (key && TAGLINES[key]) return TAGLINES[key];
   return "Laboratory research compound";
 }
-/** Primary Changsha + silent STG backup (STG never shown by name). */
-export const SEED_VENDORS = [CHANGSHA_VENDOR, STG_VENDOR];
+/** Primary JEC + silent STG backup (STG never shown by name). */
+export const SEED_VENDORS = [JEC_VENDOR, STG_VENDOR];
 
-/** Focused seed submissions (popular Changsha research lines) for the shop. */
+/** Shop seed — every curated JEC kit line. */
 export const SEED_SUBMISSIONS = [
-  ...CHANGSHA_SUBMISSIONS.filter((s) => isChangshaFocused(s.name)),
+  ...JEC_SUBMISSIONS.filter((s) => isJecSellable(s.name)),
 ];
 
-/** Every sellable Changsha peptide (calculator / label dropdown). */
+/** Calculator / label peptide dropdown — same JEC sellable set. */
 export const CALCULATOR_SUBMISSIONS = [
-  ...CHANGSHA_SUBMISSIONS.filter((s) => isChangshaSellable(s.name)),
+  ...JEC_SUBMISSIONS.filter((s) => isJecSellable(s.name)),
 ];
 
 export function guessCategory(name) {
@@ -764,7 +771,7 @@ export function calculatorOptionsFromListings(listings = []) {
 
 /**
  * Full sellable peptide list for the calculator dropdown
- * (every Changsha research line, not only the compact shop focus).
+ * (every sellable JEC research line).
  */
 export function buildCalculatorListings(vendors = SEED_VENDORS) {
   const products = buildCatalog(vendors, CALCULATOR_SUBMISSIONS);
@@ -841,7 +848,7 @@ export function strengthForProduct(listing, product) {
 /**
  * Build the public catalog from approved submissions.
  * One retail offer per vendor SKU (vendorId + sku).
- * Changsha is the live vendor for now.
+ * JEC is the live vendor for now.
  */
 export function buildCatalog(vendors, submissions) {
   const vendorById = Object.fromEntries(
@@ -896,7 +903,7 @@ export function buildCatalog(vendors, submissions) {
       blurb: guessBlurb(displayName),
       tagline: guessTagline(displayName),
       vendorId: item.vendorId,
-      // Blank on purpose — never show supply source (e.g. Changsha) to customers.
+      // Blank on purpose — never show supply source (e.g. JEC) to customers.
       vendor: "",
       vendorCost,
       price,

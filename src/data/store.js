@@ -5,7 +5,7 @@ import {
   displayVendorName,
   buildCatalog,
 } from "./products";
-import { CHANGSHA_VENDOR } from "./changshaPremium";
+import { JEC_VENDOR, JEC_VENDOR_ID } from "./jecPremium";
 import { STG_VENDOR, STG_VENDOR_ID } from "./stgBackup";
 import { isFocusedSubmission } from "./catalogFocus";
 import {
@@ -18,19 +18,19 @@ import {
 } from "../utils/stgSync";
 
 /** Bump when focused vendors/catalog must replace stale local data. */
-const STORAGE_KEY = "wellpept-marketplace-v14";
+const STORAGE_KEY = "wellpept-marketplace-v15";
 
 function syncVendor(v, policy = null) {
   if (!v || !ACTIVE_VENDOR_IDS.has(v.id)) return null;
-  if (v.id === CHANGSHA_VENDOR.id) {
+  if (v.id === JEC_VENDOR_ID) {
     return {
       ...v,
-      id: CHANGSHA_VENDOR.id,
-      name: "Changsha",
-      priceListSource: CHANGSHA_VENDOR.priceListSource,
-      shippingFlat: CHANGSHA_VENDOR.shippingFlat,
-      shippingNote: CHANGSHA_VENDOR.shippingNote,
-      minOrder: CHANGSHA_VENDOR.minOrder,
+      id: JEC_VENDOR_ID,
+      name: "JEC",
+      priceListSource: JEC_VENDOR.priceListSource,
+      shippingFlat: JEC_VENDOR.shippingFlat,
+      shippingNote: JEC_VENDOR.shippingNote,
+      minOrder: JEC_VENDOR.minOrder,
       status: "approved",
       role: "primary",
     };
@@ -61,7 +61,7 @@ function syncVendor(v, policy = null) {
 
 function mergeSubmissions(seedSubs, stgSubs) {
   const primary = seedSubs.filter(
-    (s) => s.vendorId === CHANGSHA_VENDOR.id && isFocusedSubmission(s)
+    (s) => s.vendorId === JEC_VENDOR_ID && isFocusedSubmission(s)
   );
   const stg = (stgSubs || []).filter(
     (s) => s.vendorId === STG_VENDOR_ID && isFocusedSubmission(s)
@@ -133,7 +133,7 @@ export function persistMarketplace(vendors, submissions, policy) {
 
   const primarySubs = submissions.filter(
     (s) =>
-      s.vendorId === CHANGSHA_VENDOR.id &&
+      s.vendorId === JEC_VENDOR_ID &&
       ACTIVE_VENDOR_IDS.has(s.vendorId) &&
       isFocusedSubmission(s)
   );
