@@ -853,6 +853,11 @@ export default function App() {
       notify = true,
       discount = null,
     } = options;
+    if (!session?.userId) {
+      setShowAuth(true);
+      setFlash("Create an account or sign in to submit an order request");
+      return null;
+    }
     if (!cart.length) {
       setFlash("Cart is empty");
       return null;
@@ -883,8 +888,8 @@ export default function App() {
       orderId: createOrderId(),
       customer: {
         ...customer,
-        userId: customer.userId || session?.userId || "",
-        email: customer.email || session?.email || "",
+        userId: session.userId,
+        email: session.email || customer.email || "",
       },
       cart,
       subtotal,
@@ -1138,7 +1143,7 @@ export default function App() {
                 className="ghost-btn"
                 onClick={() => setShowAuth(true)}
               >
-                Sign in
+                Sign in / Create account
               </button>
             )}
             <button
@@ -1933,6 +1938,7 @@ export default function App() {
           <CartPage
             cart={cart}
             session={session}
+            onRequireAuth={() => setShowAuth(true)}
             onBack={goShop}
             onUpdateQty={updateQty}
             onRemove={removeLine}
@@ -2513,6 +2519,7 @@ function CoaStorePanel({ productId, productName, seedUrl = "", onChanged }) {
 function CartPage({
   cart,
   session = null,
+  onRequireAuth,
   onBack,
   onUpdateQty,
   onRemove,
@@ -2572,6 +2579,15 @@ function CartPage({
   const [promoApplied, setPromoApplied] = useState(null);
   const [promoMsg, setPromoMsg] = useState("");
 
+  useEffect(() => {
+    if (!session?.userId) return;
+    setCustomer((c) => ({
+      ...c,
+      email: session.email || c.email,
+      userId: session.userId,
+    }));
+  }, [session?.userId, session?.email]);
+
   const discountAmount = promoApplied?.ok
     ? Math.min(subtotal, Number(promoApplied.amount) || 0)
     : 0;
@@ -2619,6 +2635,11 @@ function CartPage({
 
   async function handleSubmitRequest(e) {
     e.preventDefault();
+    if (!session?.userId) {
+      setPacketMsg("Create an account or sign in to submit an order request.");
+      onRequireAuth?.();
+      return;
+    }
     if (minOrderWarnings.length) {
       setPacketMsg("Meet each vendor minimum before submitting.");
       return;
@@ -2642,8 +2663,8 @@ function CartPage({
       const next = await onPlaceOrder?.(
         {
           ...customer,
-          email: customer.email || session?.email || "",
-          userId: customer.userId || session?.userId || "",
+          email: session.email || customer.email || "",
+          userId: session.userId,
         },
         {
           waitConsent: true,
@@ -2736,14 +2757,16 @@ function CartPage({
         <div className="panel" style={{ marginTop: "1rem" }}>
           <h1>Cart</h1>
           <p className="lede">
-            No payment at checkout. Submit a request, we confirm supply, then email
-            payment instructions within 24 hours. Delivery takes 2–3 weeks.
+            Create an account to order. No payment at checkout — we confirm
+            supply, then email payment instructions within 24 hours. Delivery
+            takes 2–3 weeks.
           </p>
 
           <div className="notice" style={{ marginTop: "0.75rem" }}>
             <strong>How ordering works</strong>
             <ol className="order-flow-steps">
-              <li>You submit this request (quoted total below is not charged yet).</li>
+              <li>Create an account (or sign in).</li>
+              <li>Submit this request (quoted total below is not charged yet).</li>
               <li>We check supply and get back to you within 24 hours.</li>
               <li>You pay only after we confirm we can fulfill.</li>
               <li>Ship after payment — 2–3 weeks delivery.</li>
@@ -2809,7 +2832,24 @@ function CartPage({
                 </div>
               )}
 
-              {cart.length > 0 && step === "shipping" && (
+              {cart.length > 0 && step === "shipping" && !session?.userId && (
+                <div className="notice warn cart-auth-gate" style={{ marginTop: "1rem" }}>
+                  <strong>Account required</strong>
+                  <p style={{ margin: "0.45rem 0 0.75rem" }}>
+                    Create a free account (or sign in) to submit an order request.
+                    We’ll use it to email supply confirmation and your pay link.
+                  </p>
+                  <button
+                    type="button"
+                    className="primary-btn"
+                    onClick={() => onRequireAuth?.()}
+                  >
+                    Sign in / Create account
+                  </button>
+                </div>
+              )}
+
+              {cart.length > 0 && step === "shipping" && session?.userId && (
                 <form className="checkout-form" onSubmit={handleSubmitRequest}>
                   <h2>US shipping</h2>
                   <div className="form-row">
@@ -2836,17 +2876,14 @@ function CartPage({
                         inputMode="email"
                         enterKeyHint="next"
                         value={customer.email}
-                        onChange={(e) =>
-                          setCustomer((c) => ({ ...c, email: e.target.value }))
-                        }
+                        readOnly
+                        aria-readonly="true"
                       />
                     </label>
                   </div>
-                  {session?.userId && (
-                    <p className="meta" style={{ marginTop: "-0.35rem" }}>
-                      Account: {session.userId}
-                    </p>
-                  )}
+                  <p className="meta" style={{ marginTop: "-0.35rem" }}>
+                    Account: @{session.userId}
+                  </p>
                   <label className="field">
                     Address
                     <input
