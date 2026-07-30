@@ -1413,11 +1413,11 @@ export default function App() {
                     className="primary-btn"
                     onClick={() =>
                       document
-                        .getElementById("catalog")
+                        .getElementById("featured")
                         ?.scrollIntoView({ behavior: "smooth" })
                     }
                   >
-                    Browse catalog
+                    Shop featured
                   </button>
                   <button
                     type="button"
@@ -1429,6 +1429,68 @@ export default function App() {
                   >
                     Calculator
                   </button>
+                </div>
+              </div>
+            </section>
+
+            <section className="section featured-vendor-section" id="featured">
+              <div className="container">
+                <div className="featured-vendor panel">
+                  <div className="featured-vendor-copy">
+                    <span className="featured-kicker">Featured kit</span>
+                    <h2>KLOW</h2>
+                    <p>
+                      Signature Undisclosed kit photography. 10 × 80 MG
+                      lyophilized vials with clinical wrap labels, QR, and
+                      research-only marking. Request first; we confirm supply
+                      within 24 hours, then payment. US shipping only.
+                    </p>
+                    <ul className="featured-meta">
+                      <li>Featured kit photography</li>
+                      <li>80 MG · BAC 3.2 mL template</li>
+                      <li>Kit of 10 labeled vials</li>
+                      <li>Request first · pay after supply check</li>
+                      <li>US shipping only · 2-3 weeks delivery</li>
+                    </ul>
+                    <div className="hero-cta" style={{ marginTop: "0.85rem" }}>
+                      <button
+                        type="button"
+                        className="primary-btn"
+                        onClick={() => {
+                          setQuery("KLOW");
+                          setCategory("All");
+                          document
+                            .getElementById("catalog")
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        }}
+                      >
+                        Shop KLOW
+                      </button>
+                      <button
+                        type="button"
+                        className="soft-btn"
+                        onClick={() => {
+                          setQuery("");
+                          setCategory("All");
+                          document
+                            .getElementById("catalog")
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        }}
+                      >
+                        Full catalog
+                      </button>
+                    </div>
+                  </div>
+                  <div className="featured-vendor-visual">
+                    <img
+                      src="/undisclosed-hero-kit.webp"
+                      alt="Undisclosed KLOW 80 MG research kit"
+                      className="featured-product-photo"
+                      width={1536}
+                      height={1024}
+                      decoding="async"
+                    />
+                  </div>
                 </div>
               </div>
             </section>
