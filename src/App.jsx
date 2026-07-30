@@ -3590,7 +3590,7 @@ function AdminPanel({
                       zelleQrUrl: e.target.value.trim(),
                     }))
                   }
-                  placeholder="/zelle-qr.png"
+                  placeholder="/receipt_c212e7f2.jpg"
                   spellCheck={false}
                 />
               </label>
