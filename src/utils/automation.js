@@ -330,12 +330,24 @@ export function buildOrderPacket({
       qty: line.qty,
       unitPrice: line.price,
       lineTotal: line.price * line.qty,
+      // Ops-only: primary Changsha vs silent STG replacement
+      supplyLane: line.supplyLane || "primary",
+      replacedSku: line.replacedSku || "",
     });
     group.merchandise += line.price * line.qty;
+    if (line.supplyLane === "stg-fallback") {
+      group.supplyLane = "stg-fallback";
+    }
   }
 
   const shipments = [...byVendor.values()].map((g) => ({
     ...g,
+    // Internal lane label for ops — never show STG on the storefront
+    supplyLane: g.supplyLane || "primary",
+    vendorLabel:
+      g.supplyLane === "stg-fallback"
+        ? "STG backup (primary unavailable)"
+        : "Primary supply",
     shipTo: {
       name: customer.name,
       email: customer.email,
@@ -436,6 +448,15 @@ export function formatOrderPacketText(packet) {
   lines.push("");
   for (const ship of packet.shipments) {
     lines.push(`── Shipment ──`);
+    if (ship.vendorLabel || ship.supplyLane) {
+      lines.push(
+        `Supply: ${ship.vendorLabel || ship.supplyLane}${
+          ship.supplyLane === "stg-fallback"
+            ? " · use STG list price/shipping"
+            : ""
+        }`
+      );
+    }
     lines.push(
       `Ship to: ${ship.shipTo.name}, ${ship.shipTo.address1}${
         ship.shipTo.address2 ? `, ${ship.shipTo.address2}` : ""
@@ -445,8 +466,13 @@ export function formatOrderPacketText(packet) {
     for (const line of ship.lines) {
       const strength =
         line.mg != null && Number(line.mg) > 0 ? ` (${line.mg}mg)` : "";
+      const lane =
+        line.supplyLane === "stg-fallback"
+          ? " [STG backup]"
+          : "";
+      const replaced = line.replacedSku ? ` (was ${line.replacedSku})` : "";
       lines.push(
-        `  ${line.qty}× ${line.sku} ${line.name}${strength} @ $${line.unitPrice.toFixed(2)} = $${line.lineTotal.toFixed(2)}`
+        `  ${line.qty}× ${line.sku} ${line.name}${strength}${lane}${replaced} @ $${line.unitPrice.toFixed(2)} = $${line.lineTotal.toFixed(2)}`
       );
     }
     lines.push(

@@ -93,6 +93,18 @@ import {
   cleanLabUnlockUrl,
   cleanPublicEntryUrl,
 } from "./utils/secretMenu";
+import {
+  loadSupplyPolicy,
+  saveSupplyPolicy,
+  offerMatchKey,
+} from "./utils/supplyFallback";
+import {
+  syncStgFromSheetUrl,
+  syncStgFromParsedLines,
+  saveCachedStgSubmissions,
+  loadCachedStgSubmissions,
+} from "./utils/stgSync";
+import { STG_VENDOR_ID, PRIMARY_VENDOR_ID } from "./data/stgBackup";
 
 const VIEWS = {
   skincare: "skincare",
@@ -157,6 +169,9 @@ export default function App() {
   const [vendors, setVendors] = useState(initial.vendors);
   const [submissions, setSubmissions] = useState(initial.submissions);
   const [products, setProducts] = useState(initial.products);
+  const [supplyPolicy, setSupplyPolicy] = useState(
+    () => initial.policy || loadSupplyPolicy()
+  );
 
   const urlWantsLabQuery = useMemo(
     () =>
@@ -472,9 +487,77 @@ export default function App() {
   }
 
   useEffect(() => {
-    const nextProducts = persistMarketplace(vendors, submissions);
+    const nextProducts = persistMarketplace(
+      vendors,
+      submissions,
+      supplyPolicy
+    );
     setProducts(nextProducts);
-  }, [vendors, submissions]);
+  }, [vendors, submissions, supplyPolicy]);
+
+  /** Background STG sheet monitor — refresh at most every 6 hours when URL set. */
+  useEffect(() => {
+    if (!labVisible || !opsUnlocked) return undefined;
+    const url = String(supplyPolicy.sheetCsvUrl || "").trim();
+    if (!url || supplyPolicy.fallbackEnabled === false) return undefined;
+
+    const SIX_H = 6 * 60 * 60 * 1000;
+    const last = supplyPolicy.lastSyncAt
+      ? new Date(supplyPolicy.lastSyncAt).getTime()
+      : 0;
+    const stale = !last || Date.now() - last > SIX_H;
+    if (!stale) return undefined;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const result = await syncStgFromSheetUrl(url);
+        if (cancelled) return;
+        saveCachedStgSubmissions(result.submissions);
+        setSupplyPolicy(result.policy);
+        setVendors((prev) => {
+          const others = prev.filter((v) => v.id !== STG_VENDOR_ID);
+          return [
+            ...others,
+            {
+              id: STG_VENDOR_ID,
+              name: "STG",
+              status: "approved",
+              role: "fallback",
+              minOrder: 0,
+              shippingFlat: result.policy.shippingFlat ?? 60,
+              shippingNote:
+                result.policy.shippingNote ||
+                "US shipping only · 2–3 weeks delivery",
+              priceListSource: result.policy.sheetCsvUrl || "STG sheet",
+            },
+          ];
+        });
+        setSubmissions((prev) => {
+          const primary = prev.filter((s) => s.vendorId !== STG_VENDOR_ID);
+          return [...primary, ...result.submissions];
+        });
+      } catch (err) {
+        if (cancelled) return;
+        setSupplyPolicy((p) =>
+          saveSupplyPolicy({
+            ...p,
+            lastSyncError: err?.message || "STG sync failed",
+          })
+        );
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    labVisible,
+    opsUnlocked,
+    supplyPolicy.sheetCsvUrl,
+    supplyPolicy.fallbackEnabled,
+    supplyPolicy.lastSyncAt,
+  ]);
 
   useEffect(() => {
     if (!flash) return undefined;
@@ -1695,6 +1778,39 @@ export default function App() {
             products={products}
             orders={orders}
             automation={automation}
+            supplyPolicy={supplyPolicy}
+            onUpdateSupplyPolicy={(patch) => {
+              const next = saveSupplyPolicy({ ...supplyPolicy, ...patch });
+              setSupplyPolicy(next);
+            }}
+            onStgSynced={({ submissions: stgSubs, policy }) => {
+              saveCachedStgSubmissions(stgSubs);
+              setSupplyPolicy(policy);
+              setVendors((prev) => {
+                const others = prev.filter((v) => v.id !== STG_VENDOR_ID);
+                return [
+                  ...others,
+                  {
+                    id: STG_VENDOR_ID,
+                    name: "STG",
+                    status: "approved",
+                    role: "fallback",
+                    minOrder: 0,
+                    shippingFlat: policy.shippingFlat ?? 60,
+                    shippingNote:
+                      policy.shippingNote ||
+                      "US shipping only · 2–3 weeks delivery",
+                    priceListSource: policy.sheetCsvUrl || "STG sheet",
+                  },
+                ];
+              });
+              setSubmissions((prev) => {
+                const primary = prev.filter(
+                  (s) => s.vendorId !== STG_VENDOR_ID
+                );
+                return [...primary, ...stgSubs];
+              });
+            }}
             onUpdateAutomation={updateAutomation}
             onApproveSubmission={approveSubmission}
             onRejectSubmission={rejectSubmission}
@@ -3353,6 +3469,9 @@ function AdminPanel({
   products,
   orders = [],
   automation,
+  supplyPolicy,
+  onUpdateSupplyPolicy,
+  onStgSynced,
   onUpdateAutomation,
   onApproveSubmission,
   onRejectSubmission,
@@ -3376,6 +3495,96 @@ function AdminPanel({
     note: "",
     active: true,
   });
+  const [stgUrlDraft, setStgUrlDraft] = useState(
+    () => supplyPolicy?.sheetCsvUrl || ""
+  );
+  const [stgBusy, setStgBusy] = useState(false);
+  const [stgShipFlat, setStgShipFlat] = useState(
+    () =>
+      supplyPolicy?.shippingFlat != null
+        ? String(supplyPolicy.shippingFlat)
+        : ""
+  );
+  const [stgShipNote, setStgShipNote] = useState(
+    () => supplyPolicy?.shippingNote || ""
+  );
+  const primaryRows = useMemo(() => {
+    // Toggle OOS against raw primary submissions, not the fallback-collapsed shop list
+    return submissions
+      .filter(
+        (s) =>
+          s.vendorId === PRIMARY_VENDOR_ID && s.status === "approved"
+      )
+      .map((s) => ({
+        key: offerMatchKey({
+          name: s.name,
+          mg: s.mg,
+          unit: s.unit || "mg",
+        }),
+        name: s.name,
+        mg: s.mg,
+        sku: s.sku,
+        vendorCost: s.vendorCost,
+      }))
+      .sort((a, b) => {
+        const n = a.name.localeCompare(b.name);
+        if (n !== 0) return n;
+        return (Number(a.mg) || 0) - (Number(b.mg) || 0);
+      });
+  }, [submissions]);
+  const unavailableSet = useMemo(
+    () => new Set(supplyPolicy?.unavailableKeys || []),
+    [supplyPolicy]
+  );
+  const stgCount =
+    submissions.filter((s) => s.vendorId === STG_VENDOR_ID).length ||
+    loadCachedStgSubmissions().length;
+
+  async function runStgSheetSync() {
+    const url = stgUrlDraft.trim();
+    if (!url) {
+      onFlash?.("Paste a published STG Google Sheet link first");
+      return;
+    }
+    setStgBusy(true);
+    try {
+      onUpdateSupplyPolicy?.({ sheetCsvUrl: url });
+      const result = await syncStgFromSheetUrl(url);
+      onStgSynced?.(result);
+      if (result.policy.shippingFlat != null) {
+        setStgShipFlat(String(result.policy.shippingFlat));
+      }
+      if (result.policy.shippingNote) {
+        setStgShipNote(result.policy.shippingNote);
+      }
+      onFlash?.(
+        `STG synced · ${result.count} lines · used only when primary is unavailable`
+      );
+    } catch (err) {
+      onUpdateSupplyPolicy?.({
+        lastSyncError: err?.message || "STG sync failed",
+      });
+      onFlash?.(err?.message || "STG sync failed");
+    } finally {
+      setStgBusy(false);
+    }
+  }
+
+  function saveStgShipping(e) {
+    e.preventDefault();
+    onUpdateSupplyPolicy?.({
+      shippingFlat: stgShipFlat === "" ? null : Number(stgShipFlat),
+      shippingNote: stgShipNote.trim(),
+    });
+    onFlash?.("STG shipping settings saved");
+  }
+
+  function togglePrimaryUnavailable(key) {
+    const next = new Set(unavailableSet);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    onUpdateSupplyPolicy?.({ unavailableKeys: [...next] });
+  }
 
   async function copyPayLink(order) {
     const url = buildStripePayUrl(order);
@@ -3470,6 +3679,151 @@ function AdminPanel({
             New partners stay human-gated. Configure Venmo / Zelle / crypto here,
             then send customers a pay link after supply check.
           </p>
+
+          <div className="stg-admin panel" style={{ marginBottom: "1.5rem" }}>
+            <h2>STG backup supply (silent)</h2>
+            <p className="meta">
+              Monitor the STG price sheet and shipping notes. STG prices only
+              replace a catalog line when you mark the primary (Changsha) match
+              unavailable. Customers never see vendor names.
+            </p>
+            <label className="field" style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+              <input
+                type="checkbox"
+                checked={supplyPolicy?.fallbackEnabled !== false}
+                onChange={(e) =>
+                  onUpdateSupplyPolicy?.({
+                    fallbackEnabled: e.target.checked,
+                  })
+                }
+              />
+              Use STG as replacement when primary is unavailable
+            </label>
+            <div className="form-row" style={{ marginTop: "0.75rem" }}>
+              <label className="field" style={{ flex: 1 }}>
+                STG Google Sheet link (published CSV / anyone-with-link)
+                <input
+                  value={stgUrlDraft}
+                  onChange={(e) => setStgUrlDraft(e.target.value)}
+                  placeholder="https://docs.google.com/spreadsheets/d/…"
+                />
+              </label>
+            </div>
+            <div className="row-actions" style={{ marginTop: "0.5rem" }}>
+              <button
+                type="button"
+                className="primary-btn"
+                disabled={stgBusy}
+                onClick={runStgSheetSync}
+              >
+                {stgBusy ? "Syncing…" : "Sync STG sheet now"}
+              </button>
+            </div>
+            <p className="meta" style={{ marginTop: "0.5rem" }}>
+              Cached STG lines: {stgCount}
+              {supplyPolicy?.lastSyncAt
+                ? ` · last sync ${new Date(
+                    supplyPolicy.lastSyncAt
+                  ).toLocaleString()}`
+                : " · not synced yet"}
+              {supplyPolicy?.lastSyncError
+                ? ` · ${supplyPolicy.lastSyncError}`
+                : ""}
+            </p>
+            <p className="meta">
+              Or drop an STG export below (Excel / CSV). Same rule: replacement
+              only.
+            </p>
+            <PriceListDropzone
+              onParsed={async (lines, meta) => {
+                try {
+                  const result = await syncStgFromParsedLines(lines, {
+                    source: meta?.fileName || "STG upload",
+                  });
+                  onStgSynced?.(result);
+                  onFlash?.(
+                    `STG upload · ${result.count} lines ready as backup`
+                  );
+                } catch (err) {
+                  onFlash?.(err?.message || "STG upload failed");
+                }
+              }}
+            />
+            <form
+              className="form-row"
+              style={{ marginTop: "1rem" }}
+              onSubmit={saveStgShipping}
+            >
+              <label className="field">
+                STG shipping flat ($)
+                <input
+                  value={stgShipFlat}
+                  onChange={(e) => setStgShipFlat(e.target.value)}
+                  inputMode="decimal"
+                  placeholder="60"
+                />
+              </label>
+              <label className="field" style={{ flex: 1 }}>
+                STG shipping / delivery note
+                <input
+                  value={stgShipNote}
+                  onChange={(e) => setStgShipNote(e.target.value)}
+                  placeholder="US shipping only · 2–3 weeks"
+                />
+              </label>
+              <button type="submit" className="soft-btn">
+                Save shipping
+              </button>
+            </form>
+
+            <h3 style={{ marginTop: "1.25rem" }}>
+              Primary lines unavailable (use STG match if synced)
+            </h3>
+            <p className="meta">
+              Check a strength to pull STG price/shipping for that compound only
+              when a matching STG row exists. Unchecked = keep primary.
+            </p>
+            <div
+              className="table-wrap"
+              style={{ maxHeight: "280px", overflow: "auto" }}
+            >
+              <table>
+                <thead>
+                  <tr>
+                    <th>Unavailable</th>
+                    <th>Compound</th>
+                    <th>Strength</th>
+                    <th>Primary SKU</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {primaryRows.length === 0 ? (
+                    <tr>
+                      <td colSpan={4}>No primary lines loaded.</td>
+                    </tr>
+                  ) : (
+                    primaryRows.map((row) => (
+                      <tr key={row.key + row.sku}>
+                        <td>
+                          <input
+                            type="checkbox"
+                            checked={unavailableSet.has(row.key)}
+                            onChange={() => togglePrimaryUnavailable(row.key)}
+                            aria-label={`Mark ${row.name} unavailable`}
+                          />
+                        </td>
+                        <td>{row.name}</td>
+                        <td>
+                          {row.mg != null ? `${row.mg} mg` : "—"}
+                        </td>
+                        <td className="meta">{row.sku}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
           <form className="manual-pay-admin" onSubmit={savePayMethods}>
             <h2>Payment methods (Venmo · Zelle · Crypto)</h2>

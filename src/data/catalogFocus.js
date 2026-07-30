@@ -142,6 +142,11 @@ export function isFocusedSubmission(submission) {
   if (submission.vendorId === "v-changsha-premium") {
     return isChangshaFocused(submission.name);
   }
+  // STG backup rows are kept when they could replace a sellable primary line.
+  // The shop only surfaces them via supply fallback — never as STG-only SKUs.
+  if (submission.vendorId === "v-stg-backup") {
+    return isChangshaSellable(submission.name);
+  }
   return false;
 }
 

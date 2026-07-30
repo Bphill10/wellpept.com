@@ -6,12 +6,21 @@ import {
   buildCatalog,
 } from "./products";
 import { CHANGSHA_VENDOR } from "./changshaPremium";
+import { STG_VENDOR, STG_VENDOR_ID } from "./stgBackup";
 import { isFocusedSubmission } from "./catalogFocus";
+import {
+  applySupplyFallback,
+  loadSupplyPolicy,
+} from "../utils/supplyFallback";
+import {
+  loadCachedStgSubmissions,
+  stgVendorWithPolicy,
+} from "../utils/stgSync";
 
 /** Bump when focused vendors/catalog must replace stale local data. */
-const STORAGE_KEY = "wellpept-marketplace-v13";
+const STORAGE_KEY = "wellpept-marketplace-v14";
 
-function syncVendor(v) {
+function syncVendor(v, policy = null) {
   if (!v || !ACTIVE_VENDOR_IDS.has(v.id)) return null;
   if (v.id === CHANGSHA_VENDOR.id) {
     return {
@@ -23,12 +32,41 @@ function syncVendor(v) {
       shippingNote: CHANGSHA_VENDOR.shippingNote,
       minOrder: CHANGSHA_VENDOR.minOrder,
       status: "approved",
+      role: "primary",
+    };
+  }
+  if (v.id === STG_VENDOR_ID) {
+    const base = stgVendorWithPolicy(policy || loadSupplyPolicy());
+    return {
+      ...base,
+      ...v,
+      id: STG_VENDOR_ID,
+      name: "STG",
+      role: "fallback",
+      status: "approved",
+      shippingFlat:
+        policy?.shippingFlat != null && Number(policy.shippingFlat) > 0
+          ? Number(policy.shippingFlat)
+          : v.shippingFlat ?? base.shippingFlat,
+      shippingNote:
+        String(policy?.shippingNote || v.shippingNote || base.shippingNote || "")
+          .trim() || STG_VENDOR.shippingNote,
     };
   }
   return {
     ...v,
-    name: displayVendorName(v.name, v.id),
+    name: displayVendorName(v.name, v.id) || v.name,
   };
+}
+
+function mergeSubmissions(seedSubs, stgSubs) {
+  const primary = seedSubs.filter(
+    (s) => s.vendorId === CHANGSHA_VENDOR.id && isFocusedSubmission(s)
+  );
+  const stg = (stgSubs || []).filter(
+    (s) => s.vendorId === STG_VENDOR_ID && isFocusedSubmission(s)
+  );
+  return [...primary, ...stg];
 }
 
 function loadState() {
@@ -37,11 +75,10 @@ function loadState() {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed?.vendors || !parsed?.submissions) return null;
-    const vendors = parsed.vendors.map(syncVendor).filter(Boolean);
-    // Public catalog always reseeds focused lines; drop other vendors.
-    const submissions = SEED_SUBMISSIONS.filter(isFocusedSubmission);
+    const policy = loadSupplyPolicy();
+    const vendors = parsed.vendors.map((v) => syncVendor(v, policy)).filter(Boolean);
     if (!vendors.length) return null;
-    return { vendors, submissions };
+    return { vendors, submissions: parsed.submissions, policy };
   } catch {
     return null;
   }
@@ -57,35 +94,59 @@ function saveState(state) {
   );
 }
 
+export function buildMarketplaceProducts(vendors, submissions, policy) {
+  const pol = policy || loadSupplyPolicy();
+  const cleanVendors = vendors.map((v) => syncVendor(v, pol)).filter(Boolean);
+  for (const seed of SEED_VENDORS) {
+    if (!cleanVendors.some((v) => v.id === seed.id)) {
+      cleanVendors.push(syncVendor(seed, pol));
+    }
+  }
+  const raw = buildCatalog(cleanVendors, submissions);
+  return applySupplyFallback(raw, pol);
+}
+
 export function getInitialMarketplace() {
-  const saved = loadState();
-  const vendors = SEED_VENDORS.map((seed) => syncVendor(seed)).filter(Boolean);
-  // Prefer seed catalog so only Changsha focused lines show.
-  const submissions = SEED_SUBMISSIONS;
-  // Keep seed vendor objects even if something was saved.
-  void saved;
+  const policy = loadSupplyPolicy();
+  const stgCached = loadCachedStgSubmissions();
+  const vendors = SEED_VENDORS.map((seed) => syncVendor(seed, policy)).filter(
+    Boolean
+  );
+  const submissions = mergeSubmissions(SEED_SUBMISSIONS, stgCached);
+  void loadState();
   return {
     vendors,
     submissions,
-    products: buildCatalog(vendors, submissions),
+    products: buildMarketplaceProducts(vendors, submissions, policy),
+    policy,
   };
 }
 
-export function persistMarketplace(vendors, submissions) {
-  const cleanVendors = vendors.map(syncVendor).filter(Boolean);
-  // Ensure the live vendor always exists.
+export function persistMarketplace(vendors, submissions, policy) {
+  const pol = policy || loadSupplyPolicy();
+  const cleanVendors = vendors.map((v) => syncVendor(v, pol)).filter(Boolean);
   for (const seed of SEED_VENDORS) {
     if (!cleanVendors.some((v) => v.id === seed.id)) {
-      cleanVendors.push(syncVendor(seed));
+      cleanVendors.push(syncVendor(seed, pol));
     }
   }
-  const cleanSubs = submissions.filter(
-    (s) => ACTIVE_VENDOR_IDS.has(s.vendorId) && isFocusedSubmission(s)
+
+  const primarySubs = submissions.filter(
+    (s) =>
+      s.vendorId === CHANGSHA_VENDOR.id &&
+      ACTIVE_VENDOR_IDS.has(s.vendorId) &&
+      isFocusedSubmission(s)
   );
-  // If ops wiped everything, fall back to seed.
-  const finalSubs = cleanSubs.length ? cleanSubs : SEED_SUBMISSIONS;
+  const stgFromState = submissions.filter(
+    (s) => s.vendorId === STG_VENDOR_ID && isFocusedSubmission(s)
+  );
+  const stgSubs =
+    stgFromState.length > 0 ? stgFromState : loadCachedStgSubmissions();
+  const finalPrimary = primarySubs.length ? primarySubs : SEED_SUBMISSIONS;
+  const finalSubs = mergeSubmissions(finalPrimary, stgSubs);
+
   saveState({ vendors: cleanVendors, submissions: finalSubs });
-  return buildCatalog(cleanVendors, finalSubs);
+  return buildMarketplaceProducts(cleanVendors, finalSubs, pol);
 }
 
 export function uid(prefix) {

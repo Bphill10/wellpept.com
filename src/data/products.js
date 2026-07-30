@@ -2,6 +2,7 @@ import {
   CHANGSHA_SUBMISSIONS,
   CHANGSHA_VENDOR,
 } from "./changshaPremium";
+import { STG_VENDOR, STG_VENDOR_ID } from "./stgBackup";
 import { isChangshaFocused, isChangshaSellable } from "./catalogFocus";
 import { resolveVialMl, resolveVialUnit, resolvePowderColor } from "../utils/vialArt";
 
@@ -26,20 +27,23 @@ export function formatMoney(n) {
   }).format(Number(n) || 0);
 }
 
-/** Live Undisclosed vendors only. */
+/** Live Undisclosed vendors (primary + silent STG backup). */
 export const ACTIVE_VENDOR_IDS = new Set([
   "v-changsha-premium",
+  STG_VENDOR_ID,
 ]);
 
 /** Never expose supply-source names on the storefront. */
 export function displayVendorName(name, vendorId = "") {
   const id = String(vendorId || "");
   if (id === "v-changsha-premium" || id === "v-changsha") return "";
+  if (id === STG_VENDOR_ID || id === "v-stg-backup") return "";
   const cleaned = String(name || "")
     .replace(/\bpremium\b/gi, "")
     .replace(/\s+/g, " ")
     .trim();
   if (/changsha/i.test(cleaned)) return "";
+  if (/^stg\b/i.test(cleaned) || /\bstg\b/i.test(cleaned)) return "";
   return cleaned;
 }
 
@@ -383,8 +387,8 @@ export function guessTagline(name) {
   if (key && TAGLINES[key]) return TAGLINES[key];
   return "Laboratory research compound";
 }
-/** Active vendor for now: Changsha only (more vendors later). */
-export const SEED_VENDORS = [CHANGSHA_VENDOR];
+/** Primary Changsha + silent STG backup (STG never shown by name). */
+export const SEED_VENDORS = [CHANGSHA_VENDOR, STG_VENDOR];
 
 /** Focused seed submissions (popular Changsha research lines) for the shop. */
 export const SEED_SUBMISSIONS = [
