@@ -2313,9 +2313,18 @@ body:has(.app-shell--skincare) {
 
 .app-shell--skincare .header-top {
   background: #002f75;
+  color: rgba(255, 255, 255, 0.88);
   letter-spacing: 0.12em;
   font-size: 0.68rem;
   text-transform: uppercase;
+}
+
+.app-shell--skincare .header-top-links button {
+  color: #fff;
+}
+
+.app-shell--skincare .header-top-links button:hover {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .app-shell--skincare .header {
@@ -4841,10 +4850,16 @@ body:has(.app-shell--undisclosed)::before {
 }
 
 @media (max-width: 640px) {
-  .header-actions .ghost-btn span,
-  .header-actions .soft-btn span,
+  /* Icon-only chrome on phones — keep .nav-label-short (e.g. "Sign in") */
+  .header-actions .ghost-btn > span:not(.nav-label-short),
+  .header-actions .soft-btn > span:not(.nav-label-short),
   .cart-label {
     display: none;
+  }
+
+  .header-actions .ghost-btn .nav-label-short,
+  .header-actions .soft-btn .nav-label-short {
+    display: inline;
   }
 
   .header-bag {
@@ -5210,26 +5225,42 @@ body:has(.app-shell--undisclosed)::before {
     gap: 0.65rem;
   }
 
+  /* Keep categories as one swipeable row — wrapping looked broken */
   .dept-bar-inner {
-    flex-wrap: wrap;
-    overflow-x: visible;
-    gap: 0.25rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 0.35rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .dept-bar-inner::-webkit-scrollbar {
+    display: none;
   }
 
   .dept-link {
-    white-space: normal;
+    white-space: nowrap;
+    flex: 0 0 auto;
   }
 
   .filters {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
     gap: 0.4rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .filters::-webkit-scrollbar {
+    display: none;
   }
 
   .filters .chip {
-    width: 100%;
+    flex: 0 0 auto;
     text-align: center;
-    white-space: normal;
+    white-space: nowrap;
     justify-content: center;
   }
 
@@ -5512,7 +5543,7 @@ body:has(.app-shell--undisclosed)::before {
   .skin-hero .hero-brand-rule,
   .hero--undisclosed .hero-brand-rule {
     width: min(9rem, 55vw);
-    margin: 0.35rem 0 0.85rem;
+    margin: 0.75rem 0 1rem;
     position: relative;
     flex-shrink: 0;
     /* Keep the rule under the title — never through the letters */
@@ -5586,12 +5617,18 @@ body:has(.app-shell--undisclosed)::before {
     display: none !important;
   }
 
+  /* Phone: dept-bar is enough — hide duplicate chip row in catalog */
+  .app-shell--undisclosed .filters {
+    display: none;
+  }
+
   .app-shell--undisclosed .header-inner {
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas: "brand actions";
   }
 
-  .app-shell--undisclosed .header-actions .ghost-btn span:not(.nav-label-short) {
+  .app-shell--undisclosed .header-actions .ghost-btn > span:not(.nav-label-short),
+  .app-shell--undisclosed .header-actions .soft-btn > span:not(.nav-label-short) {
     display: none;
   }
 
@@ -5605,6 +5642,11 @@ body:has(.app-shell--undisclosed)::before {
     min-width: 44px;
   }
 
+  .app-shell--undisclosed .site-header .header-auth-btn {
+    padding: 0.45rem 0.65rem;
+    font-size: 0.78rem;
+  }
+
   .app-shell--undisclosed .dept-bar {
     padding: 0.35rem 0;
     padding-left: env(safe-area-inset-left, 0px);
@@ -5613,6 +5655,8 @@ body:has(.app-shell--undisclosed)::before {
 
   .app-shell--undisclosed .dept-bar-inner {
     gap: 0.35rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
   }
 
   .app-shell--undisclosed .dept-link {
@@ -5621,6 +5665,8 @@ body:has(.app-shell--undisclosed)::before {
     min-height: 44px;
     display: inline-flex;
     align-items: center;
+    white-space: nowrap;
+    flex: 0 0 auto;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
