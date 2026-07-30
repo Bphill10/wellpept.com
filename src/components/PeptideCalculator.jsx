@@ -50,6 +50,7 @@ const QUICK_PREF = [
   "tb-500",
   "tb500",
   "ta-1",
+  "vitamin b12",
   "tirzepatide",
   "ipamorelin",
   "klow",

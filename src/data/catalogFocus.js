@@ -18,7 +18,8 @@ export function isChangshaSupply(name) {
   if (!n) return true;
   if (n === "water" || n === "bac water" || n.includes("bac water")) return true;
   if (n === "acetic acid") return true;
-  if (n === "1mg/ml" || n.startsWith("1mg/ml")) return true;
+  // Bare concentration labels only (not Vitamin B12, which is sold)
+  if (n === "1mg/ml" || n === "1 mg/ml") return true;
   return false;
 }
 

@@ -57,6 +57,10 @@ export const CATEGORIES = [
 const CATEGORY_MAP = {
   "BPC-157": "Recovery",
   "TB-500": "Recovery",
+  "TA-1": "Recovery",
+  "Thymosin Alpha-1": "Recovery",
+  "Vitamin B12": "Cellular",
+  "Vitamin B": "Cellular",
   "GHK-Cu": "Cellular",
   "CJC-1295 (no DAC)": "Growth",
   Ipamorelin: "Growth",
@@ -157,6 +161,8 @@ const BLURBS = {
     "Thymus peptide complex examined in immune-modulation research.",
   "Thymosin Alpha-1":
     "Immune-signaling peptide studied for T-cell and host-response research models.",
+  "TA-1":
+    "Thymosin Alpha-1 (TA-1). Immune-signaling peptide studied for T-cell and host-response research models.",
   DSIP:
     "Delta sleep-inducing peptide explored in sleep and stress-axis research.",
   Oxytocin:
@@ -247,6 +253,7 @@ const TAGLINES = {
   KPV: "Inflammation & barrier research",
   Thymalin: "Immune modulation research",
   "Thymosin Alpha-1": "T-cell signaling research",
+  "TA-1": "T-cell signaling research (Thymosin Alpha-1)",
   DSIP: "Sleep & stress-axis research",
   Oxytocin: "Neuropeptide research",
   "IGF-1 LR3": "Growth-factor research",
