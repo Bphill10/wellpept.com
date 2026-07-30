@@ -1014,8 +1014,18 @@ export default function App() {
                 className="search-dept"
                 value={category}
                 onChange={(e) => {
-                  setCategory(e.target.value);
+                  const next = e.target.value;
+                  setCategory(next);
                   setView(VIEWS.shop);
+                  window.setTimeout(() => {
+                    const id =
+                      next === "All"
+                        ? "catalog"
+                        : `cat-${next.replace(/\s+/g, "-")}`;
+                    document
+                      .getElementById(id)
+                      ?.scrollIntoView({ behavior: "smooth" });
+                  }, 40);
                 }}
                 aria-label="Department"
               >
