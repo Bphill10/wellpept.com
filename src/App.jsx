@@ -117,7 +117,12 @@ const VIEWS = {
   calculator: "calculator",
 };
 
-function VialPreview({ product, size = "md", showDownload = false }) {
+function VialPreview({
+  product,
+  size = "md",
+  showDownload = false,
+  showLabel = false,
+}) {
   if (product?.skin) {
     if (product.image) {
       return (
@@ -135,7 +140,7 @@ function VialPreview({ product, size = "md", showDownload = false }) {
       </div>
     );
   }
-  // Studio vial with clinical wrap label (name · mg · dosage · QR)
+  // Catalog: bare photoreal vial. Detail/calculator can pass showLabel.
   return (
     <GeneratedVial
       name={product.name}
@@ -150,7 +155,7 @@ function VialPreview({ product, size = "md", showDownload = false }) {
       coaUrl={product.coaUrl || ""}
       size={size}
       showDownload={showDownload}
-      showLabel
+      showLabel={showLabel}
       catalogTemplate
     />
   );
@@ -595,6 +600,7 @@ export default function App() {
   });
 
   const catalogSections = useMemo(() => {
+    // Filtered: one section at a time. All: every category, for section jumps.
     const cats =
       category === "All"
         ? CATEGORIES.filter((c) => c !== "All")
@@ -608,6 +614,22 @@ export default function App() {
           .sort((a, b) => a.name.localeCompare(b.name)),
       }))
       .filter((section) => section.items.length > 0);
+  }, [filtered, category]);
+
+  /** Flat All view — continuous 4-across grid of every listing. */
+  const catalogAllItems = useMemo(() => {
+    if (category !== "All") return [];
+    const order = new Map(
+      CATEGORIES.filter((c) => c !== "All").map((c, i) => [c, i])
+    );
+    return filtered
+      .slice()
+      .sort((a, b) => {
+        const ca = order.get(a.category) ?? 99;
+        const cb = order.get(b.category) ?? 99;
+        if (ca !== cb) return ca - cb;
+        return a.name.localeCompare(b.name);
+      });
   }, [filtered, category]);
 
   function goShop() {
@@ -1276,10 +1298,8 @@ export default function App() {
                     setCategory(c);
                     setView(VIEWS.shop);
                     window.setTimeout(() => {
-                      const id =
-                        c === "All" ? "catalog" : `cat-${c.replace(/\s+/g, "-")}`;
                       document
-                        .getElementById(id)
+                        .getElementById("catalog")
                         ?.scrollIntoView({ behavior: "smooth" });
                     }, 40);
                   }}
@@ -1614,13 +1634,14 @@ export default function App() {
                       className={`chip ${category === c ? "active" : ""}`}
                       onClick={() => {
                         setCategory(c);
-                        if (c !== "All") {
-                          window.setTimeout(() => {
-                            document
-                              .getElementById(`cat-${c.replace(/\s+/g, "-")}`)
-                              ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                          }, 40);
-                        }
+                        window.setTimeout(() => {
+                          document
+                            .getElementById("catalog")
+                            ?.scrollIntoView({
+                              behavior: "smooth",
+                              block: "start",
+                            });
+                        }, 40);
                       }}
                     >
                       {c}
@@ -1646,7 +1667,25 @@ export default function App() {
                   </button>
                 </p>
 
-                {catalogSections.length === 0 ? (
+                {category === "All" ? (
+                  catalogAllItems.length === 0 ? (
+                    <div className="empty-state">
+                      No approved products match this search yet. Message me if
+                      you are looking for a specific peptide not on this list.
+                    </div>
+                  ) : (
+                    <div className="product-grid product-grid--catalog">
+                      {catalogAllItems.map((listing) => (
+                        <ProductCard
+                          key={listing.id}
+                          listing={listing}
+                          onOpen={openProduct}
+                          onAdd={addToCart}
+                        />
+                      ))}
+                    </div>
+                  )
+                ) : catalogSections.length === 0 ? (
                   <div className="empty-state">
                     No approved products match this search yet. Message me if
                     you are looking for a specific peptide not on this list.
@@ -1666,7 +1705,7 @@ export default function App() {
                             {section.items.length === 1 ? "" : "s"}
                           </span>
                         </div>
-                        <div className="product-grid">
+                        <div className="product-grid product-grid--catalog">
                           {section.items.map((listing) => (
                             <ProductCard
                               key={listing.id}
@@ -1925,7 +1964,7 @@ function ProductCard({ listing, onOpen, onAdd }) {
           {(product.badge || listing.badge) && (
             <span className="badge">{product.badge || listing.badge}</span>
           )}
-          <VialPreview product={product} size="md" />
+          <VialPreview product={product} size="md" showLabel={false} />
         </div>
         <div className="product-body">
           <div className="meta">
@@ -2080,6 +2119,7 @@ function ProductDetail({
               product={{ ...product, coaUrl }}
               size="lg"
               showDownload
+              showLabel
             />
           </div>
           <div className="detail-info">
