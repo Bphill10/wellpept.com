@@ -307,7 +307,7 @@ function drawWpMonogramSeal(ctx, cx, cy, r) {
   ctx.fillStyle = "#f4f0e8";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `600 ${Math.max(18, r * 1.15)}px "Cormorant Garamond", Georgia, "Times New Roman", serif`;
+  ctx.font = `600 ${Math.max(16, r * 0.95)}px "Cormorant Garamond", Georgia, "Times New Roman", serif`;
   ctx.fillText("W", cx, cy + r * 0.04);
 }
 

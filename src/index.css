@@ -345,8 +345,8 @@ svg {
 }
 
 .brand-logo {
-  width: 2.65rem;
-  height: 2.65rem;
+  width: 3.1rem;
+  height: 3.1rem;
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid rgba(0, 71, 171, 0.22);
@@ -2709,8 +2709,8 @@ body:has(.app-shell--undisclosed)::before {
 .skin-hero .hero-brand-mark {
   border: 1px solid rgba(0, 47, 117, 0.18);
   box-shadow: 0 20px 50px rgba(0, 47, 117, 0.1);
-  width: clamp(4.25rem, 10vw, 5.75rem);
-  height: clamp(4.25rem, 10vw, 5.75rem);
+  width: clamp(5.75rem, 13vw, 7.5rem);
+  height: clamp(5.75rem, 13vw, 7.5rem);
 }
 
 .skin-hero .hero-media,
@@ -4745,8 +4745,8 @@ body:has(.app-shell--undisclosed)::before {
 }
 
 .auth-mark {
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 4.25rem;
+  height: 4.25rem;
   border-radius: 50%;
   border: 1px solid rgba(0, 47, 117, 0.18);
   margin-bottom: 0.75rem;
