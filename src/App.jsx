@@ -69,6 +69,12 @@ import {
   formatDiscountRule,
 } from "./utils/discountCodes";
 import {
+  US_STATES,
+  calcSalesTax,
+  isValidUsState,
+  normalizeStateCode,
+} from "./utils/salesTax";
+import {
   getCoaMeta,
   setCoaUrl,
   clearCoaUrl,
@@ -866,6 +872,10 @@ export default function App() {
       setFlash("Enter a valid US ZIP code");
       return null;
     }
+    if (!isValidUsState(customer.state)) {
+      setFlash("Select a valid US state");
+      return null;
+    }
     if (!payment && !waitConsent) {
       setFlash("Confirm you can wait 2–3 weeks for delivery");
       return null;
@@ -883,11 +893,18 @@ export default function App() {
       subtotal,
       Math.max(0, Number(discount?.amount) || 0)
     );
-    const total = Math.max(0, subtotal - discountAmount) + shipping;
+    const taxInfo = calcSalesTax({
+      subtotal,
+      discount: discountAmount,
+      state: customer.state,
+    });
+    const total =
+      Math.max(0, subtotal - discountAmount) + taxInfo.amount + shipping;
     const packet = buildOrderPacket({
       orderId: createOrderId(),
       customer: {
         ...customer,
+        state: normalizeStateCode(customer.state),
         userId: session.userId,
         email: session.email || customer.email || "",
       },
@@ -904,6 +921,12 @@ export default function App() {
             value: discount?.value ?? null,
           }
         : null,
+      tax: {
+        state: taxInfo.state,
+        rate: taxInfo.rate,
+        amount: taxInfo.amount,
+        label: taxInfo.label,
+      },
       status: payment ? "paid" : "awaiting_supply_review",
       waitConsent: Boolean(waitConsent) || Boolean(payment),
     });
@@ -2591,7 +2614,14 @@ function CartPage({
   const discountAmount = promoApplied?.ok
     ? Math.min(subtotal, Number(promoApplied.amount) || 0)
     : 0;
-  const total = Math.max(0, subtotal - discountAmount) + shipping;
+  const taxInfo = calcSalesTax({
+    subtotal,
+    discount: discountAmount,
+    state: customer.state,
+  });
+  const taxAmount = taxInfo.ok ? taxInfo.amount : 0;
+  const total =
+    Math.max(0, subtotal - discountAmount) + taxAmount + shipping;
 
   useEffect(() => {
     if (!promoApplied?.ok || !promoApplied.entry?.code) return;
@@ -2646,6 +2676,10 @@ function CartPage({
     }
     if (!isValidUsZip(customer.zip)) {
       setPacketMsg("Enter a valid US ZIP code");
+      return;
+    }
+    if (!isValidUsState(customer.state)) {
+      setPacketMsg("Select a valid US state");
       return;
     }
     if (!waitConsent) {
@@ -2927,22 +2961,25 @@ function CartPage({
                     </label>
                     <label className="field">
                       State
-                      <input
+                      <select
                         required
                         name="state"
                         autoComplete="address-level1"
-                        autoCapitalize="characters"
-                        maxLength={2}
-                        enterKeyHint="next"
                         value={customer.state}
                         onChange={(e) =>
                           setCustomer((c) => ({
                             ...c,
-                            state: e.target.value.toUpperCase(),
+                            state: normalizeStateCode(e.target.value),
                           }))
                         }
-                        placeholder="CA"
-                      />
+                      >
+                        <option value="">Select</option>
+                        {US_STATES.map((s) => (
+                          <option key={s.code} value={s.code}>
+                            {s.code} — {s.name}
+                          </option>
+                        ))}
+                      </select>
                     </label>
                     <label className="field">
                       ZIP
@@ -3047,6 +3084,20 @@ function CartPage({
                       </div>
                     ) : null}
                     <div className="summary-row">
+                      <span>
+                        {taxInfo.ok && taxInfo.label
+                          ? `Est. sales tax (${taxInfo.state})`
+                          : "Est. sales tax"}
+                      </span>
+                      <span>
+                        {taxInfo.ok
+                          ? formatMoney(taxAmount)
+                          : customer.state
+                            ? formatMoney(0)
+                            : "—"}
+                      </span>
+                    </div>
+                    <div className="summary-row">
                       <span>US shipping</span>
                       <span>{formatMoney(shipping)}</span>
                     </div>
@@ -3092,6 +3143,14 @@ function CartPage({
                         Discount {packet.discount.label || packet.discount.code}
                         {packet.totals?.discount
                           ? ` (−${formatMoney(packet.totals.discount)})`
+                          : ""}
+                      </li>
+                    ) : null}
+                    {packet.tax?.amount > 0 || packet.tax?.state ? (
+                      <li>
+                        {packet.tax.label || `${packet.tax.state} sales tax`}
+                        {packet.totals?.tax
+                          ? `: ${formatMoney(packet.totals.tax)}`
                           : ""}
                       </li>
                     ) : null}
@@ -4256,6 +4315,14 @@ function AdminPanel({
                             {o.discount.label || o.discount.code}
                             {o.totals?.discount
                               ? ` (−${formatMoney(o.totals.discount)})`
+                              : ""}
+                          </div>
+                        ) : null}
+                        {o.tax?.state ? (
+                          <div className="meta">
+                            Tax {o.tax.state}
+                            {o.totals?.tax
+                              ? ` ${formatMoney(o.totals.tax)}`
                               : ""}
                           </div>
                         ) : null}
