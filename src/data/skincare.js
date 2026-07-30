@@ -17,13 +17,20 @@ export const PEPTIDE_LEGAL = {
   ],
 };
 
+/** Round a dollar amount to the nearest $5 (e.g. 54 → 55, 32 → 30). */
+export function roundToNearest5(n) {
+  const v = Number(n);
+  if (!Number.isFinite(v) || v <= 0) return 0;
+  return Math.round(v / 5) * 5;
+}
+
 export const SKINCARE_PRODUCTS = [
   {
     id: "wp-cream-veil",
     name: "Veil Moisture Cream",
     line: "Ready",
     kind: "ready",
-    price: 54,
+    price: 55,
     size: "50 mL",
     image: "/skincare/cream-veil.png",
     blurb: "Quiet hydration with a soft matte finish for day-to-night wear.",
@@ -35,7 +42,7 @@ export const SKINCARE_PRODUCTS = [
     name: "Calm Mineral Mist",
     line: "Ready",
     kind: "ready",
-    price: 32,
+    price: 30,
     size: "100 mL",
     image: "/skincare/mist-calm.png",
     blurb: "A mineral mist to reset skin between steps. Never sticky, never loud.",
@@ -47,7 +54,7 @@ export const SKINCARE_PRODUCTS = [
     name: "Signal Facial Oil",
     line: "Ready",
     kind: "ready",
-    price: 72,
+    price: 70,
     size: "30 mL",
     image: "/skincare/oil-signal.png",
     blurb: "A measured oil blend for glow without weight. Last step, lights low.",
@@ -68,7 +75,7 @@ export const PEPTIDES = [
     need: "Firm, repair, glow",
     job: "Staple copper for a firmer, brighter look",
     amount: "1 g dry powder",
-    price: 48,
+    price: 50,
     image: "/skincare/buffet-serum.png",
     packaging: "twist-cap",
     blurb:
@@ -81,7 +88,7 @@ export const PEPTIDES = [
     need: "Lines, elasticity",
     job: "Matrix support for the look of deeper lines",
     amount: "600 mg dry complex",
-    price: 36,
+    price: 35,
     image: "/skincare/peptide-vial-matrixyl.png",
     packaging: "vial",
     blurb:
@@ -94,7 +101,7 @@ export const PEPTIDES = [
     need: "Expression lines",
     job: "Expression zones via the Syn-Ake pathway",
     amount: "250 mg dry powder",
-    price: 34,
+    price: 35,
     image: "/skincare/peptide-vial-synake.png",
     packaging: "vial",
     blurb:
@@ -107,7 +114,7 @@ export const PEPTIDES = [
     need: "Expression, soften",
     job: "Expression lines via Argireline-family pathway",
     amount: "200 mg dry powder",
-    price: 38,
+    price: 40,
     image: "/skincare/peptide-vial-snap8.png",
     packaging: "vial",
     blurb:
@@ -125,7 +132,7 @@ export const SERUM_BASES = [
     name: "Renew Serum Base",
     form: "serum",
     volume: "30 mL",
-    price: 28,
+    price: 30,
     image: "/skincare/buffet-serum.png",
     blurb:
       "Anti-aging face serum with HA and amino acids. Best all-rounder base for 1 to 4 dry actives.",
@@ -137,7 +144,7 @@ export const SERUM_BASES = [
     name: "Renew Cream Base",
     form: "cream",
     volume: "50 mL",
-    price: 32,
+    price: 30,
     image: "/skincare/peptide-cream.png",
     blurb:
       "Silken moisture cream in a soft powder-blue finish. Mix dry actives into a leave-on cream instead of a dropper serum.",
@@ -149,7 +156,7 @@ export const SERUM_BASES = [
     name: "Eye Serum Base",
     form: "serum",
     volume: "15 mL",
-    price: 24,
+    price: 25,
     image: "/skincare/eye-serum.png",
     blurb:
       "Cooling periocular serum. Pair with SNAP-8 or Syn-Ake for crow’s feet, or add Eyeseryl as a custom.",
@@ -168,7 +175,7 @@ export const CUSTOM_PEPTIDES = [
     name: "Eyeseryl",
     inci: "Acetyl Tetrapeptide-5",
     amount: "150 mg dry",
-    price: 28,
+    price: 30,
     blurb: "Under-eye puff and rested-look add-on. Optional with the eye serum base.",
   },
   {
@@ -176,7 +183,7 @@ export const CUSTOM_PEPTIDES = [
     name: "Argireline",
     inci: "Acetyl Hexapeptide-8",
     amount: "300 mg dry",
-    price: 32,
+    price: 30,
     blurb: "Optional expression-line booster to stack with SNAP-8 or Syn-Ake.",
   },
   {
@@ -221,6 +228,7 @@ export function getCustomPeptide(id) {
 
 /**
  * Price a custom formula: one base + selected core actives + optional customs.
+ * Total is rounded to the nearest $5.
  */
 export function priceSerumBuild({ baseId, peptideIds = [], customIds = [] }) {
   const base = getBase(baseId);
@@ -233,7 +241,7 @@ export function priceSerumBuild({ baseId, peptideIds = [], customIds = [] }) {
     const p = getCustomPeptide(id);
     return sum + (p?.price || 0);
   }, 0);
-  return base.price + pepTotal + customTotal;
+  return roundToNearest5(base.price + pepTotal + customTotal);
 }
 
 /**
