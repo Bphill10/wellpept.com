@@ -5147,6 +5147,15 @@ body:has(.app-shell--undisclosed)::before {
     height: 36px;
   }
 
+  .app-shell--undisclosed .brand-logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
   .brand {
     min-height: 44px;
     padding: 0.3rem 0.2rem;
@@ -6172,9 +6181,9 @@ html:has(.app-shell--undisclosed) {
 }
 
 .rift-mark--to img {
-  border-radius: 50%;
-  background: #0a0a0a;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 0;
+  background: transparent;
+  border: 0;
 }
 
 .rift-mark--to p {
