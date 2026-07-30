@@ -355,9 +355,14 @@ svg {
 }
 
 .app-shell--undisclosed .brand-logo {
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
-  background: #0a0a0a;
+  /* Hex mark — do not clip with the WellPept circular seal */
+  width: 3.55rem;
+  height: 3.55rem;
+  border-radius: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  object-fit: contain;
 }
 
 .brand-text {
@@ -875,9 +880,13 @@ svg {
 }
 
 .hero--undisclosed .hero-brand-mark {
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
-  background: #0a0a0a;
+  width: clamp(6.25rem, 16vw, 9.5rem);
+  height: clamp(6.25rem, 16vw, 9.5rem);
+  border-radius: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  object-fit: contain;
 }
 
 .hero--undisclosed .hero-brand-rule {
@@ -2592,6 +2601,12 @@ body:has(.app-shell--undisclosed)::before {
 .app-shell--undisclosed .search-dept {
   background: rgba(255, 255, 255, 0.1);
   color: #f4f6f8;
+  color-scheme: dark;
+}
+
+.app-shell--undisclosed .search-dept option {
+  background-color: #ffffff;
+  color: #0a0a0a;
 }
 
 .app-shell--undisclosed .search-go {

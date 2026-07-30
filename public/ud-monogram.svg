@@ -7,21 +7,21 @@
     points="64,14 112,41 112,87 64,114 16,87 16,41"
     fill="#0a0a0a"
   />
-  <!-- Bold U, scaled up and optically centered in the hex -->
-  <g transform="translate(64 63) scale(1.34) translate(-64 -66)">
+  <!-- Large optically centered U — fills the inner hex without clipping -->
+  <g transform="translate(64 62.5) scale(1.42) translate(-64 -65)">
     <path
       fill="#ffffff"
       d="
-        M 26 26
-        L 44 26
-        L 44 70
-        Q 44 90 64 90
-        Q 84 90 84 70
-        L 84 26
-        L 102 26
-        L 102 72
-        Q 102 108 64 108
-        Q 26 108 26 72
+        M 28 28
+        L 45 28
+        L 45 68
+        Q 45 88 64 88
+        Q 83 88 83 68
+        L 83 28
+        L 100 28
+        L 100 70
+        Q 100 106 64 106
+        Q 28 106 28 70
         Z
       "
     />
