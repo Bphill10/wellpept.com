@@ -1957,7 +1957,6 @@ export default function App() {
             products={products}
             orders={orders}
             automation={automation}
-            stripeEnabled={Boolean(stripeConfig?.enabled)}
             onUpdateAutomation={updateAutomation}
             onApproveSubmission={approveSubmission}
             onRejectSubmission={rejectSubmission}
@@ -3449,7 +3448,6 @@ function AdminPanel({
   products,
   orders = [],
   automation,
-  stripeEnabled = false,
   onUpdateAutomation,
   onApproveSubmission,
   onRejectSubmission,
