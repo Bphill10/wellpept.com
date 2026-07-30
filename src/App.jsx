@@ -1401,7 +1401,7 @@ export default function App() {
                 <div className="hero-brand-lockup rise">
                   <img
                     src="/ud-monogram.svg"
-                    alt="Undisclosed UD mark"
+                    alt="Undisclosed U mark"
                     className="hero-brand-mark"
                     width={136}
                     height={136}

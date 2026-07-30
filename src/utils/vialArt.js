@@ -7,9 +7,9 @@ export const BRAND_IMAGE_SRC = "/wellpept-brand.png";
 export const BRAND_VIAL_SRC = "/real-vial-3ml.png";
 /** Photoreal unlabeled 10 mL research vial (studio photo). */
 export const BRAND_VIAL_10_SRC = "/real-vial-10ml.png";
-/** Circular WP seal / monogram. */
+/** Circular W seal / monogram. */
 export const WP_MARK_SRC = "/wp-monogram.svg";
-/** Vector WP monogram — P layered in front of W. */
+/** Vector W monogram. */
 export const WP_MONOGRAM_SRC = "/wp-monogram.svg";
 
 let brandImageCache = null;
@@ -286,7 +286,7 @@ function drawDarkStudio(ctx, w, h) {
 }
 
 /**
- * Cobalt circular WP monogram — side-by-side letters, no overlap.
+ * Cobalt circular W monogram.
  * Used when the brand seal image is not yet loaded.
  */
 function drawWpMonogramSeal(ctx, cx, cy, r) {
@@ -307,8 +307,8 @@ function drawWpMonogramSeal(ctx, cx, cy, r) {
   ctx.fillStyle = "#ffffff";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `800 ${Math.max(14, r * 0.72)}px Outfit, "Arial Black", sans-serif`;
-  ctx.fillText("WP", cx, cy + r * 0.04);
+  ctx.font = `800 ${Math.max(16, r * 0.95)}px Outfit, "Arial Black", sans-serif`;
+  ctx.fillText("W", cx, cy + r * 0.04);
 }
 
 /** Draw the circular WP brand mark image, or fall back to the monogram. */
@@ -468,7 +468,7 @@ function drawBrandWordmark(ctx, cx, y, maxW) {
 
 /**
  * 3 mL vial matching the Wellpept brand image:
- * brushed gold cap · clear glass · lyophilized cake · matte black V-sleeve · gold WP seal.
+ * brushed gold cap · clear glass · lyophilized cake · matte black V-sleeve · gold W seal.
  */
 function drawBrandThreeMl(ctx, dims, options) {
   const {
@@ -1514,7 +1514,7 @@ function fitCenteredText(ctx, text, maxWidth, basePx, family) {
   return size;
 }
 
-/** White hexagon with bold WP letters (same treatment as the UD print mark). */
+/** White hexagon with bold U letter (Undisclosed print mark). */
 function drawLabelSpineMark(ctx, cx, cy, r) {
   ctx.save();
   ctx.beginPath();
@@ -1545,8 +1545,8 @@ function drawLabelSpineMark(ctx, cx, cy, r) {
   ctx.fillStyle = "#ffffff";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `800 ${Math.max(11, r * 0.85)}px Outfit, "Arial Black", sans-serif`;
-  ctx.fillText("UD", cx, cy + r * 0.04);
+  ctx.font = `800 ${Math.max(14, r * 1.05)}px Outfit, "Arial Black", sans-serif`;
+  ctx.fillText("U", cx, cy + r * 0.04);
   ctx.restore();
 }
 
