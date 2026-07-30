@@ -1,4 +1,4 @@
-/** Marketplace automation helpers — keep human gates only where required. */
+/** Marketplace automation helpers. keep human gates only where required. */
 
 import {
   isHghCompound,
@@ -215,7 +215,7 @@ export function buildCalculatorShareUrl({
   return `${origin}${pathname}?${params.toString()}`;
 }
 
-/** Suggested BAC / concentration / dose fields — same math as the calculator. */
+/** Suggested BAC / concentration / dose fields. same math as the calculator. */
 export function resolveCalculatorLabelFields({
   name = "",
   mass = "",
@@ -293,7 +293,7 @@ export const ORDER_NOTIFY_EMAIL = "info@wellpept.com";
 
 /**
  * Build a drop-ship order packet grouped by vendor.
- * Never includes vendor storefront URLs — admin/ops relay only.
+ * Never includes vendor storefront URLs. admin/ops relay only.
  * Default status is awaiting_supply_review (no payment yet).
  */
 export function buildOrderPacket({
@@ -394,7 +394,7 @@ export function buildOrderPacket({
     },
     shipments,
     notes:
-      "ORDER REQUEST — check supply first. Do not charge until confirmed. Reply to customer within 24 hours with payment instructions. Delivery takes 2–3 weeks. Drop-ship via Wellpept only. Do not share vendor storefront links with the customer.",
+      "ORDER REQUEST. Check supply first. Do not charge until confirmed. Reply to customer within 24 hours with payment instructions. Delivery takes 2-3 weeks. Drop-ship via Wellpept only. Do not share vendor storefront links with the customer.",
   };
 }
 
@@ -430,7 +430,7 @@ export function formatOrderPacketText(packet) {
   );
   if (packet.waitConsent) {
     lines.push(
-      `Wait consent: YES — customer accepts 2–3 weeks delivery`
+      `Wait consent: YES. Customer accepts 2-3 weeks delivery`
     );
   }
   lines.push("");
@@ -461,16 +461,16 @@ export function formatOrderPacketText(packet) {
     );
   } else {
     lines.push(
-      "Payment: PENDING — email customer within 24h after supply check."
+      "Payment: PENDING. Email customer within 24h after supply check."
     );
   }
   return lines.join("\n");
 }
 
-  /** Notify ops at info@wellpept.com — Resend when configured, else mailto. */
+  /** Notify ops at info@wellpept.com. Resend when configured, else mailto. */
 export async function notifyOrderRequest(packet) {
   const body = formatOrderPacketText(packet);
-  const subject = `WellPept order request ${packet.orderId} — supply check`;
+  const subject = `WellPept order request ${packet.orderId}: supply check`;
 
   try {
     const { fetchEmailConfig, sendTransactionalEmail, openMailto } = await import(

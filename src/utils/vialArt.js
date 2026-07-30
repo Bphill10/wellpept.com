@@ -1677,7 +1677,7 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   ctx.textBaseline = "middle";
   const brandHeaderPx = Math.max(8, dims.h * 0.038);
   ctx.font = `700 ${brandHeaderPx}px Outfit, "Segoe UI", sans-serif`;
-  ctx.fillText("— UNDISCLOSED —", midCx, dims.h * 0.075);
+  ctx.fillText("UNDISCLOSED", midCx, dims.h * 0.075);
 
   // Rule under header
   const rule1Y = dims.h * 0.12;

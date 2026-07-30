@@ -134,7 +134,7 @@ function VialPreview({ product, size = "md", showDownload = false }) {
       </div>
     );
   }
-  // Plain studio vial — no wrap label
+  // Plain studio vial. no wrap label
   return (
     <GeneratedVial
       name={product.name}
@@ -171,7 +171,7 @@ export default function App() {
 
   const urlWantsLabQuery = useMemo(
     () =>
-      // Query/hash only — pathname is tracked via routePath so Exit can clear it.
+      // Query/hash only. pathname is tracked via routePath so Exit can clear it.
       labUnlockFromUrl(
         window.location.search,
         window.location.hash,
@@ -301,7 +301,7 @@ export default function App() {
       setOpsUnlocked(true);
     }
     if (cb === "success") {
-      setFlash("Chargebee return noted — confirm supply before taking payment.");
+      setFlash("Chargebee return noted. Confirm supply before taking payment.");
     } else if (cb === "cancel") {
       setFlash("Chargebee checkout canceled");
     }
@@ -357,7 +357,7 @@ export default function App() {
     setLabUnlocked(true);
     setLabUnlockedState(true);
     cleanLabUnlockUrl({ promotePath: true });
-    // replaceState does not fire popstate — keep routePath in sync
+    // replaceState does not fire popstate. keep routePath in sync
     setRoutePath(
       typeof window !== "undefined" ? window.location.pathname : "/undisclosed"
     );
@@ -393,7 +393,7 @@ export default function App() {
     setLabUnlocked(false);
     setLabUnlockedState(false);
     cleanPublicEntryUrl();
-    // replaceState does not fire popstate — clear Undisclosed route or
+    // replaceState does not fire popstate. clear Undisclosed route or
     // labVisible stays true and the layout effect re-opens the lab.
     setRoutePath("/");
     setView(VIEWS.skincare);
@@ -469,7 +469,7 @@ export default function App() {
       skin: true,
       mix: product.kind === "mix",
       image: product.image || "",
-      ships: "2–3 weeks delivery",
+      ships: "2-3 weeks delivery",
       legalNote:
         product.kind === "mix"
           ? "Cosmetic skincare only. Not for injection or medical use."
@@ -477,8 +477,8 @@ export default function App() {
     });
     setFlash(
       product.kind === "mix"
-        ? `Added ${product.name} (request only — no payment yet)`
-        : `Added ${product.name} (request only — no payment yet)`
+        ? `Added ${product.name} (request only, no payment yet)`
+        : `Added ${product.name} (request only, no payment yet)`
     );
   }
 
@@ -578,10 +578,10 @@ export default function App() {
     setCartPulse(true);
     setTimeout(() => setCartPulse(false), 350);
     if (product.skin) {
-      setFlash(`${product.name} added (request only — no payment yet)`);
+      setFlash(`${product.name} added (request only, no payment yet)`);
     } else {
       const strength = formatStrengthLabel(product);
-      setFlash(`${product.name} (${strength}) added (request only — no payment yet)`);
+      setFlash(`${product.name} (${strength}) added (request only, no payment yet)`);
     }
   }
 
@@ -607,7 +607,7 @@ export default function App() {
           : s
       )
     );
-    setFlash("Listing approved — catalog updated");
+    setFlash("Listing approved. Catalog updated");
   }
 
   function rejectSubmission(id) {
@@ -634,7 +634,7 @@ export default function App() {
             : s
         )
       );
-      setFlash("Vendor approved — pending lines published");
+      setFlash("Vendor approved. Pending lines published");
     } else {
       setFlash("Vendor approved");
     }
@@ -742,7 +742,7 @@ export default function App() {
 
     setVendors((prev) => [vendor, ...prev]);
     setSubmissions((prev) => [...lines, ...prev]);
-    setFlash("Price list submitted — waiting for WellPept approval");
+    setFlash("Price list submitted. Waiting for WellPept approval");
     return true;
   }
 
@@ -884,7 +884,7 @@ export default function App() {
       return null;
     }
     if (!payment && !waitConsent) {
-      setFlash("Confirm you can wait 2–3 weeks for delivery");
+      setFlash("Confirm you can wait 2-3 weeks for delivery");
       return null;
     }
     const subtotal = cart.reduce((sum, line) => sum + line.price * line.qty, 0);
@@ -983,7 +983,7 @@ export default function App() {
             <span className="header-top-msg">
               {labVisible
                 ? "Take control · Ask questions · Your human right"
-                : "Request first · Pay after supply check · 2–3 weeks"}
+                : "Request first · Pay after supply check · 2-3 weeks"}
             </span>
             <span className="header-top-links">
               {labVisible ? (
@@ -1471,7 +1471,7 @@ export default function App() {
                     <span className="featured-kicker">Featured kit</span>
                     <h2>KLOW</h2>
                     <p>
-                      Signature Undisclosed kit photography — 10 × 80 MG
+                      Signature Undisclosed kit photography. 10 × 80 MG
                       lyophilized vials with clinical wrap labels, QR, and
                       research-only marking. Request first; we confirm supply
                       within 24 hours, then payment. US shipping only.
@@ -1481,7 +1481,7 @@ export default function App() {
                       <li>80 MG · BAC 3.2 mL template</li>
                       <li>Kit of 10 labeled vials</li>
                       <li>Request first · pay after supply check</li>
-                      <li>US shipping only · 2–3 weeks delivery</li>
+                      <li>US shipping only · 2-3 weeks delivery</li>
                     </ul>
                     <div className="hero-cta" style={{ marginTop: "0.85rem" }}>
                       <button
@@ -1639,7 +1639,7 @@ export default function App() {
                     <strong>Request → supply check → pay</strong>
                     <p>
                       All orders come to us first. We confirm inventory, then
-                      email payment within 24 hours. Allow 2–3 weeks for delivery.
+                      email payment within 24 hours. Allow 2-3 weeks for delivery.
                     </p>
                   </div>
                 </div>
@@ -1674,20 +1674,20 @@ export default function App() {
                   <h2>They gatekeep. You decide.</h2>
                   <p>
                     Big Pharma and the FDA write the script: what you may ask,
-                    what you may access, and how much you pay for the privilege.
-                    Undisclosed is the darker mirror — research peptides, same
-                    molecules, fewer middlemen. Take control of your health
-                    literacy. Curiosity is not a crime. It&apos;s your human right.
+                    what you may access, and how much that privilege costs.
+                    Undisclosed is the darker mirror. Same molecules. Fewer
+                    middlemen. Curiosity is not a crime. Your health literacy
+                    is your human right.
                   </p>
                 </div>
                 <ul className="mission-points">
                   <li>
-                    <FlaskConical size={18} /> Same compound identity — research
+                    <FlaskConical size={18} /> Same compound identity. Research
                     purity, not pharmacy branding
                   </li>
                   <li>
-                    <ShieldCheck size={18} /> Source closer to manufacture —
-                    fewer hands between plant and bench
+                    <ShieldCheck size={18} /> Source closer to manufacture.
+                    Fewer hands between plant and bench
                   </li>
                   <li>
                     <Microscope size={18} /> Compare COAs &amp; fill data before
@@ -1705,7 +1705,7 @@ export default function App() {
                     <h2>From source plant to your US lab</h2>
                     <p>
                       Most research peptides follow the same manufacturing path.
-                      Undisclosed sits after QC — connecting approved vendors to
+                      Undisclosed sits after QC, connecting approved vendors to
                       your bench without sending you to their storefront.
                     </p>
                   </div>
@@ -1720,7 +1720,7 @@ export default function App() {
                     <strong>Synthesis</strong>
                     <p>
                       Sequences are built in research-chemical manufacturing
-                      hubs — the same corridors behind most “research” vials.
+                      hubs, the same corridors behind most “research” vials.
                     </p>
                   </li>
                   <li className="supply-flow-arrow" aria-hidden="true">
@@ -1747,8 +1747,8 @@ export default function App() {
                     <span className="supply-step-num">3</span>
                     <strong>Vial &amp; kit</strong>
                     <p>
-                      Every line ships as a kit of 10 lyophilized vials —
-                      white powder for most compounds, blue powder for KLOW.
+                      Every line ships as a kit of 10 lyophilized vials.
+                      White powder for most compounds, blue for KLOW.
                     </p>
                   </li>
                   <li className="supply-flow-arrow" aria-hidden="true">
@@ -1820,7 +1820,7 @@ export default function App() {
                     </li>
                     <li>
                       <Truck size={16} />
-                      US shipping only · 2–3 weeks delivery
+                      US shipping only · 2-3 weeks delivery
                     </li>
                     <li>
                       <ShieldCheck size={16} />
@@ -1840,19 +1840,19 @@ export default function App() {
                     <p>
                       Follow the money. Ask who profits when access is locked
                       behind a logo. Undisclosed puts the research path in your
-                      hands — for laboratory use only.
+                      hands. Laboratory use only.
                     </p>
                   </div>
                 </div>
                 <div className="thesis-grid">
                   <article className="thesis-card panel">
                     <p className="section-kicker">FDA theater?</p>
-                    <h3>Approved for who — and at what price</h3>
+                    <h3>Approved for who, and at what price</h3>
                     <p>
                       Regulation protects people. It also protects margins.
                       When the sequence is public knowledge and the research
                       supply already exists, the question isn&apos;t “does the
-                      molecule exist?” — it&apos;s who is allowed to talk about
+                      molecule exist?” It’s who is allowed to talk about
                       it, and who collects the toll.
                     </p>
                   </article>
@@ -1861,9 +1861,9 @@ export default function App() {
                     <h3>Brand tax on the same compound</h3>
                     <p>
                       When the active is the same sequence or small molecule,
-                      the research question is purity, fill, and documentation —
-                      not the commercial name on the box. Pay for data. Don&apos;t
-                      pay for the conspiracy of silence around alternatives.
+                      judge purity, fill, and the paperwork, not the name on
+                      the box. Pay for data. Don&apos;t pay for the silence
+                      around alternatives.
                     </p>
                   </article>
                   <article className="thesis-card panel thesis-card-accent">
@@ -1873,7 +1873,7 @@ export default function App() {
                       Take control of your health literacy. It&apos;s your human
                       right to inquire. Undisclosed: admin-vetted vendors,
                       documented kits, US drop-ship. Laboratory research use
-                      only — not for human consumption or medical use. Brought
+                      only. Not for human consumption or medical use. Brought
                       to you by WellPept.
                     </p>
                   </article>
@@ -1889,7 +1889,7 @@ export default function App() {
                   <p>
                     Research equivalents earn trust with verifiable purity and
                     fill data. Independent COAs let your lab compare batches the
-                    same way you’d compare any analytical standard — without
+                    same way you’d compare any analytical standard, without
                     paying for a pharmacy label.
                   </p>
                 </div>
@@ -1909,7 +1909,7 @@ export default function App() {
                     <h2>What to check before you assay</h2>
                     <p>
                       Quick visual and testing cues for lyophilized research
-                      peptides — layer these with third-party COAs. For
+                      peptides. Layer these with third-party COAs. For
                       laboratory research use only.
                     </p>
                   </div>
@@ -2486,7 +2486,7 @@ function CoaStorePanel({ productId, productName, seedUrl = "", onChanged }) {
   function saveUrl(next, name = "Certificate of Analysis") {
     const saved = setCoaUrl(productId, next, name);
     setUrl(saved);
-    setStatus(saved ? "COA saved — vial QR updated." : "COA cleared.");
+    setStatus(saved ? "COA saved. Vial QR updated." : "COA cleared.");
     onChanged?.();
   }
 
@@ -2717,7 +2717,7 @@ function CartPage({
     }
     if (!waitConsent) {
       setPacketMsg(
-        "Confirm you are willing to wait 2–3 weeks for delivery."
+        "Confirm you are willing to wait 2-3 weeks for delivery."
       );
       return;
     }
@@ -2776,7 +2776,7 @@ function CartPage({
             <h1>Pay order {payInvoice.orderId}</h1>
             <p className="lede">
               Supply confirmed. Pay the quoted total with Venmo, Zelle, or
-              crypto (USDC or USDT only on Solana / Ethereum — 5% off for
+              crypto (USDC or USDT only on Solana / Ethereum (5% off for
               crypto).
             </p>
             <div className="notice" style={{ marginTop: "0.75rem" }}>
@@ -2828,9 +2828,9 @@ function CartPage({
         <div className="panel" style={{ marginTop: "1rem" }}>
           <h1>Cart</h1>
           <p className="lede">
-            Create an account to order. No payment at checkout — we confirm
+            Create an account to order. No payment at checkout. We confirm
             supply, then email payment instructions within 24 hours. Delivery
-            takes 2–3 weeks.
+            takes 2-3 weeks.
           </p>
 
           <div className="notice" style={{ marginTop: "0.75rem" }}>
@@ -2841,7 +2841,7 @@ function CartPage({
               <li>We check supply and get back to you within 24 hours.</li>
               <li>You pay only after we confirm we can fulfill.</li>
               <li>Crypto (USDC/USDT) payments get 5% off.</li>
-              <li>Ship after payment — 2–3 weeks delivery.</li>
+              <li>Ship after payment. Allow 2-3 weeks for delivery.</li>
             </ol>
           </div>
 
@@ -3014,7 +3014,7 @@ function CartPage({
                         <option value="">Select</option>
                         {US_STATES.map((s) => (
                           <option key={s.code} value={s.code}>
-                            {s.code} — {s.name}
+                            {s.code}: {s.name}
                           </option>
                         ))}
                       </select>
@@ -3061,7 +3061,7 @@ function CartPage({
                     <span>
                       I understand there is no payment yet. After supply is
                       confirmed I will receive payment instructions within 24
-                      hours, and I am willing to wait 2–3 weeks for delivery.
+                      hours, and I am willing to wait 2-3 weeks for delivery.
                     </span>
                   </label>
 
@@ -3172,7 +3172,7 @@ function CartPage({
                     We will check supply and email you at{" "}
                     <strong>{packet.customer?.email}</strong> within 24 hours
                     with next steps for payment. Do not send payment until you
-                    hear from us. Allow 2–3 weeks after payment for delivery.
+                    hear from us. Allow 2-3 weeks after payment for delivery.
                   </p>
                   <ul className="cart-confirm-meta">
                     <li>Quoted total: {formatMoney(packet.totals?.total || 0)}</li>
@@ -3194,7 +3194,7 @@ function CartPage({
                     ) : null}
                     <li>Ship to: {packet.customer?.name}</li>
                     {packet.waitConsent ? (
-                      <li>2–3 week delivery accepted</li>
+                      <li>2-3 week delivery accepted</li>
                     ) : null}
                   </ul>
                   {packetMsg ? (
@@ -3279,7 +3279,7 @@ function VendorPortal({
         <div className="panel">
           <h1>Vendor portal</h1>
           <p className="lede">
-            Drop an Excel sheet, PDF, or CSV — we auto-fill your price list.
+            Drop an Excel sheet, PDF, or CSV. We auto-fill your price list.
             Review the rows, fix anything off, then submit. US shipping only.
           </p>
 
@@ -3586,7 +3586,7 @@ function PriceListEditor({ lines, onChange }) {
         <div>
           <strong>Review auto-filled lines</strong>
           <p className="meta">
-            {filled} ready · {lines.length} row{lines.length === 1 ? "" : "s"} —
+            {filled} ready · {lines.length} row{lines.length === 1 ? "" : "s"}.
             edit anything before submit.
           </p>
         </div>
@@ -3928,7 +3928,7 @@ function AdminPanel({
               />
             </label>
             <label className="field">
-              Solana wallet (USDC or USDT only — not SOL)
+              Solana wallet (USDC or USDT only, not SOL)
               <input
                 value={payConfig.solanaUsdc}
                 onChange={(e) =>
@@ -3953,7 +3953,7 @@ function AdminPanel({
               />
             </label>
             <label className="field">
-              Ethereum wallet (USDC or USDT only — not ETH)
+              Ethereum wallet (USDC or USDT only, not ETH)
               <input
                 value={payConfig.ethUsdc}
                 onChange={(e) =>
@@ -4095,7 +4095,7 @@ function AdminPanel({
               </div>
             ) : (
               <p className="meta" style={{ marginTop: "0.65rem" }}>
-                No codes yet — add one above (e.g. SAVE10 = 10% off).
+                No codes yet. Add one above (e.g. SAVE10 = 10% off).
               </p>
             )}
           </form>
@@ -4256,7 +4256,7 @@ function AdminPanel({
               <tbody>
                 {pendingItems.length === 0 ? (
                   <tr>
-                    <td colSpan={4}>Queue clear — catalog is up to date.</td>
+                    <td colSpan={4}>Queue clear. Catalog is up to date.</td>
                   </tr>
                 ) : (
                   pendingItems.map((s) => (
@@ -4340,7 +4340,7 @@ function AdminPanel({
                       <td>
                         {o.status || "awaiting_supply_review"}
                         {o.waitConsent ? (
-                          <div className="meta">2–3 week delivery accepted</div>
+                          <div className="meta">2-3 week delivery accepted</div>
                         ) : null}
                         {o.payment?.provider ? (
                           <div className="meta">via {o.payment.provider}</div>

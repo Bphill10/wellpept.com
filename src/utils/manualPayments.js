@@ -38,7 +38,7 @@ export const EMPTY_MANUAL_PAY = {
   ethUsdc: "",
   /** Path or URL to Ethereum receive QR, e.g. /eth-qr.png */
   ethQrUrl: "",
-  note: "Include your order ID in the payment memo. Crypto: USDC or USDT only — do not send SOL, ETH, or other tokens.",
+  note: "Include your order ID in the payment memo. Crypto: USDC or USDT only. Do not send SOL, ETH, or other tokens.",
 };
 
 function envDefaults() {
@@ -58,7 +58,7 @@ function envDefaults() {
     ethQrUrl: String(import.meta.env.VITE_CRYPTO_ETH_QR_URL || "").trim(),
     note: String(
       import.meta.env.VITE_MANUAL_PAY_NOTE ||
-        "Include your order ID in the payment memo. Crypto: USDC or USDT only — do not send SOL, ETH, or other tokens."
+        "Include your order ID in the payment memo. Crypto: USDC or USDT only. Do not send SOL, ETH, or other tokens."
     ),
   };
 }
@@ -177,12 +177,12 @@ export function formatManualPayText({
     lines.push(`  Amount: $${amount.toFixed(2)}`);
   }
   if (config.solanaUsdc) {
-    lines.push(`Solana — USDC or USDT only (not SOL): ${config.solanaUsdc}`);
+    lines.push(`Solana (USDC or USDT only) (not SOL): ${config.solanaUsdc}`);
     lines.push(`  Network: Solana · Memo: ${orderId}`);
     lines.push(`  Amount: $${cryptoAmount.toFixed(2)} (5% crypto discount)`);
   }
   if (config.ethUsdc) {
-    lines.push(`Ethereum — USDC or USDT only (not ETH): ${config.ethUsdc}`);
+    lines.push(`Ethereum (USDC or USDT only) (not ETH): ${config.ethUsdc}`);
     lines.push(`  Network: Ethereum · Memo: ${orderId}`);
     lines.push(`  Amount: $${cryptoAmount.toFixed(2)} (5% crypto discount)`);
   }

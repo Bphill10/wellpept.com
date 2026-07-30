@@ -169,7 +169,7 @@ export default function ManualPayMethods({
               </p>
               <img
                 src={config.zelleQrUrl}
-                alt="Zelle QR code — scan in your bank app"
+                alt="Zelle QR code. Scan in your bank app"
                 className="manual-pay-qr"
               />
             </>
@@ -194,10 +194,10 @@ export default function ManualPayMethods({
 
       {config.solanaUsdc && (
         <div className="manual-pay-card manual-pay-card--crypto">
-          <h3>Solana — USDC or USDT only · {cryptoPct}% off</h3>
+          <h3>Solana (USDC or USDT only) · {cryptoPct}% off</h3>
           <p className="meta">
             Send <strong>{formatMoney(cryptoAmount)}</strong> (save{" "}
-            {formatMoney(cryptoSavings)}). USDC or USDT only — not SOL.
+            {formatMoney(cryptoSavings)}). USDC or USDT only, not SOL.
           </p>
           {config.solanaQrUrl ? (
             <img
@@ -222,10 +222,10 @@ export default function ManualPayMethods({
 
       {config.ethUsdc && (
         <div className="manual-pay-card manual-pay-card--crypto">
-          <h3>Ethereum — USDC or USDT only · {cryptoPct}% off</h3>
+          <h3>Ethereum (USDC or USDT only) · {cryptoPct}% off</h3>
           <p className="meta">
             Send <strong>{formatMoney(cryptoAmount)}</strong> (save{" "}
-            {formatMoney(cryptoSavings)}). USDC or USDT only — not ETH.
+            {formatMoney(cryptoSavings)}). USDC or USDT only, not ETH.
           </p>
           {config.ethQrUrl ? (
             <img
@@ -250,7 +250,7 @@ export default function ManualPayMethods({
 
       {sent && (
         <div className="notice ok" style={{ marginTop: "0.85rem" }}>
-          Thanks — marked as paid via <strong>{method}</strong>
+          Thanks. Marked as paid via <strong>{method}</strong>
           {isCryptoPayProvider(method)
             ? ` · ${formatMoney(cryptoAmount)} (5% crypto discount)`
             : ` · ${formatMoney(amount)}`}

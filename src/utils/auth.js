@@ -361,8 +361,8 @@ export async function loginAccount({ login, password }) {
       needsEmailConfirm: true,
       error:
         draft?.via === "resend"
-          ? "Confirm your email before signing in. We sent a confirmation message — enter the 6-digit code or open the link."
-          : "Confirm your email before signing in. We opened a confirmation message — send it to yourself, then use the link or 6-digit code.",
+          ? "Confirm your email before signing in. We sent a confirmation message. Enter the 6-digit code or open the link."
+          : "Confirm your email before signing in. We opened a confirmation message. Send it to yourself, then use the link or 6-digit code.",
       pending: getPendingVerify(),
       confirmCode: user.verifyCode,
       confirmLink: buildConfirmUrl(user.verifyToken),

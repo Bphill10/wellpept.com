@@ -85,11 +85,11 @@ export default function SkincareHome({
           </div>
           <div className="hero-brand-rule rise-delay" aria-hidden="true" />
           <p className="hero-tagline rise-delay">
-            Fresh-mix skincare. Serums and creams made for how you renew.
+            Fresh-mix skincare for the way you renew.
           </p>
           <p className="hero-copy rise-delay">
-            Build a firmer, smoother-looking routine with copper, matrix, and
-            expression-line actives — sealed fresh until you activate at home.
+            Copper, matrix, and expression-line actives, sealed until you
+            activate them at home.
           </p>
           <div className="hero-cta rise-delay">
             <button
@@ -130,7 +130,7 @@ export default function SkincareHome({
             <Droplets size={22} />
             <div>
               <strong>Serum or cream bases</strong>
-              <p>Face serum, moisture cream, or eye serum — then add the actives you want.</p>
+              <p>Face serum, moisture cream, or eye serum. Then add the actives you want.</p>
             </div>
           </div>
           <div className="trust-item">
@@ -146,7 +146,7 @@ export default function SkincareHome({
               <strong>Request first, pay later</strong>
               <p>
                 We confirm supply, then email payment within 24 hours. Allow up to
-                2–3 weeks for delivery.
+                2-3 weeks for delivery.
               </p>
             </div>
           </div>
@@ -219,10 +219,10 @@ export default function SkincareHome({
               <ul className="flagship-mix-points">
                 <li>Fresh copper active sealed until you twist to activate</li>
                 <li>30 mL Renew face serum in the bottle</li>
-                <li>Dropper ships beside the bottle — seat it after activation</li>
+                <li>Dropper ships beside the bottle. Seat it after activation</li>
                 <li>For external cosmetic use on intact skin only</li>
-                <li>Request first — pay only after we confirm supply (within 24 hours)</li>
-                <li>Allow 2–3 weeks after payment for delivery</li>
+                <li>Request first. Pay only after we confirm supply (within 24 hours)</li>
+                <li>Allow 2-3 weeks after payment for delivery</li>
               </ul>
               <div className="price-row" style={{ margin: "0.85rem 0 1rem" }}>
                 <strong>{formatMoney(FLAGSHIP_SERUM.price)}</strong>
@@ -405,10 +405,9 @@ export default function SkincareHome({
             <p className="section-kicker">About</p>
             <h2>WellPept skincare</h2>
             <p>
-              Renew is built for people who want fresher anti-aging skincare —
-              actives sealed until you activate them into serum or cream. Ready
-              formulas cover the rest of the ritual with clean textures and quiet
-              finish.
+              Actives stay sealed until you mix them into serum or cream.
+              Ready formulas finish the ritual with clean texture and quiet
+              shine.
             </p>
           </div>
           <button

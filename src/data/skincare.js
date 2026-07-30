@@ -118,7 +118,7 @@ export const PEPTIDES = [
     image: "/skincare/peptide-vial-snap8.webp",
     packaging: "vial",
     blurb:
-      "Fourth core. SNAP-8 for the look of softer expression lines — sealed dry until you mix.",
+      "Fourth core. SNAP-8 for the look of softer expression lines. Sealed dry until you mix.",
   },
 ];
 

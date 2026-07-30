@@ -265,7 +265,7 @@ export default function PeptideCalculator({
     const option = options.find((o) => o.id === pick.optionId);
     const strength = option?.strengths.find((s) => s.key === pick.strengthKey);
     if (!option || !strength) return;
-    // Quick picks are peptide + dosage — full defaults from that choice
+    // Quick picks are peptide + dosage. full defaults from that choice
     applyCatalogSelection(option, strength);
   }
 
@@ -323,7 +323,7 @@ export default function PeptideCalculator({
             <div>
               <h1>Peptide calculator</h1>
               <p className="lede" style={{ marginBottom: 0 }}>
-                Pick a peptide and available dosage — unit, vial size, research
+                Pick a peptide and available dosage. Unit, vial size, research
                 dose, and BAC water default from that choice.
               </p>
             </div>
@@ -441,8 +441,8 @@ export default function PeptideCalculator({
                       disabled
                       title={
                         vialUnit === "IU"
-                          ? "IU — HGH only"
-                          : "mg — default for all other peptides"
+                          ? "IU (HGH only)"
+                          : "mg (default for all other peptides)"
                       }
                     >
                       {doseUnitOptions.map((u) => (
@@ -535,7 +535,7 @@ export default function PeptideCalculator({
                 <h2>Brand vial</h2>
               </div>
               <p className="meta">
-                Studio vial preview for the selected peptide — no wrap label.
+                Studio vial preview for the selected peptide. No wrap label.
               </p>
               <div className="calc-vial-stage">
                 <GeneratedVial

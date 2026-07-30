@@ -80,8 +80,8 @@ export default function AuthGate({ onAuthed, onClose }) {
           setMode("confirm");
           setInfo(
             result.emailVia === "resend"
-              ? "Account created. We emailed you a confirmation code — enter it below or open the link in that message."
-              : "Account created. Confirm your email before shopping — we opened a message to your inbox. Send it, then enter the 6-digit code or open the link."
+              ? "Account created. We emailed you a confirmation code. Enter it below or open the link in that message."
+              : "Account created. Confirm your email before shopping. We opened a message to your inbox. Send it, then enter the 6-digit code or open the link."
           );
           return;
         }
@@ -171,8 +171,8 @@ export default function AuthGate({ onAuthed, onClose }) {
         </h1>
         <p className="auth-lead">
           {mode === "confirm"
-            ? "Confirm your email so we can reach you about orders. You can keep browsing without signing in — an account is only needed when you place an order."
-            : "Browse freely without signing in. An account is only needed when you place an order — we’ll use it for supply updates and your pay link."}
+            ? "Confirm your email so we can reach you about orders. Browse freely without signing in. You only need an account when you place an order."
+            : "Browse freely without signing in. You only need an account when you place an order, so we can send supply updates and your pay link."}
         </p>
 
         {mode !== "confirm" && (
