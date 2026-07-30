@@ -104,7 +104,9 @@ export default function SkincareHome({
             <button
               type="button"
               className="soft-btn"
-              onClick={() => onOpenProduct?.(FLAGSHIP_SERUM)}
+              onClick={() =>
+                document.getElementById("flagship")?.scrollIntoView({ behavior: "smooth" })
+              }
             >
               Shop flagship serum
             </button>
@@ -192,12 +194,13 @@ export default function SkincareHome({
             </div>
           </div>
 
-          <article className="flagship-mix fade">
+          <article className="flagship-mix fade" id="flagship">
             <div className="flagship-mix-media-col">
               <button
                 type="button"
                 className="flagship-mix-media"
                 onClick={() => onOpenProduct?.(FLAGSHIP_SERUM)}
+                aria-label={`View ${FLAGSHIP_SERUM.name}`}
               >
                 <img
                   src="/skincare/buffet-serum.webp"
@@ -229,11 +232,9 @@ export default function SkincareHome({
                 <button
                   type="button"
                   className="primary-btn"
-                  onClick={() =>
-                    document.getElementById("build")?.scrollIntoView({ behavior: "smooth" })
-                  }
+                  onClick={() => onOpenProduct?.(FLAGSHIP_SERUM)}
                 >
-                  Customize this mix
+                  View flagship
                 </button>
                 <button
                   type="button"
@@ -241,6 +242,15 @@ export default function SkincareHome({
                   onClick={() => onAddToCart?.(FLAGSHIP_SERUM)}
                 >
                   Add flagship to bag
+                </button>
+                <button
+                  type="button"
+                  className="ghost-btn"
+                  onClick={() =>
+                    document.getElementById("build")?.scrollIntoView({ behavior: "smooth" })
+                  }
+                >
+                  Customize this mix
                 </button>
               </div>
             </div>
