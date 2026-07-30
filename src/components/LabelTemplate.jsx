@@ -6,6 +6,7 @@ import {
   loadWpMark,
   loadBlankLabelImage,
   labelSpecForVialMl,
+  SITE_QR_URL,
 } from "../utils/vialArt";
 
 export default function LabelTemplate({
@@ -72,7 +73,7 @@ export default function LabelTemplate({
         vialMl,
         wpMark,
         blankLabelImage,
-        qrPayload: blank ? "" : qrPayload,
+        qrPayload: blank ? qrPayload || SITE_QR_URL : qrPayload,
         coaUrl: blank ? "" : coaUrl,
         blank,
       });

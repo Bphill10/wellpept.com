@@ -1624,12 +1624,15 @@ function drawLabelSpineMark(ctx, cx, cy, r) {
 /**
  * Draw a blank wrap from the folder photo at the vial’s physical label size.
  * 3 mL → 40×20 mm (2:1), using undisclosed-label-blank (U mark, no peptide fill).
+ * QR always encodes the public site (or an explicit qrPayload / coaUrl).
  */
 export function drawBlankLabelFromImage(canvas, options = {}) {
   const {
     vialMl = 3,
     blankLabelImage = null,
     size = "md",
+    qrPayload = "",
+    coaUrl = "",
   } = options;
   const spec = labelSpecForVialMl(vialMl);
   // Screen CSS uses true mm; canvas keeps print-quality pixels (≈300 dpi).
@@ -1661,9 +1664,34 @@ export function drawBlankLabelFromImage(canvas, options = {}) {
 
   if (blankLabelImage && blankLabelImage.width) {
     ctx.drawImage(blankLabelImage, 0, 0, printW, printH);
+    // Overlay scannable site QR into the right-column frame on the folder art.
+    // Source art is 1400×700; QR frame ≈ (1033,122)–(1343,401).
+    const sx = printW / 1400;
+    const sy = printH / 700;
+    const qbox = {
+      x: 1033 * sx,
+      y: 122 * sy,
+      w: (1343 - 1033) * sx,
+      h: (401 - 122) * sy,
+    };
+    const inset = Math.min(qbox.w, qbox.h) * 0.08;
+    const payload = qrPayloadFromOptions({ qrPayload, coaUrl });
+    drawQrCode(
+      ctx,
+      qbox.x + inset,
+      qbox.y + inset,
+      Math.min(qbox.w, qbox.h) - inset * 2,
+      "site",
+      false,
+      payload
+    );
   } else {
-    // Fallback: procedural blank chrome at 2:1
-    paintLabelTemplate(ctx, { w: printW, h: printH }, { ...options, blank: true });
+    // Fallback: procedural blank chrome at 2:1 (includes site QR)
+    paintLabelTemplate(ctx, { w: printW, h: printH }, {
+      ...options,
+      blank: true,
+      qrPayload: qrPayload || SITE_QR_URL,
+    });
   }
   return canvas.toDataURL("image/png");
 }
@@ -1948,23 +1976,29 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   roundRect(ctx, qrX, qrY, qrBox, qrBox, Math.max(4, qrBox * 0.04));
   ctx.stroke();
 
-  if (!blank) {
+  // Always print a scannable QR — blank wraps point at the public site.
+  {
     const qrInset = qrBox * 0.08;
-    const payload = qrPayloadFromOptions({ qrPayload, coaUrl });
+    const payload = qrPayloadFromOptions({
+      qrPayload: blank ? qrPayload || SITE_QR_URL : qrPayload,
+      coaUrl: blank ? "" : coaUrl,
+    });
     drawQrCode(
       ctx,
       qrX + qrInset,
       qrY + qrInset,
       qrBox - qrInset * 2,
-      qrSeedFromOptions({
-        name,
-        mass,
-        unit,
-        bacWater,
-        concentration,
-        doseRange,
-        sku,
-      }),
+      blank
+        ? "site"
+        : qrSeedFromOptions({
+            name,
+            mass,
+            unit,
+            bacWater,
+            concentration,
+            doseRange,
+            sku,
+          }),
       false,
       payload
     );
