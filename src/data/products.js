@@ -432,7 +432,7 @@ function resolveCompoundKey(name) {
   if (/PT-?141|BREMELANOTIDE/.test(n)) return "PT141";
   if (/\bHCG\b/.test(n)) return "HCG";
   if (/NAD/.test(n)) return "NAD+";
-  if (/EPITHAL/.test(n)) return "Epithalon";
+  if (/EPITHAL|EPITALON|EPITAL\b/.test(n)) return "Epitalon";
   if (/SELANK/.test(n)) return "Selank";
   if (/SEMAX/.test(n)) return "Semax";
   if (/DIHEXA/.test(n)) return "Dihexa";
