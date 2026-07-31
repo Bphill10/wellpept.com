@@ -1,5 +1,5 @@
 /**
- * Focused Undisclosed catalog — top 28 peptides only.
+ * Focused Undisclosed catalog — top 29 compounds.
  * 1) JEC US primary · 2) Changsha gap-fill · 3) ERP/STG third backup.
  * Supplier names never shown.
  */
