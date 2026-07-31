@@ -1110,7 +1110,7 @@ export const CATALOG_VIAL_TEMPLATE = {
   bacWater: "3.2 mL",
   concentration: "25 mg/mL",
   doseRange: "2.5 – 5 mg (10 – 20 u)",
-  footerText: "PEPTIDE POWER | 20%",
+  footerText: "Made in China",
   qrPayload: SITE_QR_URL,
 };
 
