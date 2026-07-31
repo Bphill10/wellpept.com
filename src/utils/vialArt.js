@@ -1267,7 +1267,7 @@ function createWrapLabelBitmap(options) {
 
 /**
  * Tight clinical wrap on the outer glass cylinder.
- * Covers both outer rims (esp. left specular) so the sleeve can’t read as inset.
+ * Yawed ~20° so the UNDISCLOSED spine faces the camera.
  */
 function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   if (!labelCanvas || !labelCanvas.width) return;
@@ -1277,10 +1277,12 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   const lw = labelCanvas.width;
   const lh = labelCanvas.height;
   const slices = 240;
-  // Full front arc — left rim lands on outer glass, not inside the chamber
-  const visibleArc = Math.PI;
+  // ~20° left yaw so the UNDISCLOSED spine reads on the front face
+  const yaw = (-20 * Math.PI) / 180;
+  const visibleArc = Math.PI * 0.95;
+  // Keep spine + brand through mid; let QR wrap away on the right
   const uStart = 0;
-  const uEnd = 1;
+  const uEnd = 0.88;
 
   ctx.save();
 
@@ -1321,8 +1323,8 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   for (let i = 0; i < slices; i += 1) {
     const t0 = i / slices;
     const t1 = (i + 1) / slices;
-    const theta0 = (t0 - 0.5) * visibleArc;
-    const theta1 = (t1 - 0.5) * visibleArc;
+    const theta0 = (t0 - 0.5) * visibleArc + yaw;
+    const theta1 = (t1 - 0.5) * visibleArc + yaw;
     const cos = (Math.cos(theta0) + Math.cos(theta1)) / 2;
     // Keep left/right rims opaque — no fade that shows glass “inside”
     if (cos < 0.02) continue;
