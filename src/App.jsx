@@ -12,7 +12,9 @@ import {
   Package,
   Truck,
   Calculator,
+  Printer,
 } from "lucide-react";
+import FreePrints from "./components/FreePrints";
 import {
   CATEGORIES,
   formatMoney,
@@ -121,6 +123,7 @@ const VIEWS = {
   vendor: "vendor",
   admin: "admin",
   calculator: "calculator",
+  prints: "prints",
 };
 
 function VialPreview({
@@ -356,7 +359,8 @@ export default function App() {
       view === VIEWS.product ||
       view === VIEWS.vendor ||
       view === VIEWS.admin ||
-      view === VIEWS.calculator
+      view === VIEWS.calculator ||
+      view === VIEWS.prints
     ) {
       setView(VIEWS.skincare);
     }
@@ -1247,17 +1251,27 @@ export default function App() {
 
           <div className="header-actions">
             {labVisible && (
-              <button
-                type="button"
-                className="ghost-btn"
-                onClick={() => {
-                  setCalcInitial(null);
-                  setView(VIEWS.calculator);
-                }}
-              >
-                <Calculator size={16} />
-                <span>Calculator</span>
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="ghost-btn"
+                  onClick={() => setView(VIEWS.prints)}
+                >
+                  <Printer size={16} />
+                  <span>Free prints</span>
+                </button>
+                <button
+                  type="button"
+                  className="ghost-btn"
+                  onClick={() => {
+                    setCalcInitial(null);
+                    setView(VIEWS.calculator);
+                  }}
+                >
+                  <Calculator size={16} />
+                  <span>Calculator</span>
+                </button>
+              </>
             )}
             {labVisible && opsUnlocked && (
               <>
@@ -1566,6 +1580,52 @@ export default function App() {
               </div>
             </section>
 
+            <section className="section free-prints-teaser-section" aria-label="Free prints">
+              <div className="container">
+                <button
+                  type="button"
+                  className="free-prints-teaser panel"
+                  onClick={() => setView(VIEWS.prints)}
+                >
+                  <div className="free-prints-teaser-media" aria-hidden="true">
+                    <img
+                      src="/printables/previews/free-prints-caps-hero.webp"
+                      alt=""
+                      width={400}
+                      height={267}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <img
+                      src="/printables/previews/free-prints-case-hero.webp"
+                      alt=""
+                      width={400}
+                      height={267}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <img
+                      src="/printables/previews/free-prints-labels-hero.webp"
+                      alt=""
+                      width={400}
+                      height={267}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                  <div className="free-prints-teaser-copy">
+                    <span className="featured-kicker">Free prints</span>
+                    <h2>Caps, case &amp; labels</h2>
+                    <p>
+                      See what you can 3D print and download STLs + vial wraps
+                      at no charge.
+                    </p>
+                    <span className="soft-btn free-prints-teaser-cta">Browse free prints</span>
+                  </div>
+                </button>
+              </div>
+            </section>
+
             <section className="section featured-vendor-section" id="featured">
               <div className="container">
                 <div className="featured-vendor panel">
@@ -1837,6 +1897,20 @@ export default function App() {
             onBack={() => {
               setCalcInitial(null);
               goShop();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          />
+        )}
+
+        {view === VIEWS.prints && labVisible && (
+          <FreePrints
+            onBack={() => {
+              goShop();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            onOpenCalculator={() => {
+              setCalcInitial(null);
+              setView(VIEWS.calculator);
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
           />

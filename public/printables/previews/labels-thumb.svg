@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="640" height="400">
+  <rect width="320" height="200" fill="#e8e6e1"/>
+  <g transform="translate(40,45)">
+    <rect width="160" height="90" rx="10" fill="#fff" stroke="#111" stroke-width="1.5"/>
+    <text x="12" y="28" font-family="Georgia,serif" font-size="16" font-weight="700" fill="#111">RETA</text>
+    <text x="12" y="52" font-family="ui-monospace,monospace" font-size="22" font-weight="700" fill="#111">10 mg</text>
+    <text x="12" y="72" font-family="system-ui,sans-serif" font-size="8" fill="#333">BAC · 2.0 mL</text>
+    <text x="12" y="84" font-family="system-ui,sans-serif" font-size="7" fill="#555">Made in China</text>
+    <rect x="118" y="18" width="30" height="30" fill="#111"/>
+    <rect x="121" y="21" width="24" height="24" fill="#fff"/>
+    <rect x="124" y="24" width="6" height="6" fill="#111"/>
+    <rect x="136" y="24" width="6" height="6" fill="#111"/>
+    <rect x="124" y="36" width="6" height="6" fill="#111"/>
+    <rect x="130" y="30" width="6" height="6" fill="#111"/>
+  </g>
+  <g transform="translate(220,55)">
+    <rect width="70" height="40" rx="6" fill="#fff" stroke="#111" stroke-width="1"/>
+    <text x="8" y="18" font-family="Georgia,serif" font-size="9" fill="#111">TRIZ</text>
+    <text x="8" y="32" font-family="monospace" font-size="11" font-weight="700" fill="#111">5 mg</text>
+  </g>
+</svg>

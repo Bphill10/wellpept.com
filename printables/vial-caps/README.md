@@ -17,7 +17,8 @@ multi-color print needed). Shadows make the letters readable.
 
 ## Downloads (site)
 
-From the Undisclosed calculator, or direct under `/printables/`:
+**Free prints** page in Undisclosed (header → Free prints), calculator panels,
+or direct under `/printables/`:
 
 | File | Use |
 |------|-----|
@@ -25,6 +26,8 @@ From the Undisclosed calculator, or direct under `/printables/`:
 | `undisclosed-cap-{slug}.stl` | One cap per short name |
 | `undisclosed-cap-plate.stl` | Full plate of all etched caps |
 | `undisclosed-cap-blank.stl` | UD blank |
+
+Preview images live in `/printables/previews/`.
 
 Units: **millimeters**. Cap OD ≈ **15.6 mm**, height ≈ **7.2 mm**.
 

@@ -184,6 +184,10 @@ export default function PeptideCalculator({
   const selectedPeptide = isCustom
     ? null
     : options.find((o) => o.id === peptideId) || options[0] || null;
+  const etchName = name || selectedPeptide?.name || "UD";
+  const etchShort = shortCapName(etchName);
+  const etchSlug = capStlSlug(etchName);
+  const etchPreviewSlug = etchSlug === "ud" ? "blank" : etchSlug;
   const selectedStrength =
     selectedPeptide?.strengths.find((s) => s.key === strengthKey) ||
     selectedPeptide?.strengths[0] ||
@@ -692,6 +696,16 @@ export default function PeptideCalculator({
               {bottleOptionLabel(Number(vialMl) || 3)}. Rounded corners · QR →
               www.wellpept.com. Filled from this calculator.
             </p>
+            <div className="calc-print-preview">
+              <img
+                src="/printables/previews/free-prints-labels-hero.webp"
+                alt="Example printed vial wrap labels"
+                width={1200}
+                height={800}
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
             {!isCustom ? (
               <label className="field" style={{ maxWidth: "22rem" }}>
                 Bottle + label size
@@ -738,19 +752,40 @@ export default function PeptideCalculator({
             <p className="meta">
               Snap-style ~13 mm flip-cap with short name recessed on top and
               side (single-color print — etch reads from shadows) —{" "}
-              <strong>{shortCapName(name || selectedPeptide?.name || "UD")}</strong>
+              <strong>{etchShort}</strong>
               {" "}for{" "}
               {name?.trim() || selectedPeptide?.name || "custom"}. Print top-up,
               0.2 mm layers, no supports.
             </p>
+            <div className="calc-print-preview">
+              <img
+                src="/printables/previews/free-prints-caps-hero.webp"
+                alt="Example 3D printed etched vial caps"
+                width={1200}
+                height={800}
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div className="calc-print-cap-preview">
+              <img
+                src={`/printables/previews/cap-${etchPreviewSlug}.svg`}
+                alt=""
+                width={72}
+                height={72}
+                onError={(e) => {
+                  e.currentTarget.src = "/printables/previews/cap-blank.svg";
+                }}
+              />
+              <span>{etchShort}</span>
+            </div>
             <div className="calc-print-actions">
               <a
                 className="primary-btn"
-                href={`/printables/undisclosed-cap-${capStlSlug(name || selectedPeptide?.name || "UD")}.stl`}
-                download={`undisclosed-cap-${capStlSlug(name || selectedPeptide?.name || "UD")}.stl`}
+                href={`/printables/undisclosed-cap-${etchSlug}.stl`}
+                download={`undisclosed-cap-${etchSlug}.stl`}
               >
-                <Download size={16} /> Download{" "}
-                {shortCapName(name || selectedPeptide?.name || "UD")} cap STL
+                <Download size={16} /> Download {etchShort} cap STL
               </a>
               <a
                 className="soft-btn"
@@ -781,6 +816,16 @@ export default function PeptideCalculator({
               Printable case for the 10-vial kit in the product photo — 2×5
               vial pockets, spare-cap trough, hinged lid. STL in millimeters.
             </p>
+            <div className="calc-print-preview">
+              <img
+                src="/printables/previews/free-prints-case-hero.webp"
+                alt="Example 3D printed vial kit case"
+                width={1200}
+                height={800}
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
             <div className="calc-print-actions">
               <a
                 className="primary-btn"
