@@ -20,7 +20,7 @@ export const STG_VENDOR = {
   shippingFlat: ERP_VENDOR.shippingFlat ?? 50,
   shippingNote:
     "US shipping only · 2–3 weeks delivery · $50 first 500g · free standard over $598",
-  priceListSource: "public/vendor-lists/ERP_Price_list_Jul31end.pdf",
+  priceListSource: "public/vendor-lists/ERP/ERP_Price_list_Jul31end.pdf",
   createdAt: "2026-07-31T00:00:00.000Z",
 };
 

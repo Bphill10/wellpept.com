@@ -47,11 +47,13 @@ git push origin HEAD
 
 Then say **import JEC US**.
 
-## Already on git (older flat files)
+## On git now
 
-| File | Role |
+| Path | Role |
 |------|------|
-| `ERP_Price_list_Jul31end.pdf` | Silent backup seed |
-| `Changsha_Premium_July_2026.xlsx` | Legacy seed |
+| `JEC US/Screenshot 2026-07-30 182013.png` | **Primary** US warehouse inventory → `jecPremium.js` |
+| `ERP/ERP_Price_list_Jul31end.pdf` | Silent backup seed |
+| `Changsha/Changsha_Premium_July_2026.xlsx` | Legacy seed |
+| `BAOHUA DONGNUO/`, `Serlina Chan/` | Reference / future |
 
 Never show supplier names on the storefront.

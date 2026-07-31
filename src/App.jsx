@@ -106,6 +106,32 @@ import {
 } from "./utils/stgSync";
 import { STG_VENDOR_ID, PRIMARY_VENDOR_ID } from "./data/stgBackup";
 
+/** Flat shipping per vendor; JEC US free at 2+ kits from that warehouse. */
+function cartShippingTotal(cart) {
+  const byVendor = new Map();
+  for (const line of cart) {
+    if (!byVendor.has(line.vendorId)) {
+      byVendor.set(line.vendorId, {
+        flat: Number(line.shippingFlat) || 0,
+        kits: 0,
+      });
+    }
+    const row = byVendor.get(line.vendorId);
+    row.kits += Number(line.qty) || 0;
+  }
+  let shipping = 0;
+  for (const [vendorId, info] of byVendor.entries()) {
+    if (
+      (vendorId === PRIMARY_VENDOR_ID || vendorId === "v-jec-premium") &&
+      info.kits >= 2
+    ) {
+      continue;
+    }
+    shipping += info.flat;
+  }
+  return shipping;
+}
+
 const VIEWS = {
   skincare: "skincare",
   skinProduct: "skinProduct",
@@ -969,18 +995,11 @@ export default function App() {
       return null;
     }
     if (!payment && !waitConsent) {
-      setFlash("Confirm you can wait 2-3 weeks for delivery");
+      setFlash("Confirm you accept the stated delivery window");
       return null;
     }
     const subtotal = cart.reduce((sum, line) => sum + line.price * line.qty, 0);
-    const shippingByVendor = new Map();
-    for (const line of cart) {
-      if (!shippingByVendor.has(line.vendorId)) {
-        shippingByVendor.set(line.vendorId, Number(line.shippingFlat) || 0);
-      }
-    }
-    let shipping = 0;
-    for (const fee of shippingByVendor.values()) shipping += fee;
+    const shipping = cartShippingTotal(cart);
     const discountAmount = Math.min(
       subtotal,
       Math.max(0, Number(discount?.amount) || 0)
@@ -1545,34 +1564,34 @@ export default function App() {
               <div className="container">
                 <div className="featured-vendor panel">
                   <div className="featured-vendor-copy">
-                    <span className="featured-kicker">Featured kit</span>
-                    <h2>KLOW</h2>
+                    <span className="featured-kicker">US warehouse</span>
+                    <h2>Tesamorelin 10 mg</h2>
                     <p>
-                      Signature Undisclosed kit photography. 10 × 80 MG
-                      lyophilized vials with clinical wrap labels, QR, and
-                      research-only marking. Request first; we confirm supply
-                      within 24 hours, then payment. US shipping only.
+                      In-stock US warehouse kit. 10 × 10 MG lyophilized vials
+                      with clinical wrap labels, QR, and research-only marking.
+                      Request first; we confirm supply within 24 hours, then
+                      payment. $10 shipping · free on 2+ kits · 3–7 working days.
                     </p>
                     <ul className="featured-meta">
-                      <li>Featured kit photography</li>
-                      <li>80 MG · BAC 3.2 mL template</li>
-                      <li>Kit of 10 labeled vials</li>
+                      <li>US warehouse inventory</li>
+                      <li>10 MG · kit of 10 vials</li>
                       <li>Request first · pay after supply check</li>
-                      <li>US shipping only · 2-3 weeks delivery</li>
+                      <li>$10 shipping · free on 2+ kits</li>
+                      <li>3–7 working days delivery</li>
                     </ul>
                     <div className="hero-cta" style={{ marginTop: "0.85rem" }}>
                       <button
                         type="button"
                         className="primary-btn"
                         onClick={() => {
-                          setQuery("KLOW");
+                          setQuery("Tesamorelin");
                           setCategory("All");
                           document
                             .getElementById("catalog")
                             ?.scrollIntoView({ behavior: "smooth" });
                         }}
                       >
-                        Shop KLOW
+                        Shop Tesamorelin
                       </button>
                       <button
                         type="button"
@@ -1594,7 +1613,7 @@ export default function App() {
                       src="/undisclosed-hero-kit-sm.webp"
                       srcSet="/undisclosed-hero-kit-sm.webp 800w, /undisclosed-hero-kit.webp 1200w"
                       sizes="(max-width: 700px) 100vw, 42vw"
-                      alt="Undisclosed KLOW 80 MG research kit"
+                      alt="Undisclosed US warehouse research kit"
                       className="featured-product-photo"
                       width={800}
                       height={534}
@@ -1770,6 +1789,7 @@ export default function App() {
           <CartPage
             cart={cart}
             session={session}
+            labCart={labVisible}
             onRequireAuth={() => setShowAuth(true)}
             onBack={goShop}
             onUpdateQty={updateQty}
@@ -2376,6 +2396,7 @@ function CoaStorePanel({ productId, productName, seedUrl = "", onChanged }) {
 function CartPage({
   cart,
   session = null,
+  labCart = false,
   onRequireAuth,
   onBack,
   onUpdateQty,
@@ -2387,27 +2408,26 @@ function CartPage({
   onClearPayInvoice,
 }) {
   const subtotal = cart.reduce((sum, line) => sum + line.price * line.qty, 0);
+  const deliveryWindow = labCart ? "3–7 working days" : "2-3 weeks";
 
-  const shippingByVendor = new Map();
   const vendorSubtotals = new Map();
+  const vendorMeta = new Map();
   for (const line of cart) {
     vendorSubtotals.set(
       line.vendorId,
       (vendorSubtotals.get(line.vendorId) || 0) + line.price * line.qty
     );
-    if (!shippingByVendor.has(line.vendorId)) {
-      shippingByVendor.set(line.vendorId, {
+    if (!vendorMeta.has(line.vendorId)) {
+      vendorMeta.set(line.vendorId, {
         name: line.vendor,
-        shippingFlat: line.shippingFlat,
         minOrder: line.minOrder,
       });
     }
   }
 
-  let shipping = 0;
+  const shipping = cartShippingTotal(cart);
   const minOrderWarnings = [];
-  for (const [vendorId, info] of shippingByVendor.entries()) {
-    shipping += Number(info.shippingFlat) || 0;
+  for (const [vendorId, info] of vendorMeta.entries()) {
     const vendorTotal = vendorSubtotals.get(vendorId) || 0;
     if (vendorTotal < info.minOrder) {
       minOrderWarnings.push(
@@ -2518,7 +2538,7 @@ function CartPage({
     }
     if (!waitConsent) {
       setPacketMsg(
-        "Confirm you are willing to wait 2-3 weeks for delivery."
+        `Confirm you are willing to wait ${deliveryWindow} for delivery.`
       );
       return;
     }
@@ -2631,7 +2651,7 @@ function CartPage({
           <p className="lede">
             Create an account to order. No payment at checkout. We confirm
             supply, then email payment instructions within 24 hours. Delivery
-            takes 2-3 weeks.
+            takes {deliveryWindow}.
           </p>
 
           <div className="notice" style={{ marginTop: "0.75rem" }}>
@@ -2642,7 +2662,10 @@ function CartPage({
               <li>We check supply and get back to you within 24 hours.</li>
               <li>You pay only after we confirm we can fulfill.</li>
               <li>Crypto (USDC/USDT) payments get 5% off.</li>
-              <li>Ship after payment. Allow 2-3 weeks for delivery.</li>
+              <li>
+                Ship after payment. Allow {deliveryWindow} for delivery
+                {labCart ? " · $10 shipping · free on 2+ kits" : ""}.
+              </li>
             </ol>
           </div>
 
@@ -2861,7 +2884,8 @@ function CartPage({
                     <span>
                       I understand there is no payment yet. After supply is
                       confirmed I will receive payment instructions within 24
-                      hours, and I am willing to wait 2-3 weeks for delivery.
+                      hours, and I am willing to wait {deliveryWindow} for
+                      delivery.
                     </span>
                   </label>
 
@@ -2972,7 +2996,8 @@ function CartPage({
                     We will check supply and email you at{" "}
                     <strong>{packet.customer?.email}</strong> within 24 hours
                     with next steps for payment. Do not send payment until you
-                    hear from us. Allow 2-3 weeks after payment for delivery.
+                    hear from us. Allow {deliveryWindow} after payment for
+                    delivery.
                   </p>
                   <ul className="cart-confirm-meta">
                     <li>Quoted total: {formatMoney(packet.totals?.total || 0)}</li>
