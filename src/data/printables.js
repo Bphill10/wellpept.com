@@ -1,6 +1,6 @@
 /**
- * Undisclosed print-shop add-ons: we print caps, case, and labels for you.
- * Separate from free STL / label DIY downloads.
+ * Undisclosed print-shop add-ons: we print for you, or DIY free.
+ * Pricing: 10 caps $5 · 10 labels $5 · full kit $15.
  */
 
 import { CAP_SHORT_NAMES, shortCapName, capStlSlug } from "./capNames";
@@ -11,17 +11,15 @@ export const PRINT_VENDOR_ID = "wellpept-print";
 export const PRINT_SHIPPING = {
   shippingFlat: 8,
   ships: "Printed in US · 5–10 days",
-  shippingNote: "US print shop · 5–10 days · $8 shipping (waived if already shipping Warehouse A peptides)",
+  shippingNote:
+    "US print shop · 5–10 days · $8 shipping (waived if already shipping Warehouse A peptides)",
   minOrder: 0,
 };
 
 export const PRINT_PRICES = {
-  capEach: 2.5,
-  capPack10: 18,
-  case: 32,
-  labels10: 12,
-  capsLabelsBundle: 28,
-  fullKit: 55,
+  caps10: 5,
+  labels10: 5,
+  kit: 15,
 };
 
 /** Cap etch options for the order picker (deduped short names). */
@@ -61,60 +59,26 @@ function basePrintLine(overrides = {}) {
   };
 }
 
-/** Single etched cap (qty of identical etch). Pack pricing when qty is multiple of 10. */
-export function printCapLine({ peptide, short, qty = 1 } = {}) {
+/** Pack of 10 etched caps — $5. */
+export function printCaps10Line({ peptide, short } = {}) {
   const etch = short || shortCapName(peptide || "UD");
   const slug = etch === "UD" ? "blank" : capStlSlug(peptide || etch);
-  const q = Math.max(1, Math.min(100, Number(qty) || 1));
-  const pack = q >= 10 && q % 10 === 0;
-  if (pack) {
-    return {
-      line: basePrintLine({
-        id: `print-cap-pack-${slug}-${q}`,
-        name: `Etched caps · ${etch}`,
-        price: PRINT_PRICES.capPack10 * (q / 10),
-        form: `${q} printed caps · ${peptide || etch}`,
-        unitLabel: `${q} caps`,
-        sku: `PRINT-CAP-${slug.toUpperCase()}-x${q}`,
-        image: previewCapSrc(etch),
-        printKind: "cap",
-        etch,
-        etchPeptide: peptide || etch,
-      }),
-      qty: 1,
-    };
-  }
-  return {
-    line: basePrintLine({
-      id: `print-cap-${slug}`,
-      name: `Etched cap · ${etch}`,
-      price: PRINT_PRICES.capEach,
-      form: `Printed flip-cap · ${peptide || etch}`,
-      unitLabel: "1 cap",
-      sku: `PRINT-CAP-${slug.toUpperCase()}`,
-      image: previewCapSrc(etch),
-      printKind: "cap",
-      etch,
-      etchPeptide: peptide || etch,
-    }),
-    qty: q,
-  };
-}
-
-export function printCaseLine() {
   return basePrintLine({
-    id: "print-vial-case",
-    name: "10-vial kit case",
-    price: PRINT_PRICES.case,
-    form: "Printed base + lid + pin",
-    unitLabel: "1 case",
-    sku: "PRINT-CASE",
-    image: "/printables/previews/free-prints-case-hero.webp",
-    printKind: "case",
+    id: `print-caps10-${slug}`,
+    name: `10 etched caps · ${etch}`,
+    price: PRINT_PRICES.caps10,
+    form: `10 printed flip-caps · ${peptide || etch}`,
+    unitLabel: "10 caps",
+    sku: `PRINT-CAP10-${slug.toUpperCase()}`,
+    image: previewCapSrc(etch),
+    printKind: "caps10",
+    etch,
+    etchPeptide: peptide || etch,
   });
 }
 
-export function printLabelsLine({
+/** Pack of 10 vial wrap labels — $5. */
+export function printLabels10Line({
   peptide = "Peptide",
   mass = "",
   unit = "mg",
@@ -125,14 +89,14 @@ export function printLabelsLine({
   const strength = mass ? `${mass} ${unit}` : "custom strength";
   const idKey = `${capStlSlug(peptide)}-${ml}ml`.replace(/[^a-z0-9-]/gi, "");
   return basePrintLine({
-    id: `print-labels-${idKey}`,
-    name: `Vial labels · ${etch}`,
+    id: `print-labels10-${idKey}`,
+    name: `10 vial labels · ${etch}`,
     price: PRINT_PRICES.labels10,
     form: `10 wraps · ${peptide} · ${strength} · ${ml} mL bottle`,
     unitLabel: "10 labels",
-    sku: `PRINT-LBL-${etch}`,
+    sku: `PRINT-LBL10-${etch}`,
     image: "/printables/previews/free-prints-labels-hero.webp",
-    printKind: "labels",
+    printKind: "labels10",
     etch,
     etchPeptide: peptide,
     vialMl: ml,
@@ -141,8 +105,8 @@ export function printLabelsLine({
   });
 }
 
-/** 10 matching caps + 10 labels for one peptide. */
-export function printCapsLabelsBundleLine({
+/** Print kit: case + 10 caps + 10 labels — $15. */
+export function printKitLine({
   peptide = "Peptide",
   mass = "",
   unit = "mg",
@@ -153,40 +117,14 @@ export function printCapsLabelsBundleLine({
   const strength = mass ? `${mass} ${unit}` : "custom strength";
   const idKey = `${capStlSlug(peptide)}-${ml}ml`.replace(/[^a-z0-9-]/gi, "");
   return basePrintLine({
-    id: `print-bundle-${idKey}`,
-    name: `Caps + labels · ${etch}`,
-    price: PRINT_PRICES.capsLabelsBundle,
-    form: `10 caps + 10 wraps · ${peptide} · ${strength} · ${ml} mL`,
-    unitLabel: "Bundle",
-    sku: `PRINT-BND-${etch}`,
-    image: "/printables/previews/free-prints-caps-hero.webp",
-    printKind: "bundle",
-    etch,
-    etchPeptide: peptide,
-    vialMl: ml,
-  });
-}
-
-/** Case + 10 caps + 10 labels. */
-export function printFullKitLine({
-  peptide = "Peptide",
-  mass = "",
-  unit = "mg",
-  vialMl = 3,
-} = {}) {
-  const etch = shortCapName(peptide);
-  const ml = [3, 5, 10, 30].includes(Number(vialMl)) ? Number(vialMl) : 3;
-  const strength = mass ? `${mass} ${unit}` : "custom strength";
-  const idKey = `${capStlSlug(peptide)}-${ml}ml`.replace(/[^a-z0-9-]/gi, "");
-  return basePrintLine({
-    id: `print-fullkit-${idKey}`,
-    name: `Full print kit · ${etch}`,
-    price: PRINT_PRICES.fullKit,
+    id: `print-kit-${idKey}`,
+    name: `Print kit · ${etch}`,
+    price: PRINT_PRICES.kit,
     form: `Case + 10 caps + 10 wraps · ${peptide} · ${strength} · ${ml} mL`,
-    unitLabel: "Full kit",
+    unitLabel: "Print kit",
     sku: `PRINT-KIT-${etch}`,
     image: "/printables/previews/free-prints-case-hero.webp",
-    printKind: "fullkit",
+    printKind: "kit",
     etch,
     etchPeptide: peptide,
     vialMl: ml,

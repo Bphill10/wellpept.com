@@ -5,11 +5,9 @@ import {
   PRINT_CAP_OPTIONS,
   PRINT_PRICES,
   formatPrintMoney,
-  printCapLine,
-  printCaseLine,
-  printLabelsLine,
-  printCapsLabelsBundleLine,
-  printFullKitLine,
+  printCaps10Line,
+  printLabels10Line,
+  printKitLine,
 } from "../data/printables";
 
 const FEATURED_CAPS = [
@@ -68,12 +66,11 @@ export default function FreePrints({
   onGoCart,
 }) {
   const [capKey, setCapKey] = useState(PRINT_CAP_OPTIONS[0]?.slug || "reta");
-  const [capQty, setCapQty] = useState(10);
   const [labelKey, setLabelKey] = useState(PRINT_CAP_OPTIONS[0]?.slug || "reta");
   const [labelMl, setLabelMl] = useState(3);
   const [labelMass, setLabelMass] = useState("10");
-  const [bundleKey, setBundleKey] = useState(PRINT_CAP_OPTIONS[0]?.slug || "reta");
-  const [bundleMl, setBundleMl] = useState(3);
+  const [kitKey, setKitKey] = useState(PRINT_CAP_OPTIONS[0]?.slug || "reta");
+  const [kitMl, setKitMl] = useState(3);
 
   const selectedCap = useMemo(
     () =>
@@ -85,10 +82,10 @@ export default function FreePrints({
       PRINT_CAP_OPTIONS.find((o) => o.slug === labelKey) || PRINT_CAP_OPTIONS[0],
     [labelKey]
   );
-  const selectedBundle = useMemo(
+  const selectedKit = useMemo(
     () =>
-      PRINT_CAP_OPTIONS.find((o) => o.slug === bundleKey) || PRINT_CAP_OPTIONS[0],
-    [bundleKey]
+      PRINT_CAP_OPTIONS.find((o) => o.slug === kitKey) || PRINT_CAP_OPTIONS[0],
+    [kitKey]
   );
 
   function addLine(line, qty = 1) {
@@ -107,26 +104,26 @@ export default function FreePrints({
           <span className="featured-kicker">
             <Printer size={14} aria-hidden="true" /> Free prints
           </span>
-          <h1>We print for you — or DIY free</h1>
+          <h1>Print free — or order cheap</h1>
           <p>
-            Order etched caps, the kit case, and vial labels and we’ll print and
-            ship them with your research order. Prefer to print yourself? STL
-            files and label downloads stay free.
+            Download any STL or label and print yourself for free. Or order and
+            we’ll print for you:{" "}
+            <strong>10 caps {formatPrintMoney(PRINT_PRICES.caps10)}</strong>
+            {" · "}
+            <strong>10 labels {formatPrintMoney(PRINT_PRICES.labels10)}</strong>
+            {" · "}
+            <strong>print kit {formatPrintMoney(PRINT_PRICES.kit)}</strong>
+            {" "}(case + 10 caps + 10 labels).
           </p>
           <p className="meta free-prints-price-line">
-            Caps {formatPrintMoney(PRINT_PRICES.capEach)} ea · pack of 10{" "}
-            {formatPrintMoney(PRINT_PRICES.capPack10)} · case{" "}
-            {formatPrintMoney(PRINT_PRICES.case)} · 10 labels{" "}
-            {formatPrintMoney(PRINT_PRICES.labels10)} · caps+labels{" "}
-            {formatPrintMoney(PRINT_PRICES.capsLabelsBundle)} · full kit{" "}
-            {formatPrintMoney(PRINT_PRICES.fullKit)}. Print shipping{" "}
-            {formatPrintMoney(8)} (free with Warehouse A peptides).
+            Print shipping {formatPrintMoney(8)} · free with Warehouse A
+            peptides. Request-first checkout like the catalog.
           </p>
         </div>
 
         <article className="free-print-order-banner panel">
           <div className="free-print-order-banner-copy">
-            <h2>Order a full print kit</h2>
+            <h2>Print kit · {formatPrintMoney(PRINT_PRICES.kit)}</h2>
             <p>
               Case + 10 etched caps + 10 wrap labels for one peptide. We print
               in the US and ship in 5–10 days.
@@ -135,8 +132,8 @@ export default function FreePrints({
               <label className="field">
                 Peptide / etch
                 <select
-                  value={bundleKey}
-                  onChange={(e) => setBundleKey(e.target.value)}
+                  value={kitKey}
+                  onChange={(e) => setKitKey(e.target.value)}
                 >
                   {PRINT_CAP_OPTIONS.map((o) => (
                     <option key={o.slug} value={o.slug}>
@@ -148,8 +145,8 @@ export default function FreePrints({
               <label className="field">
                 Label bottle size
                 <select
-                  value={bundleMl}
-                  onChange={(e) => setBundleMl(Number(e.target.value))}
+                  value={kitMl}
+                  onChange={(e) => setKitMl(Number(e.target.value))}
                 >
                   {BOTTLE_ML.map((ml) => (
                     <option key={ml} value={ml}>
@@ -165,33 +162,17 @@ export default function FreePrints({
                 className="primary-btn"
                 onClick={() =>
                   addLine(
-                    printFullKitLine({
-                      peptide: selectedBundle.peptide,
+                    printKitLine({
+                      peptide: selectedKit.peptide,
                       mass: "10",
                       unit: "mg",
-                      vialMl: bundleMl,
+                      vialMl: kitMl,
                     })
                   )
                 }
               >
-                <ShoppingCart size={16} /> Add full kit ·{" "}
-                {formatPrintMoney(PRINT_PRICES.fullKit)}
-              </button>
-              <button
-                type="button"
-                className="soft-btn"
-                onClick={() =>
-                  addLine(
-                    printCapsLabelsBundleLine({
-                      peptide: selectedBundle.peptide,
-                      mass: "10",
-                      unit: "mg",
-                      vialMl: bundleMl,
-                    })
-                  )
-                }
-              >
-                Caps + labels only · {formatPrintMoney(PRINT_PRICES.capsLabelsBundle)}
+                <ShoppingCart size={16} /> Add kit ·{" "}
+                {formatPrintMoney(PRINT_PRICES.kit)}
               </button>
               {onGoCart ? (
                 <button type="button" className="ghost-btn" onClick={onGoCart}>
@@ -225,10 +206,10 @@ export default function FreePrints({
               />
             </div>
             <div className="free-print-copy">
-              <h2>Etched vial caps</h2>
+              <h2>10 etched caps · {formatPrintMoney(PRINT_PRICES.caps10)}</h2>
               <p>
                 ~13 mm snap flip-caps with short names recessed on top and side.
-                We print in matte black; etch reads from shadows.
+                We print a pack of 10 in matte black.
               </p>
               <div className="free-print-cap-row" aria-label="Example caps">
                 {FEATURED_CAPS.slice(0, 6).map((c) => (
@@ -252,56 +233,39 @@ export default function FreePrints({
                     ))}
                   </select>
                 </label>
-                <label className="field">
-                  Qty
-                  <select
-                    value={capQty}
-                    onChange={(e) => setCapQty(Number(e.target.value))}
-                  >
-                    {[1, 2, 5, 10, 20, 30].map((n) => (
-                      <option key={n} value={n}>
-                        {n}
-                        {n === 10 ? " (pack price)" : ""}
-                        {n > 10 && n % 10 === 0 ? " (pack price)" : ""}
-                      </option>
-                    ))}
-                  </select>
-                </label>
               </div>
               <div className="calc-print-actions">
                 <button
                   type="button"
                   className="primary-btn"
-                  onClick={() => {
-                    const { line, qty } = printCapLine({
-                      peptide: selectedCap.peptide,
-                      short: selectedCap.short,
-                      qty: capQty,
-                    });
-                    addLine(line, qty);
-                  }}
+                  onClick={() =>
+                    addLine(
+                      printCaps10Line({
+                        peptide: selectedCap.peptide,
+                        short: selectedCap.short,
+                      })
+                    )
+                  }
                 >
-                  <ShoppingCart size={16} /> Order printed ·{" "}
-                  {capQty >= 10 && capQty % 10 === 0
-                    ? formatPrintMoney(PRINT_PRICES.capPack10 * (capQty / 10))
-                    : formatPrintMoney(PRINT_PRICES.capEach * capQty)}
+                  <ShoppingCart size={16} /> Order 10 ·{" "}
+                  {formatPrintMoney(PRINT_PRICES.caps10)}
                 </button>
               </div>
-              <p className="meta free-prints-diy-label">DIY free downloads</p>
+              <p className="meta free-prints-diy-label">Or print free</p>
               <div className="calc-print-actions">
                 <a
                   className="soft-btn"
                   href={`/printables/undisclosed-cap-${selectedCap.slug === "blank" ? "blank" : selectedCap.slug}.stl`}
                   download={`undisclosed-cap-${selectedCap.slug === "blank" ? "blank" : selectedCap.slug}.stl`}
                 >
-                  <Download size={16} /> {selectedCap.short} STL
+                  <Download size={16} /> {selectedCap.short} STL free
                 </a>
                 <a
                   className="soft-btn"
                   href="/printables/undisclosed-cap-plate.stl"
                   download="undisclosed-cap-plate.stl"
                 >
-                  Full plate STL
+                  Full plate STL free
                 </a>
               </div>
             </div>
@@ -319,10 +283,10 @@ export default function FreePrints({
               />
             </div>
             <div className="free-print-copy">
-              <h2>10-vial kit case</h2>
+              <h2>Kit case · free DIY or in the ${PRINT_PRICES.kit} kit</h2>
               <p>
                 Hinged case — 2×5 vial pockets, spare-cap trough, pin hinge.
-                We print and ship assembled parts (base, lid, pin).
+                Included in the print kit, or download the STL and print free.
               </p>
               <div className="free-print-inline-thumb">
                 <img
@@ -338,20 +302,29 @@ export default function FreePrints({
                 <button
                   type="button"
                   className="primary-btn"
-                  onClick={() => addLine(printCaseLine())}
+                  onClick={() =>
+                    addLine(
+                      printKitLine({
+                        peptide: selectedKit.peptide,
+                        mass: "10",
+                        unit: "mg",
+                        vialMl: kitMl,
+                      })
+                    )
+                  }
                 >
-                  <ShoppingCart size={16} /> Order printed ·{" "}
-                  {formatPrintMoney(PRINT_PRICES.case)}
+                  <ShoppingCart size={16} /> Order print kit ·{" "}
+                  {formatPrintMoney(PRINT_PRICES.kit)}
                 </button>
               </div>
-              <p className="meta free-prints-diy-label">DIY free downloads</p>
+              <p className="meta free-prints-diy-label">Or print free</p>
               <div className="calc-print-actions">
                 <a
                   className="soft-btn"
                   href="/printables/undisclosed-vial-case-plate.stl"
                   download="undisclosed-vial-case-plate.stl"
                 >
-                  <Download size={16} /> Full plate STL
+                  <Download size={16} /> Full plate STL free
                 </a>
                 <a
                   className="soft-btn"
@@ -383,10 +356,10 @@ export default function FreePrints({
               />
             </div>
             <div className="free-print-copy">
-              <h2>Vial wrap labels</h2>
+              <h2>10 vial labels · {formatPrintMoney(PRINT_PRICES.labels10)}</h2>
               <p>
-                Black-on-white clinical wraps. Tell us peptide, strength, and
-                bottle size — we print a set of 10. Or generate your own in the
+                Black-on-white clinical wraps. Pick peptide, strength, and
+                bottle size — we print 10. Or generate your own in the
                 calculator for free.
               </p>
               <div className="free-print-order-fields">
@@ -433,7 +406,7 @@ export default function FreePrints({
                   className="primary-btn"
                   onClick={() =>
                     addLine(
-                      printLabelsLine({
+                      printLabels10Line({
                         peptide: selectedLabel.peptide,
                         mass: labelMass || "10",
                         unit: "mg",
@@ -442,12 +415,12 @@ export default function FreePrints({
                     )
                   }
                 >
-                  <ShoppingCart size={16} /> Order 10 labels ·{" "}
+                  <ShoppingCart size={16} /> Order 10 ·{" "}
                   {formatPrintMoney(PRINT_PRICES.labels10)}
                 </button>
                 {onOpenCalculator ? (
                   <button type="button" className="soft-btn" onClick={onOpenCalculator}>
-                    <Download size={16} /> DIY in calculator
+                    <Download size={16} /> DIY free in calculator
                   </button>
                 ) : null}
               </div>
@@ -459,7 +432,8 @@ export default function FreePrints({
           <div>
             <h2>Cap library</h2>
             <p className="meta">
-              Order a printed cap or download the free STL for each etch.
+              Order a pack of 10 for {formatPrintMoney(PRINT_PRICES.caps10)}, or
+              download any STL free.
             </p>
           </div>
         </div>
@@ -468,7 +442,10 @@ export default function FreePrints({
           {CAP_GALLERY.map(({ peptide, short }) => {
             const slug = capStlSlug(peptide);
             return (
-              <div key={`${short}-${peptide}`} className="free-print-cap-tile free-print-cap-tile--order">
+              <div
+                key={`${short}-${peptide}`}
+                className="free-print-cap-tile free-print-cap-tile--order"
+              >
                 <CapThumb short={short} />
                 <strong>{short}</strong>
                 <span>{peptide}</span>
@@ -476,23 +453,18 @@ export default function FreePrints({
                   <button
                     type="button"
                     className="soft-btn"
-                    onClick={() => {
-                      const { line, qty } = printCapLine({
-                        peptide,
-                        short,
-                        qty: 1,
-                      });
-                      addLine(line, qty);
-                    }}
+                    onClick={() =>
+                      addLine(printCaps10Line({ peptide, short }))
+                    }
                   >
-                    Order
+                    10 · $5
                   </button>
                   <a
                     href={`/printables/undisclosed-cap-${slug}.stl`}
                     download={`undisclosed-cap-${slug}.stl`}
-                    title={`Download ${short} STL`}
+                    title={`Download ${short} STL free`}
                   >
-                    STL
+                    Free STL
                   </a>
                 </div>
               </div>
@@ -506,22 +478,17 @@ export default function FreePrints({
               <button
                 type="button"
                 className="soft-btn"
-                onClick={() => {
-                  const { line, qty } = printCapLine({
-                    peptide: "Blank",
-                    short: "UD",
-                    qty: 1,
-                  });
-                  addLine(line, qty);
-                }}
+                onClick={() =>
+                  addLine(printCaps10Line({ peptide: "Blank", short: "UD" }))
+                }
               >
-                Order
+                10 · $5
               </button>
               <a
                 href="/printables/undisclosed-cap-blank.stl"
                 download="undisclosed-cap-blank.stl"
               >
-                STL
+                Free STL
               </a>
             </div>
           </div>
@@ -529,8 +496,7 @@ export default function FreePrints({
 
         <p className="meta free-prints-footnote">
           Research organization only — not pharmaceutical closures or medical
-          devices. Print orders are request-first like the catalog; we confirm
-          before payment.
+          devices. Print orders are request-first; we confirm before payment.
         </p>
       </div>
     </section>

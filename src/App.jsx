@@ -1633,10 +1633,10 @@ export default function App() {
                     <span className="featured-kicker">Free prints</span>
                     <h2>Caps, case &amp; labels</h2>
                     <p>
-                      Order and we’ll print for you — or download free STLs and
-                      make your own labels.
+                      Print anything free (STL / labels), or order 10 caps $5 ·
+                      10 labels $5 · kit $15.
                     </p>
-                    <span className="soft-btn free-prints-teaser-cta">Order or download</span>
+                    <span className="soft-btn free-prints-teaser-cta">Order or download free</span>
                   </div>
                 </button>
               </div>
