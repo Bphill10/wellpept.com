@@ -1,64 +1,42 @@
 # Vendor price lists
 
-**Canonical drop folder** — one subfolder per supplier.
+## Drop files the agent can see (no git)
 
-Windows path:
+**Attach in this Cursor chat** (paperclip / file upload).
+
+- Pick the files inside `JEC US` (xlsx, csv, pdf, photos of sheets).
+- Send them in chat — they land in the agent uploads folder automatically.
+- Say **import JEC US** (or just “use these”).
+
+No commit. No push. The agent can open them right away.
+
+You can still keep local copies organized here on Windows:
 
 ```text
-C:\Users\bphil\Ben_Phillips_Resume\public\vendor-lists
+C:\Users\bphil\Ben_Phillips_Resume\public\vendor-lists\
+  JEC US\
+  ERP\
+  Changsha\
+  BAOHUA DONGNUO\
+  Serlina Chan\
 ```
 
-Expected layout (local):
+That local folder is for **your** filing. The agent only sees those files if you **attach** them in chat (or push them — optional).
 
-```text
-public/vendor-lists/
-  JEC US/            ← primary Undisclosed supply (push this)
-  ERP/               ← silent backup
-  Changsha/          ← legacy
-  BAOHUA DONGNUO/
-  Serlina Chan/
-```
+## Optional: also keep them in git
 
-## Easiest push (one script)
-
-Folders on your PC are **not** visible to the cloud agent until you push them.
-
-1. Make sure your lists are under:
-   `C:\Users\bphil\Ben_Phillips_Resume\public\vendor-lists\JEC US\`
-2. Open PowerShell and run:
+If you want them backed up on the branch too:
 
 ```powershell
 cd C:\Users\bphil\Ben_Phillips_Resume
 .\scripts\push-vendor-lists.ps1
 ```
 
-3. In Cursor chat say: **import JEC US**
-
-### Manual push (same thing, typed out)
-
-```powershell
-cd C:\Users\bphil\Ben_Phillips_Resume
-git checkout cursor/undisclosed-peptide-site-bfad
-git pull origin cursor/undisclosed-peptide-site-bfad
-git add "public/vendor-lists"
-git commit -m "vendor-lists: add JEC US and supplier folders"
-git push origin cursor/undisclosed-peptide-site-bfad
-```
-
-## Already on git (flat files from earlier)
+## Already on git (older flat files)
 
 | File | Role |
 |------|------|
-| `ERP_Price_list_Jul31end.pdf` | Silent backup seed (`erpPeptide.js`) |
-| `Changsha_Premium_July_2026.xlsx` | Legacy seed (`changshaPremium.js`) |
-
-## Naming
-
-| Folder / file | Role |
-|---------------|------|
-| `JEC US/` | Primary catalog |
-| `ERP/` | Silent STG backup |
-| `Changsha/` | Legacy |
-| Other vendor folders | Kept for reference / future use |
+| `ERP_Price_list_Jul31end.pdf` | Silent backup seed |
+| `Changsha_Premium_July_2026.xlsx` | Legacy seed |
 
 Never show supplier names on the storefront.
