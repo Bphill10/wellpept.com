@@ -15,6 +15,7 @@ import {
 } from "./changshaPremium";
 import { STG_VENDOR, STG_VENDOR_ID, STG_SUBMISSIONS } from "./stgBackup";
 import { isFocusedSubmission, isJecSellable } from "./catalogFocus";
+import { WAREHOUSES } from "./warehouses";
 import {
   applySupplyFallback,
   loadSupplyPolicy,
@@ -25,7 +26,7 @@ import {
 } from "../utils/stgSync";
 
 /** Bump when focused vendors/catalog must replace stale local data. */
-const STORAGE_KEY = "wellpept-marketplace-v23";
+const STORAGE_KEY = "wellpept-marketplace-v24";
 
 function syncVendor(v, policy = null) {
   if (!v || !ACTIVE_VENDOR_IDS.has(v.id)) return null;
@@ -35,11 +36,12 @@ function syncVendor(v, policy = null) {
       id: JEC_VENDOR_ID,
       name: "JEC",
       priceListSource: JEC_VENDOR.priceListSource,
-      shippingFlat: JEC_VENDOR.shippingFlat,
-      shippingNote: JEC_VENDOR.shippingNote,
-      minOrder: JEC_VENDOR.minOrder,
+      shippingFlat: WAREHOUSES.A.shippingFlat,
+      shippingNote: WAREHOUSES.A.shippingNote,
+      minOrder: WAREHOUSES.A.minOrder,
       status: "approved",
-      role: "primary",
+      role: "warehouse-a",
+      warehouseId: "A",
     };
   }
   if (v.id === CHANGSHA_VENDOR_ID) {
@@ -48,11 +50,12 @@ function syncVendor(v, policy = null) {
       id: CHANGSHA_VENDOR_ID,
       name: "Changsha",
       priceListSource: CHANGSHA_VENDOR.priceListSource,
-      shippingFlat: CHANGSHA_VENDOR.shippingFlat,
-      shippingNote: CHANGSHA_VENDOR.shippingNote,
-      minOrder: CHANGSHA_VENDOR.minOrder,
+      shippingFlat: WAREHOUSES.B.shippingFlat,
+      shippingNote: WAREHOUSES.B.shippingNote,
+      minOrder: WAREHOUSES.B.minOrder,
       status: "approved",
-      role: "gap-fill",
+      role: "warehouse-b",
+      warehouseId: "B",
     };
   }
   if (v.id === STG_VENDOR_ID) {
@@ -62,15 +65,12 @@ function syncVendor(v, policy = null) {
       ...v,
       id: STG_VENDOR_ID,
       name: "STG",
-      role: "backup-3",
+      role: "warehouse-c",
+      warehouseId: "C",
       status: "approved",
-      shippingFlat:
-        policy?.shippingFlat != null && Number(policy.shippingFlat) > 0
-          ? Number(policy.shippingFlat)
-          : v.shippingFlat ?? base.shippingFlat,
-      shippingNote:
-        String(policy?.shippingNote || v.shippingNote || base.shippingNote || "")
-          .trim() || STG_VENDOR.shippingNote,
+      shippingFlat: WAREHOUSES.C.shippingFlat,
+      shippingNote: WAREHOUSES.C.shippingNote,
+      minOrder: WAREHOUSES.C.minOrder,
     };
   }
   return {

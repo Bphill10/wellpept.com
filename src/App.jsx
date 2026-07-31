@@ -105,32 +105,10 @@ import {
   loadCachedStgSubmissions,
 } from "./utils/stgSync";
 import { STG_VENDOR_ID, PRIMARY_VENDOR_ID } from "./data/stgBackup";
-
-/** Flat shipping per vendor; JEC US free at 2+ kits from that warehouse. */
-function cartShippingTotal(cart) {
-  const byVendor = new Map();
-  for (const line of cart) {
-    if (!byVendor.has(line.vendorId)) {
-      byVendor.set(line.vendorId, {
-        flat: Number(line.shippingFlat) || 0,
-        kits: 0,
-      });
-    }
-    const row = byVendor.get(line.vendorId);
-    row.kits += Number(line.qty) || 0;
-  }
-  let shipping = 0;
-  for (const [vendorId, info] of byVendor.entries()) {
-    if (
-      (vendorId === PRIMARY_VENDOR_ID || vendorId === "v-jec-premium") &&
-      info.kits >= 2
-    ) {
-      continue;
-    }
-    shipping += info.flat;
-  }
-  return shipping;
-}
+import {
+  cartShippingTotal,
+  cartShippingBreakdown,
+} from "./data/warehouses";
 
 const VIEWS = {
   skincare: "skincare",
@@ -1570,12 +1548,12 @@ export default function App() {
                       Signature Undisclosed kit. 10 × 80 MG lyophilized vials
                       with clinical wrap labels, QR, and research-only marking.
                       Request first; we confirm supply within 24 hours, then
-                      payment. US shipping only.
+                      payment. Shipping by warehouse (A / B / C).
                     </p>
                     <ul className="featured-meta">
                       <li>80 MG blend · kit of 10 vials</li>
                       <li>Request first · pay after supply check</li>
-                      <li>US shipping only · 2–3 weeks when not US-warehouse stock</li>
+                      <li>Warehouse A: 7–10 days · B/C: 2–4 weeks</li>
                     </ul>
                     <div className="hero-cta" style={{ marginTop: "0.85rem" }}>
                       <button
@@ -1634,8 +1612,9 @@ export default function App() {
                       {filtered.length} peptide
                       {filtered.length === 1 ? "" : "s"}
                       {category !== "All" ? ` in ${category}` : ""}
-                      {query.trim() ? ` for “${query.trim()}”` : ""}. US
-                      shipping only · request first, pay after supply check.
+                      {query.trim() ? ` for “${query.trim()}”` : ""}. Listed
+                      Warehouse A → B → C. Shipping is charged per warehouse in
+                      your cart · request first, pay after supply check.
                     </p>
                   </div>
                 </div>
@@ -2028,6 +2007,19 @@ function ProductCard({ listing, onOpen, onAdd }) {
               </>
             )}
           </div>
+          {(product.warehouseLabel || product.ships) && (
+            <div className="meta">
+              {product.warehouseLabel || "Warehouse"}
+              {product.warehouseId === "A"
+                ? " · 7–10 days"
+                : product.warehouseId === "B" || product.warehouseId === "C"
+                  ? " · 2–4 weeks"
+                  : ""}
+              {product.shippingFlat != null
+                ? ` · ship ${formatMoney(product.shippingFlat)}`
+                : ""}
+            </div>
+          )}
         </div>
       </button>
 
@@ -2260,16 +2252,18 @@ function ProductDetail({
             </>
             <div className="meta">
               <Truck size={14} style={{ display: "inline", marginRight: 6 }} />
-              {product.ships}
-              <>
-                . Shipping {formatMoney(product.shippingFlat)}
-                {product.shippingNote ? ` · ${product.shippingNote}` : ""}
-              </>
+              {product.warehouseLabel || "Warehouse"}
+              {" · "}
+              {product.ships || product.shippingNote || "US shipping"}
+              {product.shippingFlat != null ? (
+                <> · ship {formatMoney(product.shippingFlat)}</>
+              ) : null}
             </div>
             {Number(product.minOrder) > 0 && (
               <div className="meta">
                 <Package size={14} style={{ display: "inline", marginRight: 6 }} />
-                Minimum order {formatMoney(product.minOrder)}
+                {product.warehouseLabel || "Warehouse"} minimum{" "}
+                {formatMoney(product.minOrder)}
               </div>
             )}
             <button type="button" className="soft-btn" onClick={onCalculate}>
@@ -2406,33 +2400,14 @@ function CartPage({
   onClearPayInvoice,
 }) {
   const subtotal = cart.reduce((sum, line) => sum + line.price * line.qty, 0);
-  const deliveryWindow = labCart ? "3–7 working days" : "2-3 weeks";
-
-  const vendorSubtotals = new Map();
-  const vendorMeta = new Map();
-  for (const line of cart) {
-    vendorSubtotals.set(
-      line.vendorId,
-      (vendorSubtotals.get(line.vendorId) || 0) + line.price * line.qty
-    );
-    if (!vendorMeta.has(line.vendorId)) {
-      vendorMeta.set(line.vendorId, {
-        name: line.vendor,
-        minOrder: line.minOrder,
-      });
-    }
-  }
-
-  const shipping = cartShippingTotal(cart);
-  const minOrderWarnings = [];
-  for (const [vendorId, info] of vendorMeta.entries()) {
-    const vendorTotal = vendorSubtotals.get(vendorId) || 0;
-    if (vendorTotal < info.minOrder) {
-      minOrderWarnings.push(
-        `Minimum order is ${formatMoney(info.minOrder)} (cart has ${formatMoney(vendorTotal)})`
-      );
-    }
-  }
+  const shipBreak = cartShippingBreakdown(cart);
+  const shipping = shipBreak.total;
+  const deliveryWindow = labCart
+    ? shipBreak.lines?.length
+      ? shipBreak.lines.map((r) => `${r.label}: ${r.delivery}`).join(" · ")
+      : "Warehouse A: 7–10 days · Warehouse B/C: 2–4 weeks"
+    : "2-3 weeks";
+  const minOrderWarnings = shipBreak.minOrderWarnings || [];
 
   const [customer, setCustomer] = useState({
     name: "",
@@ -2661,8 +2636,10 @@ function CartPage({
               <li>You pay only after we confirm we can fulfill.</li>
               <li>Crypto (USDC/USDT) payments get 5% off.</li>
               <li>
-                Ship after payment. Allow {deliveryWindow} for delivery
-                {labCart ? " · $10 shipping · free on 2+ kits" : ""}.
+                Ship after payment. {deliveryWindow}
+                {labCart
+                  ? " · shipping charged per warehouse in your cart"
+                  : ""}.
               </li>
             </ol>
           </div>
@@ -2683,8 +2660,19 @@ function CartPage({
                         <div className="meta">
                           {formatStrengthLabel(line)} · {line.form}
                         </div>
-                        {line.ships && (
-                          <div className="meta">{line.ships}</div>
+                        {(line.warehouseLabel || line.ships) && (
+                          <div className="meta">
+                            {line.warehouseLabel
+                              ? `${line.warehouseLabel}${
+                                  line.warehouseId === "A"
+                                    ? " · 7–10 days"
+                                    : line.warehouseId === "B" ||
+                                        line.warehouseId === "C"
+                                      ? " · 2–4 weeks"
+                                      : ""
+                                }`
+                              : line.ships}
+                          </div>
                         )}
                         <div className="qty-controls">
                           <button
@@ -2957,10 +2945,29 @@ function CartPage({
                             : "—"}
                       </span>
                     </div>
-                    <div className="summary-row">
-                      <span>US shipping</span>
-                      <span>{formatMoney(shipping)}</span>
-                    </div>
+                    {labCart && shipBreak.lines?.length ? (
+                      shipBreak.lines.map((row) => (
+                        <div className="summary-row" key={row.warehouseId}>
+                          <span>
+                            {row.label} shipping
+                            {row.free ? " (free)" : ""}
+                            <span className="meta"> · {row.delivery}</span>
+                          </span>
+                          <span>{formatMoney(row.fee)}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="summary-row">
+                        <span>US shipping</span>
+                        <span>{formatMoney(shipping)}</span>
+                      </div>
+                    )}
+                    {labCart && shipBreak.lines?.length > 1 ? (
+                      <div className="summary-row">
+                        <span>Shipping total</span>
+                        <span>{formatMoney(shipping)}</span>
+                      </div>
+                    ) : null}
                     <div className="summary-row total">
                       <span>Quoted total (not charged yet)</span>
                       <span>{formatMoney(total)}</span>

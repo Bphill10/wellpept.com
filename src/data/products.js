@@ -11,8 +11,20 @@ import {
   isTop25Peptide,
 } from "./catalogFocus";
 import { resolveVialMl, resolveVialUnit, resolvePowderColor } from "../utils/vialArt";
+import {
+  warehouseForVendorId,
+  warehouseRank,
+  withWarehouseFields,
+} from "./warehouses";
 
 export { resolveVialMl, resolveVialUnit, resolvePowderColor };
+export {
+  WAREHOUSES,
+  warehouseForVendorId,
+  warehouseRank,
+  cartShippingTotal,
+  cartShippingBreakdown,
+} from "./warehouses";
 
 /** Retail = 2× vendor cost, then rounded UP to the nearest $5. */
 export const RETAIL_MULTIPLIER = 2;
@@ -704,21 +716,30 @@ export function formatStrengthSelectLabel(strengthOrProduct) {
 }
 
 function sortOffers(a, b) {
+  // Warehouse A before B before C, then cheapest price
+  const wa = warehouseRank(a);
+  const wb = warehouseRank(b);
+  if (wa !== wb) return wa - wb;
   const pa = a.price == null ? Number.POSITIVE_INFINITY : Number(a.price);
   const pb = b.price == null ? Number.POSITIVE_INFINITY : Number(b.price);
   if (pa !== pb) return pa - pb;
   if (Boolean(b.featured) !== Boolean(a.featured)) return b.featured ? 1 : -1;
-  return String(a.vendor || "").localeCompare(String(b.vendor || ""));
+  return 0;
 }
 
 export function formatVendorOfferLabel(product) {
   const price =
     product.price == null ? "Quote" : formatMoney(product.price);
+  const wh =
+    product.warehouseLabel ||
+    warehouseForVendorId(product.vendorId)?.label ||
+    "";
   const ship =
     product.shippingFlat != null
       ? ` · ship ${formatMoney(product.shippingFlat)}`
       : "";
-  return `${formatStrengthLabel(product)} · ${price}${ship}`;
+  const whPart = wh ? ` · ${wh}` : "";
+  return `${formatStrengthLabel(product)} · ${price}${whPart}${ship}`;
 }
 
 /**
@@ -794,6 +815,9 @@ export function groupCatalog(products) {
           ? rated.reduce((sum, v) => sum + Number(v.rating), 0) / rated.length
           : null;
 
+      const bestWarehouseRank = Math.min(
+        ...variants.map((v) => warehouseRank(v))
+      );
       return {
         id: group.id,
         name: group.name,
@@ -808,9 +832,17 @@ export function groupCatalog(products) {
         badge: defaultStrength?.offers[0]?.badge || null,
         featured: variants.some((v) => v.featured),
         vendorCount: new Set(variants.map((v) => v.vendorId)).size,
+        warehouseRank: bestWarehouseRank,
+        warehouseLabel:
+          variants.find((v) => warehouseRank(v) === bestWarehouseRank)
+            ?.warehouseLabel || "",
       };
     })
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .sort((a, b) => {
+      const wr = (a.warehouseRank || 99) - (b.warehouseRank || 99);
+      if (wr !== 0) return wr;
+      return a.name.localeCompare(b.name);
+    });
 }
 
 /**
@@ -983,7 +1015,7 @@ export function buildCatalog(vendors, submissions) {
     const vialMl = resolveVialMl(item);
     const displayName = displayPeptideName(item.name);
     const powderColor = resolvePowderColor({ name: displayName, form: item.form });
-    return {
+    return withWarehouseFields({
       id: `p-${item.vendorId}-${item.sku}`.toLowerCase().replace(/[^a-z0-9-]+/g, "-"),
       submissionId: item.id,
       sku: item.sku,
@@ -1002,24 +1034,17 @@ export function buildCatalog(vendors, submissions) {
       blurb: guessBlurb(displayName),
       tagline: guessTagline(displayName),
       vendorId: item.vendorId,
-      // Blank on purpose — never show supply source (e.g. JEC) to customers.
-      vendor: "",
       vendorCost,
       price,
       priceLabel: null,
       compareAt: price ? Math.round(price * 1.18 * 100) / 100 : null,
       externalOnly: false,
       externalUrl: null,
-      minOrder: Number(item.vendor.minOrder) || 0,
-      shippingFlat: Number(item.vendor.shippingFlat) || 0,
-      shippingNote: item.vendor.shippingNote || "",
       rating: item.rating != null ? Number(item.rating) : null,
       reviews: Number(item.reviews) || 0,
       inStock: true,
-      ships:
-        "US only · request first · pay after supply check · 2–3 weeks",
       badge: featured ? "Featured" : null,
       featured,
-    };
+    });
   });
 }

@@ -15,7 +15,7 @@ export const JEC_VENDOR = {
   minOrder: 0,
   shippingFlat: 10,
   shippingNote:
-    "US warehouse · 3–7 working days · $10 shipping · free on 2+ kits from the same warehouse",
+    "Warehouse A · 7–10 days · $10 shipping · free on 2+ kits from Warehouse A",
   priceListSource:
     "public/vendor-lists/JEC US/Screenshot 2026-07-30 182013.png",
   createdAt: "2026-07-30T00:00:00.000Z",

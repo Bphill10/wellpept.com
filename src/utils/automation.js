@@ -5,6 +5,11 @@ import {
   resolveVialMl,
   resolveVialUnit,
 } from "./vialArt";
+import {
+  WAREHOUSES,
+  warehouseForVendorId,
+  cartShippingBreakdown,
+} from "../data/warehouses";
 
 const SETTINGS_KEY = "wellpept-automation-v1";
 
@@ -308,20 +313,36 @@ export function buildOrderPacket({
   status = "awaiting_supply_review",
   waitConsent = false,
 }) {
-  const byVendor = new Map();
+  const shipBreak = cartShippingBreakdown(cart);
+  const feeByWarehouse = new Map(
+    (shipBreak.lines || []).map((row) => [row.warehouseId, row])
+  );
+
+  // Group by customer warehouse (A/B/C). Ops still get vendorId internally.
+  const byWarehouse = new Map();
   for (const line of cart) {
-    if (!byVendor.has(line.vendorId)) {
-      byVendor.set(line.vendorId, {
+    const wh =
+      (line.warehouseId && WAREHOUSES[line.warehouseId]) ||
+      warehouseForVendorId(line.vendorId);
+    const groupKey = wh?.id || line.vendorId || "other";
+    if (!byWarehouse.has(groupKey)) {
+      const feeRow = feeByWarehouse.get(groupKey);
+      byWarehouse.set(groupKey, {
+        warehouseId: wh?.id || groupKey,
+        warehouseLabel: wh?.label || "US shipping",
         vendorId: line.vendorId,
-        vendor: line.vendor,
-        shippingFlat: line.shippingFlat,
-        minOrder: line.minOrder,
-        shippingNote: line.shippingNote || "",
+        vendor: "",
+        shippingFlat: feeRow?.flat ?? (Number(line.shippingFlat) || 0),
+        shippingFee: feeRow?.fee ?? (Number(line.shippingFlat) || 0),
+        shippingFree: Boolean(feeRow?.free),
+        minOrder: wh?.minOrder ?? (Number(line.minOrder) || 0),
+        shippingNote: wh?.shippingNote || line.shippingNote || "",
+        delivery: wh?.delivery || feeRow?.delivery || "",
         lines: [],
         merchandise: 0,
       });
     }
-    const group = byVendor.get(line.vendorId);
+    const group = byWarehouse.get(groupKey);
     group.lines.push({
       sku: line.sku,
       name: line.name,
@@ -330,45 +351,53 @@ export function buildOrderPacket({
       qty: line.qty,
       unitPrice: line.price,
       lineTotal: line.price * line.qty,
+      warehouseId: wh?.id || "",
+      warehouseLabel: wh?.label || "",
       // Ops-only cost basis (what you pay supply / Telegram bot)
       vendorCost:
         line.vendorCost != null && Number(line.vendorCost) > 0
           ? Number(line.vendorCost)
           : null,
-      // Ops-only: primary JEC vs silent STG replacement
-      supplyLane: line.supplyLane || "primary",
+      // Ops-only: warehouse lane / fallback marker
+      supplyLane: line.supplyLane || (wh ? `warehouse-${wh.id.toLowerCase()}` : "primary"),
       replacedSku: line.replacedSku || "",
     });
     group.merchandise += line.price * line.qty;
-    if (line.supplyLane === "stg-fallback") {
-      group.supplyLane = "stg-fallback";
+    if (String(line.supplyLane || "").includes("fallback")) {
+      group.supplyLane = line.supplyLane;
     }
   }
 
-  const shipments = [...byVendor.values()].map((g) => ({
-    ...g,
-    // Internal lane label for ops — never show STG on the storefront
-    supplyLane: g.supplyLane || "primary",
-    vendorLabel:
-      g.supplyLane === "stg-fallback"
-        ? "STG backup (primary unavailable)"
-        : "Primary supply",
-    shipTo: {
-      name: customer.name,
-      email: customer.email,
-      phone: customer.phone || "",
-      address1: customer.address1,
-      address2: customer.address2 || "",
-      city: customer.city,
-      state: customer.state,
-      zip: customer.zip,
-      country: "US",
-    },
-  }));
+  const shipments = [...byWarehouse.values()]
+    .sort((a, b) => {
+      const ra = WAREHOUSES[a.warehouseId]?.rank ?? 50;
+      const rb = WAREHOUSES[b.warehouseId]?.rank ?? 50;
+      return ra - rb;
+    })
+    .map((g) => ({
+      ...g,
+      supplyLane: g.supplyLane || `warehouse-${String(g.warehouseId || "").toLowerCase()}`,
+      vendorLabel: g.warehouseLabel || "Warehouse",
+      shipTo: {
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone || "",
+        address1: customer.address1,
+        address2: customer.address2 || "",
+        city: customer.city,
+        state: customer.state,
+        zip: customer.zip,
+        country: "US",
+      },
+    }));
 
   const discountAmount = Number(discount?.amount) || 0;
   const discountCode = discount?.code || "";
   const taxAmount = Number(tax?.amount) || 0;
+  const shippingTotal =
+    shipping != null && Number.isFinite(Number(shipping))
+      ? Number(shipping)
+      : shipBreak.total;
 
   return {
     orderId,
@@ -406,12 +435,13 @@ export function buildOrderPacket({
       subtotal,
       discount: discountAmount,
       tax: taxAmount,
-      shipping,
+      shipping: shippingTotal,
       total,
     },
+    shippingBreakdown: shipBreak.lines,
     shipments,
     notes:
-      "ORDER REQUEST. Check supply first. Do not charge until confirmed. Reply to customer within 24 hours with payment instructions. Delivery takes 2-3 weeks. Drop-ship via Wellpept only. Do not share supply storefront links with the customer.",
+      "ORDER REQUEST. Check supply first. Do not charge until confirmed. Reply to customer within 24 hours with payment instructions. Shipping is per warehouse (A: 7–10 days; B/C: 2–4 weeks). Drop-ship via Wellpept only. Do not share supply storefront links or supplier names with the customer.",
   };
 }
 
@@ -446,21 +476,22 @@ export function formatOrderPacketText(packet) {
       ` = $${Number(packet.totals.total || 0).toFixed(2)} (NOT paid yet unless status is paid)`
   );
   if (packet.waitConsent) {
-    lines.push(
-      `Wait consent: YES. Customer accepts 2-3 weeks delivery`
-    );
+    const windows =
+      (packet.shippingBreakdown || [])
+        .map((r) => `${r.label}: ${r.delivery}`)
+        .join(" · ") || "Warehouse A: 7–10 days · B/C: 2–4 weeks";
+    lines.push(`Wait consent: YES. Customer accepts ${windows}`);
   }
   lines.push("");
   for (const ship of packet.shipments) {
-    lines.push(`── Shipment ──`);
-    if (ship.vendorLabel || ship.supplyLane) {
-      lines.push(
-        `Supply: ${ship.vendorLabel || ship.supplyLane}${
-          ship.supplyLane === "stg-fallback"
-            ? " · use STG list price/shipping"
-            : ""
-        }`
-      );
+    lines.push(
+      `── ${ship.warehouseLabel || ship.vendorLabel || "Shipment"} ──`
+    );
+    if (ship.delivery) {
+      lines.push(`Delivery: ${ship.delivery}`);
+    }
+    if (ship.supplyLane) {
+      lines.push(`Ops lane: ${ship.supplyLane} · vendorId ${ship.vendorId || "—"}`);
     }
     lines.push(
       `Ship to: ${ship.shipTo.name}, ${ship.shipTo.address1}${
@@ -471,17 +502,17 @@ export function formatOrderPacketText(packet) {
     for (const line of ship.lines) {
       const strength =
         line.mg != null && Number(line.mg) > 0 ? ` (${line.mg}mg)` : "";
-      const lane =
-        line.supplyLane === "stg-fallback"
-          ? " [STG backup]"
-          : "";
       const replaced = line.replacedSku ? ` (was ${line.replacedSku})` : "";
       lines.push(
-        `  ${line.qty}× ${line.sku} ${line.name}${strength}${lane}${replaced} @ $${line.unitPrice.toFixed(2)} = $${line.lineTotal.toFixed(2)}`
+        `  ${line.qty}× ${line.sku} ${line.name}${strength}${replaced} @ $${line.unitPrice.toFixed(2)} = $${line.lineTotal.toFixed(2)}`
       );
     }
+    const shipFee =
+      ship.shippingFee != null ? Number(ship.shippingFee) : Number(ship.shippingFlat) || 0;
     lines.push(
-      `  Merchandise $${ship.merchandise.toFixed(2)} · Flat ship $${Number(ship.shippingFlat).toFixed(2)}`
+      `  Merchandise $${ship.merchandise.toFixed(2)} · Ship $${shipFee.toFixed(2)}${
+        ship.shippingFree ? " (free)" : ""
+      }`
     );
     lines.push("");
   }

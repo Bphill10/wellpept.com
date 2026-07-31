@@ -10,8 +10,7 @@ export const CHANGSHA_VENDOR = {
   role: "gap-fill",
   minOrder: 0,
   shippingFlat: 60,
-  shippingNote:
-    "US shipping only · 2–3 weeks delivery · Dedicated Line ~10–15 days ($60) · FedEx ~1 week ($90)",
+  shippingNote: "Warehouse B · 2–4 weeks · $60 shipping per order from B",
   priceListSource: "public/vendor-lists/Changsha/Changsha_Premium_July_2026.xlsx",
   createdAt: "2026-07-01T00:00:00.000Z",
 };

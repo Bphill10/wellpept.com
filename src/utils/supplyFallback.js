@@ -1,9 +1,7 @@
 /**
  * Customer catalog assembly (top 25):
- * 1) JEC primary
- * 2) Changsha gap-fill / OOS stand-in
- * 3) ERP/STG third backup (gap-fill + OOS stand-in)
- * Supplier names never shown.
+ * Warehouse A (JEC) → B (Changsha) → C (ERP)
+ * Supplier names never shown — only warehouse labels.
  */
 
 import {
@@ -15,6 +13,7 @@ import {
   PRIMARY_VENDOR_ID,
   STG_VENDOR_ID,
 } from "../data/stgBackup";
+import { withWarehouseFields, warehouseRank } from "../data/warehouses";
 
 const POLICY_KEY = "wellpept-supply-policy-v1";
 
@@ -95,23 +94,22 @@ function indexByOfferKey(products) {
 function pushFill(out, coveredKeys, product, lane) {
   const k = offerMatchKey(product);
   if (!k || k.startsWith("::") || coveredKeys.has(k)) return;
-  out.push({
-    ...product,
-    supplyLane: lane,
-    inStock: true,
-    vendor: "",
-    ships:
-      product.ships ||
-      "US only · request first · pay after supply check · 2–3 weeks",
-  });
+  out.push(
+    withWarehouseFields({
+      ...product,
+      supplyLane: lane,
+      inStock: true,
+    })
+  );
   coveredKeys.add(k);
 }
 
 /**
  * Build the customer-facing product list for the top 25:
- * - Keep available JEC offers
- * - OOS JEC → Changsha match, else ERP/STG match
- * - Gap-fill remaining strengths: Changsha first, then ERP
+ * - Keep available Warehouse A (JEC) offers
+ * - OOS A → B match, else C match
+ * - Gap-fill remaining strengths: B then C
+ * - Sorted A → B → C
  */
 export function applySupplyFallback(products, policy = loadSupplyPolicy()) {
   const list = Array.isArray(products) ? products : [];
@@ -132,12 +130,13 @@ export function applySupplyFallback(products, policy = loadSupplyPolicy()) {
   for (const p of primary) {
     const unavailable = isPrimaryUnavailable(p, policy);
     if (!unavailable) {
-      out.push({
-        ...p,
-        supplyLane: "primary",
-        inStock: true,
-        vendor: "",
-      });
+      out.push(
+        withWarehouseFields({
+          ...p,
+          supplyLane: "warehouse-a",
+          inStock: true,
+        })
+      );
       coveredKeys.add(offerMatchKey(p));
       continue;
     }
@@ -147,46 +146,43 @@ export function applySupplyFallback(products, policy = loadSupplyPolicy()) {
     const alt = changshaByKey.get(key) || erpByKey.get(key);
     if (!alt) continue;
 
-    const fromErp = alt.vendorId === STG_VENDOR_ID;
-    const shipFlat =
-      fromErp && policy.shippingFlat != null && Number(policy.shippingFlat) > 0
-        ? Number(policy.shippingFlat)
-        : alt.shippingFlat;
-    const shipNote =
-      (fromErp && String(policy.shippingNote || "").trim()) ||
-      alt.shippingNote;
-
-    out.push({
-      ...alt,
-      name: p.name,
-      category: p.category,
-      blurb: p.blurb,
-      tagline: p.tagline,
-      powderColor: p.powderColor || alt.powderColor,
-      badge: null,
-      featured: false,
-      vendor: "",
-      supplyLane: fromErp ? "erp-fallback" : "changsha-fallback",
-      replacedSubmissionId: p.submissionId,
-      replacedSku: p.sku,
-      shippingFlat: shipFlat,
-      shippingNote: shipNote,
-      ships:
-        "US only · request first · pay after supply check · 2–3 weeks",
-      inStock: true,
-    });
+    out.push(
+      withWarehouseFields({
+        ...alt,
+        name: p.name,
+        category: p.category,
+        blurb: p.blurb,
+        tagline: p.tagline,
+        powderColor: p.powderColor || alt.powderColor,
+        badge: null,
+        featured: false,
+        supplyLane:
+          alt.vendorId === STG_VENDOR_ID
+            ? "warehouse-c-fallback"
+            : "warehouse-b-fallback",
+        replacedSubmissionId: p.submissionId,
+        replacedSku: p.sku,
+        inStock: true,
+      })
+    );
     coveredKeys.add(key);
   }
 
-  // 2nd: Changsha strengths JEC does not carry
   for (const p of changshaByKey.values()) {
-    pushFill(out, coveredKeys, p, "changsha-fill");
+    pushFill(out, coveredKeys, p, "warehouse-b");
   }
 
-  // 3rd: ERP strengths neither JEC nor Changsha carry (top 25 only, already filtered in seed)
   for (const p of erpByKey.values()) {
-    pushFill(out, coveredKeys, p, "erp-fill");
+    pushFill(out, coveredKeys, p, "warehouse-c");
   }
+
+  out.sort((a, b) => {
+    const wr = warehouseRank(a) - warehouseRank(b);
+    if (wr !== 0) return wr;
+    const n = String(a.name).localeCompare(String(b.name));
+    if (n !== 0) return n;
+    return (Number(a.mg) || 0) - (Number(b.mg) || 0);
+  });
 
   return out;
 }
