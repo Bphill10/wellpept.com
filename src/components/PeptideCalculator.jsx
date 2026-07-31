@@ -57,76 +57,6 @@ function suggestedBacMl(mass, dose, doseUnit, units = 10, name = "") {
   return suggestedBacFromAutomation(mass, dose, doseUnit, units, name);
 }
 
-const QUICK_PREF = [
-  "hgh",
-  "retatrutide",
-  "wolverine",
-  "bpc 157",
-  "tb-500",
-  "tb500",
-  "ta-1",
-  "vitamin b12",
-  "tirzepatide",
-  "ipamorelin",
-  "klow",
-];
-
-function buildQuickPicks(options) {
-  const picks = [];
-  const used = new Set();
-  for (const pref of QUICK_PREF) {
-    const opt = options.find(
-      (o) => o.key === pref || o.key.includes(pref) || pref.includes(o.key)
-    );
-    if (!opt || used.has(opt.id)) continue;
-    used.add(opt.id);
-    const strength =
-      opt.strengths.find((s) => Number(s.mg) >= 10) || opt.strengths[0];
-    const d = defaultsFor(opt, strength);
-    picks.push({
-      id: `${opt.id}-${strength.key}`,
-      label: `${opt.name.split("(")[0].trim()} ${formatNum(strength.mg, 2)} ${
-        d.unit
-      }`,
-      optionId: opt.id,
-      strengthKey: strength.key,
-      name: opt.name,
-      mass: String(d.mass),
-      unit: d.unit,
-      dose: String(d.dose),
-      doseUnit: d.doseUnit,
-      vialMl: d.vialMl,
-      solution: d.solution,
-    });
-    if (picks.length >= 6) break;
-  }
-  if (picks.length < 4) {
-    for (const opt of options) {
-      if (used.has(opt.id)) continue;
-      const strength = opt.strengths[0];
-      const d = defaultsFor(opt, strength);
-      picks.push({
-        id: `${opt.id}-${strength.key}`,
-        label: `${opt.name.split("(")[0].trim()} ${formatNum(strength.mg, 2)} ${
-          d.unit
-        }`,
-        optionId: opt.id,
-        strengthKey: strength.key,
-        name: opt.name,
-        mass: String(d.mass),
-        unit: d.unit,
-        dose: String(d.dose),
-        doseUnit: d.doseUnit,
-        vialMl: d.vialMl,
-        solution: d.solution,
-      });
-      used.add(opt.id);
-      if (picks.length >= 6) break;
-    }
-  }
-  return picks;
-}
-
 export default function PeptideCalculator({
   initial = null,
   listings = [],
@@ -150,7 +80,6 @@ export default function PeptideCalculator({
     };
     return [...map.entries()].sort((a, b) => rank(a[0]) - rank(b[0]));
   }, [options]);
-  const quickPicks = useMemo(() => buildQuickPicks(options), [options]);
 
   const matched = useMemo(
     () => matchCalculatorOption(options, initial),
@@ -322,13 +251,6 @@ export default function PeptideCalculator({
     applyCatalogSelection(selectedPeptide, strength);
   }
 
-  function applyQuickPick(pick) {
-    const option = options.find((o) => o.id === pick.optionId);
-    const strength = option?.strengths.find((s) => s.key === pick.strengthKey);
-    if (!option || !strength) return;
-    applyCatalogSelection(option, strength);
-  }
-
   function useSuggestedBac() {
     if (suggested == null) return;
     setSolution(formatNum(suggested, 2));
@@ -398,30 +320,6 @@ export default function PeptideCalculator({
               </p>
             </div>
           </div>
-
-          {quickPicks.length > 0 && (
-            <div className="calc-examples">
-              {quickPicks.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  className={`soft-btn calc-example${
-                    !isCustom &&
-                    peptideId === p.optionId &&
-                    strengthKey === p.strengthKey
-                      ? " is-active"
-                      : ""
-                  }`}
-                  onClick={() => applyQuickPick(p)}
-                >
-                  <strong>{p.label}</strong>
-                  <span>
-                    Catalog · dose {p.dose} {p.doseUnit}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
 
           <div className="calc-layout calc-layout--with-label">
             <div className="calc-card calc-card--skinny">
