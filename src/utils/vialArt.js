@@ -1143,10 +1143,10 @@ function drawPhotorealVial(ctx, dims, options) {
 
   if (!showLabel) return;
 
-  // Align to outer glass rims (studio plate is slightly left of center)
+  // Align to outer glass rims; stretch slightly left for more wrap coverage
   const glassCx = dims.w * (isTen ? 0.496 : 0.489);
-  const bodyW = dims.w * (isTen ? 0.64 : 0.655);
-  const bodyX = glassCx - bodyW / 2;
+  const bodyW = dims.w * (isTen ? 0.66 : 0.68);
+  const bodyX = glassCx - bodyW / 2 - dims.w * 0.018;
   // Reference mid-band, lowered 5%, stretched down to cover half the peptide
   const vialTop = dims.h * (isTen ? 0.14 : 0.12);
   const vialBot = dims.h * (isTen ? 0.96 : 0.98);
@@ -1283,6 +1283,8 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   // Bias past mid-panel center so name/mass read dead-center (spine left, QR wraps right)
   const visibleArc = Math.PI * 0.9;
   const yaw = (0.5 - 0.355) * visibleArc;
+  // Stretch a little further around the left rim
+  const leftExtra = 0.08;
   const uStart = 0;
   const uEnd = 1;
 
@@ -1311,10 +1313,11 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   for (let i = 0; i < slices; i += 1) {
     const t0 = i / slices;
     const t1 = (i + 1) / slices;
-    const theta0 = (t0 - 0.5) * visibleArc + yaw;
-    const theta1 = (t1 - 0.5) * visibleArc + yaw;
+    // Asymmetric: a bit more arc on the left
+    const theta0 = (t0 - 0.5) * visibleArc + yaw - leftExtra * (1 - t0);
+    const theta1 = (t1 - 0.5) * visibleArc + yaw - leftExtra * (1 - t1);
     const cos = (Math.cos(theta0) + Math.cos(theta1)) / 2;
-    if (cos < 0.03) continue;
+    if (cos < 0.025) continue;
 
     const x0 = cx + R * Math.sin(theta0);
     const x1 = cx + R * Math.sin(theta1);
