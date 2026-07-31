@@ -629,7 +629,7 @@ export function displayPeptideName(name = "") {
     n.startsWith("ta-1") ||
     n.startsWith("ta1 ")
   ) {
-    return "TA-1";
+    return "Thymosin Alpha-1";
   }
   if (
     n.includes("vitamin b12") ||
@@ -761,6 +761,21 @@ export function formatStrengthSelectLabel(strengthOrProduct) {
     return formatStrengthLabel(strengthOrProduct);
   }
   return `${amount} ${unit} · kit of ${pack}`;
+}
+
+/**
+ * Customer-facing form type only — strips vendor pack codes like `2mg*10vials`.
+ */
+export function formatCustomerForm(product) {
+  if (product?.skin) {
+    return product.form || product.unitLabel || product.size || "Skincare";
+  }
+  const form = String(product?.form || "");
+  if (/capsule/i.test(form)) return "Capsule";
+  if (/raw/i.test(form)) return "Raw material";
+  if (/liquid/i.test(form)) return "Liquid vial";
+  if (/tablet/i.test(form)) return "Tablet";
+  return "Lyophilized vial";
 }
 
 function sortOffers(a, b) {

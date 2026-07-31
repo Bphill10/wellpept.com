@@ -18,6 +18,7 @@ import {
   formatMoney,
   formatStrengthLabel,
   formatStrengthSelectLabel,
+  formatCustomerForm,
   formatVendorOfferLabel,
   groupCatalog,
   guessCategory,
@@ -153,7 +154,7 @@ function VialPreview({
       unit={product.unit || "mg"}
       sku={product.sku || ""}
       category={product.category}
-      subtitle={product.form}
+      subtitle={formatCustomerForm(product)}
       form={product.form}
       vialMl={product.vialMl}
       productId={product.id}
@@ -2055,10 +2056,11 @@ function ProductCard({ listing, preferredWarehouseId = "All", onOpen, onAdd }) {
           </div>
           <h3>{listing.name}</h3>
           <p className="card-blurb">{listing.blurb || product.blurb}</p>
-          <div className="meta">{product.form}</div>
+          <div className="meta">
+            {formatStrengthLabel(product)} · {formatCustomerForm(product)}
+          </div>
           <div className="meta vial-size-tag">
-            Kit of 10 · {product.vialMl || 3} mL vials ·{" "}
-            {product.powderColor === "blue" ? "blue powder" : "white powder"}
+            {product.powderColor === "blue" ? "Blue powder" : "White powder"}
           </div>
           {Number(listing.reviews) > 0 && listing.rating != null && (
             <div className="rating">
@@ -2239,13 +2241,12 @@ function ProductDetail({
               medical use, or household purposes.
             </p>
             <div className="meta">
-              Kit of 10 · {product.vialMl || 3} mL ·{" "}
+              {formatStrengthLabel(product)} · {formatCustomerForm(product)}
               {product.powderColor === "blue"
-                ? "blue lyophilized powder"
-                : "white lyophilized powder"}
+                ? " · blue lyophilized powder"
+                : " · white lyophilized powder"}
               {product.purity ? ` · Purity ${product.purity}` : ""}
             </div>
-            <div className="meta">{product.form}</div>
             <div className="meta">US shipping via WellPept</div>
 
             <CoaStorePanel
@@ -2315,7 +2316,7 @@ function ProductDetail({
                 )}
               </div>
               <div className="meta">
-                {formatStrengthLabel(product)} · kit of 10
+                {formatStrengthLabel(product)} · {formatCustomerForm(product)}
               </div>
               <div className="buy-stock ok">In Stock</div>
               <button type="button" className="cart-cta" onClick={onAdd}>
@@ -2733,7 +2734,9 @@ function CartPage({
                       <div>
                         <strong>{line.name}</strong>
                         <div className="meta">
-                          {formatStrengthLabel(line)} · {line.form}
+                        <div className="meta">
+                          {formatStrengthLabel(line)} · {formatCustomerForm(line)}
+                        </div>
                         </div>
                         {(line.warehouseLabel || line.ships) && (
                           <div className="meta">
