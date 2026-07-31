@@ -1277,12 +1277,12 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   const lw = labelCanvas.width;
   const lh = labelCanvas.height;
   const slices = 240;
-  // ~20° left yaw so the UNDISCLOSED spine reads on the front face
-  const yaw = (-20 * Math.PI) / 180;
+  // ~20° yaw (opposite of prior) so UNDISCLOSED spine faces the camera
+  const yaw = (20 * Math.PI) / 180;
   const visibleArc = Math.PI * 0.95;
-  // Keep spine + brand through mid; let QR wrap away on the right
+  // Spine at u=0 stays on-frame; QR wraps away on the right
   const uStart = 0;
-  const uEnd = 0.88;
+  const uEnd = 0.9;
 
   ctx.save();
 
