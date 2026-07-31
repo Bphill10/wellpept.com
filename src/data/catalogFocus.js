@@ -42,7 +42,7 @@ export const TOP_25_PEPTIDES = [
   "PT-141",
   "Thymosin Alpha-1",
   "KPV",
-  "AOD9604",
+  "Cagrilintide",
   "LL-37",
   "Vitamin B12",
 ];
@@ -193,7 +193,11 @@ export function isTop25Peptide(name) {
   }
 
   if (n === "kpv" || n.startsWith("kpv ")) return true;
-  if (n.includes("aod9604") || n.includes("aod 9604") || n.startsWith("aod")) {
+  // Standalone Cagrilintide (not Cagri+Sema combo kits)
+  if (
+    (n.includes("cagrilintide") || n.includes("cagri")) &&
+    !n.includes("sema")
+  ) {
     return true;
   }
   if (n === "ll37" || n === "ll-37" || n.startsWith("ll37") || n.startsWith("ll-37")) {
