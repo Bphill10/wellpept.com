@@ -48,12 +48,12 @@ export const RESEARCH_GLOSSARY = [
 
 export const LYOPHILIZED_QC = {
   good: [
-    "Uniform white lyophilized cake or powder (KLOW kits are intentionally blue)",
+    "Uniform white lyophilized cake or powder (KLOW, GLOW, and GHK-Cu kits are intentionally blue)",
     "Looks dry — no wet sheen, sticky walls, or heavy crystallization",
     "After reconstitution: clear solution that dissolves without persistent cloudiness",
   ],
   caution: [
-    "Yellowing, browning, or foreign particles in the dry cake (KLOW is intentionally blue)",
+    "Yellowing, browning, or foreign particles in the dry cake (KLOW, GLOW, and GHK-Cu are intentionally blue)",
     "Wet, gummy, or thickly stuck powder — high residual moisture speeds degradation",
     "Reconstituted cloudiness, floaters, gelling/aggregation, or failure to dissolve",
   ],

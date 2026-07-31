@@ -162,7 +162,7 @@ function VialPreview({
       </div>
     );
   }
-  // Catalog: bare photoreal vial. Detail/calculator can pass showLabel.
+  // Catalog + detail: clinical wrap on studio vial plate.
   return (
     <GeneratedVial
       name={product.name}
@@ -2042,7 +2042,7 @@ function ProductCard({ listing, preferredWarehouseId = "All", onOpen, onAdd }) {
           {(product.badge || listing.badge) && (
             <span className="badge">{product.badge || listing.badge}</span>
           )}
-          <VialPreview product={product} size="md" showLabel={false} />
+          <VialPreview product={product} size="md" showLabel />
         </div>
         <div className="product-body">
           <div className="meta">

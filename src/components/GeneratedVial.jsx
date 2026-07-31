@@ -9,6 +9,12 @@ import {
   loadBrandVialCard,
   loadBrandImage,
   loadUdMark,
+  loadKlowVial,
+  loadKlowVialCard,
+  isKlowCompound,
+  KLOW_VIAL_SRC,
+  KLOW_VIAL_CARD_SRC,
+  KLOW_VIAL_FALLBACK_SRC,
   CATALOG_VIAL_TEMPLATE,
 } from "../utils/vialArt";
 import { resolveCalculatorLabelFields } from "../utils/automation";
@@ -19,10 +25,12 @@ if (typeof window !== "undefined") {
   loadBrandImage();
   loadUdMark();
   loadBrandVialCard();
+  loadKlowVialCard();
   // Full plates only when likely needed (detail / calculator)
   if (window.matchMedia("(min-width: 701px)").matches) {
     loadBrandVial();
     loadBrandVial10();
+    loadKlowVial();
   }
 }
 
@@ -57,6 +65,9 @@ export default function GeneratedVial({
   const wrapRef = useRef(null);
   const [png, setPng] = useState("");
   const [visible, setVisible] = useState(!catalogTemplate || size === "lg");
+  const isKlow = isKlowCompound(name, form || subtitle);
+  const klowSrc =
+    size === "lg" ? KLOW_VIAL_SRC : KLOW_VIAL_CARD_SRC;
   const resolvedMl = catalogTemplate
     ? 3
     : resolveVialMl({ form: form || subtitle, vialMl, name });
@@ -117,7 +128,7 @@ export default function GeneratedVial({
   }, [visible, catalogTemplate]);
 
   useEffect(() => {
-    if (!visible) return undefined;
+    if (!visible || isKlow) return undefined;
     const canvas = canvasRef.current;
     if (!canvas) return undefined;
     let cancelled = false;
@@ -156,6 +167,7 @@ export default function GeneratedVial({
     };
   }, [
     visible,
+    isKlow,
     name,
     subtitle,
     sku,
@@ -177,6 +189,13 @@ export default function GeneratedVial({
   ]);
 
   function handleDownload() {
+    if (isKlow) {
+      const a = document.createElement("a");
+      a.href = KLOW_VIAL_FALLBACK_SRC;
+      a.download = "undisclosed-klow-vial.jpg";
+      a.click();
+      return;
+    }
     if (!png) return;
     const safeName = (name || "peptide").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
     downloadVialPng(png, `undisclosed-${safeName || "vial"}.png`);
@@ -187,12 +206,24 @@ export default function GeneratedVial({
       ref={wrapRef}
       className={`generated-vial-wrap ${className}`.trim()}
     >
-      <canvas
-        ref={canvasRef}
-        className={`generated-vial generated-vial--${size} generated-vial--${resolvedMl}ml`}
-        aria-label={`${name} Undisclosed vial`}
-      />
-      {showDownload && png && (
+      {isKlow ? (
+        <img
+          src={klowSrc}
+          alt={`${name} Undisclosed vial`}
+          className={`generated-vial generated-vial--${size} generated-vial--${resolvedMl}ml generated-vial--photo`}
+          width={size === "lg" ? 320 : size === "sm" ? 120 : 200}
+          height={size === "lg" ? 480 : size === "sm" ? 180 : 300}
+          decoding="async"
+          loading={size === "lg" ? "eager" : "lazy"}
+        />
+      ) : (
+        <canvas
+          ref={canvasRef}
+          className={`generated-vial generated-vial--${size} generated-vial--${resolvedMl}ml`}
+          aria-label={`${name} Undisclosed vial`}
+        />
+      )}
+      {showDownload && (isKlow || png) && (
         <button type="button" className="soft-btn vial-download" onClick={handleDownload}>
           <Download size={14} /> Download vial PNG
         </button>

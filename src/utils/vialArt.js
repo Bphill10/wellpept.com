@@ -5,13 +5,19 @@ import QRCode from "qrcode";
 /** Undisclosed brand plate (labeled vial with UD hex mark). */
 export const BRAND_IMAGE_SRC = "/undisclosed-brand.webp";
 export const BRAND_IMAGE_FALLBACK_SRC = "/undisclosed-brand.jpg";
-/** Photoreal unlabeled 3 mL research vial (studio photo). */
-export const BRAND_VIAL_SRC = "/real-vial-3ml.webp";
+/** Photoreal 3 mL plate — user white-powder studio example. */
+export const BRAND_VIAL_SRC = "/references/label-example.png";
 /** Compact plate for catalog cards / phone grids. */
-export const BRAND_VIAL_CARD_SRC = "/real-vial-3ml-card.webp";
+export const BRAND_VIAL_CARD_SRC = "/references/label-example.png";
 /** Photoreal unlabeled 10 mL research vial (studio photo). */
 export const BRAND_VIAL_10_SRC = "/real-vial-10ml.webp";
 export const BRAND_VIAL_10_CARD_SRC = "/real-vial-10ml-card.webp";
+/** Studio blue-cake vial — user KLOW reference (also GLOW / GHK-Cu). */
+export const KLOW_VIAL_SRC = "/klow-blue-vial.webp";
+export const KLOW_VIAL_CARD_SRC = "/klow-blue-vial-card.webp";
+export const KLOW_VIAL_FALLBACK_SRC = "/klow-blue-vial.jpg";
+export const BLUE_VIAL_SRC = "/references/klow-blue-vial.png";
+export const BLUE_VIAL_CARD_SRC = "/references/klow-blue-vial.png";
 /** Blank clinical wrap (peptide fields cleared, UD spine mark). */
 export const BLANK_LABEL_SRC = "/undisclosed-label-blank.webp";
 /** Hex UD seal / monogram for Undisclosed. */
@@ -76,6 +82,10 @@ let brandVial10Cache = null;
 let brandVial10Promise = null;
 let brandVial10CardCache = null;
 let brandVial10CardPromise = null;
+let klowVialCache = null;
+let klowVialPromise = null;
+let klowVialCardCache = null;
+let klowVialCardPromise = null;
 let blankLabelCache = null;
 let blankLabelPromise = null;
 let udMarkCache = null;
@@ -138,6 +148,23 @@ export function loadBrandVialCard() {
   return brandVialCardPromise;
 }
 
+/** Blue-cake studio plate (GLOW / GHK-Cu / fallback). */
+export function loadBlueVial() {
+  if (klowVialCache) return Promise.resolve(klowVialCache);
+  return loadKlowVial().then(async (img) => {
+    if (img) return img;
+    return loadImage(BLUE_VIAL_SRC);
+  });
+}
+
+export function loadBlueVialCard() {
+  if (klowVialCardCache) return Promise.resolve(klowVialCardCache);
+  return loadKlowVialCard().then(async (img) => {
+    if (img) return img;
+    return loadImage(BLUE_VIAL_CARD_SRC);
+  });
+}
+
 /** Prefetch the real studio 10 mL vial photo. */
 export function loadBrandVial10() {
   if (brandVial10Cache) return Promise.resolve(brandVial10Cache);
@@ -163,6 +190,35 @@ export function loadBrandVial10Card() {
     return loadBrandVial10();
   });
   return brandVial10CardPromise;
+}
+
+/** Prefetch the studio KLOW reference vial (labeled, blue cake). */
+export function loadKlowVial() {
+  if (klowVialCache) return Promise.resolve(klowVialCache);
+  if (klowVialPromise) return klowVialPromise;
+  klowVialPromise = loadImage(KLOW_VIAL_SRC).then(async (img) => {
+    if (img) {
+      klowVialCache = img;
+      return img;
+    }
+    const jpg = await loadImage(KLOW_VIAL_FALLBACK_SRC);
+    klowVialCache = jpg;
+    return jpg;
+  });
+  return klowVialPromise;
+}
+
+export function loadKlowVialCard() {
+  if (klowVialCardCache) return Promise.resolve(klowVialCardCache);
+  if (klowVialCardPromise) return klowVialCardPromise;
+  klowVialCardPromise = loadImage(KLOW_VIAL_CARD_SRC).then(async (img) => {
+    if (img) {
+      klowVialCardCache = img;
+      return img;
+    }
+    return loadKlowVial();
+  });
+  return klowVialCardPromise;
 }
 
 /** Prefetch the Undisclosed UD hex mark. */
@@ -266,7 +322,7 @@ function ellipse(ctx, cx, cy, rx, ry) {
   ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
 }
 
-/** Lyophilized cake — white for most kits, bright blue for KLOW. */
+/** Lyophilized cake — white for most kits; blue for KLOW, GLOW, GHK-Cu. */
 function drawPowderCake(ctx, bodyX, cakeY, bodyW, cakeH, radius, powderColor = "white") {
   ctx.save();
   // Cake silhouette: flat floor, soft dome top (real lyophilized plug)
@@ -354,15 +410,25 @@ export function isHghCompound(name = "", form = "") {
   return /\bhgh\b/i.test(text) || /\bgrowth hormone\b/i.test(text);
 }
 
-/** KLOW is the only blue lyophilized powder; everything else is white. */
+/** KLOW uses the dedicated blue studio plate. */
 export function isKlowCompound(name = "", form = "") {
   const text = `${name || ""} ${form || ""}`;
   return /\bklow\b/i.test(text);
 }
 
+/** Blue lyophilized cake: KLOW, GLOW, and GHK-Cu. */
+export function isBluePowderCompound(name = "", form = "") {
+  const text = `${name || ""} ${form || ""}`;
+  if (/\bklow\b/i.test(text) || /\bglow\b/i.test(text)) return true;
+  // GHK-Cu / GHK Cu / copper GHK — not GHK BASIC
+  if (/\bghk\b/i.test(text) && /\b(cu|copper)\b/i.test(text)) return true;
+  if (/ghk-?\s*cu\b/i.test(text)) return true;
+  return false;
+}
+
 /** Powder fill color for kit vials. */
 export function resolvePowderColor({ name = "", form = "" } = {}) {
-  return isKlowCompound(name, form) ? "blue" : "white";
+  return isBluePowderCompound(name, form) ? "blue" : "white";
 }
 
 /**
@@ -1043,16 +1109,35 @@ export async function drawGeneratedVial(canvas, options = {}) {
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = catalogTemplate ? "medium" : "high";
 
-  const photo = isTen
+  const useBluePlate = isBluePowderCompound(name, form || subtitle);
+  const isExactKlow = isKlowCompound(name, form || subtitle);
+
+  // Exact KLOW: show the user reference photo as-is
+  if (isExactKlow) {
+    const klowPhoto = await (catalogTemplate || size !== "lg"
+      ? loadKlowVialCard()
+      : loadKlowVial());
+    if (klowPhoto && klowPhoto.width) {
+      drawExamplePlate(ctx, dims, klowPhoto, { showLabel: false });
+      if (options.exportPng) return canvas.toDataURL("image/png");
+      return "";
+    }
+  }
+
+  const photo = useBluePlate
     ? await (catalogTemplate || size !== "lg"
-        ? loadBrandVial10Card()
-        : loadBrandVial10())
-    : await (catalogTemplate || size !== "lg"
-        ? loadBrandVialCard()
-        : loadBrandVial());
+        ? loadBlueVialCard()
+        : loadBlueVial())
+    : isTen
+      ? await (catalogTemplate || size !== "lg"
+          ? loadBrandVial10Card()
+          : loadBrandVial10())
+      : await (catalogTemplate || size !== "lg"
+          ? loadBrandVialCard()
+          : loadBrandVial());
+
   if (photo && photo.width) {
-    drawPhotorealVial(ctx, dims, {
-      photo,
+    drawExamplePlate(ctx, dims, photo, {
       name,
       mass,
       unit,
@@ -1060,15 +1145,9 @@ export async function drawGeneratedVial(canvas, options = {}) {
       bacWater,
       concentration,
       doseRange,
-      qrPayload,
-      coaUrl,
-      isTen,
-      reconstituted: catalogTemplate ? false : reconstituted,
-      catalogTemplate,
       showLabel,
     });
   } else {
-    // Fallback if photos fail to load
     const fallbackOpts = {
       name,
       mass,
@@ -1086,11 +1165,82 @@ export async function drawGeneratedVial(canvas, options = {}) {
     else drawLabeledThreeMl(ctx, dims, fallbackOpts);
   }
 
-  // Skip expensive PNG encode unless the caller wants a downloadable URL
   if (options.exportPng) {
     return canvas.toDataURL("image/png");
   }
   return "";
+}
+
+/**
+ * Draw the user studio example plate, then only rewrite the product name.
+ * Mass / grid stay covered so we don't chase per-SKU label fields.
+ */
+function drawExamplePlate(ctx, dims, photo, options = {}) {
+  const {
+    name = "Peptide",
+    showLabel = true,
+  } = options;
+
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(0, 0, dims.w, dims.h);
+
+  const iw = photo.width;
+  const ih = photo.height;
+  const scale = Math.max(dims.w / iw, dims.h / ih);
+  const dw = iw * scale;
+  const dh = ih * scale;
+  const dx = (dims.w - dw) / 2;
+  const dy = (dims.h - dh) / 2;
+  ctx.drawImage(photo, dx, dy, dw, dh);
+
+  if (!showLabel) return;
+
+  // Visible label face on the shared example plates
+  const lx = dx + dw * 0.268;
+  const ly = dy + dh * 0.398;
+  const lw = dw * 0.464;
+  const lh = dh * 0.292;
+
+  // Center panel only (skip black spine + QR column)
+  const midX = lx + lw * 0.105;
+  const midW = lw * 0.655;
+  const midCx = midX + midW / 2;
+
+  const product = String(name || "PEPTIDE")
+    .replace(/\(.*?\)/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toUpperCase();
+
+  // Cover original name; black out mass + grid so example SKU data never shows
+  const nameBandY = ly + lh * 0.12;
+  const nameBandH = lh * 0.36;
+  const lowerY = ly + lh * 0.46;
+  const lowerH = lh * 0.5;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(midX - 1, nameBandY, midW + 2, nameBandH);
+  ctx.fillStyle = "#0a0a0a";
+  ctx.fillRect(midX - 1, lowerY, midW + 2, lowerH);
+
+  // Hairline under the name
+  const hair = Math.max(1, lh * 0.012);
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(midX + midW * 0.04, ly + lh * 0.445, midW * 0.92, hair);
+
+  const family = 'Outfit, "Segoe UI", "Arial Black", sans-serif';
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "#000000";
+
+  const nameSize = fitCenteredText(
+    ctx,
+    product,
+    midW * 0.94,
+    Math.max(14, lh * 0.24),
+    family
+  );
+  ctx.font = `800 ${nameSize}px ${family}`;
+  ctx.fillText(product, midCx, nameBandY + nameBandH * 0.58);
 }
 
 /** Cover-fit photo into canvas. */
@@ -1105,14 +1255,14 @@ function drawCoverImage(ctx, img, w, h) {
   ctx.drawImage(img, dx, dy, dw, dh);
 }
 
-/** Shared storefront label defaults (footer / QR). Mass & dosage come per product. */
+/** Shared storefront label defaults (QR). Mass & dosage come per product. */
 export const CATALOG_VIAL_TEMPLATE = {
   mass: "80",
   unit: "mg",
   bacWater: "3.2 mL",
   concentration: "25 mg/mL",
   doseRange: "2.5 – 5 mg (10 – 20 u)",
-  footerText: "Made in China",
+  footerText: "",
   qrPayload: SITE_QR_URL,
 };
 
@@ -1138,33 +1288,37 @@ function drawPhotorealVial(ctx, dims, options) {
 
   ctx.fillStyle = "#000000";
   ctx.fillRect(0, 0, dims.w, dims.h);
-  // Same bottle framing for every SKU (3 mL plate is the catalog hero)
-  drawZoomedVialPhoto(ctx, photo, dims.w, dims.h, isTen ? 1.38 : 1.52);
+  // Studio plate matches user reference framing (same as KLOW shot)
+  drawZoomedVialPhoto(ctx, photo, dims.w, dims.h, isTen ? 1.12 : 1.08);
+
+  const powderColor = resolvePowderColor({ name });
+  if (powderColor === "blue") {
+    const bodyW = dims.w * (isTen ? 0.52 : 0.5);
+    const bodyX = dims.w / 2 - bodyW / 2;
+    tintStudioCakeBlue(ctx, {
+      bodyX,
+      bodyW,
+      cakeTop: dims.h * (isTen ? 0.74 : 0.78),
+      cakeBottom: dims.h * 0.96,
+    });
+  }
 
   if (!showLabel) return;
 
-  // Align to outer glass rims; stretch slightly left for more wrap coverage
-  const glassCx = dims.w * (isTen ? 0.496 : 0.489);
-  const bodyW = dims.w * (isTen ? 0.66 : 0.68);
-  const bodyX = glassCx - bodyW / 2 - dims.w * 0.018;
-  // Reference mid-band, lowered 5%, stretched down to cover half the peptide
-  const vialTop = dims.h * (isTen ? 0.14 : 0.12);
-  const vialBot = dims.h * (isTen ? 0.96 : 0.98);
-  const baseH = (vialBot - vialTop) * 0.4;
-  const gap = (vialBot - vialTop - baseH) / 2;
-  const sleeveTop = vialTop + gap + dims.h * 0.05;
-  const cakeTop = dims.h * (isTen ? 0.748 : 0.835);
-  const cakeBottom = dims.h * (isTen ? 0.96 : 0.98);
-  const sleeveBottom = cakeTop + (cakeBottom - cakeTop) * 0.5;
-  const sleeveHClamped = sleeveBottom - sleeveTop;
+  // Wrap band aligned to the reference clinical label on the studio plate
+  const glassCx = dims.w * (isTen ? 0.5 : 0.5);
+  const bodyW = dims.w * (isTen ? 0.52 : 0.5);
+  const bodyX = glassCx - bodyW / 2;
+  const sleeveTop = dims.h * (isTen ? 0.34 : 0.36);
+  const sleeveHClamped = dims.h * (isTen ? 0.34 : 0.32);
 
   const wrapBmp = createWrapLabelBitmap({
     name,
-    mass,
-    unit,
-    bacWater,
-    concentration,
-    doseRange,
+    mass: mass ?? CATALOG_VIAL_TEMPLATE.mass,
+    unit: unit || CATALOG_VIAL_TEMPLATE.unit,
+    bacWater: bacWater || CATALOG_VIAL_TEMPLATE.bacWater,
+    concentration: concentration || CATALOG_VIAL_TEMPLATE.concentration,
+    doseRange: doseRange || CATALOG_VIAL_TEMPLATE.doseRange,
     sku,
     qrPayload: SITE_QR_URL,
     coaUrl: "",
@@ -1814,7 +1968,11 @@ export function drawLabelTemplate(canvas, options = {}) {
   });
 }
 
-/** Paint a monochrome clinical wrap (single-color print friendly). */
+/**
+ * Paint the Undisclosed clinical wrap — matches label-example / klow-blue refs:
+ * black spine · — UNDISCLOSED — · name · mass · 3-col grid · QR · research disclaimer.
+ * Pure B/W, no colored footer band.
+ */
 function paintLabelTemplate(ctx, dims, options = {}) {
   const {
     name = "Peptide",
@@ -1826,40 +1984,40 @@ function paintLabelTemplate(ctx, dims, options = {}) {
     sku = "",
     qrPayload = "",
     coaUrl = "",
-    footerText = "Made in China",
+    footerText = "",
     blank = false,
     forceSiteQr = false,
   } = options;
 
   const cornerR =
     dims.cornerR ?? Math.max(8, Math.round(Math.min(dims.w, dims.h) * 0.07));
-  const spineW = Math.round(dims.w * 0.1);
-  const rightW = Math.round(dims.w * 0.255);
+  const spineW = Math.round(dims.w * 0.095);
+  const rightW = Math.round(dims.w * 0.22);
   const midX = spineW;
   const midW = dims.w - spineW - rightW;
   const rightX = spineW + midW;
   const ink = "#000000";
-  const muted = "#444444";
+  const muted = "#222222";
   const paper = "#ffffff";
-  const hair = Math.max(1, dims.h * 0.0038);
-  const footerH = Math.round(dims.h * 0.11);
+  const hair = Math.max(1, dims.h * 0.0035);
+  const footerTrim = String(footerText || "").trim();
+  const footerH = footerTrim ? Math.round(dims.h * 0.1) : 0;
   const bodyH = dims.h - footerH;
-  const padX = midW * 0.06;
+  const padX = midW * 0.055;
   const contentW = midW - padX * 2;
   const ruleX = midX + padX;
   const midCx = midX + midW / 2;
 
-  const yHeader = bodyH * 0.075;
-  const yAccent = bodyH * 0.125;
-  const yName = bodyH * 0.255;
-  const yRule2 = bodyH * 0.375;
-  const yMass = bodyH * 0.5;
-  const yRule3 = bodyH * 0.625;
-  const gridTop = bodyH * 0.67;
-  const gridBottom = bodyH * 0.955;
+  // Reference vertical rhythm (full white face, no Made-in-China bar)
+  const yHeader = bodyH * 0.07;
+  const yName = bodyH * 0.28;
+  const yRule2 = bodyH * 0.42;
+  const yMass = bodyH * 0.54;
+  const yRule3 = bodyH * 0.66;
+  const gridTop = bodyH * 0.7;
+  const gridBottom = bodyH * 0.96;
   const gridH = Math.max(18, gridBottom - gridTop);
 
-  // White body — pure B/W for single-color label printers
   ctx.fillStyle = paper;
   roundRect(ctx, 0, 0, dims.w, dims.h, cornerR);
   ctx.fill();
@@ -1870,23 +2028,22 @@ function paintLabelTemplate(ctx, dims, options = {}) {
 
   // Black spine
   ctx.fillStyle = ink;
-  ctx.fillRect(0, 0, spineW, dims.h);
+  ctx.fillRect(0, 0, spineW, bodyH);
 
-  // Thin white rail (reads in mono without a second ink)
-  const railW = Math.max(1.5, spineW * 0.07);
+  const railW = Math.max(1.5, spineW * 0.06);
   ctx.fillStyle = paper;
-  ctx.fillRect(spineW - railW, 0, railW, dims.h);
+  ctx.fillRect(spineW - railW, 0, railW, bodyH);
 
   ctx.save();
-  ctx.translate(spineW * 0.48, bodyH * 0.4);
-  ctx.rotate(Math.PI / 2);
+  ctx.translate(spineW * 0.48, bodyH * 0.38);
+  ctx.rotate(-Math.PI / 2);
   ctx.fillStyle = "#ffffff";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const spineFont = Math.max(10, Math.min(bodyH * 0.062, spineW * 0.32));
+  const spineFont = Math.max(10, Math.min(bodyH * 0.058, spineW * 0.34));
   ctx.font = `700 ${spineFont}px Outfit, "Segoe UI", sans-serif`;
   const spineWord = "UNDISCLOSED";
-  const track = spineFont * 0.18;
+  const track = spineFont * 0.14;
   let totalW = 0;
   for (const ch of spineWord) totalW += ctx.measureText(ch).width + track;
   totalW -= track;
@@ -1898,26 +2055,24 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   }
   ctx.restore();
 
-  const markR = Math.min(spineW * 0.26, bodyH * 0.07);
-  drawLabelSpineMark(ctx, spineW * 0.48, bodyH - markR * 1.35, markR);
+  const markR = Math.min(spineW * 0.28, bodyH * 0.072);
+  drawLabelSpineMark(ctx, spineW * 0.48, bodyH - markR * 1.4, markR);
 
-  ctx.strokeStyle = "rgba(0,0,0,0.2)";
+  // Hairline between mid panel and QR column
+  ctx.strokeStyle = "rgba(0,0,0,0.28)";
   ctx.lineWidth = hair;
   ctx.beginPath();
-  ctx.moveTo(rightX, bodyH * 0.06);
-  ctx.lineTo(rightX, bodyH * 0.94);
+  ctx.moveTo(rightX, bodyH * 0.05);
+  ctx.lineTo(rightX, bodyH * 0.95);
   ctx.stroke();
 
+  // — UNDISCLOSED —
   ctx.fillStyle = ink;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const brandHeaderPx = Math.max(7, bodyH * 0.038);
-  ctx.font = `700 ${brandHeaderPx}px Outfit, "Segoe UI", sans-serif`;
-  ctx.fillText("UNDISCLOSED", midCx, yHeader);
-
-  const accentW = Math.min(contentW * 0.28, dims.w * 0.12);
-  ctx.fillStyle = ink;
-  ctx.fillRect(midCx - accentW / 2, yAccent, accentW, Math.max(1.5, hair * 1.4));
+  const brandHeaderPx = Math.max(7, bodyH * 0.036);
+  ctx.font = `600 ${brandHeaderPx}px Outfit, "Segoe UI", sans-serif`;
+  ctx.fillText("— UNDISCLOSED —", midCx, yHeader);
 
   if (!blank) {
     const product = String(name || "PEPTIDE")
@@ -1929,8 +2084,8 @@ function paintLabelTemplate(ctx, dims, options = {}) {
     const nameSize = fitCenteredText(
       ctx,
       product,
-      contentW * 0.96,
-      Math.max(20, bodyH * 0.135),
+      contentW * 0.98,
+      Math.max(22, bodyH * 0.2),
       nameFamily
     );
     ctx.font = `800 ${nameSize}px ${nameFamily}`;
@@ -1947,11 +2102,11 @@ function paintLabelTemplate(ctx, dims, options = {}) {
     !blank && mass !== "" && mass != null ? String(mass).trim() : "";
   const massUnit = String(unit || "mg").toUpperCase();
   if (massNum) {
-    const numSize = Math.max(22, bodyH * 0.125);
-    const unitSize = Math.max(11, bodyH * 0.052);
+    const numSize = Math.max(22, bodyH * 0.14);
+    const unitSize = Math.max(12, bodyH * 0.07);
     ctx.font = `800 ${numSize}px Outfit, "Segoe UI", sans-serif`;
     const numW = ctx.measureText(massNum).width;
-    ctx.font = `600 ${unitSize}px Outfit, "Segoe UI", sans-serif`;
+    ctx.font = `800 ${unitSize}px Outfit, "Segoe UI", sans-serif`;
     const unitLabel = ` ${massUnit}`;
     const unitW = ctx.measureText(unitLabel).width;
     const startX = midCx - (numW + unitW) / 2;
@@ -1960,9 +2115,8 @@ function paintLabelTemplate(ctx, dims, options = {}) {
     ctx.fillStyle = ink;
     ctx.font = `800 ${numSize}px Outfit, "Segoe UI", sans-serif`;
     ctx.fillText(massNum, startX, yMass);
-    ctx.font = `600 ${unitSize}px Outfit, "Segoe UI", sans-serif`;
-    ctx.fillStyle = muted;
-    ctx.fillText(unitLabel, startX + numW, yMass + unitSize * 0.04);
+    ctx.font = `800 ${unitSize}px Outfit, "Segoe UI", sans-serif`;
+    ctx.fillText(unitLabel, startX + numW, yMass + unitSize * 0.02);
   }
 
   const colW = contentW / 3;
@@ -1979,33 +2133,21 @@ function paintLabelTemplate(ctx, dims, options = {}) {
         { label: "DOSE RANGE", value: String(doseRange || "—") },
       ];
 
-  // Light gray panel (still one ink when dithered / B&W print)
-  ctx.fillStyle = "rgba(0,0,0,0.05)";
-  roundRect(
-    ctx,
-    ruleX - padX * 0.15,
-    gridTop - gridH * 0.08,
-    contentW + padX * 0.3,
-    gridH + gridH * 0.12,
-    Math.max(4, dims.h * 0.02)
-  );
-  ctx.fill();
-
   cells.forEach((cell, i) => {
     const cellCx = gridLeft + colW * (i + 0.5);
     if (i > 0) {
-      ctx.strokeStyle = "rgba(0,0,0,0.2)";
+      ctx.strokeStyle = "rgba(0,0,0,0.28)";
       ctx.lineWidth = hair;
       ctx.beginPath();
-      ctx.moveTo(gridLeft + colW * i, gridTop + gridH * 0.12);
+      ctx.moveTo(gridLeft + colW * i, gridTop + gridH * 0.1);
       ctx.lineTo(gridLeft + colW * i, gridTop + gridH * 0.9);
       ctx.stroke();
     }
     ctx.fillStyle = muted;
-    ctx.font = `700 ${Math.max(5.5, bodyH * 0.024)}px Outfit, "Segoe UI", sans-serif`;
+    ctx.font = `700 ${Math.max(5.5, bodyH * 0.026)}px Outfit, "Segoe UI", sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(cell.label, cellCx, gridTop + gridH * 0.2);
+    ctx.fillText(cell.label, cellCx, gridTop + gridH * 0.22);
 
     const rawVal = String(cell.value ?? "");
     if (!rawVal) return;
@@ -2016,8 +2158,8 @@ function paintLabelTemplate(ctx, dims, options = {}) {
       const v1 = fitCenteredText(
         ctx,
         line1,
-        colW * 0.88,
-        Math.max(9, bodyH * 0.04),
+        colW * 0.9,
+        Math.max(9, bodyH * 0.042),
         'Outfit, "Segoe UI", sans-serif'
       );
       ctx.font = `700 ${v1}px Outfit, "Segoe UI", sans-serif`;
@@ -2026,19 +2168,19 @@ function paintLabelTemplate(ctx, dims, options = {}) {
       const v2 = fitCenteredText(
         ctx,
         line2,
-        colW * 0.88,
-        Math.max(7, bodyH * 0.03),
+        colW * 0.9,
+        Math.max(7, bodyH * 0.032),
         'Outfit, "Segoe UI", sans-serif'
       );
       ctx.font = `600 ${v2}px Outfit, "Segoe UI", sans-serif`;
       ctx.fillStyle = muted;
-      ctx.fillText(line2, cellCx, gridTop + gridH * 0.76);
+      ctx.fillText(line2, cellCx, gridTop + gridH * 0.78);
     } else {
       const valueSize = fitCenteredText(
         ctx,
         rawVal,
-        colW * 0.88,
-        Math.max(9, bodyH * 0.042),
+        colW * 0.9,
+        Math.max(9, bodyH * 0.045),
         'Outfit, "Segoe UI", sans-serif'
       );
       ctx.font = `700 ${valueSize}px Outfit, "Segoe UI", sans-serif`;
@@ -2047,46 +2189,21 @@ function paintLabelTemplate(ctx, dims, options = {}) {
     }
   });
 
-  const discPx = Math.max(5.5, bodyH * 0.026);
-  const discGap = discPx * 2.55;
-  const qrBox = Math.max(30, Math.min(rightW * 0.68, bodyH * 0.4));
+  // QR + research disclaimer (right column) — matches refs
+  const discLines = ["RESEARCH USE", "NOT FOR HUMAN", "CONSUMPTION"];
+  const discPx = Math.max(5.5, bodyH * 0.028);
+  const discBlockH = discPx * 3.4;
+  const qrBox = Math.max(28, Math.min(rightW * 0.72, bodyH * 0.42));
   const qrX = rightX + (rightW - qrBox) / 2;
-  let qrY = (bodyH - qrBox) / 2 - discGap * 0.32;
-  qrY = Math.max(bodyH * 0.07, Math.min(qrY, bodyH - qrBox - discGap - bodyH * 0.04));
-  const qrRadius = Math.max(5, qrBox * 0.09);
+  let qrY = bodyH * 0.1;
+  const maxQrY = bodyH - qrBox - discBlockH - bodyH * 0.06;
+  qrY = Math.min(qrY, Math.max(bodyH * 0.06, maxQrY));
 
-  ctx.fillStyle = "rgba(0,0,0,0.06)";
-  roundRect(ctx, qrX + 1.5, qrY + 2, qrBox, qrBox, qrRadius);
-  ctx.fill();
-
-  ctx.fillStyle = "#ffffff";
-  roundRect(ctx, qrX, qrY, qrBox, qrBox, qrRadius);
-  ctx.fill();
-  ctx.strokeStyle = ink;
-  ctx.lineWidth = Math.max(1.25, hair);
-  roundRect(ctx, qrX, qrY, qrBox, qrBox, qrRadius);
-  ctx.stroke();
-
-  const tick = Math.max(3, qrBox * 0.08);
-  ctx.strokeStyle = ink;
-  ctx.lineWidth = Math.max(1.5, hair * 1.2);
-  ctx.beginPath();
-  ctx.moveTo(qrX + tick, qrY);
-  ctx.lineTo(qrX, qrY);
-  ctx.lineTo(qrX, qrY + tick);
-  ctx.moveTo(qrX + qrBox - tick, qrY);
-  ctx.lineTo(qrX + qrBox, qrY);
-  ctx.lineTo(qrX + qrBox, qrY + tick);
-  ctx.moveTo(qrX + tick, qrY + qrBox);
-  ctx.lineTo(qrX, qrY + qrBox);
-  ctx.lineTo(qrX, qrY + qrBox - tick);
-  ctx.moveTo(qrX + qrBox - tick, qrY + qrBox);
-  ctx.lineTo(qrX + qrBox, qrY + qrBox);
-  ctx.lineTo(qrX + qrBox, qrY + qrBox - tick);
-  ctx.stroke();
+  ctx.fillStyle = paper;
+  ctx.fillRect(qrX, qrY, qrBox, qrBox);
 
   {
-    const qrInset = qrBox * 0.12;
+    const qrInset = qrBox * 0.08;
     const payload = forceSiteQr
       ? SITE_QR_URL
       : qrPayloadFromOptions({
@@ -2105,28 +2222,25 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   }
 
   const discX = rightX + rightW / 2;
-  const discBase = qrY + qrBox + discPx * 1.2;
+  let discY = qrY + qrBox + discPx * 1.35;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = ink;
   ctx.font = `700 ${discPx}px Outfit, "Segoe UI", sans-serif`;
-  ctx.fillText("RESEARCH ONLY", discX, discBase);
-  ctx.fillStyle = muted;
-  ctx.font = `500 ${discPx * 0.88}px Outfit, "Segoe UI", sans-serif`;
-  ctx.fillText("Not for human consumption", discX, discBase + discPx * 1.2);
+  for (const line of discLines) {
+    ctx.fillText(line, discX, discY);
+    discY += discPx * 1.15;
+  }
 
-  // Solid black footer
-  ctx.fillStyle = ink;
-  ctx.fillRect(0, dims.h - footerH, dims.w, footerH);
-  ctx.fillStyle = "#ffffff";
-  ctx.font = `600 ${Math.max(9, footerH * 0.38)}px Outfit, "Segoe UI", sans-serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(
-    String(footerText || "Made in China").toUpperCase(),
-    dims.w / 2,
-    dims.h - footerH / 2
-  );
+  if (footerH > 0) {
+    ctx.fillStyle = ink;
+    ctx.fillRect(0, dims.h - footerH, dims.w, footerH);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `600 ${Math.max(9, footerH * 0.38)}px Outfit, "Segoe UI", sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(footerTrim.toUpperCase(), dims.w / 2, dims.h - footerH / 2);
+  }
 
   void sku;
   ctx.restore();

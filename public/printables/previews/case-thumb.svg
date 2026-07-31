@@ -49,9 +49,7 @@
   <!-- lid open -->
   <g transform="translate(260,36) rotate(-16)">
     <rect x="0" y="0" width="88" height="120" rx="10" fill="url(#lid)" stroke="#9eb0c0" stroke-width="1.5"/>
-    <rect x="8" y="10" width="72" height="88" rx="3" fill="#fff" opacity="0.92"/>
-    <text x="44" y="42" text-anchor="middle" font-family="Georgia,serif" font-size="11" font-weight="700" fill="#111">KLOW</text>
-    <text x="44" y="58" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9" fill="#222">80 MG</text>
-    <text x="44" y="78" text-anchor="middle" font-family="system-ui,sans-serif" font-size="6" fill="#555">CLEAR CASE</text>
+    <rect x="8" y="10" width="72" height="88" rx="3" fill="#1a1c20" opacity="0.55"/>
+    <rect x="8" y="10" width="72" height="88" rx="3" fill="url(#lid)" opacity="0.45"/>
   </g>
 </svg>
