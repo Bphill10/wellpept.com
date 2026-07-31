@@ -1816,6 +1816,15 @@ a.cart-cta {
   padding: 0.55rem 0.9rem;
   border: 1px solid var(--gold-deep);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset;
+  position: relative;
+  z-index: 2;
+  cursor: pointer;
+}
+
+.cart-cta:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .cart-cta:hover {
@@ -6503,6 +6512,12 @@ label.field select,
   isolation: isolate;
 }
 
+.tv-tune.is-done {
+  pointer-events: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
 /* Fades in to black after the live-page glitch so the rift never leaks */
 .tv-tune-cover {
   position: absolute;
@@ -7580,10 +7595,25 @@ label.field select,
 }
 
 @keyframes tv-tune-hold {
-  /* Overlay stays up; cover/rift handle blackout. Soft exit at the end. */
+  /* Overlay stays up; cover/rift handle blackout. Soft exit at the end.
+     pointer-events MUST drop before opacity hits 0 or an invisible layer
+     can block Add to cart / the whole page if unmount is delayed. */
   0%,
-  91% { opacity: 1; }
-  100% { opacity: 0; }
+  90% {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+  }
+  96% {
+    opacity: 0.2;
+    visibility: visible;
+    pointer-events: none;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
 }
 
 /* Cover goes solid black after the live glitch (~30%) so the rift is sealed */

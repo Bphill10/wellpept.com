@@ -4,6 +4,8 @@ const TUNE_MS = 8200;
 const REVEAL_MS = 4500; // Undisclosed mounts under solid cover before fade
 const REDUCED_MS = 160;
 
+export { TUNE_MS };
+
 function makeNoiseBuffer(ctx, seconds = 2.5) {
   const buffer = ctx.createBuffer(
     1,
@@ -224,6 +226,22 @@ export default function ChannelTuneOverlay({ active, onReveal, onDone }) {
   onRevealRef.current = onReveal;
   const finishedRef = useRef(false);
   const revealedRef = useRef(false);
+  const rootRef = useRef(null);
+
+  function finishOnce() {
+    if (finishedRef.current) return;
+    finishedRef.current = true;
+    if (!revealedRef.current) {
+      revealedRef.current = true;
+      onRevealRef.current?.();
+    }
+    try {
+      rootRef.current?.classList.add("is-done");
+    } catch {
+      /* ignore */
+    }
+    onDoneRef.current?.();
+  }
 
   useEffect(() => {
     if (!active) {
@@ -265,24 +283,25 @@ export default function ChannelTuneOverlay({ active, onReveal, onDone }) {
     }, revealAt);
 
     const doneTimer = window.setTimeout(() => {
-      if (finishedRef.current) return;
-      finishedRef.current = true;
-      if (!revealedRef.current) {
-        revealedRef.current = true;
-        onRevealRef.current?.();
-      }
       stopAudio();
       try {
         navigator.vibrate?.(0);
       } catch {
         /* ignore */
       }
-      onDoneRef.current?.();
+      finishOnce();
     }, doneAt);
+
+    // Hard failsafe — never leave an invisible full-screen blocker up
+    const failsafeTimer = window.setTimeout(() => {
+      stopAudio();
+      finishOnce();
+    }, doneAt + 800);
 
     return () => {
       window.clearTimeout(revealTimer);
       window.clearTimeout(doneTimer);
+      window.clearTimeout(failsafeTimer);
       stopAudio();
       try {
         navigator.vibrate?.(0);
@@ -296,10 +315,16 @@ export default function ChannelTuneOverlay({ active, onReveal, onDone }) {
 
   return (
     <div
+      ref={rootRef}
       className="tv-tune tv-tune--rift tv-tune--phone-fault"
       role="presentation"
       aria-hidden="true"
       style={{ "--tv-tune-dur": `${TUNE_MS}ms` }}
+      onAnimationEnd={(e) => {
+        if (e.target !== e.currentTarget) return;
+        if (e.animationName !== "tv-tune-hold") return;
+        finishOnce();
+      }}
     >
       {/* Starts clear so the real WellPept page glitches underneath */}
       <div className="tv-tune-cover" />

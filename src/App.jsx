@@ -79,7 +79,7 @@ import PeptideCalculator, {
 } from "./components/PeptideCalculator";
 import GeneratedVial from "./components/GeneratedVial";
 import SkincareHome from "./components/SkincareHome";
-import ChannelTuneOverlay from "./components/ChannelTuneOverlay";
+import ChannelTuneOverlay, { TUNE_MS } from "./components/ChannelTuneOverlay";
 import PriceListDropzone from "./components/PriceListDropzone";
 import PriceCompare from "./components/PriceCompare";
 import LiveChat, { openLiveChat, contactEmail } from "./components/LiveChat";
@@ -406,6 +406,11 @@ export default function App() {
       img.src = href;
     });
     setChannelTuning(true);
+    // Never leave the unlock overlay blocking taps (Add to cart, etc.)
+    window.setTimeout(() => {
+      channelTuneLockRef.current = false;
+      setChannelTuning(false);
+    }, TUNE_MS + 1200);
   }
 
   function lockLabMenu() {
