@@ -737,7 +737,7 @@ export default function PeptideCalculator({
             </div>
             <p className="meta">
               Snap-style ~13 mm flip-cap with short name recessed on top and
-              raised on the side —{" "}
+              side (single-color print — etch reads from shadows) —{" "}
               <strong>{shortCapName(name || selectedPeptide?.name || "UD")}</strong>
               {" "}for{" "}
               {name?.trim() || selectedPeptide?.name || "custom"}. Print top-up,

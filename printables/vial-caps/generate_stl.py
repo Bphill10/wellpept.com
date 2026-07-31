@@ -243,20 +243,18 @@ def etch_text_top(m: Mesh, text: str, z_top: float, max_w: float):
 
 
 def etch_text_side(m: Mesh, text: str, r_outer: float, z_mid: float):
-    """Shallow outward emboss on the side band (raised letters)."""
+    """Recessed side etch (same single-color geometry as the top face)."""
     text = text.upper()[:5]
     if not text:
         return
-    # Place glyphs along an arc on +Y facing side (flat-ish chord)
     span = math.radians(70)
     n = len(text)
     for i, ch in enumerate(text):
         t = (i + 0.5) / n - 0.5
         ang = t * span + math.pi / 2  # center on +Y
         glyph = _FONT.get(ch, _FONT[" "])
-        # Local frame at cap perimeter
-        cx = (r_outer - 0.15) * math.cos(ang)
-        cy = (r_outer - 0.15) * math.sin(ang)
+        cx = r_outer * math.cos(ang)
+        cy = r_outer * math.sin(ang)
         ux, uy = math.cos(ang), math.sin(ang)  # outward
         tx, ty = -uy, ux  # tangent
         cell = 0.55
@@ -265,16 +263,14 @@ def etch_text_side(m: Mesh, text: str, r_outer: float, z_mid: float):
             for c in range(cols):
                 if glyph[r][c] != "1":
                     continue
-                # glyph local coords
                 lx = (c - 2) * cell
                 ly = (3 - r) * cell
-                # map to world on cylinder-ish plane
                 px = cx + tx * lx
                 py = cy + ty * lx
                 pz0 = z_mid + ly - cell * 0.1
                 pz1 = z_mid + ly + cell * 0.75
-                # thin outward brick
-                ox, oy = ux * SIDE_ENGRAVE_D, uy * SIDE_ENGRAVE_D
+                # Cut inward so letters read as recessed shadows (one filament)
+                ox, oy = -ux * SIDE_ENGRAVE_D, -uy * SIDE_ENGRAVE_D
                 a = (px, py, pz0)
                 b = (px + tx * cell * 0.8, py + ty * cell * 0.8, pz0)
                 cpt = (px + tx * cell * 0.8 + ox, py + ty * cell * 0.8 + oy, pz0)

@@ -1,8 +1,8 @@
 # Undisclosed etched vial flip-caps (3D print)
 
 Snap-style plastic caps for typical **13 mm** research vial necks. Short peptide
-names are recessed into the **top** and lightly raised on the **side** so they
-still read after printing.
+names are **recessed** into the top and side (same single-filament etch — no
+multi-color print needed). Shadows make the letters readable.
 
 ## Short names
 

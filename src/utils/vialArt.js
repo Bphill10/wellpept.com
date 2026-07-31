@@ -1759,7 +1759,7 @@ export function drawPhysicalLabel(canvas, options = {}) {
 
   // Crisp die-cut outline
   ctx.save();
-  ctx.strokeStyle = "rgba(0, 71, 171, 0.22)";
+  ctx.strokeStyle = "rgba(0,0,0,0.28)";
   ctx.lineWidth = Math.max(1.5, printH * 0.004);
   roundRect(ctx, 0.75, 0.75, printW - 1.5, printH - 1.5, cornerR);
   ctx.stroke();
@@ -1780,7 +1780,7 @@ export function drawLabelTemplate(canvas, options = {}) {
   });
 }
 
-/** Paint a premium clinical wrap into an existing context at logical dims. */
+/** Paint a monochrome clinical wrap (single-color print friendly). */
 function paintLabelTemplate(ctx, dims, options = {}) {
   const {
     name = "Peptide",
@@ -1804,11 +1804,9 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   const midX = spineW;
   const midW = dims.w - spineW - rightW;
   const rightX = spineW + midW;
-  const ink = "#0b0d10";
-  const muted = "#6b7280";
-  const paper = "#fbfcfd";
-  const cobalt = "#0047ab";
-  const cobaltSoft = "rgba(0, 71, 171, 0.14)";
+  const ink = "#000000";
+  const muted = "#444444";
+  const paper = "#ffffff";
   const hair = Math.max(1, dims.h * 0.0038);
   const footerH = Math.round(dims.h * 0.11);
   const bodyH = dims.h - footerH;
@@ -1827,7 +1825,7 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   const gridBottom = bodyH * 0.955;
   const gridH = Math.max(18, gridBottom - gridTop);
 
-  // Paper body
+  // White body — pure B/W for single-color label printers
   ctx.fillStyle = paper;
   roundRect(ctx, 0, 0, dims.w, dims.h, cornerR);
   ctx.fill();
@@ -1836,24 +1834,19 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   roundRect(ctx, 0, 0, dims.w, dims.h, cornerR);
   ctx.clip();
 
-  // Charcoal spine
-  const spineGrad = ctx.createLinearGradient(0, 0, spineW, 0);
-  spineGrad.addColorStop(0, "#07090c");
-  spineGrad.addColorStop(0.85, "#12151a");
-  spineGrad.addColorStop(1, "#0b0d10");
-  ctx.fillStyle = spineGrad;
+  // Black spine
+  ctx.fillStyle = ink;
   ctx.fillRect(0, 0, spineW, dims.h);
 
-  // Cobalt accent rail on spine edge
-  const railW = Math.max(2, spineW * 0.08);
-  ctx.fillStyle = cobalt;
+  // Thin white rail (reads in mono without a second ink)
+  const railW = Math.max(1.5, spineW * 0.07);
+  ctx.fillStyle = paper;
   ctx.fillRect(spineW - railW, 0, railW, dims.h);
 
-  // Spine wordmark
   ctx.save();
   ctx.translate(spineW * 0.48, bodyH * 0.4);
   ctx.rotate(Math.PI / 2);
-  ctx.fillStyle = "#f4f6f8";
+  ctx.fillStyle = "#ffffff";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   const spineFont = Math.max(10, Math.min(bodyH * 0.062, spineW * 0.32));
@@ -1874,15 +1867,13 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   const markR = Math.min(spineW * 0.26, bodyH * 0.07);
   drawLabelSpineMark(ctx, spineW * 0.48, bodyH - markR * 1.35, markR);
 
-  // Soft column divider
-  ctx.strokeStyle = "rgba(11,13,16,0.12)";
+  ctx.strokeStyle = "rgba(0,0,0,0.2)";
   ctx.lineWidth = hair;
   ctx.beginPath();
   ctx.moveTo(rightX, bodyH * 0.06);
   ctx.lineTo(rightX, bodyH * 0.94);
   ctx.stroke();
 
-  // Brand header + cobalt micro-rule
   ctx.fillStyle = ink;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
@@ -1891,10 +1882,9 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   ctx.fillText("UNDISCLOSED", midCx, yHeader);
 
   const accentW = Math.min(contentW * 0.28, dims.w * 0.12);
-  ctx.fillStyle = cobalt;
+  ctx.fillStyle = ink;
   ctx.fillRect(midCx - accentW / 2, yAccent, accentW, Math.max(1.5, hair * 1.4));
 
-  // Product name
   if (!blank) {
     const product = String(name || "PEPTIDE")
       .replace(/\(.*?\)/g, " ")
@@ -1915,12 +1905,10 @@ function paintLabelTemplate(ctx, dims, options = {}) {
     ctx.fillText(product, midCx, yName);
   }
 
-  // Hairline rules framing the mass
-  ctx.fillStyle = "rgba(11,13,16,0.55)";
+  ctx.fillStyle = ink;
   ctx.fillRect(ruleX, yRule2, contentW, hair);
   ctx.fillRect(ruleX, yRule3, contentW, hair);
 
-  // Mass — centered, with unit in muted tracking
   const massNum =
     !blank && mass !== "" && mass != null ? String(mass).trim() : "";
   const massUnit = String(unit || "mg").toUpperCase();
@@ -1943,7 +1931,6 @@ function paintLabelTemplate(ctx, dims, options = {}) {
     ctx.fillText(unitLabel, startX + numW, yMass + unitSize * 0.04);
   }
 
-  // Spec grid
   const colW = contentW / 3;
   const gridLeft = ruleX;
   const cells = blank
@@ -1958,8 +1945,8 @@ function paintLabelTemplate(ctx, dims, options = {}) {
         { label: "DOSE RANGE", value: String(doseRange || "—") },
       ];
 
-  // Light panel behind grid
-  ctx.fillStyle = cobaltSoft;
+  // Light gray panel (still one ink when dithered / B&W print)
+  ctx.fillStyle = "rgba(0,0,0,0.05)";
   roundRect(
     ctx,
     ruleX - padX * 0.15,
@@ -1973,14 +1960,14 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   cells.forEach((cell, i) => {
     const cellCx = gridLeft + colW * (i + 0.5);
     if (i > 0) {
-      ctx.strokeStyle = "rgba(0, 71, 171, 0.18)";
+      ctx.strokeStyle = "rgba(0,0,0,0.2)";
       ctx.lineWidth = hair;
       ctx.beginPath();
       ctx.moveTo(gridLeft + colW * i, gridTop + gridH * 0.12);
       ctx.lineTo(gridLeft + colW * i, gridTop + gridH * 0.9);
       ctx.stroke();
     }
-    ctx.fillStyle = cobalt;
+    ctx.fillStyle = muted;
     ctx.font = `700 ${Math.max(5.5, bodyH * 0.024)}px Outfit, "Segoe UI", sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -2026,7 +2013,6 @@ function paintLabelTemplate(ctx, dims, options = {}) {
     }
   });
 
-  // Right column — centered QR card
   const discPx = Math.max(5.5, bodyH * 0.026);
   const discGap = discPx * 2.55;
   const qrBox = Math.max(30, Math.min(rightW * 0.68, bodyH * 0.4));
@@ -2035,22 +2021,20 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   qrY = Math.max(bodyH * 0.07, Math.min(qrY, bodyH - qrBox - discGap - bodyH * 0.04));
   const qrRadius = Math.max(5, qrBox * 0.09);
 
-  // Soft card shadow
-  ctx.fillStyle = "rgba(11,13,16,0.06)";
+  ctx.fillStyle = "rgba(0,0,0,0.06)";
   roundRect(ctx, qrX + 1.5, qrY + 2, qrBox, qrBox, qrRadius);
   ctx.fill();
 
   ctx.fillStyle = "#ffffff";
   roundRect(ctx, qrX, qrY, qrBox, qrBox, qrRadius);
   ctx.fill();
-  ctx.strokeStyle = "rgba(0, 71, 171, 0.35)";
+  ctx.strokeStyle = ink;
   ctx.lineWidth = Math.max(1.25, hair);
   roundRect(ctx, qrX, qrY, qrBox, qrBox, qrRadius);
   ctx.stroke();
 
-  // Tiny cobalt corner ticks
   const tick = Math.max(3, qrBox * 0.08);
-  ctx.strokeStyle = cobalt;
+  ctx.strokeStyle = ink;
   ctx.lineWidth = Math.max(1.5, hair * 1.2);
   ctx.beginPath();
   ctx.moveTo(qrX + tick, qrY);
@@ -2097,27 +2081,17 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   ctx.font = `500 ${discPx * 0.88}px Outfit, "Segoe UI", sans-serif`;
   ctx.fillText("Not for human consumption", discX, discBase + discPx * 1.2);
 
-  // Footer — cobalt hairline + charcoal bar
-  ctx.fillStyle = cobalt;
-  ctx.fillRect(0, dims.h - footerH, dims.w, Math.max(2, hair * 1.5));
-  const footGrad = ctx.createLinearGradient(0, dims.h - footerH, 0, dims.h);
-  footGrad.addColorStop(0, "#0b0d10");
-  footGrad.addColorStop(1, "#151920");
-  ctx.fillStyle = footGrad;
-  ctx.fillRect(
-    0,
-    dims.h - footerH + Math.max(2, hair * 1.5),
-    dims.w,
-    footerH
-  );
-  ctx.fillStyle = "#f4f6f8";
+  // Solid black footer
+  ctx.fillStyle = ink;
+  ctx.fillRect(0, dims.h - footerH, dims.w, footerH);
+  ctx.fillStyle = "#ffffff";
   ctx.font = `600 ${Math.max(9, footerH * 0.38)}px Outfit, "Segoe UI", sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(
     String(footerText || "Made in China").toUpperCase(),
     dims.w / 2,
-    dims.h - footerH / 2 + hair
+    dims.h - footerH / 2
   );
 
   void sku;
