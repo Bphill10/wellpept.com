@@ -1146,10 +1146,13 @@ function drawPhotorealVial(ctx, dims, options) {
   // Outer glass + slight overhang so paper sits ON the vial, not in the chamber
   const bodyW = dims.w * (isTen ? 0.62 : 0.7);
   const bodyX = dims.w / 2 - bodyW / 2;
-  // Cake-top Y from zoomed studio photos (3 mL @1.52, 10 mL @1.38)
+  // Cake band from zoomed studio photos (3 mL @1.52, 10 mL @1.38)
   const cakeTop = dims.h * (isTen ? 0.748 : 0.835);
-  const sleeveH = dims.h * (isTen ? 0.384 : 0.384);
-  const sleeveTop = cakeTop - sleeveH;
+  const cakeBottom = dims.h * (isTen ? 0.96 : 0.98);
+  // Cover half the peptide cake; restore full ~2× sleeve height
+  const sleeveH = dims.h * 0.48;
+  const sleeveBottom = cakeTop + (cakeBottom - cakeTop) * 0.5;
+  const sleeveTop = sleeveBottom - sleeveH;
 
   const wrapBmp = createWrapLabelBitmap({
     name,
