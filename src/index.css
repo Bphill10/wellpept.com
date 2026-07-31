@@ -4964,6 +4964,26 @@ body:has(.app-shell--undisclosed)::before {
   min-height: 220px;
 }
 
+.free-print-media--caps img,
+.free-print-media--label img {
+  object-fit: contain;
+  background: #e8e6e1;
+  padding: 0.75rem;
+  min-height: 200px;
+}
+
+.free-print-media-note {
+  margin: 0;
+  padding: 0.35rem 0.75rem 0.65rem;
+  font-size: 0.72rem;
+}
+
+.free-print-label-live {
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--line);
+}
+
 .free-print-copy {
   padding: 1.15rem 1.25rem 1.35rem;
   display: flex;
