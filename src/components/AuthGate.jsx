@@ -323,8 +323,9 @@ export default function AuthGate({ onAuthed, onClose }) {
                   onChange={(e) => setAgeConfirmed(e.target.checked)}
                 />
                 <span>
-                  I confirm I am 18 years of age or older and will use WellPept
-                  products for personal cosmetic use only.
+                  I confirm I am 18 years of age or older. WellPept products are
+                  for personal cosmetic use on intact skin only — not for
+                  injection, ingestion, or medical use.
                 </span>
               </label>
             </>

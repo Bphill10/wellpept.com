@@ -80,6 +80,7 @@ import PeptideCalculator, {
 } from "./components/PeptideCalculator";
 import GeneratedVial from "./components/GeneratedVial";
 import SkincareHome from "./components/SkincareHome";
+import { PEPTIDE_LEGAL } from "./data/skincare";
 import ChannelTuneOverlay, { TUNE_MS } from "./components/ChannelTuneOverlay";
 import PriceListDropzone from "./components/PriceListDropzone";
 import PriceCompare from "./components/PriceCompare";
@@ -1497,7 +1498,7 @@ export default function App() {
                         {formatMoney(skinProduct.price)}
                       </strong>
                     </div>
-                    {skinProduct.kind === "mix" && skinProduct.legal && (
+                    {skinProduct.legal && (
                       <div className="sk-legal-box sk-legal-box--pdp">
                         <p className="sk-legal-title">Cosmetic use acknowledgment</p>
                         <p>{skinProduct.legal.medium}</p>
@@ -2485,6 +2486,7 @@ function CartPage({
     zip: "",
   });
   const [waitConsent, setWaitConsent] = useState(false);
+  const [cosmeticConsent, setCosmeticConsent] = useState(false);
   const [step, setStep] = useState("shipping"); // shipping | done
   const [packet, setPacket] = useState(null);
   const [packetMsg, setPacketMsg] = useState("");
@@ -2571,6 +2573,12 @@ function CartPage({
     }
     if (!isValidUsState(customer.state)) {
       setPacketMsg("Select a valid US state");
+      return;
+    }
+    if (!labCart && !cosmeticConsent) {
+      setPacketMsg(
+        "Confirm the cosmetic use acknowledgment (external use only — not for injection)."
+      );
       return;
     }
     if (!waitConsent) {
@@ -2925,6 +2933,33 @@ function CartPage({
                     />
                   </label>
 
+                  {!labCart && (
+                    <div className="sk-legal-box sk-legal-box--cart">
+                      <p className="sk-legal-title">Cosmetic use acknowledgment</p>
+                      <p>{PEPTIDE_LEGAL.medium}</p>
+                      <ul className="sk-legal-long sk-legal-long--compact">
+                        {PEPTIDE_LEGAL.long.map((line) => (
+                          <li key={line.slice(0, 28)}>{line}</li>
+                        ))}
+                      </ul>
+                      <label className="consent-check">
+                        <input
+                          type="checkbox"
+                          checked={cosmeticConsent}
+                          onChange={(e) => setCosmeticConsent(e.target.checked)}
+                          required
+                        />
+                        <span>
+                          I am 18+, ordering for personal cosmetic use only. I
+                          understand these products are for external use on
+                          intact skin — not for injection, ingestion, or medical
+                          use.
+                        </span>
+                      </label>
+                      <p className="meta">{PEPTIDE_LEGAL.short}</p>
+                    </div>
+                  )}
+
                   <label className="consent-check">
                     <input
                       type="checkbox"
@@ -3040,7 +3075,11 @@ function CartPage({
                     <button
                       type="submit"
                       className="primary-btn"
-                      disabled={submitting || !waitConsent}
+                      disabled={
+                        submitting ||
+                        !waitConsent ||
+                        (!labCart && !cosmeticConsent)
+                      }
                     >
                       {submitting
                         ? "Sending request…"

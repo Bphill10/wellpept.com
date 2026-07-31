@@ -36,6 +36,7 @@ export const SKINCARE_PRODUCTS = [
     blurb: "Quiet hydration with a soft matte finish for day-to-night wear.",
     focus: "Barrier, softness",
     texture: "Silken cream",
+    legal: PEPTIDE_LEGAL,
   },
   {
     id: "wp-mist-calm",
@@ -48,6 +49,7 @@ export const SKINCARE_PRODUCTS = [
     blurb: "A mineral mist to reset skin between steps. Never sticky, never loud.",
     focus: "Reset, comfort",
     texture: "Fine mist",
+    legal: PEPTIDE_LEGAL,
   },
   {
     id: "wp-oil-signal",
@@ -60,6 +62,7 @@ export const SKINCARE_PRODUCTS = [
     blurb: "A measured oil blend for glow without weight. Last step, lights low.",
     focus: "Glow, seal",
     texture: "Dry-touch oil",
+    legal: PEPTIDE_LEGAL,
   },
 ];
 
