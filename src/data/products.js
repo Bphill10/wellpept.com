@@ -55,7 +55,7 @@ export const ACTIVE_VENDOR_IDS = new Set([
   STG_VENDOR_ID,
 ]);
 
-/** Match key for “same kit” — compound + strength + unit. */
+/** Match key for “same kit” — compound + strength + unit (admin / OOS). */
 export function submissionOfferKey(submission) {
   const key = normalizeCompoundKey(submission?.name || "");
   const mg = Number(submission?.mg);
@@ -63,22 +63,32 @@ export function submissionOfferKey(submission) {
   return `${key}::${Number.isFinite(mg) ? mg : 0}::${unit}`;
 }
 
+/** Warehouse ownership key — compound only (ignore strength). */
+export function submissionCompoundKey(submission) {
+  return normalizeCompoundKey(submission?.name || "");
+}
+
+/**
+ * Gap-fill by compound name only.
+ * If an earlier warehouse already stocks a peptide (any strength), skip it.
+ * All strengths of a new compound stay with this warehouse.
+ */
 function gapFillFrom(coveredSubs, candidateSubs, { requireChangshaSellable = false } = {}) {
   const covered = new Set(
-    (coveredSubs || []).map((s) => submissionOfferKey(s)).filter(Boolean)
+    (coveredSubs || [])
+      .map((s) => submissionCompoundKey(s))
+      .filter(Boolean)
   );
   return (candidateSubs || []).filter((s) => {
     if (!isTop25Peptide(s.name)) return false;
     if (requireChangshaSellable && !isChangshaSellable(s.name)) return false;
-    const k = submissionOfferKey(s);
-    if (!k || k.startsWith("::")) return false;
-    if (covered.has(k)) return false;
-    covered.add(k);
-    return true;
+    const k = submissionCompoundKey(s);
+    if (!k) return false;
+    return !covered.has(k);
   });
 }
 
-/** Changsha lines whose compound+strength is not already on JEC US. */
+/** Changsha lines for compounds not already on Warehouse A (JEC). */
 export function changshaGapFillSubmissions(
   jecSubs = JEC_SUBMISSIONS,
   changshaSubs = CHANGSHA_SUBMISSIONS
@@ -88,7 +98,7 @@ export function changshaGapFillSubmissions(
 }
 
 /**
- * ERP (STG) lines for top-25 strengths not already covered by JEC or Changsha.
+ * ERP (STG) lines for compounds not already on Warehouse A or B.
  * Third backup — never shown by supplier name.
  */
 export function erpGapFillSubmissions(

@@ -26,7 +26,7 @@ import {
 } from "../utils/stgSync";
 
 /** Bump when focused vendors/catalog must replace stale local data. */
-const STORAGE_KEY = "wellpept-marketplace-v24";
+const STORAGE_KEY = "wellpept-marketplace-v25";
 
 function syncVendor(v, policy = null) {
   if (!v || !ACTIVE_VENDOR_IDS.has(v.id)) return null;
@@ -104,18 +104,22 @@ function mergeSubmissions(seedSubs, stgSubs) {
   );
   if (!jec.length) jec = jecSeed();
 
-  let changsha = fromSeed.filter(
+  // Always re-gap-fill by compound so A ownership blocks B/C entirely.
+  const changshaPool = fromSeed.filter(
     (s) => s.vendorId === CHANGSHA_VENDOR_ID && isFocusedSubmission(s)
   );
-  if (!changsha.length) changsha = changshaSeed(jec);
+  const changsha = changshaGapFillSubmissions(
+    jec,
+    changshaPool.length ? changshaPool : CHANGSHA_SUBMISSIONS
+  );
 
-  const erpFromSeed = fromSeed.filter(
+  const erpPool = fromSeed.filter(
     (s) => s.vendorId === STG_VENDOR_ID && isFocusedSubmission(s)
   );
-  const erp =
-    erpFromSeed.length > 0
-      ? erpGapFillSubmissions([...jec, ...changsha], erpFromSeed)
-      : erpSeed([...jec, ...changsha], stgSubs);
+  const erp = erpGapFillSubmissions(
+    [...jec, ...changsha],
+    erpPool.length ? erpPool : resolveStgSeed(stgSubs)
+  );
 
   return [...jec, ...changsha, ...erp];
 }

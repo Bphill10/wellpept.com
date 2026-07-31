@@ -1,13 +1,11 @@
 /**
  * Customer catalog assembly (top 25):
  * Warehouse A (JEC) → B (Changsha) → C (ERP)
+ * Ownership is by compound name only (not strength).
  * Supplier names never shown — only warehouse labels.
  */
 
-import {
-  normalizeCompoundKey,
-  resolveVialUnit,
-} from "../data/products";
+import { normalizeCompoundKey } from "../data/products";
 import { CHANGSHA_VENDOR_ID } from "../data/changshaPremium";
 import {
   PRIMARY_VENDOR_ID,
@@ -20,7 +18,11 @@ const POLICY_KEY = "wellpept-supply-policy-v1";
 export const DEFAULT_SUPPLY_POLICY = {
   /** When false, backups never substitute OOS primary lines. */
   fallbackEnabled: true,
-  /** Match keys: `${compoundKey}::${mg}::${unit}` for primary lines that are out. */
+  /**
+   * Per-strength OOS flags for Warehouse A lines:
+   * `${compoundKey}::${mg}::${unit}`
+   * If every A strength of a compound is flagged, B (then C) takes the compound.
+   */
   unavailableKeys: [],
   /** Published Google Sheet CSV / export URL (optional). */
   sheetCsvUrl: "",
@@ -31,11 +33,17 @@ export const DEFAULT_SUPPLY_POLICY = {
   shippingNote: "",
 };
 
+/** Per-kit key (admin OOS toggles). */
 export function offerMatchKey(product) {
   const key = normalizeCompoundKey(product?.name || "");
   const mg = Number(product?.mg);
-  const unit = resolveVialUnit(product) || product?.unit || "mg";
+  const unit = product?.unit || "mg";
   return `${key}::${Number.isFinite(mg) ? mg : 0}::${unit}`;
+}
+
+/** Warehouse ownership key — compound only. */
+export function compoundMatchKey(product) {
+  return normalizeCompoundKey(product?.name || "");
 }
 
 export function loadSupplyPolicy() {
@@ -75,40 +83,38 @@ export function isPrimaryUnavailable(product, policy) {
   return keys.has(offerMatchKey(product));
 }
 
-function indexByOfferKey(products) {
+function indexByCompound(products) {
   const map = new Map();
   for (const p of products || []) {
-    const k = offerMatchKey(p);
-    if (!k || k.startsWith("::")) continue;
-    const prev = map.get(k);
-    if (
-      !prev ||
-      (p.price != null && (prev.price == null || p.price < prev.price))
-    ) {
-      map.set(k, p);
-    }
+    const k = compoundMatchKey(p);
+    if (!k) continue;
+    if (!map.has(k)) map.set(k, []);
+    map.get(k).push(p);
   }
   return map;
 }
 
-function pushFill(out, coveredKeys, product, lane) {
-  const k = offerMatchKey(product);
-  if (!k || k.startsWith("::") || coveredKeys.has(k)) return;
-  out.push(
-    withWarehouseFields({
-      ...product,
-      supplyLane: lane,
-      inStock: true,
-    })
-  );
-  coveredKeys.add(k);
+function pushCompound(out, coveredCompounds, compound, products, lane) {
+  if (!compound || coveredCompounds.has(compound)) return;
+  const lines = products || [];
+  if (!lines.length) return;
+  for (const product of lines) {
+    out.push(
+      withWarehouseFields({
+        ...product,
+        supplyLane: lane,
+        inStock: true,
+      })
+    );
+  }
+  coveredCompounds.add(compound);
 }
 
 /**
  * Build the customer-facing product list for the top 25:
- * - Keep available Warehouse A (JEC) offers
- * - OOS A → B match, else C match
- * - Gap-fill remaining strengths: B then C
+ * - Warehouse A owns a compound if it has any in-stock strength
+ * - Else Warehouse B owns that compound (all its strengths)
+ * - Else Warehouse C
  * - Sorted A → B → C
  */
 export function applySupplyFallback(products, policy = loadSupplyPolicy()) {
@@ -120,60 +126,66 @@ export function applySupplyFallback(products, policy = loadSupplyPolicy()) {
   );
   const erp = list.filter((p) => p.vendorId === STG_VENDOR_ID);
 
-  const changshaByKey = indexByOfferKey(changsha);
-  const erpByKey = indexByOfferKey(erp);
+  const primaryByCompound = indexByCompound(primary);
+  const changshaByCompound = indexByCompound(changsha);
+  const erpByCompound = indexByCompound(erp);
 
   const enabled = policy?.fallbackEnabled !== false;
   const out = [];
-  const coveredKeys = new Set();
+  const coveredCompounds = new Set();
 
-  for (const p of primary) {
-    const unavailable = isPrimaryUnavailable(p, policy);
-    if (!unavailable) {
+  for (const [compound, aLines] of primaryByCompound) {
+    const available = aLines.filter((p) => !isPrimaryUnavailable(p, policy));
+    if (available.length) {
+      for (const p of available) {
+        out.push(
+          withWarehouseFields({
+            ...p,
+            supplyLane: "warehouse-a",
+            inStock: true,
+          })
+        );
+      }
+      coveredCompounds.add(compound);
+      continue;
+    }
+
+    // Every A strength for this compound is OOS → whole compound to B, else C
+    if (!enabled) continue;
+    const fromB = changshaByCompound.get(compound) || [];
+    const fromC = erpByCompound.get(compound) || [];
+    const fill = fromB.length ? fromB : fromC;
+    const lane = fromB.length
+      ? "warehouse-b-fallback"
+      : "warehouse-c-fallback";
+    for (const alt of fill) {
+      const sample = aLines[0];
       out.push(
         withWarehouseFields({
-          ...p,
-          supplyLane: "warehouse-a",
+          ...alt,
+          name: sample?.name || alt.name,
+          category: sample?.category || alt.category,
+          blurb: sample?.blurb || alt.blurb,
+          tagline: sample?.tagline || alt.tagline,
+          powderColor: sample?.powderColor || alt.powderColor,
+          badge: null,
+          featured: false,
+          supplyLane: lane,
+          replacedSubmissionId: sample?.submissionId,
+          replacedSku: sample?.sku,
           inStock: true,
         })
       );
-      coveredKeys.add(offerMatchKey(p));
-      continue;
     }
-    if (!enabled) continue;
-
-    const key = offerMatchKey(p);
-    const alt = changshaByKey.get(key) || erpByKey.get(key);
-    if (!alt) continue;
-
-    out.push(
-      withWarehouseFields({
-        ...alt,
-        name: p.name,
-        category: p.category,
-        blurb: p.blurb,
-        tagline: p.tagline,
-        powderColor: p.powderColor || alt.powderColor,
-        badge: null,
-        featured: false,
-        supplyLane:
-          alt.vendorId === STG_VENDOR_ID
-            ? "warehouse-c-fallback"
-            : "warehouse-b-fallback",
-        replacedSubmissionId: p.submissionId,
-        replacedSku: p.sku,
-        inStock: true,
-      })
-    );
-    coveredKeys.add(key);
+    if (fill.length) coveredCompounds.add(compound);
   }
 
-  for (const p of changshaByKey.values()) {
-    pushFill(out, coveredKeys, p, "warehouse-b");
+  for (const [compound, lines] of changshaByCompound) {
+    pushCompound(out, coveredCompounds, compound, lines, "warehouse-b");
   }
 
-  for (const p of erpByKey.values()) {
-    pushFill(out, coveredKeys, p, "warehouse-c");
+  for (const [compound, lines] of erpByCompound) {
+    pushCompound(out, coveredCompounds, compound, lines, "warehouse-c");
   }
 
   out.sort((a, b) => {
