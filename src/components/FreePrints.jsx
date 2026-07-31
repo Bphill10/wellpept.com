@@ -116,8 +116,9 @@ export default function FreePrints({ onBack, onOpenCalculator }) {
           <h1>Free 3D prints &amp; labels</h1>
           <p>
             Download cap and kit-case STLs free — many etched names or print
-            blank caps in black, white, blue, or red filament. Make vial wrap
-            labels free in the calculator.
+            blank caps in black, white, blue, or red filament. The kit case
+            matches the clear KLOW featured photo (print in clear filament).
+            Make vial wrap labels free in the calculator.
           </p>
         </div>
 
@@ -245,11 +246,23 @@ export default function FreePrints({ onBack, onOpenCalculator }) {
               />
             </div>
             <div className="free-print-copy">
-              <h2>Kit case · free STL</h2>
+              <h2>Kit case · free STL · clear filament</h2>
               <p>
-                Hinged case — 2×5 vial pockets, spare-cap trough, pin hinge.
-                Print base, lid, and pin free.
+                Same layout as the featured KLOW kit photo — 2×5 vial pockets,
+                4 round spare-cap wells, hinged lid. Print in{" "}
+                <strong>clear PETG or clear PLA</strong> for the translucent
+                look.
               </p>
+              <div className="free-print-inline-thumb">
+                <img
+                  src="/printables/previews/case-thumb.svg"
+                  alt=""
+                  width={360}
+                  height={200}
+                  loading="lazy"
+                  aria-hidden="true"
+                />
+              </div>
               <div className="calc-print-actions">
                 <a
                   className="primary-btn"
@@ -280,6 +293,10 @@ export default function FreePrints({ onBack, onOpenCalculator }) {
                   Pin
                 </a>
               </div>
+              <p className="meta" style={{ marginTop: "0.55rem" }}>
+                ~125 × 45 mm · 2–3 walls · 0–15% infill · slow outer walls · no
+                supports. Dry clear filament first.
+              </p>
             </div>
           </article>
 

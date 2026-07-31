@@ -19,7 +19,7 @@ export const PRINT_IDEAS = [
     id: "kit-case",
     title: "10-vial hinged kit case",
     blurb:
-      "2×5 pockets, spare-cap trough, snap lid — free STL matching the Undisclosed kit photo.",
+      "Clear hinged case like the featured KLOW photo — 2×5 vials, 4 round cap wells. Print in clear PETG/PLA.",
     status: "ready",
     tag: "Travel",
     href: "/printables/undisclosed-vial-case-plate.stl",

@@ -1,56 +1,61 @@
-# Undisclosed 10-vial kit case (3D print)
+# Undisclosed clear 10-vial kit case (3D print)
 
-Printable case matching the clear hinged research kit in the product photo:
+Matches the **clear hinged case** in the featured KLOW kit photo on the shop:
 
-- **2×5** pockets for standard ~3 mL lyophilized vials  
-- Side trough for spare flip-off caps  
-- Hinged lid with snap latch  
-- Inner lid frame for a wrap label  
+- **2×5** snug rectangular pockets for ~3 mL lyophilized vials  
+- **4 round spare-cap wells** in a right-hand column (like the blue KLOW caps in the photo)  
+- Thin walls for **clear PETG / clear PLA**  
+- Hinged lid with snap latch + large inner frame for a wrap label  
 
 ## Download (site)
 
-From the Undisclosed calculator page, or direct:
+Free Prints / calculator, or direct:
 
 | File | Use |
 |------|-----|
-| [`undisclosed-vial-case-plate.stl`](/printables/undisclosed-vial-case-plate.stl) | **Print this** — base + lid + pin on one plate |
+| [`undisclosed-vial-case-plate.stl`](/printables/undisclosed-vial-case-plate.stl) | **Print this** — base + lid + pin |
 | [`undisclosed-vial-case-base.stl`](/printables/undisclosed-vial-case-base.stl) | Base only |
 | [`undisclosed-vial-case-lid.stl`](/printables/undisclosed-vial-case-lid.stl) | Lid only |
-| [`undisclosed-vial-case-pin.stl`](/printables/undisclosed-vial-case-pin.stl) | Hinge pin (or use 3 mm filament / wire) |
+| [`undisclosed-vial-case-pin.stl`](/printables/undisclosed-vial-case-pin.stl) | Hinge pin (or 3 mm filament / wire) |
 
 Units: **millimeters**.
 
 ## Default size
 
-- Outer footprint ≈ **141 × 50 mm**  
-- Vial pockets ≈ **20 × 20 × 22 mm**  
-- Cap trough ≈ **24 mm** wide  
-
-Edit sizes at the top of `generate_stl.py` and re-run:
+- Outer footprint ≈ **128 × 46 mm** (regen prints exact)  
+- Vial pockets ≈ **18.5 × 18.5 × 20 mm**  
+- Cap wells ≈ **14.2 mm** ID × 4  
 
 ```bash
 python3 printables/vial-kit-case/generate_stl.py
 ```
 
-## Bambu / FDM settings
+## Clear filament (recommended)
 
-- **Filament:** PETG (tougher latch/hinge) or PLA  
-- **Nozzle:** 0.4 mm  
-- **Layer height:** 0.20 mm  
-- **Walls:** 3–4  
-- **Infill:** 15–20% gyroid  
-- **Supports:** none (print flat as exported)  
-- **Brim:** optional 3 mm  
+You already have clear filament — use it for the KLOW look.
+
+| Setting | Value |
+|---------|--------|
+| **Filament** | Clear PETG (tougher latch) or clear PLA |
+| **Nozzle** | 0.4 mm |
+| **Layer height** | 0.16–0.20 mm |
+| **Walls** | 2–3 (fewer = clearer) |
+| **Infill** | 0–15% gyroid / lightning |
+| **Supports** | None — print flat as exported |
+| **Speed** | Slow outer walls (~25–40 mm/s) for clarity |
+| **Temp** | Dry filament first; follow brand clear profile |
+| **Ironing** | Optional on lid top for smoother label face |
 
 ### Assembly
 
 1. Print the plate (or base + lid separately).  
 2. Align lid knuckles between base knuckles.  
-3. Slide pin / 3 mm filament through the hinge.  
+3. Slide pin / 3 mm clear filament through the hinge.  
 4. Snap front latch closed.  
+5. Affix the kit wrap label inside the lid frame.  
 
-Scale ±1–3% in the slicer if your vials are tighter/looser.
+Scale ±1–3% if vials are tight/loose.
 
 ## Note
 
-Prototype packaging for lab organization — not a certified pharmaceutical shipper. Hard-refresh the site after deploy if STL downloads are cached.
+Prototype packaging for lab organization — not a certified pharmaceutical shipper. Hard-refresh after deploy if STL downloads are cached.

@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Undisclosed 10-vial research kit case — STL generator (mm).
+Undisclosed 10-vial kit case — STL generator (mm).
 
-Matches the clear hinged kit in the product photo:
-  • 2×5 compartments for standard ~3 mL lyophilized vials
-  • Side column with 4 spare-cap pockets
-  • Separate lid with hinge knuckles + front snap latch
-  • Inner lid frame for a wrap label
+Matches the clear hinged case in the featured KLOW product photo:
+  • 2×5 snug rectangular pockets for ~3 mL lyophilized vials (upright)
+  • Right column of 4 circular spare-cap wells (not an open trough)
+  • Thin walls for clear PETG / clear PLA
+  • Hinged lid with snap latch + large inner label frame
+  • Print base + lid flat (no supports); pin or 3 mm filament through knuckles
 
-Print base + lid flat on the bed (no supports). Use printed pin,
-3 mm filament, or wire through the hinge knuckles.
+Clear filament tip: dry filament, 2–3 walls, 0–15% infill, slow outer walls.
 """
 from __future__ import annotations
 
@@ -20,34 +20,41 @@ import struct
 OUT = Path(__file__).resolve().parent
 PUBLIC = Path(__file__).resolve().parents[2] / "public" / "printables"
 
-# --- Tunable fit (3 mL research vials) ---
-CELL = 20.0  # vial pocket footprint (X/Y)
-DEPTH = 22.0  # vial pocket depth (floor → deck)
+# --- Tunable fit (matches featured clear KLOW kit look) ---
+# 3 mL research vials ≈ 15–17 mm OD; pockets are snug rectangles.
+CELL_W = 18.5
+CELL_D = 18.5
+DEPTH = 20.0  # pocket depth (floor → deck); vial sticks up into lid volume
 ROWS = 2
 COLS = 5
-DIV = 1.6  # divider thickness
+DIV = 1.2  # thin clear dividers like the photo
 
-# Side trough for spare flip-off caps (open channel, like the photo)
-CAP_TROUGH_W = 24.0
-CAP_TROUGH_DEPTH = 14.0
+# Right column: 4 round wells for flip-caps (~13–15 mm OD)
+CAP_WELLS = 4
+CAP_WELL_OD = 16.5
+CAP_WELL_ID = 14.2
+CAP_COL_W = 20.0
+CAP_WELL_DEPTH = 8.0
 
-WALL = 2.4
-FLOOR = 2.4
-RIM = 2.5
-INNER_PAD = 2.0
+# Thin shell for clear filament translucency
+WALL = 1.6
+FLOOR = 1.6
+RIM = 2.0
+INNER_PAD = 1.6
+CORNER = 4.0  # outer corner radius (approx via stepped boxes)
 
-LID_INNER_H = 22.0
-LID_WALL = 2.4
-LID_TOP = 2.4
+LID_INNER_H = 24.0  # clearance over vial tops + labels
+LID_WALL = 1.6
+LID_TOP = 1.6
 
-HINGE_R = 3.2
-HINGE_INNER_R = 1.55
-HINGE_W = 6.5
-LATCH_W = 16.0
-LATCH_T = 2.2
-LATCH_OVERHANG = 4.0
+HINGE_R = 2.8
+HINGE_INNER_R = 1.45
+HINGE_W = 7.0
+LATCH_W = 18.0
+LATCH_T = 2.0
+LATCH_OVERHANG = 3.6
 
-SEGS = 28
+SEGS = 32
 
 
 def _n(a, b):
@@ -87,7 +94,7 @@ class Mesh:
     def write(self, path: Path):
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("wb") as f:
-            f.write(b"Undisclosed vial kit case".ljust(80, b"\0"))
+            f.write(b"Undisclosed clear KLOW-style vial kit case".ljust(80, b"\0"))
             f.write(struct.pack("<I", len(self.tris)))
             for (nx, ny, nz), a, b, c in self.tris:
                 f.write(
@@ -128,8 +135,8 @@ def box(m: Mesh, x0, y0, z0, x1, y1, z1):
         (x1, y1, z1),
         (x0, y1, z1),
     ]
-    m.quad(p[0], p[3], p[2], p[1])  # bottom
-    m.quad(p[4], p[5], p[6], p[7])  # top
+    m.quad(p[0], p[3], p[2], p[1])
+    m.quad(p[4], p[5], p[6], p[7])
     m.quad(p[0], p[1], p[5], p[4])
     m.quad(p[1], p[2], p[6], p[5])
     m.quad(p[2], p[3], p[7], p[6])
@@ -159,7 +166,6 @@ def disk(m, cx, cy, r, z, up=True, n=SEGS):
 
 
 def tube_x(m, cx, cy, cz, width, ro, ri, n=SEGS):
-    """Tube along X axis (hinge knuckle)."""
     x0, x1 = cx - width / 2, cx + width / 2
 
     def p(x, r, a):
@@ -183,11 +189,31 @@ def cylinder_z(m, cx, cy, r, z0, z1, n=SEGS):
     disk(m, cx, cy, r, z1, up=True, n=n)
 
 
-def layout():
-    vial_block_w = COLS * CELL + (COLS - 1) * DIV
-    vial_block_d = ROWS * CELL + (ROWS - 1) * DIV
+def tube_ring_z(m, cx, cy, ro, ri, z0, z1, n=SEGS):
+    o0, o1 = ring(cx, cy, ro, z0, n), ring(cx, cy, ro, z1, n)
+    i0, i1 = ring(cx, cy, ri, z0, n), ring(cx, cy, ri, z1, n)
+    for i in range(n):
+        j = (i + 1) % n
+        m.quad(o0[i], o0[j], o1[j], o1[i])
+        m.quad(i0[j], i0[i], i1[i], i1[j])
+        m.quad(o1[i], o1[j], i1[j], i1[i])
+        m.quad(o0[j], o0[i], i0[i], i0[j])
 
-    inner_w = INNER_PAD + vial_block_w + DIV + CAP_TROUGH_W + INNER_PAD
+
+def rounded_shell_floor(m, ow, od, z0, z1, r=CORNER):
+    """Floor / top plate with stepped rounded corners."""
+    box(m, r, 0, z0, ow - r, od, z1)
+    box(m, 0, r, z0, ow, od - r, z1)
+    # corner fills
+    for cx, cy in ((r, r), (ow - r, r), (r, od - r), (ow - r, od - r)):
+        cylinder_z(m, cx, cy, r, z0, z1, n=16)
+
+
+def layout():
+    vial_block_w = COLS * CELL_W + (COLS - 1) * DIV
+    vial_block_d = ROWS * CELL_D + (ROWS - 1) * DIV
+
+    inner_w = INNER_PAD + vial_block_w + DIV + CAP_COL_W + INNER_PAD
     inner_d = INNER_PAD + vial_block_d + INNER_PAD
     outer_w = inner_w + 2 * WALL
     outer_d = inner_d + 2 * WALL
@@ -196,7 +222,7 @@ def layout():
     return {
         "vial_block_w": vial_block_w,
         "vial_block_d": vial_block_d,
-        "cap_trough_w": CAP_TROUGH_W,
+        "cap_col_w": CAP_COL_W,
         "inner_w": inner_w,
         "inner_d": inner_d,
         "outer_w": outer_w,
@@ -212,28 +238,37 @@ def make_base() -> Mesh:
     ow, od, bh = L["outer_w"], L["outer_d"], L["base_h"]
     deck = L["deck_z"]
 
-    # Floor + outer walls
-    box(m, 0, 0, 0, ow, od, FLOOR)
-    box(m, 0, 0, FLOOR, WALL, od, bh)
-    box(m, ow - WALL, 0, FLOOR, ow, od, bh)
-    box(m, WALL, 0, FLOOR, ow - WALL, WALL, bh)
-    box(m, WALL, od - WALL, FLOOR, ow - WALL, od, bh)
+    # Thin clear floor + outer walls (stepped corners)
+    rounded_shell_floor(m, ow, od, 0, FLOOR)
+    # Walls as four slabs (corners overlap floor cylinders visually)
+    box(m, 0, CORNER, FLOOR, WALL, od - CORNER, bh)
+    box(m, ow - WALL, CORNER, FLOOR, ow, od - CORNER, bh)
+    box(m, CORNER, 0, FLOOR, ow - CORNER, WALL, bh)
+    box(m, CORNER, od - WALL, FLOOR, ow - CORNER, od, bh)
+    # corner posts
+    for cx, cy in (
+        (CORNER, CORNER),
+        (ow - CORNER, CORNER),
+        (CORNER, od - CORNER),
+        (ow - CORNER, od - CORNER),
+    ):
+        # quarter-ish by full cylinder inside corner
+        cylinder_z(m, cx, cy, CORNER, FLOOR, bh, n=16)
+        # hollow leave: carve not available — keep solid corner posts for strength
 
-    # Origin of vial grid (inner)
     vx0 = WALL + INNER_PAD
-    # Vertically center vial block
     vy0 = WALL + (L["inner_d"] - L["vial_block_d"]) / 2
 
-    # Vial pocket floors sit on main floor; dividers rise to deck
+    # Thin vial dividers (photo-style grid)
     for r in range(ROWS - 1):
-        y = vy0 + (r + 1) * CELL + r * DIV
+        y = vy0 + (r + 1) * CELL_D + r * DIV
         box(m, vx0, y, FLOOR, vx0 + L["vial_block_w"], y + DIV, deck)
 
     for c in range(COLS - 1):
-        x = vx0 + (c + 1) * CELL + c * DIV
+        x = vx0 + (c + 1) * CELL_W + c * DIV
         box(m, x, vy0, FLOOR, x + DIV, vy0 + L["vial_block_d"], deck)
 
-    # Perimeter wall around vial block
+    # Perimeter around vial block
     box(m, vx0 - DIV, vy0 - DIV, FLOOR, vx0 + L["vial_block_w"] + DIV, vy0, deck)
     box(
         m,
@@ -255,64 +290,63 @@ def make_base() -> Mesh:
         deck,
     )
 
+    # Soft bottom rings under each vial (center them, clear look)
     for r in range(ROWS):
         for c in range(COLS):
-            cx = vx0 + c * (CELL + DIV) + CELL / 2
-            cy = vy0 + r * (CELL + DIV) + CELL / 2
-            tube_ring_z(m, cx, cy, 5.5, 4.2, FLOOR, FLOOR + 1.4)
+            cx = vx0 + c * (CELL_W + DIV) + CELL_W / 2
+            cy = vy0 + r * (CELL_D + DIV) + CELL_D / 2
+            tube_ring_z(m, cx, cy, 5.2, 4.0, FLOOR, FLOOR + 1.2)
 
-    # Cap trough to the right of the vial block (open channel for ~4 flip caps)
+    # Cap column — 4 circular wells like the featured photo
     cx0 = vx0 + L["vial_block_w"] + DIV
-    cy0 = WALL + INNER_PAD
-    cy1 = od - WALL - INNER_PAD
-    box(m, cx0 - DIV, WALL, FLOOR, cx0, od - WALL, deck + RIM * 0.35)
-    # Side + end walls of trough; open top
-    box(m, cx0 + CAP_TROUGH_W, cy0, FLOOR, cx0 + CAP_TROUGH_W + DIV, cy1, FLOOR + CAP_TROUGH_DEPTH)
-    box(m, cx0, cy0 - DIV, FLOOR, cx0 + CAP_TROUGH_W + DIV, cy0, FLOOR + CAP_TROUGH_DEPTH)
-    box(m, cx0, cy1, FLOOR, cx0 + CAP_TROUGH_W + DIV, cy1 + DIV, FLOOR + CAP_TROUGH_DEPTH)
-    # Soft cradle rings along the trough
-    trough_len = cy1 - cy0
-    for i in range(4):
-        cy = cy0 + trough_len * (i + 0.5) / 4
+    # Divider wall between vials and caps
+    box(m, cx0 - DIV, WALL, FLOOR, cx0, od - WALL, deck + RIM * 0.25)
+    # Outer wall of cap column
+    box(
+        m,
+        cx0 + CAP_COL_W,
+        WALL + INNER_PAD,
+        FLOOR,
+        cx0 + CAP_COL_W + DIV,
+        od - WALL - INNER_PAD,
+        FLOOR + CAP_WELL_DEPTH + 2.0,
+    )
+    # Cap wells centered in column
+    well_span = L["vial_block_d"]
+    for i in range(CAP_WELLS):
+        cy = vy0 + well_span * (i + 0.5) / CAP_WELLS
+        cx = cx0 + CAP_COL_W / 2
+        # Raised ring + recessed well
         tube_ring_z(
             m,
-            cx0 + CAP_TROUGH_W / 2,
+            cx,
             cy,
-            7.0,
-            5.8,
+            CAP_WELL_OD / 2,
+            CAP_WELL_ID / 2,
             FLOOR,
-            FLOOR + 1.2,
+            FLOOR + CAP_WELL_DEPTH,
         )
+        # Well floor slightly raised for drain / clarity
+        disk(m, cx, cy, CAP_WELL_ID / 2, FLOOR + 0.6, up=True, n=24)
 
-    # Top rim (lid seat)
-    box(m, 0, 0, bh - RIM, ow, WALL * 0.85, bh)
-    box(m, 0, od - WALL * 0.85, bh - RIM, ow, od, bh)
-    box(m, 0, WALL * 0.85, bh - RIM, WALL * 0.85, od - WALL * 0.85, bh)
-    box(m, ow - WALL * 0.85, WALL * 0.85, bh - RIM, ow, od - WALL * 0.85, bh)
+    # Lid seat rim
+    box(m, CORNER, 0, bh - RIM, ow - CORNER, WALL * 0.9, bh)
+    box(m, CORNER, od - WALL * 0.9, bh - RIM, ow - CORNER, od, bh)
+    box(m, 0, CORNER, bh - RIM, WALL * 0.9, od - CORNER, bh)
+    box(m, ow - WALL * 0.9, CORNER, bh - RIM, ow, od - CORNER, bh)
 
-    # Hinge knuckles (back) — 3 on base
-    hy = od + HINGE_R * 0.2
+    # Two hinge knuckles on back (photo shows a simple dual hinge)
+    hy = od + HINGE_R * 0.15
     hz = bh - HINGE_R
-    for t in (0.20, 0.50, 0.80):
+    for t in (0.28, 0.72):
         tube_x(m, ow * t, hy, hz, HINGE_W, HINGE_R, HINGE_INNER_R)
 
-    # Front latch catch
+    # Front snap latch catch
     lx0 = ow / 2 - LATCH_W / 2
-    box(m, lx0, -LATCH_T, bh - 7.0, lx0 + LATCH_W, 0.15, bh - 2.0)
-    box(m, lx0, -LATCH_T - 1.4, bh - 4.2, lx0 + LATCH_W, -LATCH_T, bh - 2.4)
+    box(m, lx0, -LATCH_T, bh - 6.5, lx0 + LATCH_W, 0.2, bh - 1.8)
+    box(m, lx0, -LATCH_T - 1.2, bh - 3.8, lx0 + LATCH_W, -LATCH_T, bh - 2.2)
 
     return m
-
-
-def tube_ring_z(m, cx, cy, ro, ri, z0, z1, n=SEGS):
-    o0, o1 = ring(cx, cy, ro, z0, n), ring(cx, cy, ro, z1, n)
-    i0, i1 = ring(cx, cy, ri, z0, n), ring(cx, cy, ri, z1, n)
-    for i in range(n):
-        j = (i + 1) % n
-        m.quad(o0[i], o0[j], o1[j], o1[i])
-        m.quad(i0[j], i0[i], i1[i], i1[j])
-        m.quad(o1[i], o1[j], i1[j], i1[i])
-        m.quad(o0[j], o0[i], i0[i], i0[j])
 
 
 def make_lid() -> Mesh:
@@ -321,32 +355,39 @@ def make_lid() -> Mesh:
     ow, od = L["outer_w"], L["outer_d"]
     h = LID_TOP + LID_INNER_H
 
-    # Top plate + walls hanging down (open at z=0)
-    box(m, 0, 0, h - LID_TOP, ow, od, h)
-    box(m, 0, 0, 0, LID_WALL, od, h - LID_TOP)
-    box(m, ow - LID_WALL, 0, 0, ow, od, h - LID_TOP)
-    box(m, LID_WALL, 0, 0, ow - LID_WALL, LID_WALL, h - LID_TOP)
-    box(m, LID_WALL, od - LID_WALL, 0, ow - LID_WALL, od, h - LID_TOP)
+    # Clear lid shell — thin top + walls
+    rounded_shell_floor(m, ow, od, h - LID_TOP, h)
+    box(m, 0, CORNER, 0, LID_WALL, od - CORNER, h - LID_TOP)
+    box(m, ow - LID_WALL, CORNER, 0, ow, od - CORNER, h - LID_TOP)
+    box(m, CORNER, 0, 0, ow - CORNER, LID_WALL, h - LID_TOP)
+    box(m, CORNER, od - LID_WALL, 0, ow - CORNER, od, h - LID_TOP)
+    for cx, cy in (
+        (CORNER, CORNER),
+        (ow - CORNER, CORNER),
+        (CORNER, od - CORNER),
+        (ow - CORNER, od - CORNER),
+    ):
+        cylinder_z(m, cx, cy, CORNER, 0, h - LID_TOP, n=16)
 
-    # Inner label frame on underside of top
-    f = 5.0
-    t = 1.5
-    z0 = h - LID_TOP - 1.4
+    # Large inner label frame (featured lid card — almost full face)
+    f = 3.5
+    t = 1.3
+    z0 = h - LID_TOP - 1.2
     z1 = h - LID_TOP
     box(m, f, f, z0, ow - f, f + t, z1)
     box(m, f, od - f - t, z0, ow - f, od - f, z1)
     box(m, f, f + t, z0, f + t, od - f - t, z1)
     box(m, ow - f - t, f + t, z0, ow - f, od - f - t, z1)
 
-    # Hinge knuckles — 2 on lid, nest between base knuckles
-    hy = od + HINGE_R * 0.2
+    # Lid hinge knuckles nest between base knuckles
+    hy = od + HINGE_R * 0.15
     hz = HINGE_R
-    for tpos in (0.35, 0.65):
-        tube_x(m, ow * tpos, hy, hz, HINGE_W, HINGE_R, HINGE_INNER_R)
+    for tpos in (0.40, 0.60):
+        tube_x(m, ow * tpos, hy, hz, HINGE_W * 0.85, HINGE_R, HINGE_INNER_R)
 
     # Front snap latch
     lx0 = ow / 2 - LATCH_W / 2
-    box(m, lx0, -LATCH_OVERHANG, 0, lx0 + LATCH_W, LID_WALL * 0.2, 9.0)
+    box(m, lx0, -LATCH_OVERHANG, 0, lx0 + LATCH_W, LID_WALL * 0.25, 8.5)
     box(
         m,
         lx0,
@@ -354,7 +395,7 @@ def make_lid() -> Mesh:
         0,
         lx0 + LATCH_W,
         -LATCH_OVERHANG + LATCH_T,
-        2.4,
+        2.2,
     )
 
     return m
@@ -363,32 +404,35 @@ def make_lid() -> Mesh:
 def make_pin() -> Mesh:
     m = Mesh()
     L = layout()
-    length = L["outer_w"] * 0.72
-    cylinder_z(m, 0, 0, HINGE_INNER_R - 0.15, 0, length, n=20)
-    cylinder_z(m, 0, 0, HINGE_INNER_R + 1.3, length, length + 2.2, n=20)
+    length = L["outer_w"] * 0.55
+    cylinder_z(m, 0, 0, HINGE_INNER_R - 0.12, 0, length, n=20)
+    cylinder_z(m, 0, 0, HINGE_INNER_R + 1.2, length, length + 2.0, n=20)
     return m
 
 
 def make_plate() -> Mesh:
     m = Mesh()
     L = layout()
-    gap = 10.0
+    gap = 12.0
     m.extend(make_base(), 0, 0, 0)
     m.extend(make_lid(), L["outer_w"] + gap, 0, 0)
-    # pin above
-    m.extend(make_pin(), 0, L["outer_d"] + 12, 0)
+    m.extend(make_pin(), 0, L["outer_d"] + 14, 0)
     return m
 
 
 def main():
-    print("Generating Undisclosed vial kit case STLs (mm)…")
+    print("Generating clear KLOW-style vial kit case STLs (mm)…")
     L = layout()
     print(
         f"  Outer: {L['outer_w']:.1f} × {L['outer_d']:.1f} mm  "
         f"base H {L['base_h']:.1f} mm  lid inner {LID_INNER_H:.1f} mm"
     )
-    print(f"  Vials: {ROWS}×{COLS} pockets @ {CELL:.0f}×{CELL:.0f}×{DEPTH:.0f} mm")
-    print(f"  Caps:  open trough {CAP_TROUGH_W:.0f} mm wide")
+    print(
+        f"  Vials: {ROWS}×{COLS} pockets @ {CELL_W:.1f}×{CELL_D:.1f}×{DEPTH:.0f} mm"
+    )
+    print(
+        f"  Caps:  {CAP_WELLS} round wells · {CAP_WELL_ID:.1f} mm ID · clear walls {WALL} mm"
+    )
 
     files = {
         "undisclosed-vial-case-base.stl": make_base(),
