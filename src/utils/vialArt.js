@@ -1147,13 +1147,16 @@ function drawPhotorealVial(ctx, dims, options) {
   const glassCx = dims.w * (isTen ? 0.496 : 0.489);
   const bodyW = dims.w * (isTen ? 0.64 : 0.655);
   const bodyX = glassCx - bodyW / 2;
-  // Match reference: ~40% of vial height, equal clear glass above & below
+  // Reference mid-band, lowered 5%, stretched down to cover half the peptide
   const vialTop = dims.h * (isTen ? 0.14 : 0.12);
   const vialBot = dims.h * (isTen ? 0.96 : 0.98);
-  const sleeveH = (vialBot - vialTop) * 0.4;
-  const gap = (vialBot - vialTop - sleeveH) / 2;
-  const sleeveTop = vialTop + gap;
-  const sleeveHClamped = sleeveH;
+  const baseH = (vialBot - vialTop) * 0.4;
+  const gap = (vialBot - vialTop - baseH) / 2;
+  const sleeveTop = vialTop + gap + dims.h * 0.05;
+  const cakeTop = dims.h * (isTen ? 0.748 : 0.835);
+  const cakeBottom = dims.h * (isTen ? 0.96 : 0.98);
+  const sleeveBottom = cakeTop + (cakeBottom - cakeTop) * 0.5;
+  const sleeveHClamped = sleeveBottom - sleeveTop;
 
   const wrapBmp = createWrapLabelBitmap({
     name,
