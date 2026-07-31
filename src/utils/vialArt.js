@@ -1172,8 +1172,8 @@ export async function drawGeneratedVial(canvas, options = {}) {
 }
 
 /**
- * Draw the user studio example plate, then only rewrite the product name.
- * Mass / grid stay covered so we don't chase per-SKU label fields.
+ * Draw the user studio example plate and only swap the product name.
+ * Spine, QR, mass, and grid stay from the photo — no second label overlay.
  */
 function drawExamplePlate(ctx, dims, photo, options = {}) {
   const {
@@ -1195,15 +1195,15 @@ function drawExamplePlate(ctx, dims, photo, options = {}) {
 
   if (!showLabel) return;
 
-  // Visible label face on the shared example plates
+  // Label face on the shared 683×1024 example plates
   const lx = dx + dw * 0.268;
   const ly = dy + dh * 0.398;
   const lw = dw * 0.464;
   const lh = dh * 0.292;
 
-  // Center panel only (skip black spine + QR column)
-  const midX = lx + lw * 0.105;
-  const midW = lw * 0.655;
+  // Center text panel (skip spine left + QR right)
+  const midX = lx + lw * 0.12;
+  const midW = lw * 0.62;
   const midCx = midX + midW / 2;
 
   const product = String(name || "PEPTIDE")
@@ -1212,35 +1212,25 @@ function drawExamplePlate(ctx, dims, photo, options = {}) {
     .trim()
     .toUpperCase();
 
-  // Cover original name; black out mass + grid so example SKU data never shows
-  const nameBandY = ly + lh * 0.12;
-  const nameBandH = lh * 0.36;
-  const lowerY = ly + lh * 0.46;
-  const lowerH = lh * 0.5;
+  // Only erase the original product name (e.g. KLOW)
+  const nameBandY = ly + lh * 0.14;
+  const nameBandH = lh * 0.3;
   ctx.fillStyle = "#ffffff";
-  ctx.fillRect(midX - 1, nameBandY, midW + 2, nameBandH);
-  ctx.fillStyle = "#0a0a0a";
-  ctx.fillRect(midX - 1, lowerY, midW + 2, lowerH);
-
-  // Hairline under the name
-  const hair = Math.max(1, lh * 0.012);
-  ctx.fillStyle = "#000000";
-  ctx.fillRect(midX + midW * 0.04, ly + lh * 0.445, midW * 0.92, hair);
+  ctx.fillRect(midX, nameBandY, midW, nameBandH);
 
   const family = 'Outfit, "Segoe UI", "Arial Black", sans-serif';
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = "#000000";
-
   const nameSize = fitCenteredText(
     ctx,
     product,
-    midW * 0.94,
-    Math.max(14, lh * 0.24),
+    midW * 0.96,
+    Math.max(13, lh * 0.22),
     family
   );
   ctx.font = `800 ${nameSize}px ${family}`;
-  ctx.fillText(product, midCx, nameBandY + nameBandH * 0.58);
+  ctx.fillText(product, midCx, nameBandY + nameBandH * 0.55);
 }
 
 /** Cover-fit photo into canvas. */
