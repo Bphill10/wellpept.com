@@ -16,7 +16,7 @@ function norm(name) {
 }
 
 /**
- * Storefront top 28 (compound families). Multiple vial strengths still show
+ * Storefront focused set (compound families). Multiple vial strengths still show
  * under each name. Order is display priority for “featured” thinking.
  */
 export const TOP_28_PEPTIDES = [
@@ -48,6 +48,7 @@ export const TOP_28_PEPTIDES = [
   "LL-37",
   "AOD9604",
   "DSIP",
+  "Vitamin B12",
 ];
 
 /** @deprecated alias — use TOP_28_PEPTIDES */
@@ -232,6 +233,18 @@ export function isTop25Peptide(name) {
     return true;
   }
   if (n === "dsip" || n.startsWith("dsip ")) return true;
+  // Standalone B12 only (not Lipo-C with B12 blends)
+  if (
+    !n.includes("lipo") &&
+    (n === "vitamin b12" ||
+      n === "b12" ||
+      n.startsWith("vitamin b12") ||
+      n.startsWith("b12(") ||
+      n.startsWith("b12 ") ||
+      n.includes("methylcobalamin"))
+  ) {
+    return true;
+  }
   if (
     n.includes("fox04") ||
     n.includes("foxo4") ||
