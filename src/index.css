@@ -2803,8 +2803,23 @@ body:has(.app-shell--undisclosed)::before {
 .app-shell--undisclosed .strength-field select option,
 .app-shell--undisclosed .search-dept option,
 .app-shell--undisclosed .search-dept optgroup {
-  background-color: #ffffff;
-  color: #0a0a0a;
+  background-color: #ffffff !important;
+  color: #0a0a0a !important;
+}
+
+/* Autofill must not flip to light text on dark Undisclosed inputs */
+.app-shell--undisclosed .field input:-webkit-autofill,
+.app-shell--undisclosed .field input:-webkit-autofill:hover,
+.app-shell--undisclosed .field input:-webkit-autofill:focus,
+.app-shell--undisclosed .checkout-form input:-webkit-autofill,
+.app-shell--undisclosed .checkout-form input:-webkit-autofill:hover,
+.app-shell--undisclosed .checkout-form input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f4f6f8;
+  caret-color: #f4f6f8;
+  -webkit-box-shadow: 0 0 0 1000px #0a0a0a inset;
+  box-shadow: 0 0 0 1000px #0a0a0a inset;
+  border-color: rgba(255, 255, 255, 0.18);
+  transition: background-color 99999s ease-out;
 }
 
 .app-shell--undisclosed .footer {
@@ -4925,12 +4940,15 @@ body:has(.app-shell--undisclosed)::before {
 }
 
 /* ---------- Account gate ---------- */
-/* Hardcoded dark ink: Undisclosed theme remaps --ink to light colors. */
+/* Hardcoded dark ink: Undisclosed theme remaps --ink/--ghost-btn to light colors. */
 .auth-gate {
   --auth-ink: #0a0a0a;
-  --auth-ink-soft: #2a3544;
-  --auth-muted: #5a6573;
-  --auth-line: rgba(0, 47, 117, 0.18);
+  --auth-ink-soft: #1f2a37;
+  --auth-muted: #4a5563;
+  --auth-line: rgba(0, 47, 117, 0.22);
+  --ink: #0a0a0a;
+  --ink-soft: #1f2a37;
+  --muted: #4a5563;
   position: fixed;
   inset: 0;
   z-index: 80;
@@ -4941,6 +4959,7 @@ body:has(.app-shell--undisclosed)::before {
     max(1.25rem, env(safe-area-inset-bottom, 0px))
     max(1.25rem, env(safe-area-inset-left, 0px));
   color: var(--auth-ink);
+  color-scheme: light;
 }
 
 .auth-gate-bg {
@@ -5080,12 +5099,26 @@ body:has(.app-shell--undisclosed)::before {
   padding: 0.7rem 0.75rem;
   border-radius: 2px;
   background: #fff;
-  color: var(--auth-ink);
+  color: #0a0a0a;
+  color-scheme: light;
+  -webkit-text-fill-color: #0a0a0a;
 }
 
 .auth-form input::placeholder {
-  color: #7a8491;
+  color: #4a5563;
   opacity: 1;
+  -webkit-text-fill-color: #4a5563;
+}
+
+.auth-form input:-webkit-autofill,
+.auth-form input:-webkit-autofill:hover,
+.auth-form input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #0a0a0a;
+  caret-color: #0a0a0a;
+  -webkit-box-shadow: 0 0 0 1000px #fff inset;
+  box-shadow: 0 0 0 1000px #fff inset;
+  border: 1px solid var(--auth-line);
+  transition: background-color 99999s ease-out;
 }
 
 .auth-check {
@@ -5148,7 +5181,75 @@ body:has(.app-shell--undisclosed)::before {
 .auth-submit {
   width: 100%;
   justify-content: center;
-  color: #0a0a0a;
+}
+
+/* Auth modal is a light card; Undisclosed remaps .primary/.soft/.ghost to light text. */
+.auth-gate .primary-btn,
+.app-shell--undisclosed .auth-gate .primary-btn,
+.app-shell--skincare .auth-gate .primary-btn {
+  background: #0047ab !important;
+  border: 1px solid #002f75 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
+  box-shadow: none;
+}
+
+.auth-gate .primary-btn:hover,
+.app-shell--undisclosed .auth-gate .primary-btn:hover,
+.app-shell--skincare .auth-gate .primary-btn:hover {
+  background: #0056c7 !important;
+  border-color: #0047ab !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
+}
+
+.auth-gate .soft-btn,
+.auth-gate .ghost-btn,
+.app-shell--undisclosed .auth-gate .soft-btn,
+.app-shell--undisclosed .auth-gate .ghost-btn,
+.app-shell--skincare .auth-gate .soft-btn,
+.app-shell--skincare .auth-gate .ghost-btn {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 47, 117, 0.28) !important;
+  color: #1f2a37 !important;
+  -webkit-text-fill-color: #1f2a37;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.auth-gate .soft-btn:hover,
+.auth-gate .ghost-btn:hover,
+.app-shell--undisclosed .auth-gate .soft-btn:hover,
+.app-shell--undisclosed .auth-gate .ghost-btn:hover,
+.app-shell--skincare .auth-gate .soft-btn:hover,
+.app-shell--skincare .auth-gate .ghost-btn:hover {
+  background: rgba(0, 71, 171, 0.06) !important;
+  border-color: rgba(0, 71, 171, 0.45) !important;
+  color: #0047ab !important;
+  -webkit-text-fill-color: #0047ab;
+}
+
+.auth-gate .auth-tabs button,
+.app-shell--undisclosed .auth-gate .auth-tabs button {
+  background: #fff !important;
+  color: #0a0a0a !important;
+  border: 1px solid var(--auth-line) !important;
+  -webkit-text-fill-color: #0a0a0a;
+}
+
+.auth-gate .auth-tabs button.is-on,
+.app-shell--undisclosed .auth-gate .auth-tabs button.is-on {
+  background: rgba(0, 71, 171, 0.06) !important;
+  border-color: rgba(0, 71, 171, 0.45) !important;
+  color: #0047ab !important;
+  -webkit-text-fill-color: #0047ab;
+}
+
+.auth-gate .auth-check span,
+.app-shell--undisclosed .auth-gate .auth-check span {
+  color: #1f2a37 !important;
 }
 
 .auth-legal {
@@ -6323,6 +6424,32 @@ html:has(.app-shell--undisclosed) {
   width: 100%;
   min-height: 2.75rem;
   font-size: 1rem;
+  color: #0a0a0a;
+  background: #ffffff;
+  color-scheme: light;
+}
+
+.checkout-form select option,
+.checkout-form select optgroup,
+label.field select option,
+label.field select optgroup,
+.strength-field select option,
+.buy-box select option,
+.product-card select option,
+.compare-select option {
+  background-color: #ffffff;
+  color: #0a0a0a;
+}
+
+/* Closed <select> always shows dark ink on light field (both storefronts) */
+label.field select,
+.strength-field select,
+.buy-box select,
+.product-card select,
+.compare-select {
+  color: #0a0a0a;
+  background: #ffffff;
+  color-scheme: light;
 }
 
 .admin-pay-actions {
