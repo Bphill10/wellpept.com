@@ -1149,11 +1149,11 @@ function drawPhotorealVial(ctx, dims, options) {
   // Labelable glass band (below shoulder, above base)
   const glassTop = dims.h * (isTen ? 0.28 : 0.26);
   const glassBottom = dims.h * (isTen ? 0.96 : 0.98);
-  // ~10% taller than prior band, equal margin top ↔ bottom
+  // ~10% taller than prior band, equal margin top ↔ bottom, then nudge down 5%
   const sleeveH = dims.h * 0.48 * 1.1;
   const gap = Math.max(0, glassBottom - glassTop - sleeveH);
-  const sleeveTop = glassTop + gap / 2;
-  const sleeveHClamped = Math.min(sleeveH, glassBottom - glassTop);
+  const sleeveTop = glassTop + gap / 2 + dims.h * 0.05;
+  const sleeveHClamped = Math.min(sleeveH, glassBottom - sleeveTop);
 
   const wrapBmp = createWrapLabelBitmap({
     name,
