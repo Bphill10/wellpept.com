@@ -173,9 +173,9 @@ const CATEGORY_MAP = {
   "ARA-290": "Recovery",
   ARA290: "Recovery",
   Cibinetide: "Recovery",
-  "LL-37": "Cellular",
-  AOD9604: "Metabolic",
   DSIP: "Cognitive",
+  HGH: "Growth",
+  "HGH (Somatropin)": "Growth",
 };
 
 /** Brief summaries: what it is + what labs study it for (1–2 sentences). */

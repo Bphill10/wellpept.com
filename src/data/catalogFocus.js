@@ -45,10 +45,9 @@ export const TOP_28_PEPTIDES = [
   "Cagrilintide",
   "ARA-290",
   "FOX04-DRI",
-  "LL-37",
-  "AOD9604",
   "DSIP",
   "Vitamin B12",
+  "HGH",
 ];
 
 /** @deprecated alias — use TOP_28_PEPTIDES */
@@ -220,18 +219,6 @@ export function isTop25Peptide(name) {
   ) {
     return true;
   }
-  if (n === "ll37" || n === "ll-37" || n.startsWith("ll37") || n.startsWith("ll-37")) {
-    return true;
-  }
-  if (
-    n === "aod9604" ||
-    n === "aod-9604" ||
-    n.startsWith("aod9604") ||
-    n.startsWith("aod-9604") ||
-    n.startsWith("aod 9604")
-  ) {
-    return true;
-  }
   if (n === "dsip" || n.startsWith("dsip ")) return true;
   // Standalone B12 only (not Lipo-C with B12 blends)
   if (
@@ -242,6 +229,19 @@ export function isTop25Peptide(name) {
       n.startsWith("b12(") ||
       n.startsWith("b12 ") ||
       n.includes("methylcobalamin"))
+  ) {
+    return true;
+  }
+  // Full HGH / somatropin only — not HGH Fragment 176-191
+  if (
+    (n.includes("somatropin") ||
+      n === "hgh" ||
+      n.startsWith("hgh (") ||
+      n.startsWith("hgh ")) &&
+    !n.includes("fragment") &&
+    !n.includes("176") &&
+    !n.includes("191") &&
+    !n.includes("aod")
   ) {
     return true;
   }
