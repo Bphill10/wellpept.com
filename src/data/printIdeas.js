@@ -8,7 +8,7 @@ export const PRINT_IDEAS = [
     id: "etched-caps",
     title: "Etched flip-caps",
     blurb:
-      "Short-name recessed caps (RETA, TRIZ, BPC…) so every vial is readable at a glance — no stickers on the lid.",
+      "Short-name etched caps from a big name library, or solid black / white / blue / red with no etch.",
     status: "ready",
     tag: "Organization",
     href: "/printables/undisclosed-cap-plate.stl",

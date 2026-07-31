@@ -1,6 +1,8 @@
 /**
  * Undisclosed print-shop add-ons: we print for you, or DIY free.
  * Pricing: 10 caps $5 · 10 labels $5 · full kit $15.
+ *
+ * Caps: many etched name options, or 4 solid basic colors (no etch).
  */
 
 import { CAP_SHORT_NAMES, shortCapName, capStlSlug } from "./capNames";
@@ -29,7 +31,43 @@ export const PRINT_CAP_OPTIONS = Object.entries(CAP_SHORT_NAMES)
     return arr.findIndex(([, s]) => s === short) === i;
   })
   .map(([peptide, short]) => ({ peptide, short, slug: capStlSlug(peptide) }))
-  .concat([{ peptide: "Blank", short: "UD", slug: "blank" }]);
+  .concat([{ peptide: "Blank / UD", short: "UD", slug: "blank" }]);
+
+/** Four solid filament colors — no name etch. */
+export const PRINT_CAP_COLORS = [
+  {
+    id: "black",
+    label: "Black",
+    hex: "#1a1a1a",
+    ink: "#6a6a6a",
+    sku: "BLK",
+  },
+  {
+    id: "white",
+    label: "White",
+    hex: "#f2f2f0",
+    ink: "#333333",
+    sku: "WHT",
+  },
+  {
+    id: "blue",
+    label: "Blue",
+    hex: "#1e4a8c",
+    ink: "#a8c4ef",
+    sku: "BLU",
+  },
+  {
+    id: "red",
+    label: "Red",
+    hex: "#9b1c1c",
+    ink: "#f0b0b0",
+    sku: "RED",
+  },
+];
+
+export function printCapColorById(id) {
+  return PRINT_CAP_COLORS.find((c) => c.id === id) || PRINT_CAP_COLORS[0];
+}
 
 function previewCapSrc(short) {
   const slug =
@@ -40,6 +78,10 @@ function previewCapSrc(short) {
           .replace(/\+/g, "plus")
           .replace(/[^a-z0-9]+/g, "");
   return `/printables/previews/cap-${slug}.svg`;
+}
+
+function previewColorCapSrc(colorId) {
+  return `/printables/previews/cap-color-${colorId || "black"}.svg`;
 }
 
 function basePrintLine(overrides = {}) {
@@ -59,19 +101,47 @@ function basePrintLine(overrides = {}) {
   };
 }
 
-/** Pack of 10 etched caps — $5. */
-export function printCaps10Line({ peptide, short } = {}) {
+/**
+ * Pack of 10 caps — $5.
+ * mode: "name" (etched short name) | "color" (solid basic color, blank face)
+ */
+export function printCaps10Line({
+  mode = "name",
+  peptide,
+  short,
+  colorId = "black",
+} = {}) {
+  if (mode === "color") {
+    const color = printCapColorById(colorId);
+    return basePrintLine({
+      id: `print-caps10-color-${color.id}`,
+      name: `10 caps · ${color.label}`,
+      price: PRINT_PRICES.caps10,
+      form: `10 solid ${color.label.toLowerCase()} flip-caps · no etch`,
+      unitLabel: "10 caps",
+      sku: `PRINT-CAP10-${color.sku}`,
+      image: previewColorCapSrc(color.id),
+      printKind: "caps10",
+      capMode: "color",
+      capColor: color.id,
+      capColorLabel: color.label,
+      etch: "",
+      etchPeptide: "",
+    });
+  }
+
   const etch = short || shortCapName(peptide || "UD");
   const slug = etch === "UD" ? "blank" : capStlSlug(peptide || etch);
   return basePrintLine({
     id: `print-caps10-${slug}`,
     name: `10 etched caps · ${etch}`,
     price: PRINT_PRICES.caps10,
-    form: `10 printed flip-caps · ${peptide || etch}`,
+    form: `10 printed flip-caps · etched ${peptide || etch}`,
     unitLabel: "10 caps",
     sku: `PRINT-CAP10-${slug.toUpperCase()}`,
     image: previewCapSrc(etch),
     printKind: "caps10",
+    capMode: "name",
     etch,
     etchPeptide: peptide || etch,
   });
@@ -105,27 +175,51 @@ export function printLabels10Line({
   });
 }
 
-/** Print kit: case + 10 caps + 10 labels — $15. */
+/**
+ * Print kit: case + 10 caps + 10 labels — $15.
+ * Caps follow mode name|color same as printCaps10Line.
+ */
 export function printKitLine({
   peptide = "Peptide",
   mass = "",
   unit = "mg",
   vialMl = 3,
+  capMode = "name",
+  colorId = "black",
+  short,
 } = {}) {
-  const etch = shortCapName(peptide);
+  const etch = short || shortCapName(peptide);
   const ml = [3, 5, 10, 30].includes(Number(vialMl)) ? Number(vialMl) : 3;
   const strength = mass ? `${mass} ${unit}` : "custom strength";
-  const idKey = `${capStlSlug(peptide)}-${ml}ml`.replace(/[^a-z0-9-]/gi, "");
+  const color = printCapColorById(colorId);
+  const capPart =
+    capMode === "color"
+      ? `10 ${color.label.toLowerCase()} caps`
+      : `10 ${etch} caps`;
+  const idKey =
+    capMode === "color"
+      ? `color-${color.id}-${ml}ml`
+      : `${capStlSlug(peptide)}-${ml}ml`.replace(/[^a-z0-9-]/gi, "");
+
   return basePrintLine({
     id: `print-kit-${idKey}`,
-    name: `Print kit · ${etch}`,
+    name:
+      capMode === "color"
+        ? `Print kit · ${color.label} caps`
+        : `Print kit · ${etch}`,
     price: PRINT_PRICES.kit,
-    form: `Case + 10 caps + 10 wraps · ${peptide} · ${strength} · ${ml} mL`,
+    form: `Case + ${capPart} + 10 wraps · ${peptide} · ${strength} · ${ml} mL`,
     unitLabel: "Print kit",
-    sku: `PRINT-KIT-${etch}`,
+    sku:
+      capMode === "color"
+        ? `PRINT-KIT-${color.sku}`
+        : `PRINT-KIT-${etch}`,
     image: "/undisclosed-hero-kit-sm.webp",
     printKind: "kit",
-    etch,
+    capMode,
+    capColor: capMode === "color" ? color.id : "",
+    capColorLabel: capMode === "color" ? color.label : "",
+    etch: capMode === "color" ? "" : etch,
     etchPeptide: peptide,
     vialMl: ml,
   });

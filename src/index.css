@@ -5003,6 +5003,131 @@ body:has(.app-shell--undisclosed)::before {
   font-size: 0.95rem;
 }
 
+.free-print-mode-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.15rem 0 0.35rem;
+}
+
+.free-print-mode-toggle .soft-btn.active,
+.free-print-mode-toggle .ghost-btn.active {
+  border-color: rgba(0, 71, 171, 0.55);
+}
+
+.free-print-color-field {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.free-print-color-field legend {
+  font-size: 0.85rem;
+  margin-bottom: 0.35rem;
+}
+
+.free-print-color-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.free-print-color-swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.free-print-color-swatch.active {
+  border-color: rgba(0, 71, 171, 0.55);
+}
+
+.free-print-color-dot {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  background: var(--swatch, #222);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.free-print-color-swatches--lg {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.free-print-color-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.45rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.free-print-color-pick.active {
+  border-color: rgba(0, 71, 171, 0.55);
+}
+
+.free-print-color-pick img {
+  width: 56px;
+  height: 56px;
+}
+
+.free-print-color-pick span,
+.free-print-color-pick strong {
+  font-size: 0.75rem;
+}
+
+.free-print-color-band {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+
+.free-print-color-band .free-print-color-pick span {
+  color: var(--muted, #666);
+  font-size: 0.68rem;
+}
+
+.free-print-cap-thumb {
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 10px;
+  padding: 0.2rem;
+}
+
+.free-print-cap-thumb.active {
+  border-color: rgba(0, 71, 171, 0.45);
+}
+
+@media (max-width: 700px) {
+  .free-print-color-swatches--lg,
+  .free-print-color-band {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .free-print-cap-row {
   display: flex;
   flex-wrap: wrap;

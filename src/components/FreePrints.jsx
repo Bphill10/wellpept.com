@@ -4,6 +4,7 @@ import { CAP_SHORT_NAMES, capStlSlug } from "../data/capNames";
 import LabelTemplate from "./LabelTemplate";
 import {
   PRINT_CAP_OPTIONS,
+  PRINT_CAP_COLORS,
   PRINT_PRICES,
   formatPrintMoney,
   printCaps10Line,
@@ -61,23 +62,44 @@ function CapThumb({ short }) {
   );
 }
 
+function CapColorThumb({ color }) {
+  return (
+    <img
+      src={`/printables/previews/cap-color-${color.id}.svg`}
+      alt={`${color.label} solid vial cap`}
+      width={120}
+      height={120}
+      loading="lazy"
+      decoding="async"
+    />
+  );
+}
+
 export default function FreePrints({
   onBack,
   onOpenCalculator,
   onAddToCart,
   onGoCart,
 }) {
+  const [capMode, setCapMode] = useState("name"); // name | color
   const [capKey, setCapKey] = useState(PRINT_CAP_OPTIONS[0]?.slug || "reta");
+  const [capColorId, setCapColorId] = useState("black");
   const [labelKey, setLabelKey] = useState(PRINT_CAP_OPTIONS[0]?.slug || "reta");
   const [labelMl, setLabelMl] = useState(3);
   const [labelMass, setLabelMass] = useState("10");
+  const [kitCapMode, setKitCapMode] = useState("name");
   const [kitKey, setKitKey] = useState(PRINT_CAP_OPTIONS[0]?.slug || "reta");
+  const [kitColorId, setKitColorId] = useState("black");
   const [kitMl, setKitMl] = useState(3);
 
   const selectedCap = useMemo(
     () =>
       PRINT_CAP_OPTIONS.find((o) => o.slug === capKey) || PRINT_CAP_OPTIONS[0],
     [capKey]
+  );
+  const selectedCapColor = useMemo(
+    () => PRINT_CAP_COLORS.find((c) => c.id === capColorId) || PRINT_CAP_COLORS[0],
+    [capColorId]
   );
   const selectedLabel = useMemo(
     () =>
@@ -88,6 +110,10 @@ export default function FreePrints({
     () =>
       PRINT_CAP_OPTIONS.find((o) => o.slug === kitKey) || PRINT_CAP_OPTIONS[0],
     [kitKey]
+  );
+  const selectedKitColor = useMemo(
+    () => PRINT_CAP_COLORS.find((c) => c.id === kitColorId) || PRINT_CAP_COLORS[0],
+    [kitColorId]
   );
 
   function addLine(line, qty = 1) {
@@ -127,12 +153,65 @@ export default function FreePrints({
           <div className="free-print-order-banner-copy">
             <h2>Print kit · {formatPrintMoney(PRINT_PRICES.kit)}</h2>
             <p>
-              Case + 10 etched caps + 10 wrap labels for one peptide. We print
-              in the US and ship in 5–10 days.
+              Case + 10 caps + 10 wrap labels. Caps: etched name or one of four
+              solid colors. We print in the US · 5–10 days.
             </p>
+            <div className="free-print-mode-toggle" role="group" aria-label="Kit cap style">
+              <button
+                type="button"
+                className={kitCapMode === "name" ? "soft-btn active" : "ghost-btn"}
+                onClick={() => setKitCapMode("name")}
+              >
+                Named etch
+              </button>
+              <button
+                type="button"
+                className={kitCapMode === "color" ? "soft-btn active" : "ghost-btn"}
+                onClick={() => setKitCapMode("color")}
+              >
+                Solid color
+              </button>
+            </div>
             <div className="free-print-order-fields">
+              {kitCapMode === "name" ? (
+                <label className="field">
+                  Cap name
+                  <select
+                    value={kitKey}
+                    onChange={(e) => setKitKey(e.target.value)}
+                  >
+                    {PRINT_CAP_OPTIONS.map((o) => (
+                      <option key={o.slug} value={o.slug}>
+                        {o.short} — {o.peptide}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : (
+                <fieldset className="free-print-color-field">
+                  <legend>Cap color</legend>
+                  <div className="free-print-color-swatches">
+                    {PRINT_CAP_COLORS.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        className={`free-print-color-swatch${
+                          kitColorId === c.id ? " active" : ""
+                        }`}
+                        style={{ "--swatch": c.hex }}
+                        onClick={() => setKitColorId(c.id)}
+                        aria-pressed={kitColorId === c.id}
+                        title={c.label}
+                      >
+                        <span className="free-print-color-dot" />
+                        {c.label}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+              )}
               <label className="field">
-                Peptide / etch
+                Label peptide
                 <select
                   value={kitKey}
                   onChange={(e) => setKitKey(e.target.value)}
@@ -166,15 +245,21 @@ export default function FreePrints({
                   addLine(
                     printKitLine({
                       peptide: selectedKit.peptide,
+                      short: selectedKit.short,
                       mass: "10",
                       unit: "mg",
                       vialMl: kitMl,
+                      capMode: kitCapMode,
+                      colorId: kitColorId,
                     })
                   )
                 }
               >
                 <ShoppingCart size={16} /> Add kit ·{" "}
                 {formatPrintMoney(PRINT_PRICES.kit)}
+                {kitCapMode === "color"
+                  ? ` · ${selectedKitColor.label}`
+                  : ` · ${selectedKit.short}`}
               </button>
               {onGoCart ? (
                 <button type="button" className="ghost-btn" onClick={onGoCart}>
@@ -211,66 +296,134 @@ export default function FreePrints({
               </p>
             </div>
             <div className="free-print-copy">
-              <h2>10 etched caps · {formatPrintMoney(PRINT_PRICES.caps10)}</h2>
+              <h2>10 caps · {formatPrintMoney(PRINT_PRICES.caps10)}</h2>
               <p>
-                ~13 mm snap flip-caps with short names recessed on top and side.
-                We print a pack of 10 in matte black.
+                Pack of 10 flip-caps. Choose a short etched name from the
+                library, or a solid color with no etch — black, white, blue, or
+                red.
               </p>
-              <div className="free-print-cap-row" aria-label="Example caps">
-                {FEATURED_CAPS.slice(0, 6).map((c) => (
-                  <div key={c.short} className="free-print-cap-thumb" title={c.peptide}>
-                    <CapThumb short={c.short} />
-                    <span>{c.short}</span>
-                  </div>
-                ))}
+              <div className="free-print-mode-toggle" role="group" aria-label="Cap style">
+                <button
+                  type="button"
+                  className={capMode === "name" ? "soft-btn active" : "ghost-btn"}
+                  onClick={() => setCapMode("name")}
+                >
+                  Many names
+                </button>
+                <button
+                  type="button"
+                  className={capMode === "color" ? "soft-btn active" : "ghost-btn"}
+                  onClick={() => setCapMode("color")}
+                >
+                  4 colors
+                </button>
               </div>
-              <div className="free-print-order-fields">
-                <label className="field">
-                  Cap etch
-                  <select
-                    value={capKey}
-                    onChange={(e) => setCapKey(e.target.value)}
-                  >
-                    {PRINT_CAP_OPTIONS.map((o) => (
-                      <option key={o.slug} value={o.slug}>
-                        {o.short} — {o.peptide}
-                      </option>
+
+              {capMode === "name" ? (
+                <>
+                  <div className="free-print-cap-row" aria-label="Example named caps">
+                    {FEATURED_CAPS.slice(0, 6).map((c) => (
+                      <button
+                        key={c.short}
+                        type="button"
+                        className={`free-print-cap-thumb${
+                          selectedCap.short === c.short ? " active" : ""
+                        }`}
+                        title={c.peptide}
+                        onClick={() => {
+                          const opt = PRINT_CAP_OPTIONS.find((o) => o.short === c.short);
+                          if (opt) setCapKey(opt.slug);
+                        }}
+                      >
+                        <CapThumb short={c.short} />
+                        <span>{c.short}</span>
+                      </button>
                     ))}
-                  </select>
-                </label>
-              </div>
+                  </div>
+                  <div className="free-print-order-fields">
+                    <label className="field">
+                      Cap name
+                      <select
+                        value={capKey}
+                        onChange={(e) => setCapKey(e.target.value)}
+                      >
+                        {PRINT_CAP_OPTIONS.map((o) => (
+                          <option key={o.slug} value={o.slug}>
+                            {o.short} — {o.peptide}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                </>
+              ) : (
+                <div className="free-print-color-swatches free-print-color-swatches--lg">
+                  {PRINT_CAP_COLORS.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className={`free-print-color-pick${
+                        capColorId === c.id ? " active" : ""
+                      }`}
+                      onClick={() => setCapColorId(c.id)}
+                      aria-pressed={capColorId === c.id}
+                    >
+                      <CapColorThumb color={c} />
+                      <span>{c.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <div className="calc-print-actions">
                 <button
                   type="button"
                   className="primary-btn"
                   onClick={() =>
                     addLine(
-                      printCaps10Line({
-                        peptide: selectedCap.peptide,
-                        short: selectedCap.short,
-                      })
+                      printCaps10Line(
+                        capMode === "color"
+                          ? { mode: "color", colorId: capColorId }
+                          : {
+                              mode: "name",
+                              peptide: selectedCap.peptide,
+                              short: selectedCap.short,
+                            }
+                      )
                     )
                   }
                 >
                   <ShoppingCart size={16} /> Order 10 ·{" "}
                   {formatPrintMoney(PRINT_PRICES.caps10)}
+                  {capMode === "color"
+                    ? ` · ${selectedCapColor.label}`
+                    : ` · ${selectedCap.short}`}
                 </button>
               </div>
               <p className="meta free-prints-diy-label">Or print free</p>
               <div className="calc-print-actions">
                 <a
                   className="soft-btn"
-                  href={`/printables/undisclosed-cap-${selectedCap.slug === "blank" ? "blank" : selectedCap.slug}.stl`}
-                  download={`undisclosed-cap-${selectedCap.slug === "blank" ? "blank" : selectedCap.slug}.stl`}
+                  href={`/printables/undisclosed-cap-${
+                    capMode === "color" || selectedCap.slug === "blank"
+                      ? "blank"
+                      : selectedCap.slug
+                  }.stl`}
+                  download={`undisclosed-cap-${
+                    capMode === "color" || selectedCap.slug === "blank"
+                      ? "blank"
+                      : selectedCap.slug
+                  }.stl`}
                 >
-                  <Download size={16} /> {selectedCap.short} STL free
+                  <Download size={16} />{" "}
+                  {capMode === "color" ? "Blank" : selectedCap.short} STL free
                 </a>
                 <a
                   className="soft-btn"
                   href="/printables/undisclosed-cap-plate.stl"
                   download="undisclosed-cap-plate.stl"
                 >
-                  Full plate STL free
+                  Full name plate STL free
                 </a>
               </div>
             </div>
@@ -311,9 +464,12 @@ export default function FreePrints({
                     addLine(
                       printKitLine({
                         peptide: selectedKit.peptide,
+                        short: selectedKit.short,
                         mass: "10",
                         unit: "mg",
                         vialMl: kitMl,
+                        capMode: kitCapMode,
+                        colorId: kitColorId,
                       })
                     )
                   }
@@ -433,7 +589,11 @@ export default function FreePrints({
                 <LabelTemplate
                   blank={false}
                   size="md"
-                  name={selectedLabel.peptide === "Blank" ? "Peptide" : selectedLabel.peptide}
+                  name={
+                    selectedLabel.peptide.startsWith("Blank")
+                      ? "Peptide"
+                      : selectedLabel.peptide
+                  }
                   mass={labelMass || "10"}
                   unit="mg"
                   bacWater="2.0 mL"
@@ -449,10 +609,27 @@ export default function FreePrints({
           <div>
             <h2>Cap library</h2>
             <p className="meta">
-              Order a pack of 10 for {formatPrintMoney(PRINT_PRICES.caps10)}, or
-              download any STL free.
+              Many etched names · or 4 solid colors · packs of 10 for{" "}
+              {formatPrintMoney(PRINT_PRICES.caps10)}. STLs free to DIY.
             </p>
           </div>
+        </div>
+
+        <div className="free-print-color-band">
+          {PRINT_CAP_COLORS.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              className="free-print-color-pick"
+              onClick={() =>
+                addLine(printCaps10Line({ mode: "color", colorId: c.id }))
+              }
+            >
+              <CapColorThumb color={c} />
+              <strong>{c.label}</strong>
+              <span>10 · $5 · no etch</span>
+            </button>
+          ))}
         </div>
 
         <div className="free-prints-cap-grid">
@@ -471,7 +648,9 @@ export default function FreePrints({
                     type="button"
                     className="soft-btn"
                     onClick={() =>
-                      addLine(printCaps10Line({ peptide, short }))
+                      addLine(
+                        printCaps10Line({ mode: "name", peptide, short })
+                      )
                     }
                   >
                     10 · $5
@@ -490,13 +669,19 @@ export default function FreePrints({
           <div className="free-print-cap-tile free-print-cap-tile--order">
             <CapThumb short="UD" />
             <strong>UD</strong>
-            <span>Blank</span>
+            <span>Blank etch</span>
             <div className="free-print-cap-tile-actions">
               <button
                 type="button"
                 className="soft-btn"
                 onClick={() =>
-                  addLine(printCaps10Line({ peptide: "Blank", short: "UD" }))
+                  addLine(
+                    printCaps10Line({
+                      mode: "name",
+                      peptide: "Blank / UD",
+                      short: "UD",
+                    })
+                  )
                 }
               >
                 10 · $5
