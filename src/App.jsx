@@ -86,6 +86,7 @@ import PriceListDropzone from "./components/PriceListDropzone";
 import PriceCompare from "./components/PriceCompare";
 import LiveChat, { openLiveChat, contactEmail } from "./components/LiveChat";
 import AuthGate from "./components/AuthGate";
+import AgeGate, { hasAgeClearance } from "./components/AgeGate";
 import { getSession, logout as logoutAccount } from "./utils/auth";
 import { researchHelpFor } from "./data/researchGuide";
 import {
@@ -264,6 +265,7 @@ export default function App() {
   const [payInvoice, setPayInvoice] = useState(null);
   const [session, setSession] = useState(() => getSession());
   const [showAuth, setShowAuth] = useState(false);
+  const [ageOk, setAgeOk] = useState(() => hasAgeClearance());
   const [opsUnlocked, setOpsUnlocked] = useState(() => {
     try {
       return localStorage.getItem("wellpept_ops_v1") === "1";
@@ -1094,6 +1096,12 @@ export default function App() {
 
   return (
     <div className={`app-shell ${labVisible ? "app-shell--undisclosed" : "app-shell--skincare"}`}>
+      {!ageOk && (
+        <AgeGate
+          brand={labVisible ? "Undisclosed" : "WellPept"}
+          onClear={() => setAgeOk(true)}
+        />
+      )}
       {showAuth && (
         <AuthGate
           onAuthed={(next) => {

@@ -5829,6 +5829,23 @@ body:has(.app-shell--undisclosed)::before {
   color-scheme: light;
 }
 
+.age-gate {
+  z-index: 90;
+}
+
+.age-gate-card .auth-lead {
+  margin: 0 0 1.1rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--auth-muted);
+}
+
+.age-gate-actions {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 1.15rem;
+}
+
 .auth-gate-bg {
   position: absolute;
   inset: 0;
