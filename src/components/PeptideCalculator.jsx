@@ -393,9 +393,8 @@ export default function PeptideCalculator({
             <div>
               <h1>Peptide calculator</h1>
               <p className="lede" style={{ marginBottom: 0 }}>
-                Pick a catalog peptide or Custom. Dose math on the left — vial
-                label updates beside it (3·40×20 · 5·40×25 · 10·50×30 · 30·70×40
-                mm).
+                Pick a catalog peptide or Custom. Dose math on the left — free
+                vial label beside it. Cap and kit-case STLs below are free too.
               </p>
             </div>
           </div>
@@ -678,11 +677,11 @@ export default function PeptideCalculator({
 
             <aside className="calc-label-panel">
               <div className="calc-card-head">
-                <h2>Vial label</h2>
+                <h2>Vial label · free</h2>
               </div>
               <p className="meta">
                 {bottleOptionLabel(Number(vialMl) || 3)}. Live from calculator ·
-                QR → wellpept.com
+                QR → wellpept.com · download free
               </p>
               <div className="calc-label-stage">
                 <LabelTemplate
@@ -707,11 +706,11 @@ export default function PeptideCalculator({
 
           <div className="calc-print-panel">
             <div className="calc-card-head">
-              <h2>3D print etched vial cap</h2>
+              <h2>3D print etched vial cap · free</h2>
             </div>
             <p className="meta">
-              Snap-style ~13 mm flip-cap with short name recessed on top and
-              side (single-color print — etch reads from shadows) —{" "}
+              Free STL · snap-style ~13 mm flip-cap with short name recessed on
+              top and side (single-color print — etch reads from shadows) —{" "}
               <strong>{etchShort}</strong>
               {" "}for{" "}
               {name?.trim() || selectedPeptide?.name || "custom"}. Print top-up,
@@ -763,11 +762,12 @@ export default function PeptideCalculator({
 
           <div className="calc-print-panel">
             <div className="calc-card-head">
-              <h2>3D print the clear kit case</h2>
+              <h2>3D print the clear kit case · free</h2>
             </div>
             <p className="meta">
-              Matches the featured KLOW kit photo — 2×5 vial pockets, 4 round
-              spare-cap wells, hinged lid. Print in clear PETG / clear PLA.
+              Free STL · matches the featured KLOW kit photo — 2×5 vial pockets,
+              4 round spare-cap wells, hinged lid. Print in clear PETG / clear
+              PLA.
             </p>
             <div className="calc-print-preview">
               <img
