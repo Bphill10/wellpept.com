@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Calculator, RotateCcw, Link2, Download } from "lucide-react";
-import LabelTemplate from "./LabelTemplate";
 import {
   CATEGORIES,
   calculatorOptionsFromListings,
@@ -9,10 +8,12 @@ import {
 import {
   buildCalculatorShareUrl,
   defaultsFromCatalogSelection,
-  formatDoseRangeLabel,
   normalizeDoseUnit,
   suggestedBacMl as suggestedBacFromAutomation,
 } from "../utils/automation";
+
+const CUSTOM_ID = "custom";
+const BOTTLE_SIZES_ML = [3, 5, 10, 30];
 
 function formatNum(v, digits = 2) {
   const n = Number(v);
@@ -167,12 +168,28 @@ export default function PeptideCalculator({
   const [shareMsg, setShareMsg] = useState("");
   const [hydratedInitial, setHydratedInitial] = useState(null);
 
-  const selectedPeptide =
-    options.find((o) => o.id === peptideId) || options[0] || null;
+  const isCustom = peptideId === CUSTOM_ID;
+  const selectedPeptide = isCustom
+    ? null
+    : options.find((o) => o.id === peptideId) || options[0] || null;
   const selectedStrength =
     selectedPeptide?.strengths.find((s) => s.key === strengthKey) ||
     selectedPeptide?.strengths[0] ||
     null;
+
+  function applyCustomMode(seed = null) {
+    setPeptideId(CUSTOM_ID);
+    setStrengthKey("");
+    setName(seed?.name != null ? String(seed.name) : "");
+    setMass(seed?.mass != null ? String(seed.mass) : "");
+    setVialUnit(seed?.unit === "IU" ? "IU" : "mg");
+    const ml = Number(seed?.vialMl);
+    setVialMl(BOTTLE_SIZES_ML.includes(ml) ? ml : 3);
+    setDose(seed?.dose != null ? String(seed.dose) : "0.25");
+    setDoseUnit(seed?.doseUnit === "IU" ? "IU" : "mg");
+    setSolution(seed?.solution != null ? String(seed.solution) : "2");
+    setShareMsg("");
+  }
 
   function applyCatalogSelection(option, strength, seed = null) {
     if (!option || !strength) return;
@@ -264,6 +281,18 @@ export default function PeptideCalculator({
   }, [mass, solution, dose, doseUnit, vialUnit, name]);
 
   function onPeptideChange(id) {
+    if (id === CUSTOM_ID) {
+      applyCustomMode({
+        name: "",
+        mass: "",
+        vialMl: 3,
+        dose: "0.25",
+        doseUnit: "mg",
+        unit: "mg",
+        solution: "2",
+      });
+      return;
+    }
     const option = options.find((o) => o.id === id);
     if (!option) return;
     applyCatalogSelection(option, option.strengths[0]);
@@ -281,7 +310,6 @@ export default function PeptideCalculator({
     const option = options.find((o) => o.id === pick.optionId);
     const strength = option?.strengths.find((s) => s.key === pick.strengthKey);
     if (!option || !strength) return;
-    // Quick picks are peptide + dosage. full defaults from that choice
     applyCatalogSelection(option, strength);
   }
 
@@ -291,16 +319,23 @@ export default function PeptideCalculator({
   }
 
   function clearAll() {
+    if (isCustom) {
+      applyCustomMode({
+        name: "",
+        mass: "",
+        vialMl: 3,
+        dose: "0.25",
+        doseUnit: "mg",
+        unit: "mg",
+        solution: "2",
+      });
+      return;
+    }
     if (options[0]) {
       applyCatalogSelection(options[0], options[0].strengths[0]);
       return;
     }
-    setName("");
-    setMass("");
-    setDose("0.25");
-    setDoseUnit("mg");
-    setSolution("2");
-    setShareMsg("");
+    applyCustomMode();
   }
 
   async function shareCalc() {
@@ -316,16 +351,12 @@ export default function PeptideCalculator({
   const doseUnitOptions =
     vialUnit === "IU"
       ? [{ value: "IU", label: "IU" }]
-      : [{ value: "mg", label: "mg" }];
-
-  const labelBac = solution ? `${formatNum(solution, 2)} mL` : "";
-  const labelConcentration = result?.concLabel || "";
-  const labelDoseRange = formatDoseRangeLabel(
-    dose,
-    doseUnit,
-    result?.units ? Math.round(Number(result.units)) || 10 : 10
-  );
-  const labelSpecMl = Number(vialMl) >= 8 ? 10 : 3;
+      : isCustom
+        ? [
+            { value: "mg", label: "mg" },
+            { value: "IU", label: "IU" },
+          ]
+        : [{ value: "mg", label: "mg" }];
 
   return (
     <section className="panel-page fade">
@@ -346,8 +377,8 @@ export default function PeptideCalculator({
             <div>
               <h1>Peptide calculator</h1>
               <p className="lede" style={{ marginBottom: 0 }}>
-                Pick a peptide and available dosage. Unit, vial size, research
-                dose, and BAC water default from that choice.
+                Pick a catalog peptide or Custom to enter your own name, vial
+                contents, and bottle size (3 / 5 / 10 / 30 mL).
               </p>
             </div>
           </div>
@@ -359,7 +390,9 @@ export default function PeptideCalculator({
                   key={p.id}
                   type="button"
                   className={`soft-btn calc-example${
-                    peptideId === p.optionId && strengthKey === p.strengthKey
+                    !isCustom &&
+                    peptideId === p.optionId &&
+                    strengthKey === p.strengthKey
                       ? " is-active"
                       : ""
                   }`}
@@ -374,18 +407,20 @@ export default function PeptideCalculator({
             </div>
           )}
 
-          <div className="calc-layout">
+          <div className="calc-layout calc-layout--solo">
             <div className="calc-card">
               <div className="form-grid">
                 <label className="field">
                   Peptide ({options.length || 0})
                   <select
-                    value={selectedPeptide?.id || ""}
+                    value={isCustom ? CUSTOM_ID : selectedPeptide?.id || ""}
                     onChange={(e) => onPeptideChange(e.target.value)}
-                    disabled={!options.length}
                   >
+                    <option value={CUSTOM_ID}>Custom — enter your own</option>
                     {!options.length && (
-                      <option value="">No catalog peptides</option>
+                      <option value="" disabled>
+                        No catalog peptides
+                      </option>
                     )}
                     {optionsByCategory.map(([category, items]) => (
                       <optgroup key={category} label={category}>
@@ -399,34 +434,91 @@ export default function PeptideCalculator({
                   </select>
                 </label>
 
-                <label className="field">
-                  Available dosage
-                  <select
-                    value={selectedStrength?.key || ""}
-                    onChange={(e) => onStrengthChange(e.target.value)}
-                    disabled={!selectedPeptide?.strengths?.length}
-                  >
-                    {(selectedPeptide?.strengths || []).map((s) => (
-                      <option key={s.key} value={s.key}>
-                        {s.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                {isCustom ? (
+                  <>
+                    <label className="field">
+                      Peptide name
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="e.g. BPC-157"
+                        autoComplete="off"
+                      />
+                    </label>
+                    <div className="form-row">
+                      <label className="field">
+                        Vial contents ({vialUnit || "mg"})
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={mass}
+                          onChange={(e) => setMass(e.target.value)}
+                          placeholder="e.g. 5"
+                        />
+                      </label>
+                      <label className="field">
+                        Bottle size
+                        <select
+                          value={String(vialMl)}
+                          onChange={(e) => setVialMl(Number(e.target.value))}
+                        >
+                          {BOTTLE_SIZES_ML.map((ml) => (
+                            <option key={ml} value={ml}>
+                              {ml} mL
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                    <label className="field">
+                      Unit
+                      <select
+                        value={vialUnit === "IU" ? "IU" : "mg"}
+                        onChange={(e) => {
+                          const next = e.target.value === "IU" ? "IU" : "mg";
+                          setVialUnit(next);
+                          setDoseUnit(next);
+                        }}
+                      >
+                        <option value="mg">mg</option>
+                        <option value="IU">IU</option>
+                      </select>
+                    </label>
+                  </>
+                ) : (
+                  <label className="field">
+                    Available dosage
+                    <select
+                      value={selectedStrength?.key || ""}
+                      onChange={(e) => onStrengthChange(e.target.value)}
+                      disabled={!selectedPeptide?.strengths?.length}
+                    >
+                      {(selectedPeptide?.strengths || []).map((s) => (
+                        <option key={s.key} value={s.key}>
+                          {s.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
 
                 <div className="form-row">
-                  <label className="field">
-                    Vial ({vialUnit || "mg"} · {vialMl || 3} mL)
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={mass}
-                      readOnly
-                      aria-readonly="true"
-                      title="Set by available catalog dosage"
-                    />
-                  </label>
+                  {!isCustom ? (
+                    <label className="field">
+                      Vial ({vialUnit || "mg"} · {vialMl || 3} mL)
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={mass}
+                        readOnly
+                        aria-readonly="true"
+                        title="Set by available catalog dosage"
+                      />
+                    </label>
+                  ) : null}
                   <label className="field">
                     BAC water (mL)
                     <input
@@ -461,14 +553,19 @@ export default function PeptideCalculator({
                     />
                   </label>
                   <label className="field">
-                    Unit
+                    Dose unit
                     <select
                       value={doseUnit === "IU" ? "IU" : "mg"}
-                      disabled
+                      disabled={!isCustom && vialUnit !== "IU"}
                       title={
-                        vialUnit === "IU"
-                          ? "IU (HGH only)"
-                          : "mg (default for all other peptides)"
+                        isCustom
+                          ? "Choose mg or IU"
+                          : vialUnit === "IU"
+                            ? "IU (HGH only)"
+                            : "mg (default for all other peptides)"
+                      }
+                      onChange={(e) =>
+                        setDoseUnit(e.target.value === "IU" ? "IU" : "mg")
                       }
                     >
                       {doseUnitOptions.map((u) => (
@@ -494,19 +591,25 @@ export default function PeptideCalculator({
                   </button>
                 </div>
                 {shareMsg && <div className="notice">{shareMsg}</div>}
-                {selectedPeptide && (
-                  <p className="meta" style={{ margin: 0 }}>
-                    Defaults from{" "}
-                    <strong>{selectedPeptide.name.split("(")[0].trim()}</strong>
-                    {selectedStrength
-                      ? ` · ${selectedStrength.label}`
-                      : ""}
-                    {` · ${vialUnit} · ${vialMl} mL`}
-                    {selectedPeptide.strengths.length > 1
-                      ? ` · ${selectedPeptide.strengths.length} dosages in catalog`
-                      : ""}
-                  </p>
-                )}
+                <p className="meta" style={{ margin: 0 }}>
+                  {isCustom ? (
+                    <>
+                      Custom · {name.trim() || "unnamed"}
+                      {mass ? ` · ${mass} ${vialUnit}` : ""}
+                      {` · ${vialMl} mL bottle`}
+                    </>
+                  ) : selectedPeptide ? (
+                    <>
+                      Defaults from{" "}
+                      <strong>{selectedPeptide.name.split("(")[0].trim()}</strong>
+                      {selectedStrength ? ` · ${selectedStrength.label}` : ""}
+                      {` · ${vialUnit} · ${vialMl} mL`}
+                      {selectedPeptide.strengths.length > 1
+                        ? ` · ${selectedPeptide.strengths.length} dosages in catalog`
+                        : ""}
+                    </>
+                  ) : null}
+                </p>
               </div>
 
               {result && (
@@ -551,35 +654,13 @@ export default function PeptideCalculator({
                       <span>1 unit</span>
                       <strong>{result.perUnitLabel}</strong>
                     </div>
+                    <div>
+                      <span>Bottle</span>
+                      <strong>{vialMl} mL</strong>
+                    </div>
                   </div>
                 </div>
               )}
-            </div>
-
-            <div className="calc-vial-panel">
-              <div className="calc-card-head">
-                <h2>Vial label</h2>
-              </div>
-              <p className="meta">
-                {labelSpecMl === 10
-                  ? "10 mL vial wrap · 50 × 30 mm · rounded corners."
-                  : "3 mL vial wrap · 40 × 20 mm · rounded corners."}{" "}
-                Filled from this calculator · QR → www.wellpept.com.
-              </p>
-              <div className="calc-label-stage">
-                <LabelTemplate
-                  blank={false}
-                  size="lg"
-                  name={name || selectedPeptide?.name || "Peptide"}
-                  mass={mass}
-                  unit={vialUnit || "mg"}
-                  bacWater={labelBac}
-                  concentration={labelConcentration}
-                  doseRange={labelDoseRange}
-                  vialMl={labelSpecMl}
-                  showDownload
-                />
-              </div>
             </div>
           </div>
 

@@ -4647,13 +4647,14 @@ body:has(.app-shell--undisclosed)::before {
   align-items: start;
 }
 
-.calc-grid {
-  align-items: start;
+.calc-layout.calc-layout--solo {
+  grid-template-columns: 1fr;
+  max-width: 42rem;
 }
 
 .calc-refs--simple {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.65rem;
   margin-top: 0.75rem;
 }
