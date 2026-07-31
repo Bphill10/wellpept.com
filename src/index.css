@@ -553,12 +553,34 @@ svg {
   box-shadow: 0 0 0 2px #fff;
 }
 
+/* Undisclosed remaps --cobalt to white — keep badge readable */
 .app-shell--undisclosed .cart-count {
+  background: #fff;
+  color: #0a0a0a;
   box-shadow: 0 0 0 2px #0a0a0a;
+  font-weight: 800;
+}
+
+.app-shell--undisclosed .header-bag.cart-pulse-bag {
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
 }
 
 .cart-count.pulse {
-  animation: cart-pulse 0.35s ease;
+  animation: cart-pulse 0.45s ease;
+}
+
+.app-shell--undisclosed .notice {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #f4f6f8;
+}
+
+.app-shell--undisclosed .notice.ok {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #fff;
 }
 
 .icon-btn,

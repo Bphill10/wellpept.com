@@ -1282,7 +1282,7 @@ export default function App() {
             )}
             <button
               type="button"
-              className="header-bag"
+              className={`header-bag${cartPulse ? " cart-pulse-bag" : ""}`}
               onClick={() => setView(VIEWS.cart)}
               aria-label="Open bag"
             >
