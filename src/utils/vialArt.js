@@ -52,8 +52,8 @@ export function physicalLabelCanvasSize(vialMl = 3, size = "md") {
   const dpi = 600;
   const printW = Math.round((spec.widthMm / 25.4) * dpi);
   const printH = Math.round((spec.heightMm / 25.4) * dpi);
-  // Larger on-screen preview so text stays readable (was soft when undersized).
-  const pxPerMm = { sm: 12, md: 18, lg: 22 }[size] || 18;
+  // Larger on-screen preview so text stays readable in the 50/50 calc column.
+  const pxPerMm = { sm: 14, md: 20, lg: 28 }[size] || 20;
   // ~2 mm corner radius — reads as a die-cut sticker, not a sharp card.
   const cornerR = Math.max(14, Math.round((2 / 25.4) * dpi));
   return {
@@ -1717,12 +1717,13 @@ export function drawPhysicalLabel(canvas, options = {}) {
     size
   );
 
-  // Buffer matches print pixels exactly (600 DPI). Display size is independent
-  // so browsers don't soft-scale a low-res buffer up to the screen.
+  // Buffer matches print pixels exactly (600 DPI). Display fills the parent
+  // column (50/50 calc layout) while keeping the print aspect ratio.
   canvas.width = printW;
   canvas.height = printH;
-  canvas.style.width = cssW;
-  canvas.style.height = cssH;
+  canvas.style.width = "100%";
+  canvas.style.height = "auto";
+  canvas.style.maxWidth = cssW;
   canvas.dataset.labelMm = `${spec.widthMm}x${spec.heightMm}`;
 
   const ctx = canvas.getContext("2d", { alpha: true });
