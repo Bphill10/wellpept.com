@@ -1143,11 +1143,11 @@ function drawPhotorealVial(ctx, dims, options) {
 
   if (!showLabel) return;
 
-  // Label band: mid-body wrap, ~full glass width
-  const bodyW = dims.w * (isTen ? 0.4 : 0.38);
+  // Label band: lower mid-body, centered, full glass width
+  const bodyW = dims.w * (isTen ? 0.5 : 0.48);
   const bodyX = dims.w / 2 - bodyW / 2;
-  const sleeveTop = dims.h * (isTen ? 0.3 : 0.29);
-  const sleeveH = dims.h * (isTen ? 0.33 : 0.32);
+  const sleeveTop = dims.h * (isTen ? 0.4 : 0.38);
+  const sleeveH = dims.h * (isTen ? 0.28 : 0.27);
 
   const wrapBmp = createWrapLabelBitmap({
     name,
@@ -1259,9 +1259,8 @@ function createWrapLabelBitmap(options) {
 }
 
 /**
- * Physical wrap on glass: vial yawed ~12° left so spine is face-on and the
- * right-side QR solidly disappears around the curve (~30–40% cropped).
- * Full opacity slices — no fade on the QR modules.
+ * Physical wrap on glass: centered on the vial body and stretched edge-to-edge
+ * across the full visible glass width. Slight cylinder shading keeps depth.
  */
 function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   if (!labelCanvas || !labelCanvas.width) return;
@@ -1270,22 +1269,22 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   const R = bodyW / 2;
   const lw = labelCanvas.width;
   const lh = labelCanvas.height;
-  const slices = 120;
+  const slices = 140;
 
-  // ~18° left yaw: left spine faces camera; right edge clearly crops the QR
-  const yaw = (-18 * Math.PI) / 180;
-  // Visible wrap ≈ front cylinder arc
-  const visibleArc = Math.PI * 0.95;
-  // Label U range: spine at 0 → cut through QR (~30–40% of QR past the rim)
-  const uStart = 0.0;
-  const uEnd = 0.86;
+  // Face-on: no yaw so the wrap stays centered on the vial
+  const yaw = 0;
+  // Front hemisphere → left/right edges land on glass rims
+  const visibleArc = Math.PI;
+  // Stretch the full label bitmap across that arc
+  const uStart = 0;
+  const uEnd = 1;
 
   ctx.save();
   roundRect(ctx, bodyX - 0.5, sleeveTop - 0.5, bodyW + 1, sleeveH + 1, radius);
   ctx.clip();
 
   // Soft paper contact under the wrap
-  ctx.fillStyle = "rgba(0,0,0,0.2)";
+  ctx.fillStyle = "rgba(0,0,0,0.18)";
   roundRect(ctx, bodyX + 1, sleeveTop + 2, bodyW - 2, sleeveH - 1, radius);
   ctx.fill();
 
@@ -1298,20 +1297,19 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
     const theta0 = (t0 - 0.5) * visibleArc + yaw;
     const theta1 = (t1 - 0.5) * visibleArc + yaw;
     const cos = (Math.cos(theta0) + Math.cos(theta1)) / 2;
-    // Keep drawing past grazing so QR stays solid as it wraps away
-    if (cos < 0.02) continue;
+    // Keep drawing past grazing so edges stay solid on the rim
+    if (cos < 0.01) continue;
 
-    const x0 = cx + R * 0.995 * Math.sin(theta0);
-    const x1 = cx + R * 0.995 * Math.sin(theta1);
+    const x0 = cx + R * Math.sin(theta0);
+    const x1 = cx + R * Math.sin(theta1);
     const destX = Math.min(x0, x1);
-    const destW = Math.max(1.05, Math.abs(x1 - x0) + 0.55);
+    const destW = Math.max(1.05, Math.abs(x1 - x0) + 0.65);
 
     const u0 = uStart + t0 * (uEnd - uStart);
     const u1 = uStart + t1 * (uEnd - uStart);
     const srcX = u0 * lw;
     const srcW = Math.max(1, (u1 - u0) * lw + 0.5);
 
-    // Full opacity — QR modules stay solid black until geometrically cropped
     ctx.globalAlpha = 1;
     ctx.drawImage(
       labelCanvas,
