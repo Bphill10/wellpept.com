@@ -22,18 +22,26 @@ export const WP_MARK_SRC = UD_MARK_SRC;
 export const WP_MONOGRAM_SRC = UD_MARK_SRC;
 
 /**
- * Physical label size by vial bottle.
- * 3 mL → 40×20 mm · 10 mL → 50×30 mm
+ * Physical wrap label size by vial bottle (rounded sticker).
+ * 3 mL → 40×20 · 5 mL → 40×25 · 10 mL → 50×30 · 30 mL → 70×40
  * @type {Record<number, { widthMm: number, heightMm: number, src?: string }>}
  */
 export const LABEL_SPEC_BY_VIAL_ML = {
   3: { widthMm: 40, heightMm: 20, src: BLANK_LABEL_SRC },
+  5: { widthMm: 40, heightMm: 25 },
   10: { widthMm: 50, heightMm: 30 },
+  30: { widthMm: 70, heightMm: 40 },
 };
+
+export const LABEL_BOTTLE_SIZES_ML = [3, 5, 10, 30];
 
 export function labelSpecForVialMl(vialMl = 3) {
   const ml = Number(vialMl) || 3;
+  if (LABEL_SPEC_BY_VIAL_ML[ml]) return LABEL_SPEC_BY_VIAL_ML[ml];
+  // Nearest known bottle size
+  if (ml >= 20) return LABEL_SPEC_BY_VIAL_ML[30];
   if (ml >= 8) return LABEL_SPEC_BY_VIAL_ML[10];
+  if (ml >= 4) return LABEL_SPEC_BY_VIAL_ML[5];
   return LABEL_SPEC_BY_VIAL_ML[3];
 }
 
@@ -1733,11 +1741,13 @@ export function drawPhysicalLabel(canvas, options = {}) {
   roundRect(ctx, 0, 0, printW, printH, cornerR);
   ctx.clip();
 
+  // Blank 3 mL labels can use folder art when aspect matches 40×20.
   const useFolderArt =
     blank &&
     blankLabelImage?.width &&
     (Number(vialMl) || 3) === 3 &&
-    spec.widthMm === 40;
+    spec.widthMm === 40 &&
+    spec.heightMm === 20;
 
   if (useFolderArt) {
     ctx.fillStyle = "#ffffff";

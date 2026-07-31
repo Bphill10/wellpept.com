@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Calculator, RotateCcw, Link2, Download } from "lucide-react";
+import LabelTemplate from "./LabelTemplate";
 import {
   CATEGORIES,
   calculatorOptionsFromListings,
@@ -8,12 +9,22 @@ import {
 import {
   buildCalculatorShareUrl,
   defaultsFromCatalogSelection,
+  formatDoseRangeLabel,
   normalizeDoseUnit,
   suggestedBacMl as suggestedBacFromAutomation,
 } from "../utils/automation";
+import {
+  LABEL_BOTTLE_SIZES_ML,
+  labelSpecForVialMl,
+} from "../utils/vialArt";
 
 const CUSTOM_ID = "custom";
-const BOTTLE_SIZES_ML = [3, 5, 10, 30];
+const BOTTLE_SIZES_ML = LABEL_BOTTLE_SIZES_ML;
+
+function bottleOptionLabel(ml) {
+  const spec = labelSpecForVialMl(ml);
+  return `${ml} mL · label ${spec.widthMm}×${spec.heightMm} mm`;
+}
 
 function formatNum(v, digits = 2) {
   const n = Number(v);
@@ -378,7 +389,8 @@ export default function PeptideCalculator({
               <h1>Peptide calculator</h1>
               <p className="lede" style={{ marginBottom: 0 }}>
                 Pick a catalog peptide or Custom to enter your own name, vial
-                contents, and bottle size (3 / 5 / 10 / 30 mL).
+                contents, and bottle / label size (3·40×20 · 5·40×25 · 10·50×30 ·
+                30·70×40 mm).
               </p>
             </div>
           </div>
@@ -459,14 +471,14 @@ export default function PeptideCalculator({
                         />
                       </label>
                       <label className="field">
-                        Bottle size
+                        Bottle + label size
                         <select
                           value={String(vialMl)}
                           onChange={(e) => setVialMl(Number(e.target.value))}
                         >
                           {BOTTLE_SIZES_ML.map((ml) => (
                             <option key={ml} value={ml}>
-                              {ml} mL
+                              {bottleOptionLabel(ml)}
                             </option>
                           ))}
                         </select>
@@ -658,9 +670,63 @@ export default function PeptideCalculator({
                       <span>Bottle</span>
                       <strong>{vialMl} mL</strong>
                     </div>
+                    <div>
+                      <span>Label</span>
+                      <strong>
+                        {labelSpecForVialMl(vialMl).widthMm}×
+                        {labelSpecForVialMl(vialMl).heightMm} mm
+                      </strong>
+                    </div>
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+
+          <div className="calc-print-panel">
+            <div className="calc-card-head">
+              <h2>Vial label</h2>
+            </div>
+            <p className="meta">
+              {bottleOptionLabel(Number(vialMl) || 3)}. Rounded corners · QR →
+              www.wellpept.com. Filled from this calculator.
+            </p>
+            {!isCustom ? (
+              <label className="field" style={{ maxWidth: "22rem" }}>
+                Bottle + label size
+                <select
+                  value={
+                    BOTTLE_SIZES_ML.includes(Number(vialMl))
+                      ? String(vialMl)
+                      : "3"
+                  }
+                  onChange={(e) => setVialMl(Number(e.target.value))}
+                >
+                  {BOTTLE_SIZES_ML.map((ml) => (
+                    <option key={ml} value={ml}>
+                      {bottleOptionLabel(ml)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+            <div className="calc-label-stage">
+              <LabelTemplate
+                blank={false}
+                size="lg"
+                name={name || selectedPeptide?.name || "Peptide"}
+                mass={mass}
+                unit={vialUnit || "mg"}
+                bacWater={solution ? `${formatNum(solution, 2)} mL` : ""}
+                concentration={result?.concLabel || ""}
+                doseRange={formatDoseRangeLabel(
+                  dose,
+                  doseUnit,
+                  result?.units ? Math.round(Number(result.units)) || 10 : 10
+                )}
+                vialMl={Number(vialMl) || 3}
+                showDownload
+              />
             </div>
           </div>
 
