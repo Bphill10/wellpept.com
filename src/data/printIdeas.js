@@ -13,7 +13,7 @@ export const PRINT_IDEAS = [
     tag: "Organization",
     href: "/printables/undisclosed-cap-plate.stl",
     download: "undisclosed-cap-plate.stl",
-    image: "/printables/previews/free-prints-caps-hero.webp",
+    image: "/printables/previews/caps-collage.svg",
   },
   {
     id: "kit-case",
@@ -24,7 +24,7 @@ export const PRINT_IDEAS = [
     tag: "Travel",
     href: "/printables/undisclosed-vial-case-plate.stl",
     download: "undisclosed-vial-case-plate.stl",
-    image: "/printables/previews/free-prints-case-hero.webp",
+    image: "/undisclosed-hero-kit-sm.webp",
   },
   {
     id: "wrap-labels",
@@ -33,7 +33,7 @@ export const PRINT_IDEAS = [
       "Black-on-white die-cut wraps with strength, BAC line, QR — print yourself from the calculator or order a pack of 10.",
     status: "labels",
     tag: "Labels",
-    image: "/printables/previews/free-prints-labels-hero.webp",
+    image: "/undisclosed-label-flat.webp",
   },
   {
     id: "angled-rack",

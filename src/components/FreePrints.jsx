@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Download, ArrowLeft, Printer, ShoppingCart } from "lucide-react";
 import { CAP_SHORT_NAMES, capStlSlug } from "../data/capNames";
+import LabelTemplate from "./LabelTemplate";
 import {
   PRINT_CAP_OPTIONS,
   PRINT_PRICES,
@@ -184,10 +185,10 @@ export default function FreePrints({
           </div>
           <div className="free-print-order-banner-media" aria-hidden="true">
             <img
-              src="/printables/previews/free-prints-case-hero.webp"
+              src="/undisclosed-hero-kit-sm.webp"
               alt=""
-              width={640}
-              height={427}
+              width={800}
+              height={534}
               loading="eager"
               decoding="async"
             />
@@ -196,15 +197,18 @@ export default function FreePrints({
 
         <div className="free-prints-grid">
           <article className="free-print-card panel">
-            <div className="free-print-media">
+            <div className="free-print-media free-print-media--caps">
               <img
-                src="/printables/previews/free-prints-caps-hero.webp"
-                alt="3D printed etched vial caps with short peptide names"
-                width={1200}
-                height={675}
+                src="/printables/previews/caps-collage.svg"
+                alt="Schematic etched vial caps with short peptide names"
+                width={920}
+                height={700}
                 loading="eager"
                 decoding="async"
               />
+              <p className="meta free-print-media-note">
+                Schematic preview — physical cap etch will be refined
+              </p>
             </div>
             <div className="free-print-copy">
               <h2>10 etched caps · {formatPrintMoney(PRINT_PRICES.caps10)}</h2>
@@ -275,10 +279,10 @@ export default function FreePrints({
           <article className="free-print-card panel">
             <div className="free-print-media">
               <img
-                src="/printables/previews/free-prints-case-hero.webp"
-                alt="3D printed hinged vial kit case with pockets"
-                width={1200}
-                height={675}
+                src="/undisclosed-hero-kit-sm.webp"
+                alt="Undisclosed 10-vial research kit case"
+                width={800}
+                height={534}
                 loading="lazy"
                 decoding="async"
               />
@@ -346,12 +350,12 @@ export default function FreePrints({
           </article>
 
           <article className="free-print-card panel">
-            <div className="free-print-media">
+            <div className="free-print-media free-print-media--label">
               <img
-                src="/printables/previews/free-prints-labels-hero.webp"
-                alt="Printed monochrome vial wrap labels"
-                width={1200}
-                height={675}
+                src="/undisclosed-label-flat.webp"
+                alt="Undisclosed clinical vial wrap label"
+                width={640}
+                height={320}
                 loading="lazy"
                 decoding="async"
               />
@@ -424,6 +428,18 @@ export default function FreePrints({
                     <Download size={16} /> DIY free in calculator
                   </button>
                 ) : null}
+              </div>
+              <div className="free-print-label-live">
+                <LabelTemplate
+                  blank={false}
+                  size="md"
+                  name={selectedLabel.peptide === "Blank" ? "Peptide" : selectedLabel.peptide}
+                  mass={labelMass || "10"}
+                  unit="mg"
+                  bacWater="2.0 mL"
+                  vialMl={labelMl}
+                  showDownload={false}
+                />
               </div>
             </div>
           </article>

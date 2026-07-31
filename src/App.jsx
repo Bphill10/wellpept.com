@@ -1605,7 +1605,15 @@ export default function App() {
                 >
                   <div className="free-prints-teaser-media" aria-hidden="true">
                     <img
-                      src="/printables/previews/free-prints-caps-hero.webp"
+                      src="/printables/previews/caps-collage.svg"
+                      alt=""
+                      width={400}
+                      height={300}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <img
+                      src="/undisclosed-hero-kit-sm.webp"
                       alt=""
                       width={400}
                       height={267}
@@ -1613,18 +1621,10 @@ export default function App() {
                       decoding="async"
                     />
                     <img
-                      src="/printables/previews/free-prints-case-hero.webp"
+                      src="/undisclosed-label-flat.webp"
                       alt=""
                       width={400}
-                      height={267}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <img
-                      src="/printables/previews/free-prints-labels-hero.webp"
-                      alt=""
-                      width={400}
-                      height={267}
+                      height={200}
                       loading="lazy"
                       decoding="async"
                     />

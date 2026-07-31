@@ -696,16 +696,6 @@ export default function PeptideCalculator({
               {bottleOptionLabel(Number(vialMl) || 3)}. Rounded corners · QR →
               www.wellpept.com. Filled from this calculator.
             </p>
-            <div className="calc-print-preview">
-              <img
-                src="/printables/previews/free-prints-labels-hero.webp"
-                alt="Example printed vial wrap labels"
-                width={1200}
-                height={800}
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
             {!isCustom ? (
               <label className="field" style={{ maxWidth: "22rem" }}>
                 Bottle + label size
@@ -757,16 +747,6 @@ export default function PeptideCalculator({
               {name?.trim() || selectedPeptide?.name || "custom"}. Print top-up,
               0.2 mm layers, no supports.
             </p>
-            <div className="calc-print-preview">
-              <img
-                src="/printables/previews/free-prints-caps-hero.webp"
-                alt="Example 3D printed etched vial caps"
-                width={1200}
-                height={800}
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
             <div className="calc-print-cap-preview">
               <img
                 src={`/printables/previews/cap-${etchPreviewSlug}.svg`}
@@ -779,6 +759,9 @@ export default function PeptideCalculator({
               />
               <span>{etchShort}</span>
             </div>
+            <p className="meta" style={{ marginTop: "0.35rem" }}>
+              Schematic preview — physical cap etch will be refined later.
+            </p>
             <div className="calc-print-actions">
               <a
                 className="primary-btn"
@@ -818,10 +801,10 @@ export default function PeptideCalculator({
             </p>
             <div className="calc-print-preview">
               <img
-                src="/printables/previews/free-prints-case-hero.webp"
-                alt="Example 3D printed vial kit case"
-                width={1200}
-                height={800}
+                src="/undisclosed-hero-kit-sm.webp"
+                alt="Undisclosed 10-vial research kit case"
+                width={800}
+                height={534}
                 loading="lazy"
                 decoding="async"
               />
