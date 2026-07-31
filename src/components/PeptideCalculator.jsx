@@ -793,16 +793,16 @@ export default function PeptideCalculator({
 
           <div className="calc-print-panel">
             <div className="calc-card-head">
-              <h2>3D print the kit case</h2>
+              <h2>3D print the clear kit case</h2>
             </div>
             <p className="meta">
-              Printable case for the 10-vial kit in the product photo — 2×5
-              vial pockets, spare-cap trough, hinged lid. STL in millimeters.
+              Matches the featured KLOW kit photo — 2×5 vial pockets, 4 round
+              spare-cap wells, hinged lid. Print in clear PETG / clear PLA.
             </p>
             <div className="calc-print-preview">
               <img
                 src="/undisclosed-hero-kit-sm.webp"
-                alt="Undisclosed 10-vial research kit case"
+                alt="Undisclosed clear KLOW 10-vial research kit case"
                 width={800}
                 height={534}
                 loading="lazy"
@@ -840,8 +840,8 @@ export default function PeptideCalculator({
               </a>
             </div>
             <p className="meta" style={{ marginTop: "0.65rem" }}>
-              ~141 × 50 mm · PETG or PLA · 0.2 mm layers · no supports. Scale
-              ±1–3% if vials are tight.
+              ~125 × 45 mm · clear filament · 2–3 walls · 0–15% infill · slow
+              outer walls · no supports. Scale ±1–3% if vials are tight.
             </p>
             <p className="meta" style={{ marginTop: "0.65rem" }}>
               Prefer a label pack or more STLs? Open{" "}
