@@ -1,5 +1,5 @@
 /**
- * Focused Undisclosed catalog — top 29 compounds.
+ * Focused Undisclosed catalog — curated storefront compounds.
  * 1) JEC US primary · 2) Changsha gap-fill · 3) ERP/STG third backup.
  * Supplier names never shown.
  */
