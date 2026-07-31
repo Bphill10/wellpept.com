@@ -1,15 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { Download, ArrowLeft, Printer, ShoppingCart } from "lucide-react";
+import { Download, ArrowLeft, Printer } from "lucide-react";
 import { CAP_SHORT_NAMES, capStlSlug } from "../data/capNames";
 import LabelTemplate from "./LabelTemplate";
 import {
   PRINT_CAP_OPTIONS,
   PRINT_CAP_COLORS,
-  PRINT_PRICES,
-  formatPrintMoney,
-  printCaps10Line,
-  printLabels10Line,
-  printKitLine,
 } from "../data/printables";
 import { PRINT_IDEAS, PRINT_IDEA_STATUS } from "../data/printIdeas";
 
@@ -75,22 +70,13 @@ function CapColorThumb({ color }) {
   );
 }
 
-export default function FreePrints({
-  onBack,
-  onOpenCalculator,
-  onAddToCart,
-  onGoCart,
-}) {
+export default function FreePrints({ onBack, onOpenCalculator }) {
   const [capMode, setCapMode] = useState("name"); // name | color
   const [capKey, setCapKey] = useState(PRINT_CAP_OPTIONS[0]?.slug || "reta");
   const [capColorId, setCapColorId] = useState("black");
   const [labelKey, setLabelKey] = useState(PRINT_CAP_OPTIONS[0]?.slug || "reta");
   const [labelMl, setLabelMl] = useState(3);
   const [labelMass, setLabelMass] = useState("10");
-  const [kitCapMode, setKitCapMode] = useState("name");
-  const [kitKey, setKitKey] = useState(PRINT_CAP_OPTIONS[0]?.slug || "reta");
-  const [kitColorId, setKitColorId] = useState("black");
-  const [kitMl, setKitMl] = useState(3);
 
   const selectedCap = useMemo(
     () =>
@@ -106,20 +92,15 @@ export default function FreePrints({
       PRINT_CAP_OPTIONS.find((o) => o.slug === labelKey) || PRINT_CAP_OPTIONS[0],
     [labelKey]
   );
-  const selectedKit = useMemo(
-    () =>
-      PRINT_CAP_OPTIONS.find((o) => o.slug === kitKey) || PRINT_CAP_OPTIONS[0],
-    [kitKey]
-  );
-  const selectedKitColor = useMemo(
-    () => PRINT_CAP_COLORS.find((c) => c.id === kitColorId) || PRINT_CAP_COLORS[0],
-    [kitColorId]
-  );
 
-  function addLine(line, qty = 1) {
-    if (!onAddToCart || !line) return;
-    onAddToCart(line, qty);
-  }
+  const capStlHref =
+    capMode === "color" || selectedCap.slug === "blank"
+      ? "/printables/undisclosed-cap-blank.stl"
+      : `/printables/undisclosed-cap-${selectedCap.slug}.stl`;
+  const capStlName =
+    capMode === "color" || selectedCap.slug === "blank"
+      ? "undisclosed-cap-blank.stl"
+      : `undisclosed-cap-${selectedCap.slug}.stl`;
 
   return (
     <section className="section free-prints-page" id="free-prints">
@@ -132,153 +113,13 @@ export default function FreePrints({
           <span className="featured-kicker">
             <Printer size={14} aria-hidden="true" /> Free prints
           </span>
-          <h1>Print free — or order cheap</h1>
+          <h1>Free 3D prints &amp; labels</h1>
           <p>
-            Download any STL or label and print yourself for free. Or order and
-            we’ll print for you:{" "}
-            <strong>10 caps {formatPrintMoney(PRINT_PRICES.caps10)}</strong>
-            {" · "}
-            <strong>10 labels {formatPrintMoney(PRINT_PRICES.labels10)}</strong>
-            {" · "}
-            <strong>print kit {formatPrintMoney(PRINT_PRICES.kit)}</strong>
-            {" "}(case + 10 caps + 10 labels).
-          </p>
-          <p className="meta free-prints-price-line">
-            Print shipping {formatPrintMoney(8)} · free with Warehouse A
-            peptides. Request-first checkout like the catalog.
+            Download cap and kit-case STLs free — many etched names or print
+            blank caps in black, white, blue, or red filament. Make vial wrap
+            labels free in the calculator.
           </p>
         </div>
-
-        <article className="free-print-order-banner panel">
-          <div className="free-print-order-banner-copy">
-            <h2>Print kit · {formatPrintMoney(PRINT_PRICES.kit)}</h2>
-            <p>
-              Case + 10 caps + 10 wrap labels. Caps: etched name or one of four
-              solid colors. We print in the US · 5–10 days.
-            </p>
-            <div className="free-print-mode-toggle" role="group" aria-label="Kit cap style">
-              <button
-                type="button"
-                className={kitCapMode === "name" ? "soft-btn active" : "ghost-btn"}
-                onClick={() => setKitCapMode("name")}
-              >
-                Named etch
-              </button>
-              <button
-                type="button"
-                className={kitCapMode === "color" ? "soft-btn active" : "ghost-btn"}
-                onClick={() => setKitCapMode("color")}
-              >
-                Solid color
-              </button>
-            </div>
-            <div className="free-print-order-fields">
-              {kitCapMode === "name" ? (
-                <label className="field">
-                  Cap name
-                  <select
-                    value={kitKey}
-                    onChange={(e) => setKitKey(e.target.value)}
-                  >
-                    {PRINT_CAP_OPTIONS.map((o) => (
-                      <option key={o.slug} value={o.slug}>
-                        {o.short} — {o.peptide}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ) : (
-                <fieldset className="free-print-color-field">
-                  <legend>Cap color</legend>
-                  <div className="free-print-color-swatches">
-                    {PRINT_CAP_COLORS.map((c) => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        className={`free-print-color-swatch${
-                          kitColorId === c.id ? " active" : ""
-                        }`}
-                        style={{ "--swatch": c.hex }}
-                        onClick={() => setKitColorId(c.id)}
-                        aria-pressed={kitColorId === c.id}
-                        title={c.label}
-                      >
-                        <span className="free-print-color-dot" />
-                        {c.label}
-                      </button>
-                    ))}
-                  </div>
-                </fieldset>
-              )}
-              <label className="field">
-                Label peptide
-                <select
-                  value={kitKey}
-                  onChange={(e) => setKitKey(e.target.value)}
-                >
-                  {PRINT_CAP_OPTIONS.map((o) => (
-                    <option key={o.slug} value={o.slug}>
-                      {o.short} — {o.peptide}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                Label bottle size
-                <select
-                  value={kitMl}
-                  onChange={(e) => setKitMl(Number(e.target.value))}
-                >
-                  {BOTTLE_ML.map((ml) => (
-                    <option key={ml} value={ml}>
-                      {ml} mL
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <div className="calc-print-actions">
-              <button
-                type="button"
-                className="primary-btn"
-                onClick={() =>
-                  addLine(
-                    printKitLine({
-                      peptide: selectedKit.peptide,
-                      short: selectedKit.short,
-                      mass: "10",
-                      unit: "mg",
-                      vialMl: kitMl,
-                      capMode: kitCapMode,
-                      colorId: kitColorId,
-                    })
-                  )
-                }
-              >
-                <ShoppingCart size={16} /> Add kit ·{" "}
-                {formatPrintMoney(PRINT_PRICES.kit)}
-                {kitCapMode === "color"
-                  ? ` · ${selectedKitColor.label}`
-                  : ` · ${selectedKit.short}`}
-              </button>
-              {onGoCart ? (
-                <button type="button" className="ghost-btn" onClick={onGoCart}>
-                  View cart
-                </button>
-              ) : null}
-            </div>
-          </div>
-          <div className="free-print-order-banner-media" aria-hidden="true">
-            <img
-              src="/undisclosed-hero-kit-sm.webp"
-              alt=""
-              width={800}
-              height={534}
-              loading="eager"
-              decoding="async"
-            />
-          </div>
-        </article>
 
         <div className="free-prints-grid">
           <article className="free-print-card panel">
@@ -296,11 +137,10 @@ export default function FreePrints({
               </p>
             </div>
             <div className="free-print-copy">
-              <h2>10 caps · {formatPrintMoney(PRINT_PRICES.caps10)}</h2>
+              <h2>Vial caps · free STL</h2>
               <p>
-                Pack of 10 flip-caps. Choose a short etched name from the
-                library, or a solid color with no etch — black, white, blue, or
-                red.
+                Flip-cap STLs with a short etched name, or blank for solid
+                filament colors (black, white, blue, red).
               </p>
               <div className="free-print-mode-toggle" role="group" aria-label="Cap style">
                 <button
@@ -376,54 +216,18 @@ export default function FreePrints({
               )}
 
               <div className="calc-print-actions">
-                <button
-                  type="button"
-                  className="primary-btn"
-                  onClick={() =>
-                    addLine(
-                      printCaps10Line(
-                        capMode === "color"
-                          ? { mode: "color", colorId: capColorId }
-                          : {
-                              mode: "name",
-                              peptide: selectedCap.peptide,
-                              short: selectedCap.short,
-                            }
-                      )
-                    )
-                  }
-                >
-                  <ShoppingCart size={16} /> Order 10 ·{" "}
-                  {formatPrintMoney(PRINT_PRICES.caps10)}
+                <a className="primary-btn" href={capStlHref} download={capStlName}>
+                  <Download size={16} /> Download{" "}
                   {capMode === "color"
-                    ? ` · ${selectedCapColor.label}`
-                    : ` · ${selectedCap.short}`}
-                </button>
-              </div>
-              <p className="meta free-prints-diy-label">Or print free</p>
-              <div className="calc-print-actions">
-                <a
-                  className="soft-btn"
-                  href={`/printables/undisclosed-cap-${
-                    capMode === "color" || selectedCap.slug === "blank"
-                      ? "blank"
-                      : selectedCap.slug
-                  }.stl`}
-                  download={`undisclosed-cap-${
-                    capMode === "color" || selectedCap.slug === "blank"
-                      ? "blank"
-                      : selectedCap.slug
-                  }.stl`}
-                >
-                  <Download size={16} />{" "}
-                  {capMode === "color" ? "Blank" : selectedCap.short} STL free
+                    ? `blank · print in ${selectedCapColor.label}`
+                    : `${selectedCap.short} STL`}
                 </a>
                 <a
                   className="soft-btn"
                   href="/printables/undisclosed-cap-plate.stl"
                   download="undisclosed-cap-plate.stl"
                 >
-                  Full name plate STL free
+                  Full name plate
                 </a>
               </div>
             </div>
@@ -441,51 +245,18 @@ export default function FreePrints({
               />
             </div>
             <div className="free-print-copy">
-              <h2>Kit case · free DIY or in the ${PRINT_PRICES.kit} kit</h2>
+              <h2>Kit case · free STL</h2>
               <p>
                 Hinged case — 2×5 vial pockets, spare-cap trough, pin hinge.
-                Included in the print kit, or download the STL and print free.
+                Print base, lid, and pin free.
               </p>
-              <div className="free-print-inline-thumb">
-                <img
-                  src="/printables/previews/case-thumb.svg"
-                  alt=""
-                  width={320}
-                  height={200}
-                  loading="lazy"
-                  aria-hidden="true"
-                />
-              </div>
-              <div className="calc-print-actions">
-                <button
-                  type="button"
-                  className="primary-btn"
-                  onClick={() =>
-                    addLine(
-                      printKitLine({
-                        peptide: selectedKit.peptide,
-                        short: selectedKit.short,
-                        mass: "10",
-                        unit: "mg",
-                        vialMl: kitMl,
-                        capMode: kitCapMode,
-                        colorId: kitColorId,
-                      })
-                    )
-                  }
-                >
-                  <ShoppingCart size={16} /> Order print kit ·{" "}
-                  {formatPrintMoney(PRINT_PRICES.kit)}
-                </button>
-              </div>
-              <p className="meta free-prints-diy-label">Or print free</p>
               <div className="calc-print-actions">
                 <a
-                  className="soft-btn"
+                  className="primary-btn"
                   href="/printables/undisclosed-vial-case-plate.stl"
                   download="undisclosed-vial-case-plate.stl"
                 >
-                  <Download size={16} /> Full plate STL free
+                  <Download size={16} /> Full plate STL
                 </a>
                 <a
                   className="soft-btn"
@@ -500,6 +271,13 @@ export default function FreePrints({
                   download="undisclosed-vial-case-lid.stl"
                 >
                   Lid
+                </a>
+                <a
+                  className="soft-btn"
+                  href="/printables/undisclosed-vial-case-pin.stl"
+                  download="undisclosed-vial-case-pin.stl"
+                >
+                  Pin
                 </a>
               </div>
             </div>
@@ -517,11 +295,10 @@ export default function FreePrints({
               />
             </div>
             <div className="free-print-copy">
-              <h2>10 vial labels · {formatPrintMoney(PRINT_PRICES.labels10)}</h2>
+              <h2>Vial labels · free</h2>
               <p>
-                Black-on-white clinical wraps. Pick peptide, strength, and
-                bottle size — we print 10. Or generate your own in the
-                calculator for free.
+                Your clinical wrap labels — pick peptide, strength, and bottle
+                size, then download from the preview or calculator.
               </p>
               <div className="free-print-order-fields">
                 <label className="field">
@@ -561,30 +338,6 @@ export default function FreePrints({
                   </select>
                 </label>
               </div>
-              <div className="calc-print-actions">
-                <button
-                  type="button"
-                  className="primary-btn"
-                  onClick={() =>
-                    addLine(
-                      printLabels10Line({
-                        peptide: selectedLabel.peptide,
-                        mass: labelMass || "10",
-                        unit: "mg",
-                        vialMl: labelMl,
-                      })
-                    )
-                  }
-                >
-                  <ShoppingCart size={16} /> Order 10 ·{" "}
-                  {formatPrintMoney(PRINT_PRICES.labels10)}
-                </button>
-                {onOpenCalculator ? (
-                  <button type="button" className="soft-btn" onClick={onOpenCalculator}>
-                    <Download size={16} /> DIY free in calculator
-                  </button>
-                ) : null}
-              </div>
               <div className="free-print-label-live">
                 <LabelTemplate
                   blank={false}
@@ -598,37 +351,42 @@ export default function FreePrints({
                   unit="mg"
                   bacWater="2.0 mL"
                   vialMl={labelMl}
-                  showDownload={false}
+                  showDownload
                 />
               </div>
+              {onOpenCalculator ? (
+                <div className="calc-print-actions">
+                  <button type="button" className="soft-btn" onClick={onOpenCalculator}>
+                    Open calculator
+                  </button>
+                </div>
+              ) : null}
             </div>
           </article>
         </div>
 
         <div className="section-head free-prints-cap-head">
           <div>
-            <h2>Cap library</h2>
+            <h2>Cap name library</h2>
             <p className="meta">
-              Many etched names · or 4 solid colors · packs of 10 for{" "}
-              {formatPrintMoney(PRINT_PRICES.caps10)}. STLs free to DIY.
+              Free STL per etch · or blank for solid black / white / blue / red.
             </p>
           </div>
         </div>
 
         <div className="free-print-color-band">
           {PRINT_CAP_COLORS.map((c) => (
-            <button
+            <a
               key={c.id}
-              type="button"
               className="free-print-color-pick"
-              onClick={() =>
-                addLine(printCaps10Line({ mode: "color", colorId: c.id }))
-              }
+              href="/printables/undisclosed-cap-blank.stl"
+              download="undisclosed-cap-blank.stl"
+              title={`Blank STL — print in ${c.label}`}
             >
               <CapColorThumb color={c} />
               <strong>{c.label}</strong>
-              <span>10 · $5 · no etch</span>
-            </button>
+              <span>Blank STL free</span>
+            </a>
           ))}
         </div>
 
@@ -636,72 +394,37 @@ export default function FreePrints({
           {CAP_GALLERY.map(({ peptide, short }) => {
             const slug = capStlSlug(peptide);
             return (
-              <div
+              <a
                 key={`${short}-${peptide}`}
-                className="free-print-cap-tile free-print-cap-tile--order"
+                className="free-print-cap-tile"
+                href={`/printables/undisclosed-cap-${slug}.stl`}
+                download={`undisclosed-cap-${slug}.stl`}
+                title={`Download ${short} STL free`}
               >
                 <CapThumb short={short} />
                 <strong>{short}</strong>
                 <span>{peptide}</span>
-                <div className="free-print-cap-tile-actions">
-                  <button
-                    type="button"
-                    className="soft-btn"
-                    onClick={() =>
-                      addLine(
-                        printCaps10Line({ mode: "name", peptide, short })
-                      )
-                    }
-                  >
-                    10 · $5
-                  </button>
-                  <a
-                    href={`/printables/undisclosed-cap-${slug}.stl`}
-                    download={`undisclosed-cap-${slug}.stl`}
-                    title={`Download ${short} STL free`}
-                  >
-                    Free STL
-                  </a>
-                </div>
-              </div>
+              </a>
             );
           })}
-          <div className="free-print-cap-tile free-print-cap-tile--order">
+          <a
+            className="free-print-cap-tile"
+            href="/printables/undisclosed-cap-blank.stl"
+            download="undisclosed-cap-blank.stl"
+            title="Download blank UD STL free"
+          >
             <CapThumb short="UD" />
             <strong>UD</strong>
             <span>Blank etch</span>
-            <div className="free-print-cap-tile-actions">
-              <button
-                type="button"
-                className="soft-btn"
-                onClick={() =>
-                  addLine(
-                    printCaps10Line({
-                      mode: "name",
-                      peptide: "Blank / UD",
-                      short: "UD",
-                    })
-                  )
-                }
-              >
-                10 · $5
-              </button>
-              <a
-                href="/printables/undisclosed-cap-blank.stl"
-                download="undisclosed-cap-blank.stl"
-              >
-                Free STL
-              </a>
-            </div>
-          </div>
+          </a>
         </div>
 
         <div className="section-head free-prints-cap-head" id="print-ideas">
           <div>
-            <h2>20 things to print for your peptides</h2>
+            <h2>More print ideas</h2>
             <p className="meta">
-              Caps, case, and labels ship today. The rest are next up — all DIY
-              STLs stay free when they drop.
+              Caps, case, and labels are free now. More STLs coming — still free
+              when they drop.
             </p>
           </div>
         </div>
@@ -714,7 +437,7 @@ export default function FreePrints({
                 <div className="print-idea-top">
                   <span className="print-idea-num">{String(i + 1).padStart(2, "0")}</span>
                   <span className={`print-idea-status print-idea-status--${st.tone}`}>
-                    {st.label}
+                    {idea.status === "soon" ? "Coming soon" : "Free"}
                   </span>
                 </div>
                 {idea.image ? (
@@ -747,7 +470,7 @@ export default function FreePrints({
                     </button>
                   ) : null}
                   {idea.status === "soon" ? (
-                    <span className="meta">STL coming · DIY free when ready</span>
+                    <span className="meta">Free STL when ready</span>
                   ) : null}
                 </div>
               </article>
@@ -757,7 +480,7 @@ export default function FreePrints({
 
         <p className="meta free-prints-footnote">
           Research organization only — not pharmaceutical closures or medical
-          devices. Print orders are request-first; we confirm before payment.
+          devices.
         </p>
       </div>
     </section>

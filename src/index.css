@@ -5003,6 +5003,16 @@ body:has(.app-shell--undisclosed)::before {
   font-size: 0.95rem;
 }
 
+.free-print-color-band .free-print-color-pick {
+  text-decoration: none;
+  color: inherit;
+}
+
+.free-print-cap-tile {
+  text-decoration: none;
+  color: inherit;
+}
+
 .free-print-mode-toggle {
   display: flex;
   flex-wrap: wrap;

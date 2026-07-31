@@ -8,7 +8,7 @@ export const PRINT_IDEAS = [
     id: "etched-caps",
     title: "Etched flip-caps",
     blurb:
-      "Short-name etched caps from a big name library, or solid black / white / blue / red with no etch.",
+      "Short-name etched caps from a big name library, or solid black / white / blue / red with blank STL.",
     status: "ready",
     tag: "Organization",
     href: "/printables/undisclosed-cap-plate.stl",
@@ -19,7 +19,7 @@ export const PRINT_IDEAS = [
     id: "kit-case",
     title: "10-vial hinged kit case",
     blurb:
-      "2×5 pockets, spare-cap trough, snap lid — the travel kit that matches the Undisclosed photo.",
+      "2×5 pockets, spare-cap trough, snap lid — free STL matching the Undisclosed kit photo.",
     status: "ready",
     tag: "Travel",
     href: "/printables/undisclosed-vial-case-plate.stl",
@@ -30,7 +30,7 @@ export const PRINT_IDEAS = [
     id: "wrap-labels",
     title: "Clinical wrap labels",
     blurb:
-      "Black-on-white die-cut wraps with strength, BAC line, QR — print yourself from the calculator or order a pack of 10.",
+      "Black-on-white die-cut wraps with strength, BAC line, QR — free download from Free prints or the calculator.",
     status: "labels",
     tag: "Labels",
     image: "/undisclosed-label-flat.webp",

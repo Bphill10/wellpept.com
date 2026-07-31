@@ -844,9 +844,8 @@ export default function PeptideCalculator({
               ±1–3% if vials are tight.
             </p>
             <p className="meta" style={{ marginTop: "0.65rem" }}>
-              Prefer we print it? Open{" "}
-              <strong>Free prints</strong> in the header to add caps, case, and
-              labels to your cart.
+              Prefer a label pack or more STLs? Open{" "}
+              <strong>Free prints</strong> in the header.
             </p>
           </div>
 

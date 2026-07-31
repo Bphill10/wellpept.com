@@ -1633,10 +1633,10 @@ export default function App() {
                     <span className="featured-kicker">Free prints</span>
                     <h2>Caps, case &amp; labels</h2>
                     <p>
-                      Print anything free (STL / labels), or order 10 caps $5 ·
-                      10 labels $5 · kit $15.
+                      Free cap &amp; case STLs, plus vial labels — many names or
+                      4 solid filament colors.
                     </p>
-                    <span className="soft-btn free-prints-teaser-cta">Order or download free</span>
+                    <span className="soft-btn free-prints-teaser-cta">Browse free prints</span>
                   </div>
                 </button>
               </div>
@@ -1927,11 +1927,6 @@ export default function App() {
             onOpenCalculator={() => {
               setCalcInitial(null);
               setView(VIEWS.calculator);
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-            onAddToCart={addToCart}
-            onGoCart={() => {
-              setView(VIEWS.cart);
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
           />
