@@ -43,7 +43,7 @@ export const TOP_25_PEPTIDES = [
   "Thymosin Alpha-1",
   "KPV",
   "Cagrilintide",
-  "LL-37",
+  "ARA-290",
   "FOX04-DRI",
 ];
 
@@ -202,7 +202,15 @@ export function isTop25Peptide(name) {
   ) {
     return true;
   }
-  if (n === "ll37" || n === "ll-37" || n.startsWith("ll37") || n.startsWith("ll-37")) {
+  if (
+    n === "ara-290" ||
+    n === "ara290" ||
+    n === "ara 290" ||
+    n.startsWith("ara-290") ||
+    n.startsWith("ara290") ||
+    n.startsWith("ara 290") ||
+    n.includes("cibinetide")
+  ) {
     return true;
   }
   if (

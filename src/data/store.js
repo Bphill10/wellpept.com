@@ -26,7 +26,7 @@ import {
 } from "../utils/stgSync";
 
 /** Bump when focused vendors/catalog must replace stale local data. */
-const STORAGE_KEY = "wellpept-marketplace-v25";
+const STORAGE_KEY = "wellpept-marketplace-v26";
 
 function syncVendor(v, policy = null) {
   if (!v || !ACTIVE_VENDOR_IDS.has(v.id)) return null;

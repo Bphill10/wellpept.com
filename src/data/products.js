@@ -170,6 +170,9 @@ const CATEGORY_MAP = {
   "PT-141": "Hormone",
   Epithalon: "Longevity",
   Epitalon: "Longevity",
+  "ARA-290": "Recovery",
+  ARA290: "Recovery",
+  Cibinetide: "Recovery",
 };
 
 /** Brief summaries: what it is + what labs study it for (1–2 sentences). */
@@ -256,6 +259,8 @@ const BLURBS = {
     "Angiotensin IV analogue studied for synaptic and cognitive research applications.",
   "LL-37":
     "Human cathelicidin antimicrobial peptide used in innate-immunity and host-defense research.",
+  "ARA-290":
+    "ARA-290 (cibinetide) is an EPO-derived peptide studied for tissue-protection and neuropathy research models.",
   KPV:
     "α-MSH tripeptide fragment studied for inflammatory-pathway and gut-barrier research.",
   Thymalin:
@@ -355,6 +360,7 @@ const TAGLINES = {
   Semax: "Neuroprotection research",
   Dihexa: "Synaptic research analogue",
   "LL-37": "Innate immunity research",
+  "ARA-290": "Tissue-protection research",
   KPV: "Inflammation & barrier research",
   Thymalin: "Immune modulation research",
   "Thymosin Alpha-1": "T-cell signaling research",
@@ -504,6 +510,14 @@ export function guessCategory(name) {
   if (CATEGORY_MAP[name]) return CATEGORY_MAP[name];
   const n = name.toUpperCase();
   if (n.includes("BPC") || n.includes("TB ") || n.includes("KPV")) return "Recovery";
+  if (
+    n.includes("ARA-290") ||
+    n.includes("ARA290") ||
+    n.includes("ARA 290") ||
+    n.includes("CIBINETIDE")
+  ) {
+    return "Recovery";
+  }
   if (n.includes("SEMAX") || n.includes("SELANK") || n.includes("DIHEXA")) return "Cognitive";
   if (
     n.includes("CJC") ||
@@ -641,6 +655,14 @@ export function displayPeptideName(name = "") {
   if (n.includes("cjc") && n.includes("dac")) return "CJC-1295 with DAC";
   if (n.includes("cjc")) return "CJC-1295";
   if (n.includes("ll-37") || n.includes("ll37") || n === "ll 37") return "LL-37";
+  if (
+    n.includes("ara-290") ||
+    n.includes("ara290") ||
+    n.includes("ara 290") ||
+    n.includes("cibinetide")
+  ) {
+    return "ARA-290";
+  }
   if (n.includes("fox04") || n.includes("foxo4") || n.includes("fox 04")) {
     return "FOX04-DRI";
   }
