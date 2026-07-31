@@ -132,6 +132,20 @@ function VialPreview({
   showDownload = false,
   showLabel = false,
 }) {
+  if (product?.print) {
+    if (product.image) {
+      return (
+        <div className={`skin-bottle-preview skin-bottle-preview--${size} skin-bottle-preview--photo`}>
+          <img src={product.image} alt="" className="skin-cart-thumb" />
+        </div>
+      );
+    }
+    return (
+      <div className={`skin-bottle-preview skin-bottle-preview--${size}`}>
+        <span className="meta">Print</span>
+      </div>
+    );
+  }
   if (product?.skin) {
     if (product.image) {
       return (
@@ -698,7 +712,9 @@ export default function App() {
     });
     setCartPulse(true);
     setTimeout(() => setCartPulse(false), 350);
-    if (product.skin) {
+    if (product.print) {
+      setFlash(`${product.name} added — we’ll print for you (request only)`);
+    } else if (product.skin) {
       setFlash(`${product.name} added (request only, no payment yet)`);
     } else {
       const strength = formatStrengthLabel(product);
@@ -1617,10 +1633,10 @@ export default function App() {
                     <span className="featured-kicker">Free prints</span>
                     <h2>Caps, case &amp; labels</h2>
                     <p>
-                      See what you can 3D print and download STLs + vial wraps
-                      at no charge.
+                      Order and we’ll print for you — or download free STLs and
+                      make your own labels.
                     </p>
-                    <span className="soft-btn free-prints-teaser-cta">Browse free prints</span>
+                    <span className="soft-btn free-prints-teaser-cta">Order or download</span>
                   </div>
                 </button>
               </div>
@@ -1911,6 +1927,11 @@ export default function App() {
             onOpenCalculator={() => {
               setCalcInitial(null);
               setView(VIEWS.calculator);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            onAddToCart={addToCart}
+            onGoCart={() => {
+              setView(VIEWS.cart);
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
           />

@@ -4836,6 +4836,102 @@ body:has(.app-shell--undisclosed)::before {
   line-height: 1.55;
 }
 
+.free-prints-price-line {
+  margin-top: 0.65rem !important;
+}
+
+.free-print-order-banner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+}
+
+.free-print-order-banner-copy {
+  padding: 1.15rem 1.25rem 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.free-print-order-banner-copy h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.free-print-order-banner-copy > p {
+  margin: 0;
+  color: var(--muted, #5a5a5a);
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.free-print-order-banner-media {
+  background: #e8e6e1;
+  min-height: 180px;
+}
+
+.free-print-order-banner-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  min-height: 180px;
+}
+
+.free-print-order-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 0.65rem;
+  margin: 0.15rem 0 0.25rem;
+}
+
+.free-prints-diy-label {
+  margin: 0.85rem 0 0 !important;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.free-print-cap-tile--order {
+  cursor: default;
+}
+
+.free-print-cap-tile--order:hover {
+  transform: none;
+}
+
+.free-print-cap-tile-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.free-print-cap-tile-actions .soft-btn {
+  padding: 0.25rem 0.55rem;
+  font-size: 0.72rem;
+}
+
+.free-print-cap-tile-actions a {
+  font-size: 0.72rem;
+  color: var(--muted, #666);
+  text-decoration: underline;
+}
+
+.app-shell--undisclosed .free-print-order-banner {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(0, 71, 171, 0.28);
+}
+
+@media (max-width: 820px) {
+  .free-print-order-banner {
+    grid-template-columns: 1fr;
+  }
+}
+
 .free-prints-hero .featured-kicker {
   display: inline-flex;
   align-items: center;

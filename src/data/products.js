@@ -711,6 +711,9 @@ export function strengthKey(product) {
 }
 
 export function formatStrengthLabel(product) {
+  if (product?.print) {
+    return product.unitLabel || product.form || "Print";
+  }
   if (product?.skin) {
     return product.form || product.unitLabel || product.size || "Skincare";
   }
@@ -767,6 +770,9 @@ export function formatStrengthSelectLabel(strengthOrProduct) {
  * Customer-facing form type only — strips vendor pack codes like `2mg*10vials`.
  */
 export function formatCustomerForm(product) {
+  if (product?.print) {
+    return product.form || product.unitLabel || "We print for you";
+  }
   if (product?.skin) {
     return product.form || product.unitLabel || product.size || "Skincare";
   }

@@ -111,7 +111,7 @@ export function cartShippingBreakdown(cart) {
       (line.warehouseId && WAREHOUSES[line.warehouseId]) ||
       warehouseForVendorId(line.vendorId);
 
-    if (wh && !line?.skin) {
+    if (wh && !line?.skin && !line?.print) {
       if (!byWh.has(wh.id)) {
         byWh.set(wh.id, {
           warehouseId: wh.id,
@@ -131,12 +131,16 @@ export function cartShippingBreakdown(cart) {
       continue;
     }
 
-    // Skincare / unknown: one flat fee per vendorId
+    // Skincare / print shop / unknown: one flat fee per vendorId
     const vid = line.vendorId || "other";
     if (!otherByVendor.has(vid)) {
       otherByVendor.set(vid, {
         warehouseId: vid,
-        label: "US shipping",
+        label: line.print
+          ? "Print shop"
+          : line.skin
+            ? "US shipping"
+            : "US shipping",
         flat: Number(line.shippingFlat) || 0,
         minOrder: Number(line.minOrder) || 0,
         freeShippingAtKits: null,
@@ -159,9 +163,12 @@ export function cartShippingBreakdown(cart) {
       return String(a.label).localeCompare(String(b.label));
     })
     .map((row) => {
+      const hasWarehouseA = byWh.has(WAREHOUSE_A);
+      const isPrintShop = row.warehouseId === "wellpept-print";
       const free =
-        row.freeShippingAtKits != null &&
-        row.kits >= Number(row.freeShippingAtKits);
+        (isPrintShop && hasWarehouseA) ||
+        (row.freeShippingAtKits != null &&
+          row.kits >= Number(row.freeShippingAtKits));
       const fee = free ? 0 : Number(row.flat) || 0;
       const meetsMin = row.merchandise >= (Number(row.minOrder) || 0);
       return {
@@ -170,7 +177,9 @@ export function cartShippingBreakdown(cart) {
         free,
         meetsMin,
         note: free
-          ? `${row.label}: free shipping (${row.kits} kits)`
+          ? isPrintShop && hasWarehouseA
+            ? `${row.label}: free with Warehouse A peptides`
+            : `${row.label}: free shipping (${row.kits} kits)`
           : `${row.label}: ${fee > 0 ? `$${fee}` : "$0"} · ${row.delivery}`,
       };
     });
