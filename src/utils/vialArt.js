@@ -1143,10 +1143,10 @@ function drawPhotorealVial(ctx, dims, options) {
 
   if (!showLabel) return;
 
-  // Align to outer glass rims (studio plate is slightly left of center)
+  // Align to outer glass rims; nudge left so wrap can pull around the left glass
   const glassCx = dims.w * (isTen ? 0.496 : 0.489);
-  const bodyW = dims.w * (isTen ? 0.64 : 0.655);
-  const bodyX = glassCx - bodyW / 2;
+  const bodyW = dims.w * (isTen ? 0.66 : 0.68);
+  const bodyX = glassCx - bodyW / 2 - dims.w * 0.012;
   // Reference mid-band, lowered 5%, stretched down to cover half the peptide
   const vialTop = dims.h * (isTen ? 0.14 : 0.12);
   const vialBot = dims.h * (isTen ? 0.96 : 0.98);
@@ -1278,12 +1278,15 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   const R = bodyW / 2;
   const lw = labelCanvas.width;
   const lh = labelCanvas.height;
-  const slices = 260;
-  // Turn right ~18° so UNDISCLOSED spine reads more face-on
+  const slices = 280;
+  // Turned right so UNDISCLOSED spine reads; pull left around the glass
   const yaw = (18 * Math.PI) / 180;
-  const visibleArc = Math.PI * 0.9;
+  // Asymmetric arc — more wrap around the left rim
+  const leftArc = Math.PI * 0.58;
+  const rightArc = Math.PI * 0.4;
+  const totalArc = leftArc + rightArc;
   const uStart = 0;
-  const uEnd = 0.92;
+  const uEnd = 1;
 
   ctx.save();
 
@@ -1310,10 +1313,10 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   for (let i = 0; i < slices; i += 1) {
     const t0 = i / slices;
     const t1 = (i + 1) / slices;
-    const theta0 = (t0 - 0.5) * visibleArc + yaw;
-    const theta1 = (t1 - 0.5) * visibleArc + yaw;
+    const theta0 = -leftArc + t0 * totalArc + yaw;
+    const theta1 = -leftArc + t1 * totalArc + yaw;
     const cos = (Math.cos(theta0) + Math.cos(theta1)) / 2;
-    if (cos < 0.03) continue;
+    if (cos < 0.02) continue;
 
     const x0 = cx + R * Math.sin(theta0);
     const x1 = cx + R * Math.sin(theta1);
@@ -1338,23 +1341,26 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
       sleeveH
     );
 
-    // Soft wrap shade — darker only as paper turns the rim
-    const shadeAmt = Math.pow(1 - Math.max(0, cos), 1.35);
+    // Stronger shade as paper wraps around the left glass
+    const onLeft = theta0 < -0.15 || theta1 < -0.15;
+    const shadeAmt = Math.pow(1 - Math.max(0, cos), onLeft ? 1.15 : 1.35);
+    const shadeGain = onLeft ? 0.62 : 0.45;
     if (shadeAmt > 0.015) {
-      ctx.fillStyle = `rgba(8,10,14,${(shadeAmt * 0.48).toFixed(3)})`;
+      ctx.fillStyle = `rgba(8,10,14,${(shadeAmt * shadeGain).toFixed(3)})`;
       ctx.fillRect(destX, sleeveTop, destW, sleeveH);
     }
   }
   ctx.globalAlpha = 1;
 
-  // Gentle cylinder occlusion matching studio light
+  // Left-heavy occlusion — paper disappearing around the glass
   const occ = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW, 0);
-  occ.addColorStop(0, "rgba(0,0,0,0.28)");
-  occ.addColorStop(0.12, "rgba(0,0,0,0.06)");
-  occ.addColorStop(0.38, "rgba(0,0,0,0)");
-  occ.addColorStop(0.62, "rgba(0,0,0,0)");
-  occ.addColorStop(0.88, "rgba(0,0,0,0.05)");
-  occ.addColorStop(1, "rgba(0,0,0,0.26)");
+  occ.addColorStop(0, "rgba(0,0,0,0.42)");
+  occ.addColorStop(0.1, "rgba(0,0,0,0.14)");
+  occ.addColorStop(0.28, "rgba(0,0,0,0.02)");
+  occ.addColorStop(0.45, "rgba(0,0,0,0)");
+  occ.addColorStop(0.7, "rgba(0,0,0,0)");
+  occ.addColorStop(0.9, "rgba(0,0,0,0.06)");
+  occ.addColorStop(1, "rgba(0,0,0,0.24)");
   ctx.fillStyle = occ;
   ctx.fillRect(bodyX, sleeveTop, bodyW, sleeveH);
 
