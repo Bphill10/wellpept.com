@@ -21,7 +21,7 @@ export const STG_VENDOR = {
   role: "backup-3",
   minOrder: 0,
   shippingFlat: ERP_VENDOR.shippingFlat ?? 50,
-  shippingNote: "Warehouse C · 2–4 weeks · $50 shipping per order from C",
+  shippingNote: "Warehouse B · 2–4 weeks · $60 shipping per order from B",
   priceListSource: "public/vendor-lists/ERP/ERP_Price_list_Jul31end.pdf",
   createdAt: "2026-07-31T00:00:00.000Z",
 };

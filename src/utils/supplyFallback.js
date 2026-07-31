@@ -1,6 +1,6 @@
 /**
- * Customer catalog assembly (top 28):
- * Warehouse A (JEC) → B (Changsha) → C (ERP)
+ * Customer catalog assembly (focused set):
+ * Warehouse A (JEC) → Warehouse B gap-fill (Changsha, then ERP)
  * Ownership is by compound name only (not strength).
  * Supplier names never shown — only warehouse labels.
  */
@@ -21,7 +21,7 @@ export const DEFAULT_SUPPLY_POLICY = {
   /**
    * Per-strength OOS flags for Warehouse A lines:
    * `${compoundKey}::${mg}::${unit}`
-   * If every A strength of a compound is flagged, B (then C) takes the compound.
+   * If every A strength of a compound is flagged, B takes the compound.
    */
   unavailableKeys: [],
   /** Published Google Sheet CSV / export URL (optional). */
@@ -111,11 +111,10 @@ function pushCompound(out, coveredCompounds, compound, products, lane) {
 }
 
 /**
- * Build the customer-facing product list for the top 28:
+ * Build the customer-facing product list:
  * - Warehouse A owns a compound if it has any in-stock strength
- * - Else Warehouse B owns that compound (all its strengths)
- * - Else Warehouse C
- * - Sorted A → B → C
+ * - Else Warehouse B (Changsha first, then ERP)
+ * - Sorted A → B
  */
 export function applySupplyFallback(products, policy = loadSupplyPolicy()) {
   const list = Array.isArray(products) ? products : [];
@@ -157,7 +156,7 @@ export function applySupplyFallback(products, policy = loadSupplyPolicy()) {
     const fill = fromB.length ? fromB : fromC;
     const lane = fromB.length
       ? "warehouse-b-fallback"
-      : "warehouse-c-fallback";
+      : "warehouse-b-erp-fallback";
     for (const alt of fill) {
       const sample = aLines[0];
       out.push(
@@ -185,7 +184,7 @@ export function applySupplyFallback(products, policy = loadSupplyPolicy()) {
   }
 
   for (const [compound, lines] of erpByCompound) {
-    pushCompound(out, coveredCompounds, compound, lines, "warehouse-c");
+    pushCompound(out, coveredCompounds, compound, lines, "warehouse-b");
   }
 
   out.sort((a, b) => {

@@ -585,7 +585,24 @@ export default function App() {
     return () => clearTimeout(t);
   }, [flash]);
 
+  useEffect(() => {
+    if (warehouseFilter === "All") return;
+    const stillPresent = (products || []).some(
+      (p) => p.warehouseId === warehouseFilter
+    );
+    if (!stillPresent) setWarehouseFilter("All");
+  }, [products, warehouseFilter]);
+
   const listings = useMemo(() => groupCatalog(products), [products]);
+  /** Only show warehouse chips that actually have catalog stock. */
+  const activeWarehouseFilters = useMemo(() => {
+    const present = new Set(
+      (products || []).map((p) => p.warehouseId).filter(Boolean)
+    );
+    return WAREHOUSE_FILTERS.filter(
+      (w) => w.id === "All" || present.has(w.id)
+    );
+  }, [products]);
   /** Full sellable peptide set for calculator / blank-label dropdown. */
   const calculatorListings = useMemo(() => buildCalculatorListings(), []);
   const selectedListing =
@@ -1558,12 +1575,12 @@ export default function App() {
                       Signature Undisclosed kit. 10 × 80 MG lyophilized vials
                       with clinical wrap labels, QR, and research-only marking.
                       Request first; we confirm supply within 24 hours, then
-                      payment. Shipping by warehouse (A / B / C).
+                      payment. Shipping by warehouse (A / B).
                     </p>
                     <ul className="featured-meta">
                       <li>80 MG blend · kit of 10 vials</li>
                       <li>Request first · pay after supply check</li>
-                      <li>Warehouse A: 7–10 days · B/C: 2–4 weeks</li>
+                      <li>Warehouse A: 7–10 days · B: 2–4 weeks</li>
                     </ul>
                     <div className="hero-cta" style={{ marginTop: "0.85rem" }}>
                       <button
@@ -1626,7 +1643,7 @@ export default function App() {
                         ? ` · Warehouse ${warehouseFilter}`
                         : ""}
                       {query.trim() ? ` for “${query.trim()}”` : ""}. Listed
-                      Warehouse A → B → C. Shipping is charged per warehouse in
+                      Warehouse A → B. Shipping is charged per warehouse in
                       your cart · request first, pay after supply check.
                     </p>
                   </div>
@@ -1643,31 +1660,37 @@ export default function App() {
                   />
                 </label>
 
-                <div className="filters filters--warehouse" role="group" aria-label="Filter by warehouse">
-                  {WAREHOUSE_FILTERS.map((w) => (
-                    <button
-                      key={w.id}
-                      type="button"
-                      className={`chip ${warehouseFilter === w.id ? "active" : ""}`}
-                      onClick={() => {
-                        setWarehouseFilter(w.id);
-                        window.setTimeout(() => {
-                          document
-                            .getElementById("catalog")
-                            ?.scrollIntoView({
-                              behavior: "smooth",
-                              block: "start",
-                            });
-                        }, 40);
-                      }}
-                    >
-                      {w.label}
-                      {w.hint ? (
-                        <span className="chip-hint"> · {w.hint}</span>
-                      ) : null}
-                    </button>
-                  ))}
-                </div>
+                {activeWarehouseFilters.length > 2 ? (
+                  <div
+                    className="filters filters--warehouse"
+                    role="group"
+                    aria-label="Filter by warehouse"
+                  >
+                    {activeWarehouseFilters.map((w) => (
+                      <button
+                        key={w.id}
+                        type="button"
+                        className={`chip ${warehouseFilter === w.id ? "active" : ""}`}
+                        onClick={() => {
+                          setWarehouseFilter(w.id);
+                          window.setTimeout(() => {
+                            document
+                              .getElementById("catalog")
+                              ?.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start",
+                              });
+                          }, 40);
+                        }}
+                      >
+                        {w.label}
+                        {w.hint ? (
+                          <span className="chip-hint"> · {w.hint}</span>
+                        ) : null}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
 
                 <div className="filters">
                   {CATEGORIES.map((c) => (
@@ -2064,7 +2087,7 @@ function ProductCard({ listing, preferredWarehouseId = "All", onOpen, onAdd }) {
               {product.warehouseLabel || "Warehouse"}
               {product.warehouseId === "A"
                 ? " · 7–10 days"
-                : product.warehouseId === "B" || product.warehouseId === "C"
+                : product.warehouseId === "B"
                   ? " · 2–4 weeks"
                   : ""}
               {product.shippingFlat != null
@@ -2457,7 +2480,7 @@ function CartPage({
   const deliveryWindow = labCart
     ? shipBreak.lines?.length
       ? shipBreak.lines.map((r) => `${r.label}: ${r.delivery}`).join(" · ")
-      : "Warehouse A: 7–10 days · Warehouse B/C: 2–4 weeks"
+      : "Warehouse A: 7–10 days · Warehouse B: 2–4 weeks"
     : "2-3 weeks";
   const minOrderWarnings = shipBreak.minOrderWarnings || [];
 
@@ -2718,8 +2741,7 @@ function CartPage({
                               ? `${line.warehouseLabel}${
                                   line.warehouseId === "A"
                                     ? " · 7–10 days"
-                                    : line.warehouseId === "B" ||
-                                        line.warehouseId === "C"
+                                    : line.warehouseId === "B"
                                       ? " · 2–4 weeks"
                                       : ""
                                 }`

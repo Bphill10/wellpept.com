@@ -764,7 +764,7 @@ export function formatStrengthSelectLabel(strengthOrProduct) {
 }
 
 function sortOffers(a, b) {
-  // Warehouse A before B before C, then cheapest price
+  // Warehouse A before B, then cheapest price
   const wa = warehouseRank(a);
   const wb = warehouseRank(b);
   if (wa !== wb) return wa - wb;

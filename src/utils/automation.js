@@ -318,7 +318,7 @@ export function buildOrderPacket({
     (shipBreak.lines || []).map((row) => [row.warehouseId, row])
   );
 
-  // Group by customer warehouse (A/B/C). Ops still get vendorId internally.
+  // Group by customer warehouse (A/B). Ops still get vendorId internally.
   const byWarehouse = new Map();
   for (const line of cart) {
     const wh =
@@ -441,7 +441,7 @@ export function buildOrderPacket({
     shippingBreakdown: shipBreak.lines,
     shipments,
     notes:
-      "ORDER REQUEST. Check supply first. Do not charge until confirmed. Reply to customer within 24 hours with payment instructions. Shipping is per warehouse (A: 7–10 days; B/C: 2–4 weeks). Drop-ship via Wellpept only. Do not share supply storefront links or supplier names with the customer.",
+      "ORDER REQUEST. Check supply first. Do not charge until confirmed. Reply to customer within 24 hours with payment instructions. Shipping is per warehouse (A: 7–10 days; B: 2–4 weeks). Drop-ship via Wellpept only. Do not share supply storefront links or supplier names with the customer.",
   };
 }
 
@@ -479,7 +479,7 @@ export function formatOrderPacketText(packet) {
     const windows =
       (packet.shippingBreakdown || [])
         .map((r) => `${r.label}: ${r.delivery}`)
-        .join(" · ") || "Warehouse A: 7–10 days · B/C: 2–4 weeks";
+        .join(" · ") || "Warehouse A: 7–10 days · B: 2–4 weeks";
     lines.push(`Wait consent: YES. Customer accepts ${windows}`);
   }
   lines.push("");

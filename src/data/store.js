@@ -26,7 +26,7 @@ import {
 } from "../utils/stgSync";
 
 /** Bump when focused vendors/catalog must replace stale local data. */
-const STORAGE_KEY = "wellpept-marketplace-v29";
+const STORAGE_KEY = "wellpept-marketplace-v30";
 
 function syncVendor(v, policy = null) {
   if (!v || !ACTIVE_VENDOR_IDS.has(v.id)) return null;
@@ -65,12 +65,12 @@ function syncVendor(v, policy = null) {
       ...v,
       id: STG_VENDOR_ID,
       name: "STG",
-      role: "warehouse-c",
-      warehouseId: "C",
+      role: "warehouse-b",
+      warehouseId: "B",
       status: "approved",
-      shippingFlat: WAREHOUSES.C.shippingFlat,
-      shippingNote: WAREHOUSES.C.shippingNote,
-      minOrder: WAREHOUSES.C.minOrder,
+      shippingFlat: WAREHOUSES.B.shippingFlat,
+      shippingNote: WAREHOUSES.B.shippingNote,
+      minOrder: WAREHOUSES.B.minOrder,
     };
   }
   return {
@@ -104,7 +104,7 @@ function mergeSubmissions(seedSubs, stgSubs) {
   );
   if (!jec.length) jec = jecSeed();
 
-  // Always re-gap-fill by compound so A ownership blocks B/C entirely.
+  // Always re-gap-fill by compound so A ownership blocks B entirely.
   const changshaPool = fromSeed.filter(
     (s) => s.vendorId === CHANGSHA_VENDOR_ID && isFocusedSubmission(s)
   );

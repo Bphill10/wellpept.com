@@ -1,8 +1,8 @@
 /**
  * Customer-facing warehouses (never show supplier names).
  * A = JEC US (cheapest / fastest)
- * B = Changsha gap-fill
- * C = ERP third backup
+ * B = intl gap-fill (Changsha, then ERP when needed)
+ * Only define a warehouse when it is actually used in the shop.
  */
 
 import { JEC_VENDOR_ID } from "./jecPremium";
@@ -11,14 +11,12 @@ import { STG_VENDOR_ID } from "./stgBackup";
 
 export const WAREHOUSE_A = "A";
 export const WAREHOUSE_B = "B";
-export const WAREHOUSE_C = "C";
 
-/** Catalog filter chips: All + A/B/C. */
+/** Catalog filter chips: All + active warehouses only. */
 export const WAREHOUSE_FILTERS = [
   { id: "All", label: "All warehouses" },
   { id: WAREHOUSE_A, label: "Warehouse A", hint: "7–10 days" },
   { id: WAREHOUSE_B, label: "Warehouse B", hint: "2–4 weeks" },
-  { id: WAREHOUSE_C, label: "Warehouse C", hint: "2–4 weeks" },
 ];
 
 export const WAREHOUSES = {
@@ -48,18 +46,6 @@ export const WAREHOUSES = {
     ships: "Warehouse B · 2–4 weeks · $60 shipping",
     shippingNote: "Warehouse B · 2–4 weeks · $60 shipping per order from B",
   },
-  C: {
-    id: WAREHOUSE_C,
-    label: "Warehouse C",
-    vendorId: STG_VENDOR_ID,
-    rank: 3,
-    shippingFlat: 50,
-    minOrder: 0,
-    freeShippingAtKits: null,
-    delivery: "2–4 weeks",
-    ships: "Warehouse C · 2–4 weeks · $50 shipping",
-    shippingNote: "Warehouse C · 2–4 weeks · $50 shipping per order from C",
-  },
 };
 
 const BY_VENDOR = Object.fromEntries(
@@ -69,11 +55,15 @@ const BY_VENDOR = Object.fromEntries(
 export function warehouseForVendorId(vendorId) {
   const id = String(vendorId || "");
   if (id === JEC_VENDOR_ID || id === "v-jec") return WAREHOUSES.A;
-  if (id === CHANGSHA_VENDOR_ID || id === "v-changsha-premium") {
+  // Changsha + ERP share Warehouse B (intl gap-fill lane)
+  if (
+    id === CHANGSHA_VENDOR_ID ||
+    id === "v-changsha-premium" ||
+    id === STG_VENDOR_ID ||
+    id === "v-stg-backup" ||
+    id === "v-erp-peptide"
+  ) {
     return WAREHOUSES.B;
-  }
-  if (id === STG_VENDOR_ID || id === "v-stg-backup" || id === "v-erp-peptide") {
-    return WAREHOUSES.C;
   }
   return BY_VENDOR[id] || null;
 }
