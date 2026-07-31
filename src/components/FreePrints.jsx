@@ -9,6 +9,7 @@ import {
   printLabels10Line,
   printKitLine,
 } from "../data/printables";
+import { PRINT_IDEAS, PRINT_IDEA_STATUS } from "../data/printIdeas";
 
 const FEATURED_CAPS = [
   { peptide: "Retatrutide", short: "RETA" },
@@ -492,6 +493,65 @@ export default function FreePrints({
               </a>
             </div>
           </div>
+        </div>
+
+        <div className="section-head free-prints-cap-head" id="print-ideas">
+          <div>
+            <h2>20 things to print for your peptides</h2>
+            <p className="meta">
+              Caps, case, and labels ship today. The rest are next up — all DIY
+              STLs stay free when they drop.
+            </p>
+          </div>
+        </div>
+
+        <div className="print-ideas-grid">
+          {PRINT_IDEAS.map((idea, i) => {
+            const st = PRINT_IDEA_STATUS[idea.status] || PRINT_IDEA_STATUS.soon;
+            return (
+              <article key={idea.id} className="print-idea-card">
+                <div className="print-idea-top">
+                  <span className="print-idea-num">{String(i + 1).padStart(2, "0")}</span>
+                  <span className={`print-idea-status print-idea-status--${st.tone}`}>
+                    {st.label}
+                  </span>
+                </div>
+                {idea.image ? (
+                  <div className="print-idea-media">
+                    <img
+                      src={idea.image}
+                      alt=""
+                      width={400}
+                      height={267}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                ) : (
+                  <div className="print-idea-media print-idea-media--placeholder" aria-hidden="true">
+                    <span>{idea.tag}</span>
+                  </div>
+                )}
+                <h3>{idea.title}</h3>
+                <p>{idea.blurb}</p>
+                <div className="print-idea-actions">
+                  {idea.status === "ready" && idea.href ? (
+                    <a className="soft-btn" href={idea.href} download={idea.download}>
+                      <Download size={14} /> Free STL
+                    </a>
+                  ) : null}
+                  {idea.status === "labels" && onOpenCalculator ? (
+                    <button type="button" className="soft-btn" onClick={onOpenCalculator}>
+                      <Download size={14} /> Make label
+                    </button>
+                  ) : null}
+                  {idea.status === "soon" ? (
+                    <span className="meta">STL coming · DIY free when ready</span>
+                  ) : null}
+                </div>
+              </article>
+            );
+          })}
         </div>
 
         <p className="meta free-prints-footnote">
