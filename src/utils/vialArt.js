@@ -1146,13 +1146,14 @@ function drawPhotorealVial(ctx, dims, options) {
   // Outer glass silhouette — wrap hugs the cylinder, not a floating card
   const bodyW = dims.w * (isTen ? 0.56 : 0.64);
   const bodyX = dims.w / 2 - bodyW / 2;
-  // Cake band from zoomed studio photos (3 mL @1.52, 10 mL @1.38)
-  const cakeTop = dims.h * (isTen ? 0.748 : 0.835);
-  const cakeBottom = dims.h * (isTen ? 0.96 : 0.98);
-  // Cover half the peptide cake; restore full ~2× sleeve height
-  const sleeveH = dims.h * 0.48;
-  const sleeveBottom = cakeTop + (cakeBottom - cakeTop) * 0.5;
-  const sleeveTop = sleeveBottom - sleeveH;
+  // Labelable glass band (below shoulder, above base)
+  const glassTop = dims.h * (isTen ? 0.28 : 0.26);
+  const glassBottom = dims.h * (isTen ? 0.96 : 0.98);
+  // ~10% taller than prior band, equal margin top ↔ bottom
+  const sleeveH = dims.h * 0.48 * 1.1;
+  const gap = Math.max(0, glassBottom - glassTop - sleeveH);
+  const sleeveTop = glassTop + gap / 2;
+  const sleeveHClamped = Math.min(sleeveH, glassBottom - glassTop);
 
   const wrapBmp = createWrapLabelBitmap({
     name,
@@ -1172,7 +1173,7 @@ function drawPhotorealVial(ctx, dims, options) {
     bodyX,
     bodyW,
     sleeveTop,
-    sleeveH,
+    sleeveH: sleeveHClamped,
     radius: Math.max(3, bodyW * 0.04),
   });
 }
