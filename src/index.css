@@ -3845,6 +3845,14 @@ body:has(.app-shell--undisclosed)::before {
   margin: 0 0 1rem;
 }
 
+.sk-legal-box--cart {
+  margin: 1rem 0 1.25rem;
+}
+
+.sk-legal-box--cart .consent-check {
+  margin-top: 0.75rem;
+}
+
 .sk-legal-title {
   margin: 0 0 0.4rem;
   font-size: 0.78rem;
