@@ -443,6 +443,7 @@ function resolveCompoundKey(name) {
   if (/SEMAX/.test(n)) return "Semax";
   if (/DIHEXA/.test(n)) return "Dihexa";
   if (/LL-?37/.test(n)) return "LL-37";
+  if (/ARA-?290|CIBINETIDE/.test(n)) return "ARA-290";
   if (/\bKPV\b/.test(n)) return "KPV";
   if (/THYMALIN|THYMULIN/.test(n)) return "Thymalin";
   if (/THYMOSIN\s*ALPHA|TA-?1\b|Tα1/.test(n)) return "TA-1";
@@ -578,6 +579,8 @@ export function normalizeCompoundKey(name) {
     .replace(/\bbpc(\d)/g, "bpc $1")
     .replace(/\btb(\d)/g, "tb $1")
     .replace(/\bll[\s-]*37\b/g, "ll 37")
+    .replace(/\bara[\s-]*290\b/g, "ara 290")
+    .replace(/\bcibinetide\b/g, "ara 290")
     .replace(/\bpt[\s-]*141\b/g, "pt 141")
     .replace(/\bss[\s.-]*31\b/g, "ss 31")
     .replace(/\bepitalon\b/g, "epithalon")
