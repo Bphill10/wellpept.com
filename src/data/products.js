@@ -529,7 +529,9 @@ export function guessCategory(name) {
     n.includes("TESA") ||
     n.includes("IGF") ||
     n.includes("MGF") ||
-    n.includes("GH ")
+    n.includes("GH ") ||
+    n === "HGH" ||
+    n.includes("SOMATROPIN")
   ) {
     return "Growth";
   }

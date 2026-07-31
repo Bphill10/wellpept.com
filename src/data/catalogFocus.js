@@ -32,6 +32,7 @@ export const TOP_28_PEPTIDES = [
   "Ipamorelin",
   "CJC-1295",
   "CJC-1295 / Ipamorelin",
+  "HGH",
   "NAD+",
   "MOTS-c",
   "Epithalon",
@@ -47,7 +48,6 @@ export const TOP_28_PEPTIDES = [
   "FOX04-DRI",
   "DSIP",
   "Vitamin B12",
-  "HGH",
 ];
 
 /** @deprecated alias — use TOP_28_PEPTIDES */
