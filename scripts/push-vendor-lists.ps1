@@ -1,6 +1,9 @@
 # One-shot: commit + push everything under public\vendor-lists\
-# Usage (from repo root, or double-click / right-click → Run with PowerShell):
-#   .\scripts\push-vendor-lists.ps1
+#
+# If Windows blocks scripts ("running scripts is disabled"), use either:
+#   scripts\push-vendor-lists.cmd
+# or:
+#   powershell -ExecutionPolicy Bypass -File .\scripts\push-vendor-lists.ps1
 #
 # After it finishes, tell the Cursor agent:  import JEC US
 

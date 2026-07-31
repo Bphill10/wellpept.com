@@ -23,14 +23,29 @@ C:\Users\bphil\Ben_Phillips_Resume\public\vendor-lists\
 
 That local folder is for **your** filing. The agent only sees those files if you **attach** them in chat (or push them — optional).
 
-## Optional: also keep them in git
+## Optional: push to git (Windows)
 
-If you want them backed up on the branch too:
+PowerShell often blocks `.ps1` scripts. Use either:
+
+**A. Double-click** `scripts\push-vendor-lists.cmd`
+
+**B. PowerShell with bypass:**
 
 ```powershell
 cd C:\Users\bphil\Ben_Phillips_Resume
-.\scripts\push-vendor-lists.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\push-vendor-lists.ps1
 ```
+
+**C. Plain git (always works):**
+
+```powershell
+cd C:\Users\bphil\Ben_Phillips_Resume
+git add "public/vendor-lists"
+git commit -m "vendor-lists: sync supplier folders (JEC US and others)"
+git push origin HEAD
+```
+
+Then say **import JEC US**.
 
 ## Already on git (older flat files)
 
