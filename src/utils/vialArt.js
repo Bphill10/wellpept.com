@@ -1279,9 +1279,10 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   const lw = labelCanvas.width;
   const lh = labelCanvas.height;
   const slices = 260;
-  // Face-on / centered — label sits on the front of the glass
-  const yaw = 0;
+  // Turn so the mid panel (name / mass) sits on the front — not the spine/QR edges
+  // Mid panel center ≈ 42% across the flat wrap (10% spine + half of 64.5% mid)
   const visibleArc = Math.PI * 0.9;
+  const yaw = (0.5 - 0.4225) * visibleArc;
   const uStart = 0;
   const uEnd = 1;
 
