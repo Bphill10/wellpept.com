@@ -1,28 +1,22 @@
 # Agent inbox (drop files here)
 
-Drop images/PDFs/spreadsheets here so the cloud agent can grab them after you push.
+Use this folder for **payment QRs, images, and one-off files**.
 
-## JEC price list (priority)
+**Vendor price lists** go in **`public/vendor-lists`** (not here):
 
-Drop Aria’s full list as **`.xlsx` / `.csv` / `.pdf` / clear photo of the sheet**.
-
-Suggested name: `JEC_Price_List.xlsx` (any name with `jec` or `jce` works).
-
-Fastest path — **attach in this Cursor chat** with the paperclip (no git).
-
-Or on Windows:
-
-```powershell
-cd $HOME\Documents\Ben_Phillips_Resume
-git checkout cursor/undisclosed-peptide-site-bfad
-git pull origin cursor/undisclosed-peptide-site-bfad
-copy $HOME\Downloads\JEC*.xlsx inbox\
-.\scripts\push-inbox.ps1
+```text
+C:\Users\bphil\Ben_Phillips_Resume\public\vendor-lists
 ```
 
-Then say: **check inbox** — I’ll replace the promo seed with the full JEC catalog.
+See `public/vendor-lists/README.md`. After you update a list, say **check vendor-lists**.
 
-## On Windows (any file)
+---
+
+## Payment QRs / other files
+
+Drop images/PDFs here so the cloud agent can grab them after you push.
+
+### On Windows
 
 1. Copy your file into this folder, e.g.:
    ```powershell
@@ -30,14 +24,15 @@ Then say: **check inbox** — I’ll replace the promo seed with the full JEC ca
    ```
 2. Push it:
    ```powershell
-   cd $HOME\Documents\Ben_Phillips_Resume
+   cd C:\Users\bphil\Ben_Phillips_Resume
    git add inbox
    git commit -m "inbox: add files"
    git push origin cursor/undisclosed-peptide-site-bfad
    ```
+   Or: `.\scripts\push-inbox.ps1`
 3. Tell the agent: **check inbox**
 
-The agent will move/copy files into `public/` (and wire payment QRs when obvious).
+The agent will move/copy files into `public/` (and wire payment QRs when obvious). Price-list spreadsheets dropped here are copied into `public/vendor-lists/`.
 
 ## Or attach in this Cursor chat
 
@@ -52,4 +47,4 @@ Use the **paperclip / file upload** (not paste). Those land in the agent uploads
 | `*solana*` | Solana QR |
 | `*eth*` | Ethereum QR |
 
-Any other file is copied to `public/` with the same name.
+Any other non–price-list file is copied to `public/` with the same name.

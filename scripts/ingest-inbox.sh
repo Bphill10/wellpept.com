@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-# Copy files from inbox/ → public/ so the site (and agent) can use them.
+# Copy files from inbox/ → public/ (or public/vendor-lists for catalogs).
 # Run after Benjamin drops files in inbox/ and pushes, or locally before push.
+# Preferred: put vendor catalogs directly in public/vendor-lists/.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 INBOX="$ROOT/inbox"
 PUBLIC="$ROOT/public"
+VENDOR_LISTS="$PUBLIC/vendor-lists"
 
-mkdir -p "$PUBLIC"
+mkdir -p "$PUBLIC" "$VENDOR_LISTS"
 shopt -s nullglob
 
 copied=0
@@ -21,6 +23,27 @@ for src in "$INBOX"/*; do
 
   dest_name="$base"
   lower="$(echo "$base" | tr '[:upper:]' '[:lower:]')"
+  ext="${lower##*.}"
+
+  # Price lists / catalogs → public/vendor-lists (canonical folder)
+  is_vendor_list=0
+  case "$lower" in
+    *jec*|*jce*|*changsha*|*erp*|*stg*|*price*list*|*pricelist*|*vendor*)
+      is_vendor_list=1
+      ;;
+  esac
+  case "$ext" in
+    xlsx|xls|csv)
+      is_vendor_list=1
+      ;;
+  esac
+
+  if [[ "$is_vendor_list" -eq 1 ]]; then
+    cp -f "$src" "$VENDOR_LISTS/$dest_name"
+    echo "public/vendor-lists/$dest_name"
+    copied=$((copied + 1))
+    continue
+  fi
 
   # Friendly aliases for payment QRs (keep original too under public/)
   alias=""
@@ -50,6 +73,6 @@ if [[ "$copied" -eq 0 ]]; then
 fi
 
 echo
-echo "Copied $copied file(s) into public/."
+echo "Copied $copied file(s) into public/ (vendor lists → public/vendor-lists/)."
 echo "Commit when ready:"
 echo "  git add public inbox && git commit -m \"inbox: ingest drop files\" && git push"

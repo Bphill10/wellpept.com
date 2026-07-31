@@ -1,8 +1,9 @@
 /**
  * JEC / JCE (Jinan Elitepeptide Chemical) — primary Undisclosed supply.
  * Seeded from Aria’s public promo SKUs (Apr–Jul 2026 forum posts).
- * Drop a full XLSX/CSV in inbox/ to replace this seed with the complete list.
- * Never show the vendor name on the storefront.
+ * Drop a full XLSX/CSV in public/vendor-lists/ (Windows:
+ * C:\\Users\\bphil\\Ben_Phillips_Resume\\public\\vendor-lists) to replace
+ * this seed with the complete list. Never show the vendor name on the storefront.
  */
 
 export const JEC_VENDOR_ID = "v-jec-premium";
