@@ -4730,17 +4730,40 @@ body:has(.app-shell--undisclosed)::before {
   background: transparent;
 }
 
-/* Physical wrap preview — canvas already draws die-cut rounds */
+/* Physical wrap preview — high-res canvas; keep edges crisp when scaled down */
 .label-template.label-template--physical {
   width: auto;
-  max-width: min(100%, 640px);
+  max-width: min(100%, 720px);
   height: auto;
   border-radius: 0;
   border: none;
   box-shadow: none;
   background: transparent;
   object-fit: contain;
-  image-rendering: auto;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+@supports (image-rendering: high-quality) {
+  .label-template.label-template--physical {
+    /* Prefer high-quality downsample of 600 DPI buffer over nearest-neighbor */
+    image-rendering: high-quality;
+  }
+}
+
+.free-print-media--label {
+  display: grid;
+  place-items: center;
+  padding: 1rem 0.75rem;
+  background: #e8e6e1;
+}
+
+.free-print-media--label .label-template-wrap {
+  width: auto;
+}
+
+.free-print-label-live .label-template.label-template--physical {
+  max-width: min(100%, 560px);
 }
 
 .calc-print-panel {
@@ -4964,8 +4987,7 @@ body:has(.app-shell--undisclosed)::before {
   min-height: 220px;
 }
 
-.free-print-media--caps img,
-.free-print-media--label img {
+.free-print-media--caps img {
   object-fit: contain;
   background: #e8e6e1;
   padding: 0.75rem;

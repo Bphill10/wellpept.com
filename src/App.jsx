@@ -1621,7 +1621,7 @@ export default function App() {
                       decoding="async"
                     />
                     <img
-                      src="/undisclosed-label-flat.webp"
+                      src="/undisclosed-label-flat.jpg"
                       alt=""
                       width={400}
                       height={200}

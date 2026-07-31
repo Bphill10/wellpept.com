@@ -33,7 +33,7 @@ export const PRINT_IDEAS = [
       "Black-on-white die-cut wraps with strength, BAC line, QR — free download from Free prints or the calculator.",
     status: "labels",
     tag: "Labels",
-    image: "/undisclosed-label-flat.webp",
+    image: "/undisclosed-label-flat.jpg",
   },
   {
     id: "angled-rack",

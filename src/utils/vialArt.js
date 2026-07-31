@@ -48,13 +48,14 @@ export function labelSpecForVialMl(vialMl = 3) {
 /** Print pixels + on-screen preview size for a physical wrap label. */
 export function physicalLabelCanvasSize(vialMl = 3, size = "md") {
   const spec = labelSpecForVialMl(vialMl);
-  const dpi = 300;
+  // 600 DPI keeps type + QR crisp for download and retina previews.
+  const dpi = 600;
   const printW = Math.round((spec.widthMm / 25.4) * dpi);
   const printH = Math.round((spec.heightMm / 25.4) * dpi);
-  // Preview is larger than true mm so peptide text is readable on screen.
-  const pxPerMm = { sm: 9, md: 12, lg: 15 }[size] || 12;
+  // Larger on-screen preview so text stays readable (was soft when undersized).
+  const pxPerMm = { sm: 12, md: 18, lg: 22 }[size] || 18;
   // ~2 mm corner radius — reads as a die-cut sticker, not a sharp card.
-  const cornerR = Math.max(10, Math.round((2 / 25.4) * dpi));
+  const cornerR = Math.max(14, Math.round((2 / 25.4) * dpi));
   return {
     spec,
     printW,
@@ -1716,26 +1717,25 @@ export function drawPhysicalLabel(canvas, options = {}) {
     size
   );
 
-  const dpr =
-    typeof window !== "undefined"
-      ? Math.min(window.devicePixelRatio || 2, 3)
-      : 2;
-  canvas.width = printW * dpr;
-  canvas.height = printH * dpr;
+  // Buffer matches print pixels exactly (600 DPI). Display size is independent
+  // so browsers don't soft-scale a low-res buffer up to the screen.
+  canvas.width = printW;
+  canvas.height = printH;
   canvas.style.width = cssW;
   canvas.style.height = cssH;
   canvas.dataset.labelMm = `${spec.widthMm}x${spec.heightMm}`;
 
-  const ctx = canvas.getContext("2d");
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const ctx = canvas.getContext("2d", { alpha: true });
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, printW, printH);
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
+  // Vector fills / text — keep smoothing off so edges stay crisp when
+  // the high-res canvas is downscaled to the CSS preview size.
+  ctx.imageSmoothingEnabled = false;
 
   // Soft contact shadow under the sticker
   ctx.save();
   ctx.fillStyle = "rgba(0,0,0,0.07)";
-  roundRect(ctx, 1.5, 2.5, printW - 2, printH - 2, cornerR);
+  roundRect(ctx, 2, 4, printW - 3, printH - 3, cornerR);
   ctx.fill();
   ctx.restore();
 
@@ -1759,9 +1759,9 @@ export function drawPhysicalLabel(canvas, options = {}) {
 
   // Crisp die-cut outline
   ctx.save();
-  ctx.strokeStyle = "rgba(0,0,0,0.28)";
-  ctx.lineWidth = Math.max(1.5, printH * 0.004);
-  roundRect(ctx, 0.75, 0.75, printW - 1.5, printH - 1.5, cornerR);
+  ctx.strokeStyle = "rgba(0,0,0,0.35)";
+  ctx.lineWidth = Math.max(2, printH * 0.004);
+  roundRect(ctx, 1, 1, printW - 2, printH - 2, cornerR);
   ctx.stroke();
   ctx.restore();
 

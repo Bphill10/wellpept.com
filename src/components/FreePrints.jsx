@@ -302,13 +302,17 @@ export default function FreePrints({ onBack, onOpenCalculator }) {
 
           <article className="free-print-card panel">
             <div className="free-print-media free-print-media--label">
-              <img
-                src="/undisclosed-label-flat.webp"
-                alt="Undisclosed clinical vial wrap label"
-                width={640}
-                height={320}
-                loading="lazy"
-                decoding="async"
+              <LabelTemplate
+                blank={false}
+                size="lg"
+                name="KLOW"
+                mass="80"
+                unit="mg"
+                bacWater="3.2 mL"
+                concentration="25 mg/mL"
+                doseRange="2.5 - 5 mg (10 - 20 u)"
+                vialMl={3}
+                showDownload={false}
               />
             </div>
             <div className="free-print-copy">
@@ -358,7 +362,7 @@ export default function FreePrints({ onBack, onOpenCalculator }) {
               <div className="free-print-label-live">
                 <LabelTemplate
                   blank={false}
-                  size="md"
+                  size="lg"
                   name={
                     selectedLabel.peptide.startsWith("Blank")
                       ? "Peptide"

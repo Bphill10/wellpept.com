@@ -165,7 +165,7 @@ export function printLabels10Line({
     form: `10 wraps · ${peptide} · ${strength} · ${ml} mL bottle`,
     unitLabel: "10 labels",
     sku: `PRINT-LBL10-${etch}`,
-    image: "/undisclosed-label-flat.webp",
+    image: "/undisclosed-label-flat.jpg",
     printKind: "labels10",
     etch,
     etchPeptide: peptide,
