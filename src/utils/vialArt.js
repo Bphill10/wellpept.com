@@ -1279,11 +1279,11 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   const lw = labelCanvas.width;
   const lh = labelCanvas.height;
   const slices = 260;
-  // Face-on: spine left → panel center → QR right (matches product reference)
-  const yaw = 0;
+  // Turn right ~18° so UNDISCLOSED spine reads more face-on
+  const yaw = (18 * Math.PI) / 180;
   const visibleArc = Math.PI * 0.9;
   const uStart = 0;
-  const uEnd = 1;
+  const uEnd = 0.92;
 
   ctx.save();
 
