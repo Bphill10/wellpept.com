@@ -1583,34 +1583,6 @@ export default function App() {
                       <li>Request first · pay after supply check</li>
                       <li>Warehouse A: 7–10 days · B: 2–4 weeks</li>
                     </ul>
-                    <div className="hero-cta" style={{ marginTop: "0.85rem" }}>
-                      <button
-                        type="button"
-                        className="primary-btn"
-                        onClick={() => {
-                          setQuery("KLOW");
-                          setCategory("All");
-                          document
-                            .getElementById("catalog")
-                            ?.scrollIntoView({ behavior: "smooth" });
-                        }}
-                      >
-                        Shop KLOW
-                      </button>
-                      <button
-                        type="button"
-                        className="soft-btn"
-                        onClick={() => {
-                          setQuery("");
-                          setCategory("All");
-                          document
-                            .getElementById("catalog")
-                            ?.scrollIntoView({ behavior: "smooth" });
-                        }}
-                      >
-                        Full catalog
-                      </button>
-                    </div>
                   </div>
                   <div className="featured-vendor-visual">
                     <img
