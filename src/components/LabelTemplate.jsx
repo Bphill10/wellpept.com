@@ -4,7 +4,6 @@ import {
   drawLabelTemplate,
   downloadVialPng,
   loadUdMark,
-  loadBlankLabelImage,
   labelSpecForVialMl,
   SITE_QR_URL,
 } from "../utils/vialArt";
@@ -18,7 +17,7 @@ export default function LabelTemplate({
   doseRange = "",
   sku = "",
   size = "md",
-  /** Bottle size in mL — 3 → 40×20 mm, 10 → 50×30 mm. */
+  /** Bottle size in mL — 3 → 40×20 mm, 5 → 40×25, 10 → 50×30, 30 → 70×40. */
   vialMl = 3,
   showDownload = true,
   className = "",
@@ -28,11 +27,9 @@ export default function LabelTemplate({
   const canvasRef = useRef(null);
   const [png, setPng] = useState("");
   const [udMark, setUdMark] = useState(null);
-  const [blankLabelImage, setBlankLabelImage] = useState(null);
 
   const ml = Number(vialMl) || 3;
   const spec = labelSpecForVialMl(ml);
-  const usesFolderArt = blank && ml === 3;
 
   useEffect(() => {
     let alive = true;
@@ -45,20 +42,8 @@ export default function LabelTemplate({
   }, []);
 
   useEffect(() => {
-    if (!usesFolderArt) return undefined;
-    let alive = true;
-    loadBlankLabelImage().then((img) => {
-      if (alive) setBlankLabelImage(img);
-    });
-    return () => {
-      alive = false;
-    };
-  }, [usesFolderArt]);
-
-  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    if (usesFolderArt && !blankLabelImage) return;
     try {
       const dataUrl = drawLabelTemplate(canvas, {
         name: blank ? "" : name,
@@ -71,7 +56,6 @@ export default function LabelTemplate({
         size,
         vialMl: ml,
         udMark,
-        blankLabelImage,
         qrPayload: SITE_QR_URL,
         coaUrl: "",
         forceSiteQr: true,
@@ -92,9 +76,7 @@ export default function LabelTemplate({
     size,
     ml,
     udMark,
-    blankLabelImage,
     blank,
-    usesFolderArt,
   ]);
 
   function handleDownload() {
@@ -108,7 +90,7 @@ export default function LabelTemplate({
   return (
     <div className={`label-template-wrap ${className}`.trim()}>
       <p className="label-template-size meta">
-        {spec.widthMm} × {spec.heightMm} mm · {ml} mL vial · rounded · QR →
+        {spec.widthMm} × {spec.heightMm} mm · {ml} mL · rounded · QR →
         wellpept.com
       </p>
       <canvas

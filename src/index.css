@@ -4724,20 +4724,21 @@ body:has(.app-shell--undisclosed)::before {
   width: 100%;
   max-width: 760px;
   height: auto;
-  border-radius: 12px;
+  border-radius: 14px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
-  border: 1px solid rgba(10, 10, 10, 0.1);
+  border: none;
   background: transparent;
 }
 
-/* Physical wrap preview — canvas sets width/height in px; keep round corners */
+/* Physical wrap preview — canvas already draws die-cut rounds */
 .label-template.label-template--physical {
   width: auto;
   max-width: min(100%, 640px);
   height: auto;
-  border-radius: 12px;
+  border-radius: 0;
   border: none;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+  box-shadow: none;
+  background: transparent;
 }
 
 .calc-print-panel {
