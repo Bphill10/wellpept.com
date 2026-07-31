@@ -944,6 +944,21 @@ export const ERP_SUBMISSIONS = [
     "reviewedAt": "2026-07-31T12:00:00.000Z"
   },
   {
+    "id": "s-erp-kl80",
+    "vendorId": "v-erp-peptide",
+    "sku": "KL80",
+    "name": "KLOW",
+    "form": "Lyophilized vial · 80mg*10vials",
+    "purity": "≥98%",
+    "mg": 80,
+    "vendorCost": 189,
+    "category": "Cellular",
+    "packVials": 10,
+    "status": "approved",
+    "submittedAt": "2026-07-31T00:00:00.000Z",
+    "reviewedAt": "2026-07-31T12:00:00.000Z"
+  },
+  {
     "id": "s-erp-glutathione",
     "vendorId": "v-erp-peptide",
     "sku": "Glutathione",
