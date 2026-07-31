@@ -4696,10 +4696,13 @@ body:has(.app-shell--undisclosed)::before {
 }
 
 .calc-label-stage {
+  width: 100%;
   display: grid;
   place-items: center;
   gap: 0.65rem;
   margin-top: 0.5rem;
+  padding: 0.75rem 0.25rem 0.35rem;
+  overflow-x: auto;
 }
 
 .label-template-wrap {
@@ -4720,18 +4723,20 @@ body:has(.app-shell--undisclosed)::before {
   width: 100%;
   max-width: 760px;
   height: auto;
-  border-radius: 6px;
+  border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
   border: 1px solid rgba(10, 10, 10, 0.1);
-  background: #fff;
+  background: transparent;
 }
 
-/* Physical 40×20 mm (and scaled size tokens) — width/height set in mm by canvas style */
+/* Physical wrap preview — canvas sets width/height in px; keep round corners */
 .label-template.label-template--physical {
   width: auto;
-  max-width: none;
+  max-width: min(100%, 640px);
   height: auto;
-  border-radius: 2px;
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
 }
 
 .calc-print-panel {

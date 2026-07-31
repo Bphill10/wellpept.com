@@ -18,10 +18,8 @@ export default function LabelTemplate({
   doseRange = "",
   sku = "",
   size = "md",
-  /** Bottle size in mL — 3 mL blank labels use the 40×20 mm folder art. */
+  /** Bottle size in mL — 3 → 40×20 mm, 10 → 50×30 mm. */
   vialMl = 3,
-  qrPayload = "",
-  coaUrl = "",
   showDownload = true,
   className = "",
   /** Layout + brand chrome only — no peptide fields filled. */
@@ -32,8 +30,9 @@ export default function LabelTemplate({
   const [udMark, setUdMark] = useState(null);
   const [blankLabelImage, setBlankLabelImage] = useState(null);
 
-  const spec = labelSpecForVialMl(vialMl);
-  const usesFolderArt = blank && (Number(vialMl) || 3) === 3;
+  const ml = Number(vialMl) || 3;
+  const spec = labelSpecForVialMl(ml);
+  const usesFolderArt = blank && ml === 3;
 
   useEffect(() => {
     let alive = true;
@@ -70,11 +69,12 @@ export default function LabelTemplate({
         doseRange: blank ? "" : doseRange,
         sku: blank ? "" : sku,
         size,
-        vialMl,
+        vialMl: ml,
         udMark,
         blankLabelImage,
-        qrPayload: blank ? qrPayload || SITE_QR_URL : qrPayload,
-        coaUrl: blank ? "" : coaUrl,
+        qrPayload: SITE_QR_URL,
+        coaUrl: "",
+        forceSiteQr: true,
         blank,
       });
       setPng(dataUrl);
@@ -90,11 +90,9 @@ export default function LabelTemplate({
     doseRange,
     sku,
     size,
-    vialMl,
+    ml,
     udMark,
     blankLabelImage,
-    qrPayload,
-    coaUrl,
     blank,
     usesFolderArt,
   ]);
@@ -102,28 +100,21 @@ export default function LabelTemplate({
   function handleDownload() {
     if (!png) return;
     const safe = blank
-      ? `blank-${Number(vialMl) || 3}ml`
+      ? `blank-${ml}ml`
       : (name || "label").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
     downloadVialPng(png, `undisclosed-label-${safe || "template"}.png`);
   }
 
   return (
     <div className={`label-template-wrap ${className}`.trim()}>
-      {usesFolderArt && (
-        <p className="label-template-size meta">
-          {spec.widthMm} × {spec.heightMm} mm · {Number(vialMl) || 3} mL vial
-        </p>
-      )}
+      <p className="label-template-size meta">
+        {spec.widthMm} × {spec.heightMm} mm · {ml} mL vial · rounded · QR →
+        wellpept.com
+      </p>
       <canvas
         ref={canvasRef}
-        className={`label-template label-template--${size}${
-          usesFolderArt ? " label-template--physical" : ""
-        }`}
-        aria-label={
-          usesFolderArt
-            ? `Blank ${spec.widthMm} by ${spec.heightMm} millimeter label for ${Number(vialMl) || 3} milliliter vial`
-            : "Label template"
-        }
+        className={`label-template label-template--physical label-template--${size}`}
+        aria-label={`${blank ? "Blank" : name || "Peptide"} ${spec.widthMm} by ${spec.heightMm} millimeter label for ${ml} milliliter vial`}
       />
       {showDownload && (
         <button type="button" className="soft-btn vial-download" onClick={handleDownload}>

@@ -9,6 +9,7 @@ import {
 import {
   buildCalculatorShareUrl,
   defaultsFromCatalogSelection,
+  formatDoseRangeLabel,
   normalizeDoseUnit,
   suggestedBacMl as suggestedBacFromAutomation,
 } from "../utils/automation";
@@ -317,6 +318,15 @@ export default function PeptideCalculator({
       ? [{ value: "IU", label: "IU" }]
       : [{ value: "mg", label: "mg" }];
 
+  const labelBac = solution ? `${formatNum(solution, 2)} mL` : "";
+  const labelConcentration = result?.concLabel || "";
+  const labelDoseRange = formatDoseRangeLabel(
+    dose,
+    doseUnit,
+    result?.units ? Math.round(Number(result.units)) || 10 : 10
+  );
+  const labelSpecMl = Number(vialMl) >= 8 ? 10 : 3;
+
   return (
     <section className="panel-page fade">
       <div className="container">
@@ -548,18 +558,25 @@ export default function PeptideCalculator({
 
             <div className="calc-vial-panel">
               <div className="calc-card-head">
-                <h2>Blank label</h2>
+                <h2>Vial label</h2>
               </div>
               <p className="meta">
-                {Number(vialMl) === 3
-                  ? "3 mL vial wrap · 40 × 20 mm. Peptide fields cleared; UD mark; QR → wellpept.com."
-                  : "Empty clinical wrap template. Brand chrome only; QR → wellpept.com."}
+                {labelSpecMl === 10
+                  ? "10 mL vial wrap · 50 × 30 mm · rounded corners."
+                  : "3 mL vial wrap · 40 × 20 mm · rounded corners."}{" "}
+                Filled from this calculator · QR → www.wellpept.com.
               </p>
               <div className="calc-label-stage">
                 <LabelTemplate
-                  blank
-                  size="md"
-                  vialMl={vialMl || 3}
+                  blank={false}
+                  size="lg"
+                  name={name || selectedPeptide?.name || "Peptide"}
+                  mass={mass}
+                  unit={vialUnit || "mg"}
+                  bacWater={labelBac}
+                  concentration={labelConcentration}
+                  doseRange={labelDoseRange}
+                  vialMl={labelSpecMl}
                   showDownload
                 />
               </div>

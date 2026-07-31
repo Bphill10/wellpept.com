@@ -22,16 +22,38 @@ export const WP_MARK_SRC = UD_MARK_SRC;
 export const WP_MONOGRAM_SRC = UD_MARK_SRC;
 
 /**
- * Physical label size by vial bottle. 3 mL wraps use the 40×20 mm folder art.
- * @type {Record<number, { widthMm: number, heightMm: number, src: string }>}
+ * Physical label size by vial bottle.
+ * 3 mL → 40×20 mm · 10 mL → 50×30 mm
+ * @type {Record<number, { widthMm: number, heightMm: number, src?: string }>}
  */
 export const LABEL_SPEC_BY_VIAL_ML = {
   3: { widthMm: 40, heightMm: 20, src: BLANK_LABEL_SRC },
+  10: { widthMm: 50, heightMm: 30 },
 };
 
 export function labelSpecForVialMl(vialMl = 3) {
   const ml = Number(vialMl) || 3;
-  return LABEL_SPEC_BY_VIAL_ML[ml] || LABEL_SPEC_BY_VIAL_ML[3];
+  if (ml >= 8) return LABEL_SPEC_BY_VIAL_ML[10];
+  return LABEL_SPEC_BY_VIAL_ML[3];
+}
+
+/** Print pixels + on-screen preview size for a physical wrap label. */
+export function physicalLabelCanvasSize(vialMl = 3, size = "md") {
+  const spec = labelSpecForVialMl(vialMl);
+  const dpi = 300;
+  const printW = Math.round((spec.widthMm / 25.4) * dpi);
+  const printH = Math.round((spec.heightMm / 25.4) * dpi);
+  // Preview is larger than true mm so peptide text is readable on screen.
+  const pxPerMm = { sm: 9, md: 12, lg: 15 }[size] || 12;
+  return {
+    spec,
+    printW,
+    printH,
+    cssW: `${Math.round(spec.widthMm * pxPerMm)}px`,
+    cssH: `${Math.round(spec.heightMm * pxPerMm)}px`,
+    /** Corner radius ≈ 1.6 mm on the physical sticker. */
+    cornerR: Math.max(8, Math.round((1.6 / 25.4) * dpi)),
+  };
 }
 
 let brandImageCache = null;
@@ -1125,8 +1147,9 @@ function drawPhotorealVial(ctx, dims, options) {
     concentration,
     doseRange,
     sku,
-    qrPayload: qrPayload || CATALOG_VIAL_TEMPLATE.qrPayload,
-    coaUrl: coaUrl || "",
+    qrPayload: SITE_QR_URL,
+    coaUrl: "",
+    forceSiteQr: true,
     footerText: CATALOG_VIAL_TEMPLATE.footerText,
   });
 
@@ -1669,28 +1692,25 @@ function drawLabelSpineMark(ctx, cx, cy, r) {
  * Matching the clinical wrap-label mockup the customer receives.
  */
 /**
- * Draw a blank wrap from the folder photo at the vial’s physical label size.
- * 3 mL → 40×20 mm (2:1), using undisclosed-label-blank (UD mark, no peptide fill).
- * QR always encodes the public site (or an explicit qrPayload / coaUrl).
+ * Draw a wrap label at the vial’s physical size (40×20 or 50×30 mm).
+ * Optional folder-art background for blank 3 mL only; peptide fill when not blank.
+ * QR always encodes https://www.wellpept.com.
  */
 export function drawBlankLabelFromImage(canvas, options = {}) {
+  return drawPhysicalLabel(canvas, { ...options, blank: true });
+}
+
+export function drawPhysicalLabel(canvas, options = {}) {
   const {
     vialMl = 3,
     blankLabelImage = null,
     size = "md",
-    qrPayload = "",
-    coaUrl = "",
+    blank = false,
   } = options;
-  const spec = labelSpecForVialMl(vialMl);
-  // Screen CSS uses true mm; canvas keeps print-quality pixels (≈300 dpi).
-  const dpi = 300;
-  const printW = Math.round((spec.widthMm / 25.4) * dpi);
-  const printH = Math.round((spec.heightMm / 25.4) * dpi);
-
-  // Display scale by template size token (physical mm stays in CSS).
-  const cssScale = { sm: 0.85, md: 1, lg: 1.15 }[size] || 1;
-  const cssW = spec.widthMm * cssScale;
-  const cssH = spec.heightMm * cssScale;
+  const { printW, printH, cssW, cssH, cornerR, spec } = physicalLabelCanvasSize(
+    vialMl,
+    size
+  );
 
   const dpr =
     typeof window !== "undefined"
@@ -1698,18 +1718,30 @@ export function drawBlankLabelFromImage(canvas, options = {}) {
       : 2;
   canvas.width = printW * dpr;
   canvas.height = printH * dpr;
-  canvas.style.width = `${cssW}mm`;
-  canvas.style.height = `${cssH}mm`;
+  canvas.style.width = cssW;
+  canvas.style.height = cssH;
+  canvas.dataset.labelMm = `${spec.widthMm}x${spec.heightMm}`;
 
   const ctx = canvas.getContext("2d");
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, printW, printH);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, printW, printH);
 
-  if (blankLabelImage && blankLabelImage.width) {
+  // Transparent outside rounded sticker shape
+  ctx.save();
+  roundRect(ctx, 0, 0, printW, printH, cornerR);
+  ctx.clip();
+
+  const useFolderArt =
+    blank &&
+    blankLabelImage?.width &&
+    (Number(vialMl) || 3) === 3 &&
+    spec.widthMm === 40;
+
+  if (useFolderArt) {
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, printW, printH);
     ctx.drawImage(blankLabelImage, 0, 0, printW, printH);
     // Overlay scannable site QR into the right-column frame on the folder art.
     // Source art is 1400×700; QR frame ≈ (1033,122)–(1343,401).
@@ -1722,7 +1754,6 @@ export function drawBlankLabelFromImage(canvas, options = {}) {
       h: (401 - 122) * sy,
     };
     const inset = Math.min(qbox.w, qbox.h) * 0.08;
-    const payload = qrPayloadFromOptions({ qrPayload, coaUrl });
     drawQrCode(
       ctx,
       qbox.x + inset,
@@ -1730,60 +1761,51 @@ export function drawBlankLabelFromImage(canvas, options = {}) {
       Math.min(qbox.w, qbox.h) - inset * 2,
       "site",
       false,
-      payload
+      SITE_QR_URL
     );
   } else {
-    // Fallback: procedural blank chrome at 2:1 (includes site QR)
-    paintLabelTemplate(ctx, { w: printW, h: printH }, {
-      ...options,
-      blank: true,
-      qrPayload: qrPayload || SITE_QR_URL,
-    });
+    paintLabelTemplate(
+      ctx,
+      { w: printW, h: printH, cornerR },
+      {
+        ...options,
+        blank,
+        forceSiteQr: true,
+        qrPayload: SITE_QR_URL,
+        coaUrl: "",
+      }
+    );
   }
+
+  ctx.restore();
+
+  // Soft edge stroke so the round cut reads on white backgrounds
+  ctx.save();
+  ctx.strokeStyle = "rgba(0,0,0,0.18)";
+  ctx.lineWidth = Math.max(1, printH * 0.004);
+  roundRect(ctx, 0.5, 0.5, printW - 1, printH - 1, cornerR);
+  ctx.stroke();
+  ctx.restore();
+
   return canvas.toDataURL("image/png");
 }
 
 export function drawLabelTemplate(canvas, options = {}) {
-  const { size = "md", blank = false, vialMl = 3, blankLabelImage = null } =
-    options;
-
-  // Blank 3 mL labels use the folder photo at 40×20 mm.
-  if (blank && (Number(vialMl) || 3) === 3) {
-    return drawBlankLabelFromImage(canvas, {
-      ...options,
-      vialMl: 3,
-      blankLabelImage,
-      size,
-    });
-  }
-
-  const dims = {
-    sm: { w: 520, h: 190 },
-    md: { w: 760, h: 280 },
-    lg: { w: 980, h: 360 },
-  }[size] || { w: 760, h: 280 };
-
-  const dpr =
-    typeof window !== "undefined"
-      ? Math.min(window.devicePixelRatio || 2, 3)
-      : 2;
-  canvas.width = dims.w * dpr;
-  canvas.height = dims.h * dpr;
-  canvas.style.width = `${dims.w}px`;
-  canvas.style.height = `${dims.h}px`;
-
-  const ctx = canvas.getContext("2d");
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, dims.w, dims.h);
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-  paintLabelTemplate(ctx, dims, options);
-  return canvas.toDataURL("image/png");
+  const { size = "md", vialMl = 3 } = options;
+  // All printable clinical wraps use physical mm (3 → 40×20, 10 → 50×30).
+  return drawPhysicalLabel(canvas, {
+    ...options,
+    vialMl,
+    size,
+    forceSiteQr: true,
+    qrPayload: SITE_QR_URL,
+    coaUrl: "",
+  });
 }
 
 /** Paint the wrap-label artwork into an existing context at logical dims.
  *  Matches the Undisclosed clinical wrap (KLOW reference): spine · name ·
- *  mass between rules · BAC/conc/dose grid · COA QR · PEPTIDE POWER footer.
+ *  mass between rules · BAC/conc/dose grid · site QR · PEPTIDE POWER footer.
  */
 function paintLabelTemplate(ctx, dims, options = {}) {
   const {
@@ -1799,6 +1821,7 @@ function paintLabelTemplate(ctx, dims, options = {}) {
     footerText = "PEPTIDE POWER | 20%",
     /** Empty clinical wrap — layout + brand chrome only, no filled fields. */
     blank = false,
+    forceSiteQr = false,
   } = options;
 
   const spineW = Math.round(dims.w * 0.1);
@@ -1810,17 +1833,15 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   const muted = "#444444";
   const hair = Math.max(1.25, dims.h * 0.005);
   const footerH = Math.round(dims.h * 0.11);
+  const cornerR = dims.cornerR ?? Math.max(6, Math.round(Math.min(dims.w, dims.h) * 0.06));
 
-  // Sharp clinical card (reference is hard-edged white wrap)
+  // Rounded clinical sticker
   ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, dims.w, dims.h);
-  ctx.strokeStyle = "rgba(0,0,0,0.2)";
-  ctx.lineWidth = 1;
-  ctx.strokeRect(0.5, 0.5, dims.w - 1, dims.h - 1);
+  roundRect(ctx, 0, 0, dims.w, dims.h, cornerR);
+  ctx.fill();
 
   ctx.save();
-  ctx.beginPath();
-  ctx.rect(0, 0, dims.w, dims.h);
+  roundRect(ctx, 0, 0, dims.w, dims.h, cornerR);
   ctx.clip();
 
   // Left black spine
@@ -2012,7 +2033,7 @@ function paintLabelTemplate(ctx, dims, options = {}) {
     }
   });
 
-  // QR box (mock placeholder) — always filled; defaults to website URL
+  // QR box — always scannable; printable wraps force www.wellpept.com
   const qrPad = Math.max(10, rightW * 0.12);
   const qrBox = Math.min(rightW - qrPad * 2, dims.h * 0.48);
   const qrX = rightX + (rightW - qrBox) / 2;
@@ -2023,29 +2044,20 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   roundRect(ctx, qrX, qrY, qrBox, qrBox, Math.max(4, qrBox * 0.04));
   ctx.stroke();
 
-  // Always print a scannable QR — blank wraps point at the public site.
   {
     const qrInset = qrBox * 0.08;
-    const payload = qrPayloadFromOptions({
-      qrPayload: blank ? qrPayload || SITE_QR_URL : qrPayload,
-      coaUrl: blank ? "" : coaUrl,
-    });
+    const payload = forceSiteQr
+      ? SITE_QR_URL
+      : qrPayloadFromOptions({
+          qrPayload: blank ? qrPayload || SITE_QR_URL : qrPayload,
+          coaUrl: blank ? "" : coaUrl,
+        });
     drawQrCode(
       ctx,
       qrX + qrInset,
       qrY + qrInset,
       qrBox - qrInset * 2,
-      blank
-        ? "site"
-        : qrSeedFromOptions({
-            name,
-            mass,
-            unit,
-            bacWater,
-            concentration,
-            doseRange,
-            sku,
-          }),
+      "site",
       false,
       payload
     );
