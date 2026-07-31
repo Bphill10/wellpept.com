@@ -1143,11 +1143,13 @@ function drawPhotorealVial(ctx, dims, options) {
 
   if (!showLabel) return;
 
-  // Label band: low on body, centered, stretched past glass edges
+  // Label band: stretched across glass; bottom edge meets lyophilized cake top
   const bodyW = dims.w * (isTen ? 0.58 : 0.56);
   const bodyX = dims.w / 2 - bodyW / 2;
-  const sleeveTop = dims.h * (isTen ? 0.48 : 0.46);
-  const sleeveH = dims.h * (isTen ? 0.26 : 0.25);
+  // Cake-top Y from zoomed studio photos (3 mL @1.52, 10 mL @1.38)
+  const cakeTop = dims.h * (isTen ? 0.748 : 0.835);
+  const sleeveH = dims.h * (isTen ? 0.24 : 0.24);
+  const sleeveTop = cakeTop - sleeveH;
 
   const wrapBmp = createWrapLabelBitmap({
     name,
