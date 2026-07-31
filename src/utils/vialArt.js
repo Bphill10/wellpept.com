@@ -1143,8 +1143,8 @@ function drawPhotorealVial(ctx, dims, options) {
 
   if (!showLabel) return;
 
-  // Outer glass + slight overhang so paper sits ON the vial, not in the chamber
-  const bodyW = dims.w * (isTen ? 0.62 : 0.7);
+  // Outer glass silhouette — wrap hugs the cylinder, not a floating card
+  const bodyW = dims.w * (isTen ? 0.56 : 0.64);
   const bodyX = dims.w / 2 - bodyW / 2;
   // Cake band from zoomed studio photos (3 mL @1.52, 10 mL @1.38)
   const cakeTop = dims.h * (isTen ? 0.748 : 0.835);
@@ -1264,90 +1264,82 @@ function createWrapLabelBitmap(options) {
 }
 
 /**
- * Clinical wrap as opaque paper on the OUTSIDE of the glass.
- * Covers outer rims (kills inset “inside chamber” look), casts a shadow
- * onto the glass, and uses matte cylinder lighting — no glass wash on top.
+ * Tight clinical wrap on the outer glass cylinder.
+ * True sin-projection + soft contact — no floating card shadow/halo.
  */
 function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   if (!labelCanvas || !labelCanvas.width) return;
   const { bodyX, bodyW, sleeveTop, sleeveH } = geom;
-  const radius = Math.max(2, Math.min(5, bodyW * 0.02));
+  const cx = bodyX + bodyW / 2;
+  const R = bodyW / 2;
   const lw = labelCanvas.width;
   const lh = labelCanvas.height;
-  const slices = 180;
-  // Mild wrap arc — edges darken around the outside, face stays readable
-  const visibleArc = Math.PI * 0.78;
+  const slices = 220;
+  // Front hemisphere — paper wraps around the outside rim
+  const visibleArc = Math.PI * 0.98;
+  const uStart = 0.02;
+  const uEnd = 0.98;
 
   ctx.save();
 
-  // Multi-pass drop shadow onto the glass (paper sits in front)
-  for (let s = 0; s < 5; s += 1) {
-    const o = 2 + s * 1.4;
-    ctx.fillStyle = `rgba(0,0,0,${(0.28 - s * 0.045).toFixed(3)})`;
-    roundRect(
-      ctx,
-      bodyX - 1 + s * 0.2,
-      sleeveTop + o,
-      bodyW + 2 - s * 0.4,
-      sleeveH + 2,
-      radius + 1
-    );
-    ctx.fill();
-  }
+  // Soft contact only (tight to glass — no floating drop shadow)
+  const contact = ctx.createLinearGradient(0, sleeveTop - 3, 0, sleeveTop + 2);
+  contact.addColorStop(0, "rgba(0,0,0,0)");
+  contact.addColorStop(1, "rgba(0,0,0,0.22)");
+  ctx.fillStyle = contact;
+  ctx.beginPath();
+  ctx.ellipse(cx, sleeveTop + 1, R * 0.98, 3.5, 0, Math.PI, 0, true);
+  ctx.fill();
 
-  // Ambient occlusion where paper meets glass (above / below)
-  const aoTop = ctx.createLinearGradient(0, sleeveTop - 8, 0, sleeveTop + 2);
-  aoTop.addColorStop(0, "rgba(0,0,0,0)");
-  aoTop.addColorStop(1, "rgba(0,0,0,0.4)");
-  ctx.fillStyle = aoTop;
-  ctx.fillRect(bodyX + 1, sleeveTop - 7, bodyW - 2, 10);
-
-  const aoBot = ctx.createLinearGradient(
+  const contactBot = ctx.createLinearGradient(
     0,
-    sleeveTop + sleeveH - 1,
+    sleeveTop + sleeveH - 2,
     0,
-    sleeveTop + sleeveH + 10
+    sleeveTop + sleeveH + 5
   );
-  aoBot.addColorStop(0, "rgba(0,0,0,0.38)");
-  aoBot.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = aoBot;
-  ctx.fillRect(bodyX + 1, sleeveTop + sleeveH - 1, bodyW - 2, 12);
+  contactBot.addColorStop(0, "rgba(0,0,0,0.2)");
+  contactBot.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = contactBot;
+  ctx.beginPath();
+  ctx.ellipse(cx, sleeveTop + sleeveH, R * 0.98, 4, 0, 0, Math.PI);
+  ctx.fill();
 
-  // Paper thickness halo — thin lit rim proud of the glass
-  ctx.strokeStyle = "rgba(255,255,255,0.35)";
-  ctx.lineWidth = 2.5;
-  roundRect(ctx, bodyX - 0.5, sleeveTop - 0.5, bodyW + 1, sleeveH + 1, radius);
-  ctx.stroke();
-
-  ctx.save();
-  roundRect(ctx, bodyX, sleeveTop, bodyW, sleeveH, radius);
+  // Clip to cylinder band (straight top/bottom, curved sides via ellipse mask)
+  ctx.beginPath();
+  ctx.moveTo(bodyX, sleeveTop);
+  ctx.lineTo(bodyX + bodyW, sleeveTop);
+  ctx.lineTo(bodyX + bodyW, sleeveTop + sleeveH);
+  ctx.lineTo(bodyX, sleeveTop + sleeveH);
+  ctx.closePath();
   ctx.clip();
-
-  // Fully opaque paper base — covers glass speculars under the wrap band
-  ctx.fillStyle = "#eef0f3";
-  ctx.fillRect(bodyX - 1, sleeveTop - 1, bodyW + 2, sleeveH + 2);
 
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
 
-  // Draw label edge-to-edge on the outer cylinder (no gaps that show glass)
   for (let i = 0; i < slices; i += 1) {
     const t0 = i / slices;
     const t1 = (i + 1) / slices;
     const theta0 = (t0 - 0.5) * visibleArc;
     const theta1 = (t1 - 0.5) * visibleArc;
-    const cos = (Math.cos(theta0) + Math.cos(theta1)) / 2;
+    const cos0 = Math.cos(theta0);
+    const cos1 = Math.cos(theta1);
+    const cos = (cos0 + cos1) / 2;
+    if (cos < 0.04) continue;
 
-    // Map slices across the full outer width (not just sin span)
-    const x0 = bodyX + t0 * bodyW;
-    const x1 = bodyX + t1 * bodyW;
-    const destX = x0;
-    const destW = Math.max(1.2, x1 - x0 + 0.6);
+    // True cylinder projection — foreshortens at the rims
+    const x0 = cx + R * Math.sin(theta0);
+    const x1 = cx + R * Math.sin(theta1);
+    const destX = Math.min(x0, x1);
+    const destW = Math.max(0.85, Math.abs(x1 - x0) + 0.55);
 
-    const srcX = t0 * lw;
-    const srcW = Math.max(1, (t1 - t0) * lw + 0.5);
+    const u0 = uStart + t0 * (uEnd - uStart);
+    const u1 = uStart + t1 * (uEnd - uStart);
+    const srcX = u0 * lw;
+    const srcW = Math.max(1, (u1 - u0) * lw + 0.5);
 
-    ctx.globalAlpha = 1;
+    // Stay opaque on the face; only the last grazing rim softens
+    const edgeFade = cos < 0.18 ? Math.max(0.55, cos / 0.18) : 1;
+    ctx.globalAlpha = edgeFade;
     ctx.drawImage(
       labelCanvas,
       srcX,
@@ -1360,65 +1352,51 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
       sleeveH
     );
 
-    // Outside-wrap Lambert: darker toward the wrapped edges
-    const shadeAmt = Math.max(0, 1 - Math.max(0.15, cos));
-    if (shadeAmt > 0.04) {
-      ctx.fillStyle = `rgba(8,10,14,${(shadeAmt * 0.62).toFixed(3)})`;
+    // Tight Lambert shade on the paper surface
+    const shadeAmt = Math.pow(1 - Math.max(0, cos), 1.15);
+    if (shadeAmt > 0.02) {
+      ctx.globalAlpha = edgeFade;
+      ctx.fillStyle = `rgba(6,8,12,${(shadeAmt * 0.58).toFixed(3)})`;
       ctx.fillRect(destX, sleeveTop, destW, sleeveH);
     }
   }
   ctx.globalAlpha = 1;
 
-  // Extra edge wrap — paper disappearing around the outside of the glass
-  const edgeL = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW * 0.18, 0);
-  edgeL.addColorStop(0, "rgba(0,0,0,0.55)");
-  edgeL.addColorStop(0.55, "rgba(0,0,0,0.18)");
-  edgeL.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = edgeL;
-  ctx.fillRect(bodyX, sleeveTop, bodyW * 0.2, sleeveH);
-
-  const edgeR = ctx.createLinearGradient(
-    bodyX + bodyW * 0.82,
-    0,
-    bodyX + bodyW,
-    0
-  );
-  edgeR.addColorStop(0, "rgba(0,0,0,0)");
-  edgeR.addColorStop(0.45, "rgba(0,0,0,0.16)");
-  edgeR.addColorStop(1, "rgba(0,0,0,0.52)");
-  ctx.fillStyle = edgeR;
-  ctx.fillRect(bodyX + bodyW * 0.8, sleeveTop, bodyW * 0.2, sleeveH);
-
-  // Matte paper face light (not a glass specular in front of the sticker)
-  const face = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW, 0);
-  face.addColorStop(0, "rgba(255,255,255,0)");
-  face.addColorStop(0.35, "rgba(255,255,255,0)");
-  face.addColorStop(0.45, "rgba(255,255,255,0.06)");
-  face.addColorStop(0.55, "rgba(255,255,255,0)");
-  face.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = face;
+  // Cylinder occlusion from ambient (hugs the form)
+  const occ = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW, 0);
+  occ.addColorStop(0, "rgba(0,0,0,0.38)");
+  occ.addColorStop(0.08, "rgba(0,0,0,0.12)");
+  occ.addColorStop(0.35, "rgba(0,0,0,0)");
+  occ.addColorStop(0.65, "rgba(0,0,0,0)");
+  occ.addColorStop(0.92, "rgba(0,0,0,0.1)");
+  occ.addColorStop(1, "rgba(0,0,0,0.34)");
+  ctx.fillStyle = occ;
   ctx.fillRect(bodyX, sleeveTop, bodyW, sleeveH);
 
-  // Paper edge lips — thickness catching light on the outside
-  ctx.strokeStyle = "rgba(255,255,255,0.65)";
-  ctx.lineWidth = 1.4;
-  ctx.beginPath();
-  ctx.moveTo(bodyX + 3, sleeveTop + 1);
-  ctx.lineTo(bodyX + bodyW - 3, sleeveTop + 1);
-  ctx.stroke();
-  ctx.strokeStyle = "rgba(0,0,0,0.4)";
-  ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  ctx.moveTo(bodyX + 3, sleeveTop + sleeveH - 1);
-  ctx.lineTo(bodyX + bodyW - 3, sleeveTop + sleeveH - 1);
-  ctx.stroke();
+  // Thin laminate specular matching glass light — proves contact, not float
+  const spec = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW, 0);
+  spec.addColorStop(0, "rgba(255,255,255,0)");
+  spec.addColorStop(0.12, "rgba(255,255,255,0)");
+  spec.addColorStop(0.18, "rgba(255,255,255,0.16)");
+  spec.addColorStop(0.23, "rgba(255,255,255,0)");
+  spec.addColorStop(0.78, "rgba(255,255,255,0)");
+  spec.addColorStop(0.86, "rgba(255,255,255,0.07)");
+  spec.addColorStop(0.92, "rgba(255,255,255,0)");
+  spec.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = spec;
+  ctx.fillRect(bodyX, sleeveTop, bodyW, sleeveH);
 
-  ctx.restore(); // clip
-
-  // Crisp outer stroke so the sticker silhouette sits above the glass
-  ctx.strokeStyle = "rgba(0,0,0,0.28)";
-  ctx.lineWidth = 1;
-  roundRect(ctx, bodyX + 0.5, sleeveTop + 0.5, bodyW - 1, sleeveH - 1, radius);
+  // Hairline top/bottom where paper meets glass (no thick card lip)
+  ctx.strokeStyle = "rgba(255,255,255,0.28)";
+  ctx.lineWidth = 0.75;
+  ctx.beginPath();
+  ctx.moveTo(bodyX + R * 0.12, sleeveTop + 0.4);
+  ctx.lineTo(bodyX + bodyW - R * 0.12, sleeveTop + 0.4);
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(0,0,0,0.22)";
+  ctx.beginPath();
+  ctx.moveTo(bodyX + R * 0.12, sleeveTop + sleeveH - 0.4);
+  ctx.lineTo(bodyX + bodyW - R * 0.12, sleeveTop + sleeveH - 0.4);
   ctx.stroke();
 
   ctx.restore();
