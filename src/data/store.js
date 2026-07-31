@@ -6,7 +6,7 @@ import {
   buildCatalog,
 } from "./products";
 import { JEC_VENDOR, JEC_VENDOR_ID } from "./jecPremium";
-import { STG_VENDOR, STG_VENDOR_ID } from "./stgBackup";
+import { STG_VENDOR, STG_VENDOR_ID, STG_SUBMISSIONS } from "./stgBackup";
 import { isFocusedSubmission } from "./catalogFocus";
 import {
   applySupplyFallback,
@@ -18,7 +18,7 @@ import {
 } from "../utils/stgSync";
 
 /** Bump when focused vendors/catalog must replace stale local data. */
-const STORAGE_KEY = "wellpept-marketplace-v15";
+const STORAGE_KEY = "wellpept-marketplace-v16";
 
 function syncVendor(v, policy = null) {
   if (!v || !ACTIVE_VENDOR_IDS.has(v.id)) return null;
@@ -106,13 +106,18 @@ export function buildMarketplaceProducts(vendors, submissions, policy) {
   return applySupplyFallback(raw, pol);
 }
 
+function resolveStgSeed(stgCached) {
+  if (Array.isArray(stgCached) && stgCached.length > 0) return stgCached;
+  return STG_SUBMISSIONS;
+}
+
 export function getInitialMarketplace() {
   const policy = loadSupplyPolicy();
-  const stgCached = loadCachedStgSubmissions();
+  const stgSubs = resolveStgSeed(loadCachedStgSubmissions());
   const vendors = SEED_VENDORS.map((seed) => syncVendor(seed, policy)).filter(
     Boolean
   );
-  const submissions = mergeSubmissions(SEED_SUBMISSIONS, stgCached);
+  const submissions = mergeSubmissions(SEED_SUBMISSIONS, stgSubs);
   void loadState();
   return {
     vendors,
@@ -140,8 +145,9 @@ export function persistMarketplace(vendors, submissions, policy) {
   const stgFromState = submissions.filter(
     (s) => s.vendorId === STG_VENDOR_ID && isFocusedSubmission(s)
   );
-  const stgSubs =
-    stgFromState.length > 0 ? stgFromState : loadCachedStgSubmissions();
+  const stgSubs = resolveStgSeed(
+    stgFromState.length > 0 ? stgFromState : loadCachedStgSubmissions()
+  );
   const finalPrimary = primarySubs.length ? primarySubs : SEED_SUBMISSIONS;
   const finalSubs = mergeSubmissions(finalPrimary, stgSubs);
 
