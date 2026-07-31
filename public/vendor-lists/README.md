@@ -1,6 +1,6 @@
 # Vendor price lists
 
-**Canonical drop folder** for supplier catalogs (XLSX / CSV / PDF).
+**Canonical drop folder** — one subfolder per supplier.
 
 Windows path:
 
@@ -8,34 +8,47 @@ Windows path:
 C:\Users\bphil\Ben_Phillips_Resume\public\vendor-lists
 ```
 
-Put updated lists here, commit, push, then tell the agent: **check vendor-lists**.
+Expected layout (local):
 
-## Files in this folder (already imported)
+```text
+public/vendor-lists/
+  JEC US/            ← primary Undisclosed supply (push this)
+  ERP/               ← silent backup
+  Changsha/          ← legacy
+  BAOHUA DONGNUO/
+  Serlina Chan/
+```
 
-| File | Role in app |
-|------|-------------|
-| `ERP_Price_list_Jul31end.pdf` | Silent backup catalog (`src/data/erpPeptide.js` → STG fallback). Never shown by name. |
-| `Changsha_Premium_July_2026.xlsx` | Legacy import (`src/data/changshaPremium.js`). Not an active storefront vendor. |
+## Push vendor folders to git (required for the cloud agent)
 
-**Primary Undisclosed supply** is JEC (`src/data/jecPremium.js`), currently seeded from Aria’s public promo SKUs. Drop a full `JEC_*.xlsx` / CSV here when you have the complete workbook — it is not in this folder yet.
-
-## Naming (clear is best)
-
-| File pattern | Vendor |
-|--------------|--------|
-| `*jec*` / `*jce*` / `JEC_*.xlsx` | JEC (primary Undisclosed supply) |
-| `*changsha*` | Changsha (legacy) |
-| `*erp*` / `ERP_*.pdf` | ERP → silent STG backup |
-
-## After you update a file
+Folders on your PC are **not** visible here until you commit and push them.
 
 ```powershell
 cd C:\Users\bphil\Ben_Phillips_Resume
 git checkout cursor/undisclosed-peptide-site-bfad
 git pull origin cursor/undisclosed-peptide-site-bfad
-git add public/vendor-lists
-git commit -m "vendor-lists: update price list"
+git add "public/vendor-lists"
+git status
+git commit -m "vendor-lists: add JEC US and supplier folders"
 git push origin cursor/undisclosed-peptide-site-bfad
 ```
 
-Then say **check vendor-lists** so the catalog seed gets rebuilt.
+Then say **check vendor-lists** (or **import JEC US**).
+
+## Already on git (flat files from earlier)
+
+| File | Role |
+|------|------|
+| `ERP_Price_list_Jul31end.pdf` | Silent backup seed (`erpPeptide.js`) |
+| `Changsha_Premium_July_2026.xlsx` | Legacy seed (`changshaPremium.js`) |
+
+## Naming
+
+| Folder / file | Role |
+|---------------|------|
+| `JEC US/` | Primary catalog |
+| `ERP/` | Silent STG backup |
+| `Changsha/` | Legacy |
+| Other vendor folders | Kept for reference / future use |
+
+Never show supplier names on the storefront.
