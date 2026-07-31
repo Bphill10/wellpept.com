@@ -1148,7 +1148,7 @@ function drawPhotorealVial(ctx, dims, options) {
   const bodyX = dims.w / 2 - bodyW / 2;
   // Cake-top Y from zoomed studio photos (3 mL @1.52, 10 mL @1.38)
   const cakeTop = dims.h * (isTen ? 0.748 : 0.835);
-  const sleeveH = dims.h * (isTen ? 0.48 : 0.48);
+  const sleeveH = dims.h * (isTen ? 0.384 : 0.384);
   const sleeveTop = cakeTop - sleeveH;
 
   const wrapBmp = createWrapLabelBitmap({
