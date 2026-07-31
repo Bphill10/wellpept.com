@@ -1,20 +1,16 @@
-# Agent inbox (drop files here)
+# Agent inbox
 
-Use this folder for **payment QRs, images, and one-off files**.
+## Fastest: attach in Cursor chat (no git)
 
-**Vendor price lists** go in **`public/vendor-lists`** (not here):
+Use the **paperclip / file upload** in this chat. The agent can view those files immediately — no push.
 
-```text
-C:\Users\bphil\Ben_Phillips_Resume\public\vendor-lists
-```
-
-See `public/vendor-lists/README.md`. After you update a list, say **check vendor-lists**.
+Works for vendor lists (JEC US), payment QRs, photos, PDFs, etc.
 
 ---
 
-## Payment QRs / other files
+## Optional git folder (payment QRs / one-offs)
 
-Drop images/PDFs here so the cloud agent can grab them after you push.
+Use this folder only if you prefer committing files. **Vendor lists:** attach in chat, or keep local copies under `public/vendor-lists\` (see that README).
 
 ### On Windows
 
