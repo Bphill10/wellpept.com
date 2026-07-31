@@ -169,6 +169,7 @@ const CATEGORY_MAP = {
   "SNAP-8": "Research",
   "PT-141": "Hormone",
   Epithalon: "Longevity",
+  Epitalon: "Longevity",
 };
 
 /** Brief summaries: what it is + what labs study it for (1–2 sentences). */
@@ -539,7 +540,14 @@ export function guessCategory(name) {
   ) {
     return "Metabolic";
   }
-  if (n.includes("EPITHAL") || n.includes("FOX04") || n.includes("FOXO4") || n.includes("FOX 04")) {
+  if (
+    n.includes("EPITHAL") ||
+    n.includes("EPITALON") ||
+    n.includes("EPITAL") ||
+    n.includes("FOX04") ||
+    n.includes("FOXO4") ||
+    n.includes("FOX 04")
+  ) {
     return "Longevity";
   }
   return "Research";
