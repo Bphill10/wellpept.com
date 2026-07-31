@@ -141,6 +141,8 @@ const CATEGORY_MAP = {
   VIP: "Research",
   HCG: "Hormone",
   Cagrilintide: "Metabolic",
+  "FOX04-DRI": "Longevity",
+  "FOXO4-DRI": "Longevity",
   Glutathione: "Cellular",
   "SNAP-8": "Research",
   "PT-141": "Hormone",
@@ -504,10 +506,20 @@ export function guessCategory(name) {
   if (n.includes("PT-141") || n.includes("PT141") || n.includes("BREMELANOTIDE")) {
     return "Hormone";
   }
-  if (n.includes("AOD") || n.includes("TIRZ") || n.includes("SEMA") || n.includes("LIRA")) {
+  if (
+    n.includes("AOD") ||
+    n.includes("TIRZ") ||
+    n.includes("CAGRI") ||
+    n.includes("CAGRILINTIDE") ||
+    (n.includes("SEMA") && !n.includes("SEMAX") && !n.includes("SELANK")) ||
+    n.includes("LIRA") ||
+    n.includes("RETA")
+  ) {
     return "Metabolic";
   }
-  if (n.includes("EPITHAL")) return "Longevity";
+  if (n.includes("EPITHAL") || n.includes("FOX04") || n.includes("FOXO4") || n.includes("FOX 04")) {
+    return "Longevity";
+  }
   return "Research";
 }
 
@@ -525,6 +537,7 @@ export function normalizeCompoundKey(name) {
     .replace(/\bpt[\s-]*141\b/g, "pt 141")
     .replace(/\bss[\s.-]*31\b/g, "ss 31")
     .replace(/\bepitalon\b/g, "epithalon")
+    .replace(/\bfoxo?4[\s-]*(dri|dir)?\b/g, "fox04 dri")
     .replace(/[^a-z0-9]+/g, " ")
     .replace(/\b(\d+(?:\.\d+)?)\s*mgs?\b/g, "")
     .replace(/\s+/g, " ")
@@ -598,6 +611,9 @@ export function displayPeptideName(name = "") {
   if (n.includes("cjc") && n.includes("dac")) return "CJC-1295 with DAC";
   if (n.includes("cjc")) return "CJC-1295";
   if (n.includes("ll-37") || n.includes("ll37") || n === "ll 37") return "LL-37";
+  if (n.includes("fox04") || n.includes("foxo4") || n.includes("fox 04")) {
+    return "FOX04-DRI";
+  }
   if (n.includes("ipamorelin") || n.startsWith("ipa ")) return "Ipamorelin";
   if (n === "nad+" || n === "nad" || n.startsWith("nad+")) return "NAD+";
   if (n.includes("glutathione") || n.startsWith("gluta")) return "Glutathione";
@@ -981,7 +997,8 @@ export function buildCatalog(vendors, submissions) {
       vialMl,
       powderColor,
       unitLabel: "kit of 10",
-      category: item.category || guessCategory(displayName),
+      // Prefer curated category (e.g. Cagrilintide → Metabolic) over vendor sheet tags
+      category: guessCategory(displayName) || item.category || "Research",
       blurb: guessBlurb(displayName),
       tagline: guessTagline(displayName),
       vendorId: item.vendorId,

@@ -742,7 +742,7 @@ export const ERP_SUBMISSIONS = [
     "purity": "≥98%",
     "mg": 10,
     "vendorCost": 370,
-    "category": "Research",
+    "category": "Longevity",
     "packVials": 10,
     "status": "approved",
     "submittedAt": "2026-07-31T00:00:00.000Z",

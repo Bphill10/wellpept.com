@@ -44,7 +44,7 @@ export const TOP_25_PEPTIDES = [
   "KPV",
   "Cagrilintide",
   "LL-37",
-  "Vitamin B12",
+  "FOX04-DRI",
 ];
 
 /** Supplies / non-peptide lines — not sold as catalog peptides. */
@@ -206,11 +206,12 @@ export function isTop25Peptide(name) {
     return true;
   }
   if (
-    n.includes("vitamin b") ||
-    n === "b12" ||
-    n.startsWith("b12") ||
-    n.includes("methylcobalamin") ||
-    (n.includes("b12") && !n.includes("lipo"))
+    n.includes("fox04") ||
+    n.includes("foxo4") ||
+    n.includes("fox 04") ||
+    n.includes("foxo-4") ||
+    n.includes("fox04-dri") ||
+    n.includes("fox04-dir")
   ) {
     return true;
   }
