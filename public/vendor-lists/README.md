@@ -19,21 +19,31 @@ public/vendor-lists/
   Serlina Chan/
 ```
 
-## Push vendor folders to git (required for the cloud agent)
+## Easiest push (one script)
 
-Folders on your PC are **not** visible here until you commit and push them.
+Folders on your PC are **not** visible to the cloud agent until you push them.
+
+1. Make sure your lists are under:
+   `C:\Users\bphil\Ben_Phillips_Resume\public\vendor-lists\JEC US\`
+2. Open PowerShell and run:
+
+```powershell
+cd C:\Users\bphil\Ben_Phillips_Resume
+.\scripts\push-vendor-lists.ps1
+```
+
+3. In Cursor chat say: **import JEC US**
+
+### Manual push (same thing, typed out)
 
 ```powershell
 cd C:\Users\bphil\Ben_Phillips_Resume
 git checkout cursor/undisclosed-peptide-site-bfad
 git pull origin cursor/undisclosed-peptide-site-bfad
 git add "public/vendor-lists"
-git status
 git commit -m "vendor-lists: add JEC US and supplier folders"
 git push origin cursor/undisclosed-peptide-site-bfad
 ```
-
-Then say **check vendor-lists** (or **import JEC US**).
 
 ## Already on git (flat files from earlier)
 
