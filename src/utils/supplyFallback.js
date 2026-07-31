@@ -1,12 +1,15 @@
 /**
- * Primary (JEC) catalog with STG-only replacement when unavailable.
- * STG-only SKUs never expand the shop — they only fill gaps.
+ * Customer catalog assembly:
+ * - JEC primary lines (STG replaces a JEC line only when marked unavailable)
+ * - Changsha gap-fill lines (strengths JEC does not carry)
+ * - STG-only SKUs never expand the shop
  */
 
 import {
   normalizeCompoundKey,
   resolveVialUnit,
 } from "../data/products";
+import { CHANGSHA_VENDOR_ID } from "../data/changshaPremium";
 import {
   PRIMARY_VENDOR_ID,
   STG_VENDOR_ID,
@@ -74,13 +77,18 @@ export function isPrimaryUnavailable(product, policy) {
 
 /**
  * Build the customer-facing product list:
- * - Keep primary offers that are available
+ * - Keep primary (JEC) offers that are available
  * - Replace unavailable primary offers with a matching STG offer (same compound + mg)
+ * - Add Changsha offers for strengths JEC does not carry
  * - Never add STG-only lines
  */
 export function applySupplyFallback(products, policy = loadSupplyPolicy()) {
   const list = Array.isArray(products) ? products : [];
   const primary = list.filter((p) => p.vendorId === PRIMARY_VENDOR_ID);
+  const changsha = list.filter(
+    (p) =>
+      p.vendorId === CHANGSHA_VENDOR_ID || p.vendorId === "v-changsha-premium"
+  );
   const fallback = list.filter((p) => p.vendorId === STG_VENDOR_ID);
 
   const fallbackByKey = new Map();
@@ -99,6 +107,7 @@ export function applySupplyFallback(products, policy = loadSupplyPolicy()) {
 
   const enabled = policy?.fallbackEnabled !== false;
   const out = [];
+  const coveredKeys = new Set();
 
   for (const p of primary) {
     const unavailable = isPrimaryUnavailable(p, policy);
@@ -109,6 +118,7 @@ export function applySupplyFallback(products, policy = loadSupplyPolicy()) {
         inStock: true,
         vendor: "",
       });
+      coveredKeys.add(offerMatchKey(p));
       continue;
     }
     if (!enabled) continue;
@@ -141,6 +151,33 @@ export function applySupplyFallback(products, policy = loadSupplyPolicy()) {
         "US only · request first · pay after supply check · 2–3 weeks",
       inStock: true,
     });
+    coveredKeys.add(offerMatchKey(p));
+  }
+
+  // Changsha fills strengths not already covered by live JEC (or STG stand-in).
+  const changshaByKey = new Map();
+  for (const p of changsha) {
+    const k = offerMatchKey(p);
+    if (!k || k.startsWith("::") || coveredKeys.has(k)) continue;
+    const prev = changshaByKey.get(k);
+    if (
+      !prev ||
+      (p.price != null && (prev.price == null || p.price < prev.price))
+    ) {
+      changshaByKey.set(k, p);
+    }
+  }
+  for (const p of changshaByKey.values()) {
+    out.push({
+      ...p,
+      supplyLane: "changsha-fill",
+      inStock: true,
+      vendor: "",
+      ships:
+        p.ships ||
+        "US only · request first · pay after supply check · 2–3 weeks",
+    });
+    coveredKeys.add(offerMatchKey(p));
   }
 
   return out;

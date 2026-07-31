@@ -1,6 +1,11 @@
 import { JEC_SUBMISSIONS, JEC_VENDOR, JEC_VENDOR_ID } from "./jecPremium";
+import {
+  CHANGSHA_SUBMISSIONS,
+  CHANGSHA_VENDOR,
+  CHANGSHA_VENDOR_ID,
+} from "./changshaPremium";
 import { STG_VENDOR, STG_VENDOR_ID } from "./stgBackup";
-import { isJecSellable } from "./catalogFocus";
+import { isChangshaSellable, isJecSellable } from "./catalogFocus";
 import { resolveVialMl, resolveVialUnit, resolvePowderColor } from "../utils/vialArt";
 
 export { resolveVialMl, resolveVialUnit, resolvePowderColor };
@@ -24,11 +29,40 @@ export function formatMoney(n) {
   }).format(Number(n) || 0);
 }
 
-/** Live Undisclosed vendors (primary JEC + silent STG backup). */
+/** Live Undisclosed vendors: JEC primary, Changsha gap-fill, silent STG backup. */
 export const ACTIVE_VENDOR_IDS = new Set([
   JEC_VENDOR_ID,
+  CHANGSHA_VENDOR_ID,
   STG_VENDOR_ID,
 ]);
+
+/** Match key for “same kit” — compound + strength + unit. */
+export function submissionOfferKey(submission) {
+  const key = normalizeCompoundKey(submission?.name || "");
+  const mg = Number(submission?.mg);
+  const unit = String(submission?.unit || "mg").toLowerCase();
+  return `${key}::${Number.isFinite(mg) ? mg : 0}::${unit}`;
+}
+
+/** Changsha lines whose compound+strength is not already on JEC US. */
+export function changshaGapFillSubmissions(
+  jecSubs = JEC_SUBMISSIONS,
+  changshaSubs = CHANGSHA_SUBMISSIONS
+) {
+  const covered = new Set(
+    (jecSubs || [])
+      .filter((s) => isJecSellable(s.name))
+      .map((s) => submissionOfferKey(s))
+  );
+  return (changshaSubs || []).filter((s) => {
+    if (!isChangshaSellable(s.name)) return false;
+    const k = submissionOfferKey(s);
+    if (!k || k.startsWith("::")) return false;
+    if (covered.has(k)) return false;
+    covered.add(k);
+    return true;
+  });
+}
 
 /** Never expose supply-source names on the storefront. */
 export function displayVendorName(name, vendorId = "") {
@@ -394,18 +428,20 @@ export function guessTagline(name) {
   if (key && TAGLINES[key]) return TAGLINES[key];
   return "Laboratory research compound";
 }
-/** Primary JEC + silent STG backup (STG never shown by name). */
-export const SEED_VENDORS = [JEC_VENDOR, STG_VENDOR];
+/**
+ * JEC primary + Changsha gap-fill + silent STG backup.
+ * Vendor names never shown on the storefront.
+ */
+export const SEED_VENDORS = [JEC_VENDOR, CHANGSHA_VENDOR, STG_VENDOR];
 
-/** Shop seed — every curated JEC kit line. */
-export const SEED_SUBMISSIONS = [
-  ...JEC_SUBMISSIONS.filter((s) => isJecSellable(s.name)),
-];
+const JEC_SEED = JEC_SUBMISSIONS.filter((s) => isJecSellable(s.name));
+const CHANGSHA_GAP_SEED = changshaGapFillSubmissions(JEC_SEED, CHANGSHA_SUBMISSIONS);
 
-/** Calculator / label peptide dropdown — same JEC sellable set. */
-export const CALCULATOR_SUBMISSIONS = [
-  ...JEC_SUBMISSIONS.filter((s) => isJecSellable(s.name)),
-];
+/** Shop seed — JEC US stock, plus Changsha kits JEC does not carry. */
+export const SEED_SUBMISSIONS = [...JEC_SEED, ...CHANGSHA_GAP_SEED];
+
+/** Calculator / label peptide dropdown — same sellable set. */
+export const CALCULATOR_SUBMISSIONS = [...SEED_SUBMISSIONS];
 
 export function guessCategory(name) {
   if (CATEGORY_MAP[name]) return CATEGORY_MAP[name];

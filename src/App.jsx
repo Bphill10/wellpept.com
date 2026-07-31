@@ -1564,34 +1564,32 @@ export default function App() {
               <div className="container">
                 <div className="featured-vendor panel">
                   <div className="featured-vendor-copy">
-                    <span className="featured-kicker">US warehouse</span>
-                    <h2>Tesamorelin 10 mg</h2>
+                    <span className="featured-kicker">Featured kit</span>
+                    <h2>KLOW</h2>
                     <p>
-                      In-stock US warehouse kit. 10 × 10 MG lyophilized vials
+                      Signature Undisclosed kit. 10 × 80 MG lyophilized vials
                       with clinical wrap labels, QR, and research-only marking.
                       Request first; we confirm supply within 24 hours, then
-                      payment. $10 shipping · free on 2+ kits · 3–7 working days.
+                      payment. US shipping only.
                     </p>
                     <ul className="featured-meta">
-                      <li>US warehouse inventory</li>
-                      <li>10 MG · kit of 10 vials</li>
+                      <li>80 MG blend · kit of 10 vials</li>
                       <li>Request first · pay after supply check</li>
-                      <li>$10 shipping · free on 2+ kits</li>
-                      <li>3–7 working days delivery</li>
+                      <li>US shipping only · 2–3 weeks when not US-warehouse stock</li>
                     </ul>
                     <div className="hero-cta" style={{ marginTop: "0.85rem" }}>
                       <button
                         type="button"
                         className="primary-btn"
                         onClick={() => {
-                          setQuery("Tesamorelin");
+                          setQuery("KLOW");
                           setCategory("All");
                           document
                             .getElementById("catalog")
                             ?.scrollIntoView({ behavior: "smooth" });
                         }}
                       >
-                        Shop Tesamorelin
+                        Shop KLOW
                       </button>
                       <button
                         type="button"
@@ -1613,7 +1611,7 @@ export default function App() {
                       src="/undisclosed-hero-kit-sm.webp"
                       srcSet="/undisclosed-hero-kit-sm.webp 800w, /undisclosed-hero-kit.webp 1200w"
                       sizes="(max-width: 700px) 100vw, 42vw"
-                      alt="Undisclosed US warehouse research kit"
+                      alt="Undisclosed KLOW 80 MG research kit"
                       className="featured-product-photo"
                       width={800}
                       height={534}

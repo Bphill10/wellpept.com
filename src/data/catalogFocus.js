@@ -1,10 +1,11 @@
 /**
  * Focused Undisclosed catalog.
- * Primary supply: JEC (Jinan Elitepeptide). Changsha helpers kept for legacy rows.
- * Shop lists every seeded JEC line; calculator uses the same sellable set.
+ * Primary: JEC US warehouse. Gap-fill: Changsha sellable lines JEC does not carry.
+ * Silent backup: STG/ERP (never expands the shop on its own).
  */
 
 import { JEC_VENDOR_ID } from "./jecPremium";
+import { CHANGSHA_VENDOR_ID } from "./changshaPremium";
 
 function norm(name) {
   return String(name || "")
@@ -151,8 +152,12 @@ export function isFocusedSubmission(submission) {
   if (submission.vendorId === JEC_VENDOR_ID || submission.vendorId === "v-jec") {
     return isJecSellable(submission.name);
   }
-  if (submission.vendorId === "v-changsha-premium") {
-    return isChangshaFocused(submission.name);
+  // Changsha gap-fill: every sellable research line (supplies / DAC excluded).
+  if (
+    submission.vendorId === CHANGSHA_VENDOR_ID ||
+    submission.vendorId === "v-changsha-premium"
+  ) {
+    return isChangshaSellable(submission.name);
   }
   // STG backup rows are kept when they could replace a sellable primary line.
   // The shop only surfaces them via supply fallback — never as STG-only SKUs.
@@ -168,7 +173,10 @@ export function isSellableSubmission(submission) {
   if (submission.vendorId === JEC_VENDOR_ID || submission.vendorId === "v-jec") {
     return isJecSellable(submission.name);
   }
-  if (submission.vendorId === "v-changsha-premium") {
+  if (
+    submission.vendorId === CHANGSHA_VENDOR_ID ||
+    submission.vendorId === "v-changsha-premium"
+  ) {
     return isChangshaSellable(submission.name);
   }
   return false;

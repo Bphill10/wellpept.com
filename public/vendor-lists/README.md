@@ -52,8 +52,8 @@ Then say **import JEC US**.
 | Path | Role |
 |------|------|
 | `JEC US/Screenshot 2026-07-30 182013.png` | **Primary** US warehouse inventory → `jecPremium.js` |
-| `ERP/ERP_Price_list_Jul31end.pdf` | Silent backup seed |
-| `Changsha/Changsha_Premium_July_2026.xlsx` | Legacy seed |
+| `Changsha/Changsha_Premium_July_2026.xlsx` | **Gap-fill** — kits JEC US does not carry |
+| `ERP/ERP_Price_list_Jul31end.pdf` | Silent STG backup (OOS replacement only) |
 | `BAOHUA DONGNUO/`, `Serlina Chan/` | Reference / future |
 
 Never show supplier names on the storefront.

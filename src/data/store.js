@@ -4,10 +4,16 @@ import {
   ACTIVE_VENDOR_IDS,
   displayVendorName,
   buildCatalog,
+  changshaGapFillSubmissions,
 } from "./products";
-import { JEC_VENDOR, JEC_VENDOR_ID } from "./jecPremium";
+import { JEC_VENDOR, JEC_VENDOR_ID, JEC_SUBMISSIONS } from "./jecPremium";
+import {
+  CHANGSHA_VENDOR,
+  CHANGSHA_VENDOR_ID,
+  CHANGSHA_SUBMISSIONS,
+} from "./changshaPremium";
 import { STG_VENDOR, STG_VENDOR_ID, STG_SUBMISSIONS } from "./stgBackup";
-import { isFocusedSubmission } from "./catalogFocus";
+import { isFocusedSubmission, isJecSellable } from "./catalogFocus";
 import {
   applySupplyFallback,
   loadSupplyPolicy,
@@ -18,7 +24,7 @@ import {
 } from "../utils/stgSync";
 
 /** Bump when focused vendors/catalog must replace stale local data. */
-const STORAGE_KEY = "wellpept-marketplace-v17";
+const STORAGE_KEY = "wellpept-marketplace-v18";
 
 function syncVendor(v, policy = null) {
   if (!v || !ACTIVE_VENDOR_IDS.has(v.id)) return null;
@@ -33,6 +39,19 @@ function syncVendor(v, policy = null) {
       minOrder: JEC_VENDOR.minOrder,
       status: "approved",
       role: "primary",
+    };
+  }
+  if (v.id === CHANGSHA_VENDOR_ID) {
+    return {
+      ...v,
+      id: CHANGSHA_VENDOR_ID,
+      name: "Changsha",
+      priceListSource: CHANGSHA_VENDOR.priceListSource,
+      shippingFlat: CHANGSHA_VENDOR.shippingFlat,
+      shippingNote: CHANGSHA_VENDOR.shippingNote,
+      minOrder: CHANGSHA_VENDOR.minOrder,
+      status: "approved",
+      role: "gap-fill",
     };
   }
   if (v.id === STG_VENDOR_ID) {
@@ -59,14 +78,32 @@ function syncVendor(v, policy = null) {
   };
 }
 
+function jecSeed() {
+  return JEC_SUBMISSIONS.filter((s) => isJecSellable(s.name));
+}
+
+function changshaSeed(jecSubs) {
+  return changshaGapFillSubmissions(jecSubs, CHANGSHA_SUBMISSIONS).filter(
+    (s) => isFocusedSubmission(s)
+  );
+}
+
 function mergeSubmissions(seedSubs, stgSubs) {
-  const primary = seedSubs.filter(
+  const fromSeed = seedSubs || [];
+  let jec = fromSeed.filter(
     (s) => s.vendorId === JEC_VENDOR_ID && isFocusedSubmission(s)
   );
+  if (!jec.length) jec = jecSeed();
+
+  let changsha = fromSeed.filter(
+    (s) => s.vendorId === CHANGSHA_VENDOR_ID && isFocusedSubmission(s)
+  );
+  if (!changsha.length) changsha = changshaSeed(jec);
+
   const stg = (stgSubs || []).filter(
     (s) => s.vendorId === STG_VENDOR_ID && isFocusedSubmission(s)
   );
-  return [...primary, ...stg];
+  return [...jec, ...changsha, ...stg];
 }
 
 function loadState() {
@@ -136,9 +173,15 @@ export function persistMarketplace(vendors, submissions, policy) {
     }
   }
 
-  const primarySubs = submissions.filter(
+  const jecFromState = submissions.filter(
     (s) =>
       s.vendorId === JEC_VENDOR_ID &&
+      ACTIVE_VENDOR_IDS.has(s.vendorId) &&
+      isFocusedSubmission(s)
+  );
+  const changshaFromState = submissions.filter(
+    (s) =>
+      s.vendorId === CHANGSHA_VENDOR_ID &&
       ACTIVE_VENDOR_IDS.has(s.vendorId) &&
       isFocusedSubmission(s)
   );
@@ -148,8 +191,11 @@ export function persistMarketplace(vendors, submissions, policy) {
   const stgSubs = resolveStgSeed(
     stgFromState.length > 0 ? stgFromState : loadCachedStgSubmissions()
   );
-  const finalPrimary = primarySubs.length ? primarySubs : SEED_SUBMISSIONS;
-  const finalSubs = mergeSubmissions(finalPrimary, stgSubs);
+  const jec = jecFromState.length ? jecFromState : jecSeed();
+  const changsha = changshaFromState.length
+    ? changshaFromState
+    : changshaSeed(jec);
+  const finalSubs = mergeSubmissions([...jec, ...changsha], stgSubs);
 
   saveState({ vendors: cleanVendors, submissions: finalSubs });
   return buildMarketplaceProducts(cleanVendors, finalSubs, pol);
