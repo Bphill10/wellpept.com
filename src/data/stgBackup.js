@@ -1,7 +1,10 @@
 /**
- * Silent supply backup — seeded from public/vendor-lists/ERP_Price_list_Jul31end.pdf
- * (Shanghai ERP Peptide). Never shown by name on the storefront. Used only when a
- * primary (JEC) line is marked unavailable and backup has a matching SKU.
+ * Third backup supply — seeded from public/vendor-lists/ERP/ERP_Price_list_Jul31end.pdf
+ * (Shanghai ERP Peptide). Never shown by name on the storefront.
+ *
+ * Used as:
+ * - Gap-fill for top-25 strengths neither JEC nor Changsha carry
+ * - OOS stand-in when a JEC line is unavailable and Changsha has no match
  */
 
 import { ERP_SUBMISSIONS, ERP_VENDOR } from "./erpPeptide";
@@ -15,7 +18,7 @@ export const STG_VENDOR = {
   name: "STG",
   email: "",
   status: "approved",
-  role: "fallback",
+  role: "backup-3",
   minOrder: 0,
   shippingFlat: ERP_VENDOR.shippingFlat ?? 50,
   shippingNote:

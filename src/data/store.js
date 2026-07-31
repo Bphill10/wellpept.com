@@ -5,6 +5,7 @@ import {
   displayVendorName,
   buildCatalog,
   changshaGapFillSubmissions,
+  erpGapFillSubmissions,
 } from "./products";
 import { JEC_VENDOR, JEC_VENDOR_ID, JEC_SUBMISSIONS } from "./jecPremium";
 import {
@@ -24,7 +25,7 @@ import {
 } from "../utils/stgSync";
 
 /** Bump when focused vendors/catalog must replace stale local data. */
-const STORAGE_KEY = "wellpept-marketplace-v21";
+const STORAGE_KEY = "wellpept-marketplace-v22";
 
 function syncVendor(v, policy = null) {
   if (!v || !ACTIVE_VENDOR_IDS.has(v.id)) return null;
@@ -61,7 +62,7 @@ function syncVendor(v, policy = null) {
       ...v,
       id: STG_VENDOR_ID,
       name: "STG",
-      role: "fallback",
+      role: "backup-3",
       status: "approved",
       shippingFlat:
         policy?.shippingFlat != null && Number(policy.shippingFlat) > 0
@@ -88,6 +89,14 @@ function changshaSeed(jecSubs) {
   );
 }
 
+function erpSeed(coveredSubs, stgSubs) {
+  const pool =
+    Array.isArray(stgSubs) && stgSubs.length > 0 ? stgSubs : STG_SUBMISSIONS;
+  return erpGapFillSubmissions(coveredSubs, pool).filter((s) =>
+    isFocusedSubmission(s)
+  );
+}
+
 function mergeSubmissions(seedSubs, stgSubs) {
   const fromSeed = seedSubs || [];
   let jec = fromSeed.filter(
@@ -100,10 +109,15 @@ function mergeSubmissions(seedSubs, stgSubs) {
   );
   if (!changsha.length) changsha = changshaSeed(jec);
 
-  const stg = (stgSubs || []).filter(
+  const erpFromSeed = fromSeed.filter(
     (s) => s.vendorId === STG_VENDOR_ID && isFocusedSubmission(s)
   );
-  return [...jec, ...changsha, ...stg];
+  const erp =
+    erpFromSeed.length > 0
+      ? erpGapFillSubmissions([...jec, ...changsha], erpFromSeed)
+      : erpSeed([...jec, ...changsha], stgSubs);
+
+  return [...jec, ...changsha, ...erp];
 }
 
 function loadState() {
@@ -195,7 +209,7 @@ export function persistMarketplace(vendors, submissions, policy) {
   const changsha = changshaFromState.length
     ? changshaFromState
     : changshaSeed(jec);
-  const finalSubs = mergeSubmissions([...jec, ...changsha], stgSubs);
+  const finalSubs = mergeSubmissions([...jec, ...changsha, ...stgSubs], stgSubs);
 
   saveState({ vendors: cleanVendors, submissions: finalSubs });
   return buildMarketplaceProducts(cleanVendors, finalSubs, pol);

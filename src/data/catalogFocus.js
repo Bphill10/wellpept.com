@@ -1,7 +1,7 @@
 /**
  * Focused Undisclosed catalog — top 25 peptides only.
- * Primary: JEC US warehouse. Gap-fill: Changsha strengths JEC does not carry.
- * Silent backup: STG/ERP (never expands the shop on its own).
+ * 1) JEC US primary · 2) Changsha gap-fill · 3) ERP/STG third backup.
+ * Supplier names never shown.
  */
 
 import { JEC_VENDOR_ID } from "./jecPremium";
@@ -157,6 +157,8 @@ export function isTop25Peptide(name) {
     return true;
   }
   if (n.startsWith("epithalon") || n.startsWith("epitalon")) return true;
+  // Standalone Semax / Selank only (not Selank+Semax combo kits)
+  if (n.includes("semax") && n.includes("selank")) return false;
   if (n.includes("semax")) return true;
   if (n.includes("selank")) return true;
   if (n.startsWith("glutathione") || n.startsWith("gluta")) return true;

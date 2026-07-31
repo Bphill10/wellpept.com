@@ -1,8 +1,9 @@
 /**
- * Customer catalog assembly:
- * - JEC primary lines (STG replaces a JEC line only when marked unavailable)
- * - Changsha gap-fill lines (strengths JEC does not carry)
- * - STG-only SKUs never expand the shop
+ * Customer catalog assembly (top 25):
+ * 1) JEC primary
+ * 2) Changsha gap-fill / OOS stand-in
+ * 3) ERP/STG third backup (gap-fill + OOS stand-in)
+ * Supplier names never shown.
  */
 
 import {
@@ -18,7 +19,7 @@ import {
 const POLICY_KEY = "wellpept-supply-policy-v1";
 
 export const DEFAULT_SUPPLY_POLICY = {
-  /** When false, STG never substitutes (sync can still run). */
+  /** When false, backups never substitute OOS primary lines. */
   fallbackEnabled: true,
   /** Match keys: `${compoundKey}::${mg}::${unit}` for primary lines that are out. */
   unavailableKeys: [],
@@ -75,12 +76,42 @@ export function isPrimaryUnavailable(product, policy) {
   return keys.has(offerMatchKey(product));
 }
 
+function indexByOfferKey(products) {
+  const map = new Map();
+  for (const p of products || []) {
+    const k = offerMatchKey(p);
+    if (!k || k.startsWith("::")) continue;
+    const prev = map.get(k);
+    if (
+      !prev ||
+      (p.price != null && (prev.price == null || p.price < prev.price))
+    ) {
+      map.set(k, p);
+    }
+  }
+  return map;
+}
+
+function pushFill(out, coveredKeys, product, lane) {
+  const k = offerMatchKey(product);
+  if (!k || k.startsWith("::") || coveredKeys.has(k)) return;
+  out.push({
+    ...product,
+    supplyLane: lane,
+    inStock: true,
+    vendor: "",
+    ships:
+      product.ships ||
+      "US only · request first · pay after supply check · 2–3 weeks",
+  });
+  coveredKeys.add(k);
+}
+
 /**
- * Build the customer-facing product list:
- * - Keep primary (JEC) offers that are available
- * - Replace unavailable primary offers with a matching STG offer (same compound + mg)
- * - Add Changsha offers for strengths JEC does not carry
- * - Never add STG-only lines
+ * Build the customer-facing product list for the top 25:
+ * - Keep available JEC offers
+ * - OOS JEC → Changsha match, else ERP/STG match
+ * - Gap-fill remaining strengths: Changsha first, then ERP
  */
 export function applySupplyFallback(products, policy = loadSupplyPolicy()) {
   const list = Array.isArray(products) ? products : [];
@@ -89,21 +120,10 @@ export function applySupplyFallback(products, policy = loadSupplyPolicy()) {
     (p) =>
       p.vendorId === CHANGSHA_VENDOR_ID || p.vendorId === "v-changsha-premium"
   );
-  const fallback = list.filter((p) => p.vendorId === STG_VENDOR_ID);
+  const erp = list.filter((p) => p.vendorId === STG_VENDOR_ID);
 
-  const fallbackByKey = new Map();
-  for (const p of fallback) {
-    const k = offerMatchKey(p);
-    if (!k.startsWith("::")) {
-      const prev = fallbackByKey.get(k);
-      if (
-        !prev ||
-        (p.price != null && (prev.price == null || p.price < prev.price))
-      ) {
-        fallbackByKey.set(k, p);
-      }
-    }
-  }
+  const changshaByKey = indexByOfferKey(changsha);
+  const erpByKey = indexByOfferKey(erp);
 
   const enabled = policy?.fallbackEnabled !== false;
   const out = [];
@@ -122,15 +142,19 @@ export function applySupplyFallback(products, policy = loadSupplyPolicy()) {
       continue;
     }
     if (!enabled) continue;
-    const alt = fallbackByKey.get(offerMatchKey(p));
+
+    const key = offerMatchKey(p);
+    const alt = changshaByKey.get(key) || erpByKey.get(key);
     if (!alt) continue;
 
+    const fromErp = alt.vendorId === STG_VENDOR_ID;
     const shipFlat =
-      policy.shippingFlat != null && Number(policy.shippingFlat) > 0
+      fromErp && policy.shippingFlat != null && Number(policy.shippingFlat) > 0
         ? Number(policy.shippingFlat)
         : alt.shippingFlat;
     const shipNote =
-      String(policy.shippingNote || "").trim() || alt.shippingNote;
+      (fromErp && String(policy.shippingNote || "").trim()) ||
+      alt.shippingNote;
 
     out.push({
       ...alt,
@@ -142,7 +166,7 @@ export function applySupplyFallback(products, policy = loadSupplyPolicy()) {
       badge: null,
       featured: false,
       vendor: "",
-      supplyLane: "stg-fallback",
+      supplyLane: fromErp ? "erp-fallback" : "changsha-fallback",
       replacedSubmissionId: p.submissionId,
       replacedSku: p.sku,
       shippingFlat: shipFlat,
@@ -151,33 +175,17 @@ export function applySupplyFallback(products, policy = loadSupplyPolicy()) {
         "US only · request first · pay after supply check · 2–3 weeks",
       inStock: true,
     });
-    coveredKeys.add(offerMatchKey(p));
+    coveredKeys.add(key);
   }
 
-  // Changsha fills strengths not already covered by live JEC (or STG stand-in).
-  const changshaByKey = new Map();
-  for (const p of changsha) {
-    const k = offerMatchKey(p);
-    if (!k || k.startsWith("::") || coveredKeys.has(k)) continue;
-    const prev = changshaByKey.get(k);
-    if (
-      !prev ||
-      (p.price != null && (prev.price == null || p.price < prev.price))
-    ) {
-      changshaByKey.set(k, p);
-    }
-  }
+  // 2nd: Changsha strengths JEC does not carry
   for (const p of changshaByKey.values()) {
-    out.push({
-      ...p,
-      supplyLane: "changsha-fill",
-      inStock: true,
-      vendor: "",
-      ships:
-        p.ships ||
-        "US only · request first · pay after supply check · 2–3 weeks",
-    });
-    coveredKeys.add(offerMatchKey(p));
+    pushFill(out, coveredKeys, p, "changsha-fill");
+  }
+
+  // 3rd: ERP strengths neither JEC nor Changsha carry (top 25 only, already filtered in seed)
+  for (const p of erpByKey.values()) {
+    pushFill(out, coveredKeys, p, "erp-fill");
   }
 
   return out;

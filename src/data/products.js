@@ -4,7 +4,7 @@ import {
   CHANGSHA_VENDOR,
   CHANGSHA_VENDOR_ID,
 } from "./changshaPremium";
-import { STG_VENDOR, STG_VENDOR_ID } from "./stgBackup";
+import { STG_VENDOR, STG_VENDOR_ID, STG_SUBMISSIONS } from "./stgBackup";
 import {
   isChangshaSellable,
   isJecSellable,
@@ -33,7 +33,10 @@ export function formatMoney(n) {
   }).format(Number(n) || 0);
 }
 
-/** Live Undisclosed vendors: JEC primary, Changsha gap-fill, silent STG backup. */
+/**
+ * Live Undisclosed vendors:
+ * 1) JEC primary · 2) Changsha gap-fill · 3) ERP/STG third backup.
+ */
 export const ACTIVE_VENDOR_IDS = new Set([
   JEC_VENDOR_ID,
   CHANGSHA_VENDOR_ID,
@@ -48,19 +51,13 @@ export function submissionOfferKey(submission) {
   return `${key}::${Number.isFinite(mg) ? mg : 0}::${unit}`;
 }
 
-/** Changsha lines whose compound+strength is not already on JEC US. */
-export function changshaGapFillSubmissions(
-  jecSubs = JEC_SUBMISSIONS,
-  changshaSubs = CHANGSHA_SUBMISSIONS
-) {
+function gapFillFrom(coveredSubs, candidateSubs, { requireChangshaSellable = false } = {}) {
   const covered = new Set(
-    (jecSubs || [])
-      .filter((s) => isJecSellable(s.name))
-      .map((s) => submissionOfferKey(s))
+    (coveredSubs || []).map((s) => submissionOfferKey(s)).filter(Boolean)
   );
-  return (changshaSubs || []).filter((s) => {
-    if (!isChangshaSellable(s.name)) return false;
+  return (candidateSubs || []).filter((s) => {
     if (!isTop25Peptide(s.name)) return false;
+    if (requireChangshaSellable && !isChangshaSellable(s.name)) return false;
     const k = submissionOfferKey(s);
     if (!k || k.startsWith("::")) return false;
     if (covered.has(k)) return false;
@@ -69,12 +66,33 @@ export function changshaGapFillSubmissions(
   });
 }
 
+/** Changsha lines whose compound+strength is not already on JEC US. */
+export function changshaGapFillSubmissions(
+  jecSubs = JEC_SUBMISSIONS,
+  changshaSubs = CHANGSHA_SUBMISSIONS
+) {
+  const jec = (jecSubs || []).filter((s) => isJecSellable(s.name));
+  return gapFillFrom(jec, changshaSubs, { requireChangshaSellable: true });
+}
+
+/**
+ * ERP (STG) lines for top-25 strengths not already covered by JEC or Changsha.
+ * Third backup — never shown by supplier name.
+ */
+export function erpGapFillSubmissions(
+  coveredSubs = [],
+  erpSubs = STG_SUBMISSIONS
+) {
+  return gapFillFrom(coveredSubs, erpSubs);
+}
+
 /** Never expose supply-source names on the storefront. */
 export function displayVendorName(name, vendorId = "") {
   const id = String(vendorId || "");
   if (id === JEC_VENDOR_ID || id === "v-jec") return "";
   if (id === "v-changsha-premium" || id === "v-changsha") return "";
   if (id === STG_VENDOR_ID || id === "v-stg-backup") return "";
+  if (id === "v-erp-peptide") return "";
   const cleaned = String(name || "")
     .replace(/\bpremium\b/gi, "")
     .replace(/\s+/g, " ")
@@ -83,6 +101,7 @@ export function displayVendorName(name, vendorId = "") {
   if (/jinan elite/i.test(cleaned)) return "";
   if (/changsha/i.test(cleaned)) return "";
   if (/^stg\b/i.test(cleaned) || /\bstg\b/i.test(cleaned)) return "";
+  if (/^erp\b/i.test(cleaned) || /erp peptide/i.test(cleaned)) return "";
   return cleaned;
 }
 
@@ -434,16 +453,24 @@ export function guessTagline(name) {
   return "Laboratory research compound";
 }
 /**
- * JEC primary + Changsha gap-fill + silent STG backup.
+ * 1) JEC primary · 2) Changsha gap-fill · 3) ERP/STG third backup.
  * Vendor names never shown on the storefront.
  */
 export const SEED_VENDORS = [JEC_VENDOR, CHANGSHA_VENDOR, STG_VENDOR];
 
 const JEC_SEED = JEC_SUBMISSIONS.filter((s) => isJecSellable(s.name));
 const CHANGSHA_GAP_SEED = changshaGapFillSubmissions(JEC_SEED, CHANGSHA_SUBMISSIONS);
+const ERP_GAP_SEED = erpGapFillSubmissions(
+  [...JEC_SEED, ...CHANGSHA_GAP_SEED],
+  STG_SUBMISSIONS
+);
 
-/** Shop seed — JEC US stock, plus Changsha kits JEC does not carry. */
-export const SEED_SUBMISSIONS = [...JEC_SEED, ...CHANGSHA_GAP_SEED];
+/** Shop seed — JEC, then Changsha gaps, then ERP gaps (top 25 only). */
+export const SEED_SUBMISSIONS = [
+  ...JEC_SEED,
+  ...CHANGSHA_GAP_SEED,
+  ...ERP_GAP_SEED,
+];
 
 /** Calculator / label peptide dropdown — same sellable set. */
 export const CALCULATOR_SUBMISSIONS = [...SEED_SUBMISSIONS];
@@ -491,6 +518,13 @@ export function normalizeCompoundKey(name) {
     .replace(/[–—]/g, "-")
     .replace(/\([^)]*\)/g, " ")
     .replace(/^\+\s*/, "")
+    .replace(/\bwhitout\b/g, "without")
+    .replace(/\bbpc(\d)/g, "bpc $1")
+    .replace(/\btb(\d)/g, "tb $1")
+    .replace(/\bll[\s-]*37\b/g, "ll 37")
+    .replace(/\bpt[\s-]*141\b/g, "pt 141")
+    .replace(/\bss[\s.-]*31\b/g, "ss 31")
+    .replace(/\bepitalon\b/g, "epithalon")
     .replace(/[^a-z0-9]+/g, " ")
     .replace(/\b(\d+(?:\.\d+)?)\s*mgs?\b/g, "")
     .replace(/\s+/g, " ")
@@ -552,11 +586,18 @@ export function displayPeptideName(name = "") {
   }
   if (n.startsWith("tesa") || n.includes("tesamorelin")) return "Tesamorelin";
   if (n.includes("cjc") && n.includes("ipa")) return "CJC-1295 / Ipamorelin";
-  if (n.includes("cjc") && (n.includes("without") || n.includes("no dac") || n.includes("w/o"))) {
+  if (
+    n.includes("cjc") &&
+    (n.includes("without") ||
+      n.includes("whitout") ||
+      n.includes("no dac") ||
+      n.includes("w/o"))
+  ) {
     return "CJC-1295";
   }
   if (n.includes("cjc") && n.includes("dac")) return "CJC-1295 with DAC";
   if (n.includes("cjc")) return "CJC-1295";
+  if (n.includes("ll-37") || n.includes("ll37") || n === "ll 37") return "LL-37";
   if (n.includes("ipamorelin") || n.startsWith("ipa ")) return "Ipamorelin";
   if (n === "nad+" || n === "nad" || n.startsWith("nad+")) return "NAD+";
   if (n.includes("glutathione") || n.startsWith("gluta")) return "Glutathione";
