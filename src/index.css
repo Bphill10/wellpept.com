@@ -1440,6 +1440,10 @@ button.linkish {
   margin-bottom: 1.25rem;
 }
 
+.filters--warehouse {
+  margin-bottom: 0.65rem;
+}
+
 .chip {
   border: 1px solid var(--line);
   background: var(--surface);
@@ -1450,10 +1454,19 @@ button.linkish {
   color: var(--ink-soft);
 }
 
+.chip-hint {
+  font-weight: 500;
+  opacity: 0.78;
+}
+
 .chip.active {
   background: var(--black);
   border-color: var(--gold);
   color: #f7f7f7;
+}
+
+.chip.active .chip-hint {
+  opacity: 0.85;
 }
 
 .product-grid {

@@ -13,6 +13,14 @@ export const WAREHOUSE_A = "A";
 export const WAREHOUSE_B = "B";
 export const WAREHOUSE_C = "C";
 
+/** Catalog filter chips: All + A/B/C. */
+export const WAREHOUSE_FILTERS = [
+  { id: "All", label: "All warehouses" },
+  { id: WAREHOUSE_A, label: "Warehouse A", hint: "7–10 days" },
+  { id: WAREHOUSE_B, label: "Warehouse B", hint: "2–4 weeks" },
+  { id: WAREHOUSE_C, label: "Warehouse C", hint: "2–4 weeks" },
+];
+
 export const WAREHOUSES = {
   A: {
     id: WAREHOUSE_A,

@@ -106,6 +106,7 @@ import {
 } from "./utils/stgSync";
 import { STG_VENDOR_ID, PRIMARY_VENDOR_ID } from "./data/stgBackup";
 import {
+  WAREHOUSE_FILTERS,
   cartShippingTotal,
   cartShippingBreakdown,
 } from "./data/warehouses";
@@ -226,6 +227,7 @@ export default function App() {
   const [calcInitial, setCalcInitial] = useState(calcFromUrl);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
+  const [warehouseFilter, setWarehouseFilter] = useState("All");
   const [selectedId, setSelectedId] = useState(null);
   const [selectedVariantId, setSelectedVariantId] = useState(null);
   const [cart, setCart] = useState([]);
@@ -604,7 +606,10 @@ export default function App() {
       );
     const matchesCategory =
       category === "All" || listing.category === category;
-    return matchesQuery && matchesCategory;
+    const matchesWarehouse =
+      warehouseFilter === "All" ||
+      listing.variants.some((v) => v.warehouseId === warehouseFilter);
+    return matchesQuery && matchesCategory && matchesWarehouse;
   });
 
   const catalogSections = useMemo(() => {
@@ -1612,6 +1617,9 @@ export default function App() {
                       {filtered.length} peptide
                       {filtered.length === 1 ? "" : "s"}
                       {category !== "All" ? ` in ${category}` : ""}
+                      {warehouseFilter !== "All"
+                        ? ` · Warehouse ${warehouseFilter}`
+                        : ""}
                       {query.trim() ? ` for “${query.trim()}”` : ""}. Listed
                       Warehouse A → B → C. Shipping is charged per warehouse in
                       your cart · request first, pay after supply check.
@@ -1629,6 +1637,32 @@ export default function App() {
                     enterKeyHint="search"
                   />
                 </label>
+
+                <div className="filters filters--warehouse" role="group" aria-label="Filter by warehouse">
+                  {WAREHOUSE_FILTERS.map((w) => (
+                    <button
+                      key={w.id}
+                      type="button"
+                      className={`chip ${warehouseFilter === w.id ? "active" : ""}`}
+                      onClick={() => {
+                        setWarehouseFilter(w.id);
+                        window.setTimeout(() => {
+                          document
+                            .getElementById("catalog")
+                            ?.scrollIntoView({
+                              behavior: "smooth",
+                              block: "start",
+                            });
+                        }, 40);
+                      }}
+                    >
+                      {w.label}
+                      {w.hint ? (
+                        <span className="chip-hint"> · {w.hint}</span>
+                      ) : null}
+                    </button>
+                  ))}
+                </div>
 
                 <div className="filters">
                   {CATEGORIES.map((c) => (
@@ -1683,6 +1717,7 @@ export default function App() {
                         <ProductCard
                           key={listing.id}
                           listing={listing}
+                          preferredWarehouseId={warehouseFilter}
                           onOpen={openProduct}
                           onAdd={addToCart}
                         />
@@ -1714,6 +1749,7 @@ export default function App() {
                             <ProductCard
                               key={listing.id}
                               listing={listing}
+                              preferredWarehouseId={warehouseFilter}
                               onOpen={openProduct}
                               onAdd={addToCart}
                             />
@@ -1926,7 +1962,17 @@ export default function App() {
   );
 }
 
-function ProductCard({ listing, onOpen, onAdd }) {
+function preferredOfferId(listing, preferredWarehouseId) {
+  if (!preferredWarehouseId || preferredWarehouseId === "All") {
+    return listing.defaultVariantId;
+  }
+  const fromWh = (listing.variants || []).find(
+    (v) => v.warehouseId === preferredWarehouseId && v.price != null
+  );
+  return fromWh?.id || listing.defaultVariantId;
+}
+
+function ProductCard({ listing, preferredWarehouseId = "All", onOpen, onAdd }) {
   const strengths = listing.strengths?.length
     ? listing.strengths
     : [
@@ -1939,11 +1985,12 @@ function ProductCard({ listing, onOpen, onAdd }) {
           vendorCount: listing.variants.length,
         },
       ];
-  const [offerId, setOfferId] = useState(listing.defaultVariantId);
+  const initialOfferId = preferredOfferId(listing, preferredWarehouseId);
+  const [offerId, setOfferId] = useState(initialOfferId);
 
   useEffect(() => {
-    setOfferId(listing.defaultVariantId);
-  }, [listing.id, listing.defaultVariantId]);
+    setOfferId(preferredOfferId(listing, preferredWarehouseId));
+  }, [listing.id, listing.defaultVariantId, preferredWarehouseId]);
 
   const strength =
     strengths.find((s) => s.offers.some((o) => o.id === offerId)) ||
