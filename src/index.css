@@ -4681,10 +4681,16 @@ body:has(.app-shell--undisclosed)::before {
   align-items: stretch;
 }
 
+.calc-label-panel .calc-vial-stage {
+  margin: 0.35rem 0 0.85rem;
+  width: 100%;
+}
+
 .calc-label-panel .calc-label-stage {
   flex: 1;
   width: 100%;
   min-height: 0;
+  margin-top: 0;
 }
 
 .calc-label-panel .label-template-wrap {

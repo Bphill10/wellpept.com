@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Calculator, RotateCcw, Link2, Download } from "lucide-react";
 import LabelTemplate from "./LabelTemplate";
+import GeneratedVial from "./GeneratedVial";
 import {
   CATEGORIES,
   calculatorOptionsFromListings,
@@ -578,9 +579,28 @@ export default function PeptideCalculator({
                 <h2>Vial label · free</h2>
               </div>
               <p className="meta">
-                {bottleOptionLabel(Number(vialMl) || 3)}. Live from calculator ·
-                QR → wellpept.com · download free
+                {bottleOptionLabel(Number(vialMl) || 3)}. Live on the vial and
+                flat wrap · QR → wellpept.com · download free
               </p>
+              <div className="calc-vial-stage">
+                <GeneratedVial
+                  name={name || selectedPeptide?.name || "Peptide"}
+                  mass={mass}
+                  unit={vialUnit || "mg"}
+                  bacWater={solution ? `${formatNum(solution, 2)} mL` : ""}
+                  concentration={result?.concLabel || ""}
+                  doseRange={formatDoseRangeLabel(
+                    dose,
+                    doseUnit,
+                    result?.units ? Math.round(Number(result.units)) || 10 : 10
+                  )}
+                  vialMl={Number(vialMl) || 3}
+                  size="lg"
+                  catalogTemplate={false}
+                  showLabel
+                  showDownload={false}
+                />
+              </div>
               <div className="calc-label-stage">
                 <LabelTemplate
                   blank={false}
