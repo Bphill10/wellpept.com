@@ -173,6 +173,9 @@ const CATEGORY_MAP = {
   "ARA-290": "Recovery",
   ARA290: "Recovery",
   Cibinetide: "Recovery",
+  "LL-37": "Cellular",
+  AOD9604: "Metabolic",
+  DSIP: "Cognitive",
 };
 
 /** Brief summaries: what it is + what labs study it for (1–2 sentences). */
@@ -497,7 +500,7 @@ const ERP_GAP_SEED = erpGapFillSubmissions(
   STG_SUBMISSIONS
 );
 
-/** Shop seed — JEC, then Changsha gaps, then ERP gaps (top 25 only). */
+/** Shop seed — JEC, then Changsha gaps, then ERP gaps (top 28 only). */
 export const SEED_SUBMISSIONS = [
   ...JEC_SEED,
   ...CHANGSHA_GAP_SEED,

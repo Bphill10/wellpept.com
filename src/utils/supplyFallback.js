@@ -1,5 +1,5 @@
 /**
- * Customer catalog assembly (top 25):
+ * Customer catalog assembly (top 28):
  * Warehouse A (JEC) → B (Changsha) → C (ERP)
  * Ownership is by compound name only (not strength).
  * Supplier names never shown — only warehouse labels.
@@ -111,7 +111,7 @@ function pushCompound(out, coveredCompounds, compound, products, lane) {
 }
 
 /**
- * Build the customer-facing product list for the top 25:
+ * Build the customer-facing product list for the top 28:
  * - Warehouse A owns a compound if it has any in-stock strength
  * - Else Warehouse B owns that compound (all its strengths)
  * - Else Warehouse C

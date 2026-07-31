@@ -1,5 +1,5 @@
 /**
- * Focused Undisclosed catalog — top 25 peptides only.
+ * Focused Undisclosed catalog — top 28 peptides only.
  * 1) JEC US primary · 2) Changsha gap-fill · 3) ERP/STG third backup.
  * Supplier names never shown.
  */
@@ -16,10 +16,10 @@ function norm(name) {
 }
 
 /**
- * Storefront top 25 (compound families). Multiple vial strengths still show
+ * Storefront top 28 (compound families). Multiple vial strengths still show
  * under each name. Order is display priority for “featured” thinking.
  */
-export const TOP_25_PEPTIDES = [
+export const TOP_28_PEPTIDES = [
   "Tirzepatide",
   "Retatrutide",
   "Semaglutide",
@@ -45,7 +45,13 @@ export const TOP_25_PEPTIDES = [
   "Cagrilintide",
   "ARA-290",
   "FOX04-DRI",
+  "LL-37",
+  "AOD9604",
+  "DSIP",
 ];
+
+/** @deprecated alias — use TOP_28_PEPTIDES */
+export const TOP_25_PEPTIDES = TOP_28_PEPTIDES;
 
 /** Supplies / non-peptide lines — not sold as catalog peptides. */
 export function isChangshaSupply(name) {
@@ -82,7 +88,7 @@ export function isChangshaSellable(name) {
   return true;
 }
 
-/** True when the compound is in the top-25 storefront set. */
+/** True when the compound is in the top-28 storefront set. */
 export function isTop25Peptide(name) {
   const n = norm(name);
   if (!n || isChangshaSupply(name)) return false;
@@ -213,6 +219,19 @@ export function isTop25Peptide(name) {
   ) {
     return true;
   }
+  if (n === "ll37" || n === "ll-37" || n.startsWith("ll37") || n.startsWith("ll-37")) {
+    return true;
+  }
+  if (
+    n === "aod9604" ||
+    n === "aod-9604" ||
+    n.startsWith("aod9604") ||
+    n.startsWith("aod-9604") ||
+    n.startsWith("aod 9604")
+  ) {
+    return true;
+  }
+  if (n === "dsip" || n.startsWith("dsip ")) return true;
   if (
     n.includes("fox04") ||
     n.includes("foxo4") ||
@@ -232,7 +251,7 @@ export function isChangshaFocused(name) {
   return isTop25Peptide(name) && isChangshaSellable(name);
 }
 
-/** JEC lines that are in the top-25 set. */
+/** JEC lines that are in the top-28 set. */
 export function isJecSellable(name) {
   if (!name) return false;
   if (isChangshaSupply(name)) return false;
