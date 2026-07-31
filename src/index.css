@@ -4652,6 +4652,55 @@ body:has(.app-shell--undisclosed)::before {
   max-width: 42rem;
 }
 
+.calc-layout.calc-layout--with-label {
+  grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+  gap: 1.1rem;
+  max-width: none;
+  align-items: start;
+}
+
+.calc-card--skinny {
+  max-width: 22rem;
+}
+
+.calc-card--skinny .form-grid {
+  gap: 0.7rem;
+}
+
+.calc-label-panel {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.72);
+  position: sticky;
+  top: calc(var(--header-clearance, 4.5rem) + 0.5rem);
+}
+
+.app-shell--undisclosed .calc-label-panel {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(0, 71, 171, 0.28);
+}
+
+.calc-refs--compact {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.75rem;
+}
+
+.calc-refs--compact > div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.calc-refs--compact span {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  font-weight: 700;
+}
+
 .calc-refs--simple {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -5453,11 +5502,21 @@ body:has(.app-shell--undisclosed)::before {
 }
 
 @media (max-width: 900px) {
-  .calc-layout {
+  .calc-layout,
+  .calc-layout.calc-layout--with-label {
     grid-template-columns: 1fr;
   }
 
-  .calc-refs--simple {
+  .calc-card--skinny {
+    max-width: none;
+  }
+
+  .calc-label-panel {
+    position: static;
+  }
+
+  .calc-refs--simple,
+  .calc-refs--compact {
     grid-template-columns: 1fr;
   }
 }

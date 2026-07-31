@@ -393,9 +393,9 @@ export default function PeptideCalculator({
             <div>
               <h1>Peptide calculator</h1>
               <p className="lede" style={{ marginBottom: 0 }}>
-                Pick a catalog peptide or Custom to enter your own name, vial
-                contents, and bottle / label size (3·40×20 · 5·40×25 · 10·50×30 ·
-                30·70×40 mm).
+                Pick a catalog peptide or Custom. Dose math on the left — vial
+                label updates beside it (3·40×20 · 5·40×25 · 10·50×30 · 30·70×40
+                mm).
               </p>
             </div>
           </div>
@@ -424,8 +424,8 @@ export default function PeptideCalculator({
             </div>
           )}
 
-          <div className="calc-layout calc-layout--solo">
-            <div className="calc-card">
+          <div className="calc-layout calc-layout--with-label">
+            <div className="calc-card calc-card--skinny">
               <div className="form-grid">
                 <label className="field">
                   Peptide ({options.length || 0})
@@ -658,81 +658,51 @@ export default function PeptideCalculator({
                     </div>
                   </div>
 
-                  <div className="calc-refs calc-refs--simple">
+                  <div className="calc-refs calc-refs--compact">
                     <div>
-                      <span>Concentration</span>
+                      <span>Conc.</span>
                       <strong>{result.concLabel}</strong>
                     </div>
                     <div>
-                      <span>Doses / vial</span>
+                      <span>Doses</span>
                       <strong>{formatNum(result.doses, 1)}</strong>
                     </div>
                     <div>
                       <span>1 unit</span>
                       <strong>{result.perUnitLabel}</strong>
                     </div>
-                    <div>
-                      <span>Bottle</span>
-                      <strong>{vialMl} mL</strong>
-                    </div>
-                    <div>
-                      <span>Label</span>
-                      <strong>
-                        {labelSpecForVialMl(vialMl).widthMm}×
-                        {labelSpecForVialMl(vialMl).heightMm} mm
-                      </strong>
-                    </div>
                   </div>
                 </div>
               )}
             </div>
-          </div>
 
-          <div className="calc-print-panel">
-            <div className="calc-card-head">
-              <h2>Vial label</h2>
-            </div>
-            <p className="meta">
-              {bottleOptionLabel(Number(vialMl) || 3)}. Rounded corners · QR →
-              www.wellpept.com. Filled from this calculator.
-            </p>
-            {!isCustom ? (
-              <label className="field" style={{ maxWidth: "22rem" }}>
-                Bottle + label size
-                <select
-                  value={
-                    BOTTLE_SIZES_ML.includes(Number(vialMl))
-                      ? String(vialMl)
-                      : "3"
-                  }
-                  onChange={(e) => setVialMl(Number(e.target.value))}
-                >
-                  {BOTTLE_SIZES_ML.map((ml) => (
-                    <option key={ml} value={ml}>
-                      {bottleOptionLabel(ml)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : null}
-            <div className="calc-label-stage">
-              <LabelTemplate
-                blank={false}
-                size="lg"
-                name={name || selectedPeptide?.name || "Peptide"}
-                mass={mass}
-                unit={vialUnit || "mg"}
-                bacWater={solution ? `${formatNum(solution, 2)} mL` : ""}
-                concentration={result?.concLabel || ""}
-                doseRange={formatDoseRangeLabel(
-                  dose,
-                  doseUnit,
-                  result?.units ? Math.round(Number(result.units)) || 10 : 10
-                )}
-                vialMl={Number(vialMl) || 3}
-                showDownload
-              />
-            </div>
+            <aside className="calc-label-panel">
+              <div className="calc-card-head">
+                <h2>Vial label</h2>
+              </div>
+              <p className="meta">
+                {bottleOptionLabel(Number(vialMl) || 3)}. Live from calculator ·
+                QR → wellpept.com
+              </p>
+              <div className="calc-label-stage">
+                <LabelTemplate
+                  blank={false}
+                  size="lg"
+                  name={name || selectedPeptide?.name || "Peptide"}
+                  mass={mass}
+                  unit={vialUnit || "mg"}
+                  bacWater={solution ? `${formatNum(solution, 2)} mL` : ""}
+                  concentration={result?.concLabel || ""}
+                  doseRange={formatDoseRangeLabel(
+                    dose,
+                    doseUnit,
+                    result?.units ? Math.round(Number(result.units)) || 10 : 10
+                  )}
+                  vialMl={Number(vialMl) || 3}
+                  showDownload
+                />
+              </div>
+            </aside>
           </div>
 
           <div className="calc-print-panel">
@@ -842,10 +812,6 @@ export default function PeptideCalculator({
             <p className="meta" style={{ marginTop: "0.65rem" }}>
               ~125 × 45 mm · clear filament · 2–3 walls · 0–15% infill · slow
               outer walls · no supports. Scale ±1–3% if vials are tight.
-            </p>
-            <p className="meta" style={{ marginTop: "0.65rem" }}>
-              Prefer a label pack or more STLs? Open{" "}
-              <strong>Free prints</strong> in the header.
             </p>
           </div>
 
