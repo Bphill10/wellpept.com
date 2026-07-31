@@ -1,6 +1,6 @@
 /**
- * Focused Undisclosed catalog.
- * Primary: JEC US warehouse. Gap-fill: Changsha sellable lines JEC does not carry.
+ * Focused Undisclosed catalog — top 25 peptides only.
+ * Primary: JEC US warehouse. Gap-fill: Changsha strengths JEC does not carry.
  * Silent backup: STG/ERP (never expands the shop on its own).
  */
 
@@ -15,13 +15,44 @@ function norm(name) {
     .trim();
 }
 
+/**
+ * Storefront top 25 (compound families). Multiple vial strengths still show
+ * under each name. Order is display priority for “featured” thinking.
+ */
+export const TOP_25_PEPTIDES = [
+  "Tirzepatide",
+  "Retatrutide",
+  "Semaglutide",
+  "BPC-157",
+  "TB-500",
+  "KLOW",
+  "GLOW",
+  "GHK-Cu",
+  "Tesamorelin",
+  "Ipamorelin",
+  "CJC-1295",
+  "CJC-1295 / Ipamorelin",
+  "NAD+",
+  "MOTS-c",
+  "Epithalon",
+  "Semax",
+  "Selank",
+  "Glutathione",
+  "SS-31",
+  "PT-141",
+  "Thymosin Alpha-1",
+  "KPV",
+  "AOD9604",
+  "Sermorelin",
+  "HGH Fragment 176-191",
+];
+
 /** Supplies / non-peptide lines — not sold as catalog peptides. */
 export function isChangshaSupply(name) {
   const n = norm(name);
   if (!n) return true;
   if (n === "water" || n === "bac water" || n.includes("bac water")) return true;
   if (n === "acetic acid") return true;
-  // Bare concentration labels only (not Vitamin B12, which is sold)
   if (n === "1mg/ml" || n === "1 mg/ml") return true;
   return false;
 }
@@ -30,7 +61,11 @@ export function isChangshaSupply(name) {
 export function isCjcWithDac(name) {
   const n = norm(name);
   if (!n.includes("cjc") || !n.includes("dac")) return false;
-  if (n.includes("no dac") || n.includes("without dac") || n.includes("whitout dac")) {
+  if (
+    n.includes("no dac") ||
+    n.includes("without dac") ||
+    n.includes("whitout dac")
+  ) {
     return false;
   }
   return true;
@@ -47,75 +82,106 @@ export function isChangshaSellable(name) {
   return true;
 }
 
-/**
- * Changsha keepers for the storefront brief, plus popular non-GLP-1 picks:
- * BPC-157, GHK-Cu, Epithalon, MOTS-c, PT-141, KLOW, etc.
- */
-export function isChangshaFocused(name) {
+/** True when the compound is in the top-25 storefront set. */
+export function isTop25Peptide(name) {
   const n = norm(name);
-  if (!n) return false;
-  if (!isChangshaSellable(name)) return false;
+  if (!n || isChangshaSupply(name)) return false;
+  if (isCjcWithDac(name)) return false;
 
-  // Explicitly out of the compact shop: classic GLP-1s and GLP-1 combo kits
-  if (n.includes("semaglutide") || n.includes("liraglutide")) return false;
-  if (n.includes("cagri sema") || n.includes("cagrisema")) return false;
-  if (
-    n.includes("mazdutide") ||
-    n.includes("survodutide") ||
-    n.includes("eloralintide")
-  ) {
-    return false;
-  }
+  // KLOW blend only (not separate Wolverine cards)
+  if (n.includes("klow")) return true;
+  if (n === "glow" || (n.includes("glow") && n.includes("ghk"))) return true;
 
-  // Requested popular set (KLOW name is "KLOW(...)" — match includes)
-  if (n.includes("klow") || n.includes("wolverine")) return true;
-  if (n.startsWith("bpc") && n.includes("tb")) return true; // Wolverine-style BPC+TB
-  if (n.startsWith("tesamorelin") || n.startsWith("tesa")) return true; // Tessa
-  if (
-    n === "ss.31" ||
-    n === "ss-31" ||
-    n === "ss31" ||
-    n.startsWith("ss.31") ||
-    n.startsWith("ss-31")
-  ) {
+  if (n.startsWith("tirzepatide") || n.startsWith("triz")) return true;
+  if (n.startsWith("retatrutide") || n === "reta" || n.startsWith("reta ")) {
     return true;
   }
-  if (n.includes("cjc") && n.includes("ipa")) return true; // CJC/IPA
-  if (n === "ipamorelin" || n.startsWith("ipa ")) return true;
-  if (n.includes("cjc")) return true;
-  if (n.startsWith("tirzepatide") || n.startsWith("triz")) return true; // Triz
-  if (n.startsWith("retatrutide") || n === "reta") return true;
-  if (n === "nad+" || n.startsWith("nad+") || n === "nad") return true;
-  if (n.startsWith("glutathione") || n.startsWith("gluta")) return true;
-  if (n.includes("semax")) return true;
-  if (n.includes("selank")) return true;
+  if (n.includes("semaglutide")) return true;
 
-  // Additional popular non-GLP-1 lines
+  // Standalone BPC-157 only (not BPC+TB / Wolverine)
   if (
     n === "bpc 157" ||
     n === "bpc-157" ||
     n.startsWith("bpc-157") ||
-    n.startsWith("bpc 157")
+    n.startsWith("bpc 157") ||
+    (n.startsWith("bpc") && !n.includes("tb") && !n.includes("wolverine"))
   ) {
     return true;
   }
-  if (n === "ghk-cu" || n === "ghk cu") return true;
-  if (n.startsWith("epithalon") || n.startsWith("epitalon")) return true;
-  if (n.startsWith("mots-c") || n.startsWith("mots c")) return true;
-  if (n === "pt141" || n === "pt-141" || n.startsWith("pt 141")) return true;
 
-  // TB-500 / TB500 (standalone — not only inside Wolverine/KLOW blends)
   if (
     n === "tb500" ||
     n === "tb-500" ||
     n === "tb 500" ||
     n.startsWith("tb500") ||
-    n.startsWith("tb-500")
+    n.startsWith("tb-500") ||
+    n.startsWith("tb 500")
   ) {
     return true;
   }
 
-  // Thymosin Alpha-1 / TA-1
+  if (n === "ghk-cu" || n === "ghk cu" || n.startsWith("ghk-cu") || n === "ghk") {
+    return true;
+  }
+
+  // Standalone Tesamorelin (not Tesamorelin/Ipamorelin blend)
+  if (
+    (n.startsWith("tesamorelin") || n.startsWith("tesa")) &&
+    !n.includes("ipa")
+  ) {
+    return true;
+  }
+  if (
+    (n === "ipamorelin" || n.startsWith("ipa ") || n.startsWith("ipamorelin")) &&
+    !n.includes("cjc") &&
+    !n.includes("tesa")
+  ) {
+    return true;
+  }
+  if (n.includes("cjc") && n.includes("ipa")) return true;
+  if (
+    n.includes("cjc") &&
+    (n.includes("no dac") || n.includes("without") || n.includes("whitout"))
+  ) {
+    return true;
+  }
+  // Plain CJC-1295 without DAC wording (Changsha rows)
+  if (n.includes("cjc-1295") || n.includes("cjc 1295") || /^cjc\b/.test(n)) {
+    return true;
+  }
+
+  if (n === "nad+" || n.startsWith("nad+") || n === "nad" || n.startsWith("nad ")) {
+    return true;
+  }
+  if (n.startsWith("mots-c") || n.startsWith("mots c") || n.startsWith("mots-c")) {
+    return true;
+  }
+  if (n.startsWith("epithalon") || n.startsWith("epitalon")) return true;
+  if (n.includes("semax")) return true;
+  if (n.includes("selank")) return true;
+  if (n.startsWith("glutathione") || n.startsWith("gluta")) return true;
+
+  if (
+    n === "ss.31" ||
+    n === "ss-31" ||
+    n === "ss31" ||
+    n.startsWith("ss.31") ||
+    n.startsWith("ss-31") ||
+    n.startsWith("ss31")
+  ) {
+    return true;
+  }
+
+  if (
+    n === "pt141" ||
+    n === "pt-141" ||
+    n.startsWith("pt 141") ||
+    n.startsWith("pt-141") ||
+    n.startsWith("pt141")
+  ) {
+    return true;
+  }
+
   if (
     n.includes("thymosin alpha") ||
     n === "ta-1" ||
@@ -126,13 +192,16 @@ export function isChangshaFocused(name) {
     return true;
   }
 
-  // Vitamin B / B12
+  if (n === "kpv" || n.startsWith("kpv ")) return true;
+  if (n.includes("aod9604") || n.includes("aod 9604") || n.startsWith("aod")) {
+    return true;
+  }
+  if (n.startsWith("sermorelin")) return true;
   if (
-    n.includes("vitamin b") ||
-    n === "b12" ||
-    n.startsWith("b12") ||
-    n.includes("methylcobalamin") ||
-    (n.includes("b12") && !n.includes("lipo"))
+    n.includes("hgh fragment") ||
+    n.includes("fragment 176") ||
+    n.includes("176-191") ||
+    n.includes("176 191")
   ) {
     return true;
   }
@@ -140,44 +209,38 @@ export function isChangshaFocused(name) {
   return false;
 }
 
-/** JEC seed is already curated — every approved JEC line is shop-visible. */
+/** @deprecated use isTop25Peptide — kept for older call sites. */
+export function isChangshaFocused(name) {
+  return isTop25Peptide(name) && isChangshaSellable(name);
+}
+
+/** JEC lines that are in the top-25 set. */
 export function isJecSellable(name) {
   if (!name) return false;
   if (isChangshaSupply(name)) return false;
-  return true;
+  return isTop25Peptide(name);
 }
 
 export function isFocusedSubmission(submission) {
   if (!submission) return false;
+  if (!isTop25Peptide(submission.name)) return false;
+
   if (submission.vendorId === JEC_VENDOR_ID || submission.vendorId === "v-jec") {
     return isJecSellable(submission.name);
   }
-  // Changsha gap-fill: every sellable research line (supplies / DAC excluded).
   if (
     submission.vendorId === CHANGSHA_VENDOR_ID ||
     submission.vendorId === "v-changsha-premium"
   ) {
     return isChangshaSellable(submission.name);
   }
-  // STG backup rows are kept when they could replace a sellable primary line.
-  // The shop only surfaces them via supply fallback — never as STG-only SKUs.
   if (submission.vendorId === "v-stg-backup") {
-    return isJecSellable(submission.name) || isChangshaSellable(submission.name);
+    return isTop25Peptide(submission.name);
   }
   return false;
 }
 
 /** Full sellable lines for calculator / label peptide dropdown. */
 export function isSellableSubmission(submission) {
-  if (!submission) return false;
-  if (submission.vendorId === JEC_VENDOR_ID || submission.vendorId === "v-jec") {
-    return isJecSellable(submission.name);
-  }
-  if (
-    submission.vendorId === CHANGSHA_VENDOR_ID ||
-    submission.vendorId === "v-changsha-premium"
-  ) {
-    return isChangshaSellable(submission.name);
-  }
-  return false;
+  return isFocusedSubmission(submission);
 }

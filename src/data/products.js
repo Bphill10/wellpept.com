@@ -5,7 +5,11 @@ import {
   CHANGSHA_VENDOR_ID,
 } from "./changshaPremium";
 import { STG_VENDOR, STG_VENDOR_ID } from "./stgBackup";
-import { isChangshaSellable, isJecSellable } from "./catalogFocus";
+import {
+  isChangshaSellable,
+  isJecSellable,
+  isTop25Peptide,
+} from "./catalogFocus";
 import { resolveVialMl, resolveVialUnit, resolvePowderColor } from "../utils/vialArt";
 
 export { resolveVialMl, resolveVialUnit, resolvePowderColor };
@@ -56,6 +60,7 @@ export function changshaGapFillSubmissions(
   );
   return (changshaSubs || []).filter((s) => {
     if (!isChangshaSellable(s.name)) return false;
+    if (!isTop25Peptide(s.name)) return false;
     const k = submissionOfferKey(s);
     if (!k || k.startsWith("::")) return false;
     if (covered.has(k)) return false;
