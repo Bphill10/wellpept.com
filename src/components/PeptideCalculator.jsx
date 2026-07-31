@@ -17,6 +17,7 @@ import {
   LABEL_BOTTLE_SIZES_ML,
   labelSpecForVialMl,
 } from "../utils/vialArt";
+import { shortCapName, capStlSlug } from "../data/capNames";
 
 const CUSTOM_ID = "custom";
 const BOTTLE_SIZES_ML = LABEL_BOTTLE_SIZES_ML;
@@ -728,6 +729,48 @@ export default function PeptideCalculator({
                 showDownload
               />
             </div>
+          </div>
+
+          <div className="calc-print-panel">
+            <div className="calc-card-head">
+              <h2>3D print etched vial cap</h2>
+            </div>
+            <p className="meta">
+              Snap-style ~13 mm flip-cap with short name recessed on top and
+              raised on the side —{" "}
+              <strong>{shortCapName(name || selectedPeptide?.name || "UD")}</strong>
+              {" "}for{" "}
+              {name?.trim() || selectedPeptide?.name || "custom"}. Print top-up,
+              0.2 mm layers, no supports.
+            </p>
+            <div className="calc-print-actions">
+              <a
+                className="primary-btn"
+                href={`/printables/undisclosed-cap-${capStlSlug(name || selectedPeptide?.name || "UD")}.stl`}
+                download={`undisclosed-cap-${capStlSlug(name || selectedPeptide?.name || "UD")}.stl`}
+              >
+                <Download size={16} /> Download{" "}
+                {shortCapName(name || selectedPeptide?.name || "UD")} cap STL
+              </a>
+              <a
+                className="soft-btn"
+                href="/printables/undisclosed-cap-plate.stl"
+                download="undisclosed-cap-plate.stl"
+              >
+                Full cap plate
+              </a>
+              <a
+                className="soft-btn"
+                href="/printables/undisclosed-cap-blank.stl"
+                download="undisclosed-cap-blank.stl"
+              >
+                Blank UD
+              </a>
+            </div>
+            <p className="meta" style={{ marginTop: "0.65rem" }}>
+              Examples: Retatrutide → RETA · Tirzepatide → TRIZ · Semaglutide →
+              SEMA · BPC-157 → BPC. Custom names shorten to 5 characters.
+            </p>
           </div>
 
           <div className="calc-print-panel">
