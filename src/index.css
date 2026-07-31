@@ -4739,6 +4739,8 @@ body:has(.app-shell--undisclosed)::before {
   border: none;
   box-shadow: none;
   background: transparent;
+  object-fit: contain;
+  image-rendering: auto;
 }
 
 .calc-print-panel {

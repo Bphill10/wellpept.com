@@ -1237,10 +1237,11 @@ function createBottleFaceLabel(options = {}) {
 
 /** Build an offscreen flat wrap-label for the printable template / vial face. */
 function createWrapLabelBitmap(options) {
+  // 2:1 matches the 40×20 mm clinical wrap — avoids vertical stretch on vials.
   const dims = {
-    w: 1100,
-    h: 420,
-    cornerR: Math.round(420 * 0.07),
+    w: 1000,
+    h: 500,
+    cornerR: Math.round(500 * 0.07),
   };
   const c =
     typeof document !== "undefined"
@@ -1798,8 +1799,8 @@ function paintLabelTemplate(ctx, dims, options = {}) {
 
   const cornerR =
     dims.cornerR ?? Math.max(8, Math.round(Math.min(dims.w, dims.h) * 0.07));
-  const spineW = Math.round(dims.w * 0.095);
-  const rightW = Math.round(dims.w * 0.245);
+  const spineW = Math.round(dims.w * 0.1);
+  const rightW = Math.round(dims.w * 0.26);
   const midX = spineW;
   const midW = dims.w - spineW - rightW;
   const rightX = spineW + midW;
@@ -1807,10 +1808,24 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   const muted = "#5a5a5a";
   const rule = "#1a1a1a";
   const hair = Math.max(1, dims.h * 0.004);
-  const footerH = Math.round(dims.h * 0.105);
-  const padY = dims.h * 0.045;
+  const footerH = Math.round(dims.h * 0.11);
+  const bodyH = dims.h - footerH;
+  const padX = midW * 0.055;
+  const contentW = midW - padX * 2;
+  const ruleX = midX + padX;
+  const midCx = midX + midW / 2;
 
-  // White rounded body
+  // Balanced vertical bands inside the white body (above footer)
+  const yHeader = bodyH * 0.08;
+  const yRule1 = bodyH * 0.145;
+  const yName = bodyH * 0.27;
+  const yRule2 = bodyH * 0.39;
+  const yMass = bodyH * 0.5; // true center of body for mg
+  const yRule3 = bodyH * 0.61;
+  const gridTop = bodyH * 0.655;
+  const gridBottom = bodyH * 0.96;
+  const gridH = Math.max(20, gridBottom - gridTop);
+
   ctx.fillStyle = "#ffffff";
   roundRect(ctx, 0, 0, dims.w, dims.h, cornerR);
   ctx.fill();
@@ -1819,20 +1834,19 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   roundRect(ctx, 0, 0, dims.w, dims.h, cornerR);
   ctx.clip();
 
-  // Left spine (outer round clip softens top/bottom-left corners)
   ctx.fillStyle = ink;
   ctx.fillRect(0, 0, spineW, dims.h);
 
   ctx.save();
-  ctx.translate(spineW * 0.52, dims.h * 0.38);
+  ctx.translate(spineW * 0.52, bodyH * 0.42);
   ctx.rotate(Math.PI / 2);
   ctx.fillStyle = "#ffffff";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const spineFont = Math.max(10, Math.min(dims.h * 0.07, spineW * 0.36));
+  const spineFont = Math.max(10, Math.min(bodyH * 0.065, spineW * 0.34));
   ctx.font = `700 ${spineFont}px Outfit, "Segoe UI", sans-serif`;
   const spineWord = "UNDISCLOSED";
-  const track = spineFont * 0.16;
+  const track = spineFont * 0.14;
   let totalW = 0;
   for (const ch of spineWord) totalW += ctx.measureText(ch).width + track;
   totalW -= track;
@@ -1844,39 +1858,28 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   }
   ctx.restore();
 
-  const markR = Math.min(spineW * 0.3, dims.h * 0.08);
-  drawLabelSpineMark(
-    ctx,
-    spineW * 0.5,
-    dims.h - footerH - markR * 1.35,
-    markR
-  );
+  const markR = Math.min(spineW * 0.28, bodyH * 0.075);
+  drawLabelSpineMark(ctx, spineW * 0.5, bodyH - markR * 1.2, markR);
 
-  // Soft vertical divider
-  ctx.strokeStyle = "rgba(17,17,17,0.28)";
+  ctx.strokeStyle = "rgba(17,17,17,0.25)";
   ctx.lineWidth = hair;
   ctx.beginPath();
-  ctx.moveTo(rightX, padY);
-  ctx.lineTo(rightX, dims.h - footerH - padY * 0.35);
+  ctx.moveTo(rightX, bodyH * 0.05);
+  ctx.lineTo(rightX, bodyH * 0.95);
   ctx.stroke();
 
-  const midCx = midX + midW / 2;
-  const midPad = midW * 0.06;
-  const contentW = midW - midPad * 2;
-  const ruleW = contentW;
-  const ruleX = midX + midPad;
-
+  // Header
   ctx.fillStyle = ink;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const brandHeaderPx = Math.max(7.5, dims.h * 0.036);
+  const brandHeaderPx = Math.max(7, bodyH * 0.04);
   ctx.font = `700 ${brandHeaderPx}px Outfit, "Segoe UI", sans-serif`;
-  ctx.fillText("UNDISCLOSED", midCx, dims.h * 0.072);
+  ctx.fillText("UNDISCLOSED", midCx, yHeader);
 
-  const rule1Y = dims.h * 0.115;
   ctx.fillStyle = rule;
-  ctx.fillRect(ruleX, rule1Y, ruleW, hair);
+  ctx.fillRect(ruleX, yRule1, contentW, hair);
 
+  // Name — keep compact so the label does not feel vertically stretched
   if (!blank) {
     const product = String(name || "PEPTIDE")
       .replace(/\(.*?\)/g, " ")
@@ -1887,49 +1890,45 @@ function paintLabelTemplate(ctx, dims, options = {}) {
     const nameSize = fitCenteredText(
       ctx,
       product,
-      contentW * 0.98,
-      Math.max(28, dims.h * 0.195),
+      contentW * 0.96,
+      Math.max(22, bodyH * 0.145),
       nameFamily
     );
     ctx.font = `800 ${nameSize}px ${nameFamily}`;
     ctx.fillStyle = ink;
     ctx.textAlign = "center";
-    ctx.fillText(product, midCx, dims.h * 0.235);
+    ctx.fillText(product, midCx, yName);
   }
 
-  const rule2Y = dims.h * 0.34;
   ctx.fillStyle = rule;
-  ctx.fillRect(ruleX, rule2Y, ruleW, hair);
+  ctx.fillRect(ruleX, yRule2, contentW, hair);
 
+  // Mass — horizontally and vertically centered in the mid band
   const massNum =
     !blank && mass !== "" && mass != null ? String(mass).trim() : "";
   const massUnit = String(unit || "mg").toUpperCase();
-  const massBandMid = (rule2Y + dims.h * 0.505) / 2;
   if (massNum) {
-    const numSize = Math.max(24, dims.h * 0.135);
-    const unitSize = Math.max(12, dims.h * 0.062);
+    const numSize = Math.max(20, bodyH * 0.12);
+    const unitSize = Math.max(11, bodyH * 0.055);
     ctx.font = `800 ${numSize}px Outfit, "Segoe UI", sans-serif`;
     const numW = ctx.measureText(massNum).width;
     ctx.font = `700 ${unitSize}px Outfit, "Segoe UI", sans-serif`;
     const unitW = ctx.measureText(` ${massUnit}`).width;
     const startX = midCx - (numW + unitW) / 2;
-    ctx.fillStyle = ink;
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
+    ctx.fillStyle = ink;
     ctx.font = `800 ${numSize}px Outfit, "Segoe UI", sans-serif`;
-    ctx.fillText(massNum, startX, massBandMid);
+    ctx.fillText(massNum, startX, yMass);
     ctx.font = `700 ${unitSize}px Outfit, "Segoe UI", sans-serif`;
     ctx.fillStyle = muted;
-    ctx.fillText(` ${massUnit}`, startX + numW, massBandMid + unitSize * 0.06);
+    ctx.fillText(` ${massUnit}`, startX + numW, yMass + unitSize * 0.05);
   }
 
-  const rule3Y = dims.h * 0.505;
   ctx.fillStyle = rule;
-  ctx.fillRect(ruleX, rule3Y, ruleW, hair);
+  ctx.fillRect(ruleX, yRule3, contentW, hair);
 
-  const gridTop = rule3Y + dims.h * 0.028;
-  const gridBottom = dims.h - footerH - dims.h * 0.018;
-  const gridH = Math.max(24, gridBottom - gridTop);
+  // BAC / CONCENTRATION / DOSE RANGE
   const colW = contentW / 3;
   const gridLeft = ruleX;
   const cells = blank
@@ -1947,15 +1946,15 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   cells.forEach((cell, i) => {
     const cellCx = gridLeft + colW * (i + 0.5);
     if (i > 0) {
-      ctx.strokeStyle = "rgba(17,17,17,0.2)";
+      ctx.strokeStyle = "rgba(17,17,17,0.18)";
       ctx.lineWidth = hair;
       ctx.beginPath();
-      ctx.moveTo(gridLeft + colW * i, gridTop + gridH * 0.18);
-      ctx.lineTo(gridLeft + colW * i, gridTop + gridH * 0.88);
+      ctx.moveTo(gridLeft + colW * i, gridTop + gridH * 0.15);
+      ctx.lineTo(gridLeft + colW * i, gridTop + gridH * 0.9);
       ctx.stroke();
     }
     ctx.fillStyle = muted;
-    ctx.font = `600 ${Math.max(6.5, dims.h * 0.026)}px Outfit, "Segoe UI", sans-serif`;
+    ctx.font = `600 ${Math.max(6, bodyH * 0.028)}px Outfit, "Segoe UI", sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(cell.label, cellCx, gridTop + gridH * 0.22);
@@ -1970,17 +1969,17 @@ function paintLabelTemplate(ctx, dims, options = {}) {
         ctx,
         line1,
         colW * 0.9,
-        Math.max(10, dims.h * 0.042),
+        Math.max(9, bodyH * 0.042),
         'Outfit, "Segoe UI", sans-serif'
       );
       ctx.font = `700 ${v1}px Outfit, "Segoe UI", sans-serif`;
       ctx.fillStyle = ink;
-      ctx.fillText(line1, cellCx, gridTop + gridH * 0.54);
+      ctx.fillText(line1, cellCx, gridTop + gridH * 0.52);
       const v2 = fitCenteredText(
         ctx,
         line2,
         colW * 0.9,
-        Math.max(8, dims.h * 0.032),
+        Math.max(7.5, bodyH * 0.032),
         'Outfit, "Segoe UI", sans-serif'
       );
       ctx.font = `600 ${v2}px Outfit, "Segoe UI", sans-serif`;
@@ -1991,25 +1990,30 @@ function paintLabelTemplate(ctx, dims, options = {}) {
         ctx,
         rawVal,
         colW * 0.9,
-        Math.max(10, dims.h * 0.044),
+        Math.max(9, bodyH * 0.044),
         'Outfit, "Segoe UI", sans-serif'
       );
       ctx.font = `700 ${valueSize}px Outfit, "Segoe UI", sans-serif`;
       ctx.fillStyle = ink;
-      ctx.fillText(rawVal, cellCx, gridTop + gridH * 0.66);
+      ctx.fillText(rawVal, cellCx, gridTop + gridH * 0.62);
     }
   });
 
-  const qrPad = Math.max(8, rightW * 0.1);
-  const qrBox = Math.min(rightW - qrPad * 2, dims.h * 0.44);
+  // Right column: QR vertically centered; disclaimer under it
+  const discPx = Math.max(5.5, bodyH * 0.028);
+  const discGap = discPx * 2.6;
+  const qrMax = Math.min(rightW * 0.7, bodyH * 0.42);
+  const qrBox = Math.max(28, qrMax);
   const qrX = rightX + (rightW - qrBox) / 2;
-  const qrY = dims.h * 0.085;
+  // Center QR in the right body, then nudge up so disclaimer can sit under it
+  let qrY = (bodyH - qrBox) / 2 - discGap * 0.35;
+  qrY = Math.max(bodyH * 0.06, Math.min(qrY, bodyH - qrBox - discGap - bodyH * 0.04));
   const qrRadius = Math.max(4, qrBox * 0.08);
 
   ctx.fillStyle = "#ffffff";
   roundRect(ctx, qrX, qrY, qrBox, qrBox, qrRadius);
   ctx.fill();
-  ctx.strokeStyle = "rgba(17,17,17,0.32)";
+  ctx.strokeStyle = "rgba(17,17,17,0.3)";
   ctx.lineWidth = Math.max(1, hair);
   roundRect(ctx, qrX, qrY, qrBox, qrBox, qrRadius);
   ctx.stroke();
@@ -2033,17 +2037,16 @@ function paintLabelTemplate(ctx, dims, options = {}) {
     );
   }
 
+  const discX = rightX + rightW / 2;
+  const discBase = qrY + qrBox + discPx * 1.15;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const discPx = Math.max(6, dims.h * 0.024);
-  const discX = rightX + rightW / 2;
-  const discBase = dims.h - footerH - discPx * 2.75;
   ctx.fillStyle = ink;
   ctx.font = `600 ${discPx}px Outfit, "Segoe UI", sans-serif`;
   ctx.fillText("RESEARCH ONLY", discX, discBase);
   ctx.fillStyle = muted;
-  ctx.font = `500 ${discPx * 0.92}px Outfit, "Segoe UI", sans-serif`;
-  ctx.fillText("Not for human consumption", discX, discBase + discPx * 1.35);
+  ctx.font = `500 ${discPx * 0.9}px Outfit, "Segoe UI", sans-serif`;
+  ctx.fillText("Not for human consumption", discX, discBase + discPx * 1.25);
 
   ctx.fillStyle = ink;
   ctx.fillRect(0, dims.h - footerH, dims.w, footerH);
