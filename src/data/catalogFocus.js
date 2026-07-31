@@ -43,8 +43,8 @@ export const TOP_25_PEPTIDES = [
   "Thymosin Alpha-1",
   "KPV",
   "AOD9604",
-  "Sermorelin",
-  "HGH Fragment 176-191",
+  "LL-37",
+  "Vitamin B12",
 ];
 
 /** Supplies / non-peptide lines — not sold as catalog peptides. */
@@ -196,12 +196,15 @@ export function isTop25Peptide(name) {
   if (n.includes("aod9604") || n.includes("aod 9604") || n.startsWith("aod")) {
     return true;
   }
-  if (n.startsWith("sermorelin")) return true;
+  if (n === "ll37" || n === "ll-37" || n.startsWith("ll37") || n.startsWith("ll-37")) {
+    return true;
+  }
   if (
-    n.includes("hgh fragment") ||
-    n.includes("fragment 176") ||
-    n.includes("176-191") ||
-    n.includes("176 191")
+    n.includes("vitamin b") ||
+    n === "b12" ||
+    n.startsWith("b12") ||
+    n.includes("methylcobalamin") ||
+    (n.includes("b12") && !n.includes("lipo"))
   ) {
     return true;
   }
