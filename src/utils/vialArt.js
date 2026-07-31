@@ -1143,11 +1143,11 @@ function drawPhotorealVial(ctx, dims, options) {
 
   if (!showLabel) return;
 
-  // Label band: lower mid-body, centered, full glass width
-  const bodyW = dims.w * (isTen ? 0.5 : 0.48);
+  // Label band: low on body, centered, stretched past glass edges
+  const bodyW = dims.w * (isTen ? 0.58 : 0.56);
   const bodyX = dims.w / 2 - bodyW / 2;
-  const sleeveTop = dims.h * (isTen ? 0.4 : 0.38);
-  const sleeveH = dims.h * (isTen ? 0.28 : 0.27);
+  const sleeveTop = dims.h * (isTen ? 0.48 : 0.46);
+  const sleeveH = dims.h * (isTen ? 0.26 : 0.25);
 
   const wrapBmp = createWrapLabelBitmap({
     name,
