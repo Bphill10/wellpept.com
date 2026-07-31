@@ -2744,7 +2744,7 @@ function CartPage({
                           </button>
                           <button
                             type="button"
-                            className="danger-btn"
+                            className="cart-remove"
                             onClick={() => onRemove(line.id)}
                           >
                             Remove
