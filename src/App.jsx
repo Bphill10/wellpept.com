@@ -1820,13 +1820,11 @@ export default function App() {
                   </div>
                   <div className="featured-vendor-visual">
                     <img
-                      src="/undisclosed-hero-kit-sm.webp"
-                      srcSet="/undisclosed-hero-kit-sm.webp 800w, /undisclosed-hero-kit.webp 1200w"
-                      sizes="(max-width: 700px) 100vw, 42vw"
-                      alt="Undisclosed KLOW 80 MG research kit"
+                      src="/undisclosed-vial.png"
+                      alt="Undisclosed labeled research vial"
                       className="featured-product-photo"
                       width={800}
-                      height={534}
+                      height={1000}
                       decoding="async"
                       loading="lazy"
                       fetchPriority="low"
