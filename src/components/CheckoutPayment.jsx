@@ -47,7 +47,7 @@ function AffirmPromo({ stripePromise, amountCents, countryCode = "US" }) {
   );
 }
 
-function PaymentForm({ totalLabel, customer, onPaid, onError }) {
+function PaymentForm({ totalLabel, customer, orderId, total, onPaid, onError }) {
   const stripe = useStripe();
   const elements = useElements();
   const [submitting, setSubmitting] = useState(false);
@@ -62,6 +62,30 @@ function PaymentForm({ totalLabel, customer, onPaid, onError }) {
     const returnUrl = new URL(window.location.href);
     returnUrl.searchParams.set("view", "cart");
     returnUrl.searchParams.set("paid", "1");
+    // Keep existing ?pay= payload so redirect returns can still mark the order paid.
+
+    try {
+      sessionStorage.setItem("wellpept-pay-order-id", String(orderId || ""));
+      sessionStorage.setItem(
+        "wellpept-pay-invoice",
+        JSON.stringify({
+          orderId,
+          total,
+          customer: {
+            name: customer?.name || "",
+            email: customer?.email || "",
+            phone: customer?.phone || "",
+            address1: customer?.address1 || "",
+            address2: customer?.address2 || "",
+            city: customer?.city || "",
+            state: customer?.state || "",
+            zip: customer?.zip || "",
+          },
+        })
+      );
+    } catch {
+      /* ignore */
+    }
 
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
@@ -283,6 +307,8 @@ export default function CheckoutPayment({
         <PaymentForm
           totalLabel={totalLabel}
           customer={customer}
+          orderId={orderId}
+          total={total}
           onPaid={onPaid}
           onError={onError}
         />

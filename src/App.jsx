@@ -302,6 +302,7 @@ export default function App() {
     publishableKey: null,
   });
   const [payInvoice, setPayInvoice] = useState(null);
+  const [paymentReceipt, setPaymentReceipt] = useState(null);
   const [session, setSession] = useState(() => getSession());
   const [showAuth, setShowAuth] = useState(false);
   const [ageOk, setAgeOk] = useState(() => hasAgeClearance());
@@ -385,27 +386,55 @@ export default function App() {
     // Affirm / Stripe redirect return — mark paid when redirect_status succeeded
     if (
       paidFlag === "1" &&
-      parsedPay?.orderId &&
       (redirectStatus === "succeeded" ||
         redirectStatus === "processing" ||
         !redirectStatus)
     ) {
-      const orderId = parsedPay.orderId;
-      const invoice = parsedPay;
-      window.setTimeout(() => {
-        handleStripePaid(
-          orderId,
-          {
-            id: paymentIntentId || `stripe-redirect-${Date.now()}`,
-            paymentIntentId: paymentIntentId || "",
-            status: redirectStatus || "succeeded",
-            provider: "stripe",
-            methods: "card_or_affirm",
-            amountCents: Math.round(Number(invoice.total || 0) * 100),
-          },
-          invoice
-        );
-      }, 0);
+      const orderId =
+        parsedPay?.orderId ||
+        (() => {
+          try {
+            return sessionStorage.getItem("wellpept-pay-order-id") || "";
+          } catch {
+            return "";
+          }
+        })();
+      const invoice =
+        parsedPay ||
+        (() => {
+          try {
+            const raw = sessionStorage.getItem("wellpept-pay-invoice");
+            return raw ? JSON.parse(raw) : null;
+          } catch {
+            return null;
+          }
+        })();
+      if (orderId) {
+        window.setTimeout(() => {
+          handleStripePaid(
+            orderId,
+            {
+              id: paymentIntentId || `stripe-redirect-${Date.now()}`,
+              paymentIntentId: paymentIntentId || "",
+              status: redirectStatus || "succeeded",
+              provider: "stripe",
+              methods: "card_or_affirm",
+              amountCents: Math.round(Number(invoice?.total || 0) * 100),
+            },
+            invoice
+          );
+        }, 0);
+      } else if (paymentIntentId || paidFlag === "1") {
+        // Redirect lost the pay payload — still show a clear success screen.
+        setPaymentReceipt({
+          orderId: paymentIntentId || "see Stripe / email",
+          total: null,
+          provider: "stripe",
+          paidAt: new Date().toISOString(),
+        });
+        setFlash("Payment received. Check your email for the receipt.");
+        setView(VIEWS.cart);
+      }
     }
 
     if (cb || viewParam === "cart" || payRaw || paidFlag) {
@@ -1120,6 +1149,19 @@ export default function App() {
       setOrders(loadOrders());
     }
     setPayInvoice(null);
+    setPaymentReceipt({
+      orderId,
+      total: invoice?.total ?? updated?.totals?.total ?? null,
+      provider,
+      paidAt: new Date().toISOString(),
+      customerEmail: invoice?.customer?.email || updated?.customer?.email || "",
+    });
+    try {
+      sessionStorage.removeItem("wellpept-pay-order-id");
+      sessionStorage.removeItem("wellpept-pay-invoice");
+    } catch {
+      /* ignore */
+    }
     try {
       const url = new URL(window.location.href);
       url.searchParams.delete("pay");
@@ -2068,6 +2110,8 @@ export default function App() {
             onPlaceOrder={placeOrder}
             stripeConfig={stripeConfig}
             payInvoice={payInvoice}
+            paymentReceipt={paymentReceipt}
+            onClearPaymentReceipt={() => setPaymentReceipt(null)}
             onStripePaid={handleStripePaid}
             onClearPayInvoice={() => {
               setPayInvoice(null);
@@ -2694,6 +2738,8 @@ function CartPage({
   onPlaceOrder,
   stripeConfig = null,
   payInvoice = null,
+  paymentReceipt = null,
+  onClearPaymentReceipt,
   onStripePaid,
   onClearPayInvoice,
 }) {
@@ -2871,11 +2917,57 @@ function CartPage({
           className="ghost-btn"
           onClick={() => {
             if (payInvoice) onClearPayInvoice?.();
+            if (paymentReceipt) onClearPaymentReceipt?.();
             onBack();
           }}
         >
           <ArrowLeft size={16} /> Continue shopping
         </button>
+
+        {paymentReceipt && (
+          <div className="panel" style={{ marginTop: "1rem" }}>
+            <h1>Payment received</h1>
+            <p className="lede">
+              Thank you. Your payment went through. We’ll prepare your order for
+              shipment (about 2–3 weeks after payment).
+            </p>
+            <div className="notice ok" style={{ marginTop: "0.75rem" }}>
+              <strong>Order {paymentReceipt.orderId}</strong>
+              {paymentReceipt.total != null ? (
+                <div style={{ marginTop: "0.35rem" }}>
+                  Paid {formatMoney(paymentReceipt.total)}
+                  {paymentReceipt.provider
+                    ? ` · ${paymentReceipt.provider}`
+                    : ""}
+                </div>
+              ) : (
+                <div className="meta" style={{ marginTop: "0.35rem" }}>
+                  Confirmation is in Stripe
+                  {paymentReceipt.provider
+                    ? ` (${paymentReceipt.provider})`
+                    : ""}
+                  . Check your email for the receipt.
+                </div>
+              )}
+              {paymentReceipt.customerEmail ? (
+                <div className="meta" style={{ marginTop: "0.35rem" }}>
+                  Receipt email: {paymentReceipt.customerEmail}
+                </div>
+              ) : null}
+            </div>
+            <button
+              type="button"
+              className="primary-btn"
+              style={{ marginTop: "1rem" }}
+              onClick={() => {
+                onClearPaymentReceipt?.();
+                onBack();
+              }}
+            >
+              Continue shopping
+            </button>
+          </div>
+        )}
 
         {payInvoice && (
           <div className="panel" style={{ marginTop: "1rem" }}>
@@ -2965,7 +3057,7 @@ function CartPage({
           </div>
         )}
 
-        {!payInvoice && (
+        {!payInvoice && !paymentReceipt && (
         <div className="panel" style={{ marginTop: "1rem" }}>
           <h1>Cart</h1>
           <p className="lede">
