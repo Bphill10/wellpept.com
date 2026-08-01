@@ -600,6 +600,49 @@ export async function notifyOrderRequest(packet) {
   }
 }
 
+/** Ops alert when a vendor applies to sell accessories on WellPept. */
+export async function notifyAccessoryVendorApply({ vendor, listing }) {
+  const { formatAccessoryApplyText } = await import(
+    "../data/accessoryMarketplace"
+  );
+  const body = formatAccessoryApplyText({ vendor, listing });
+  const subject = `WellPept Sell application: ${vendor?.name || "vendor"}`;
+
+  try {
+    const { fetchEmailConfig, sendTransactionalEmail, openMailto } = await import(
+      "./emailClient"
+    );
+    const cfg = await fetchEmailConfig();
+    if (cfg?.enabled) {
+      await sendTransactionalEmail({
+        type: "order_request",
+        subject,
+        text: body,
+        replyTo: vendor?.email || undefined,
+      });
+      return { ok: true, via: "resend" };
+    }
+    const mailto = openMailto({
+      to: ORDER_NOTIFY_EMAIL,
+      subject,
+      body,
+    });
+    return { ok: true, via: "mailto", mailto };
+  } catch (err) {
+    try {
+      const { openMailto } = await import("./emailClient");
+      const mailto = openMailto({
+        to: ORDER_NOTIFY_EMAIL,
+        subject,
+        body,
+      });
+      return { ok: false, via: "mailto", mailto, error: err?.message };
+    } catch {
+      return { ok: false, error: err?.message || "notify failed" };
+    }
+  }
+}
+
 const ORDERS_KEY = "wellpept-orders-v1";
 
 export function loadOrders() {

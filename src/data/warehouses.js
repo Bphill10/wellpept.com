@@ -131,16 +131,21 @@ export function cartShippingBreakdown(cart) {
       continue;
     }
 
-    // Skincare / print shop / unknown: one flat fee per vendorId
+    // Skincare / print shop / marketplace accessories / unknown: one flat fee per vendorId
     const vid = line.vendorId || "other";
     if (!otherByVendor.has(vid)) {
+      const isAcc = String(vid).startsWith("wellpept-mkt-");
       otherByVendor.set(vid, {
         warehouseId: vid,
         label: line.print
           ? "Print shop"
-          : line.skin
-            ? "US shipping"
-            : "US shipping",
+          : isAcc
+            ? line.ships?.includes("Fast")
+              ? "Accessories · Fast"
+              : "Accessories · Economy"
+            : line.skin
+              ? "US shipping"
+              : "US shipping",
         flat: Number(line.shippingFlat) || 0,
         minOrder: Number(line.minOrder) || 0,
         freeShippingAtKits: null,

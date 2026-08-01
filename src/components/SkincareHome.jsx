@@ -1,17 +1,30 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { ArrowRight, Droplets, FlaskConical, Moon, Sparkles } from "lucide-react";
 import {
   SKINCARE_PRODUCTS,
+  RENEW_ACCESSORIES,
   SKINCARE_RITUAL,
   FLAGSHIP_SERUM,
   PEPTIDE_LEGAL,
   PEPTIDES,
   SERUM_BASES,
 } from "../data/skincare";
+import {
+  ACCESSORY_SHIP_OPTIONS,
+  normalizeShipModes,
+} from "../data/accessoryMarketplace";
 import SerumBuilder from "./SerumBuilder";
 import { formatMoney } from "../data/products";
 
 function ProductCard({ product, onOpenProduct, onAddToCart, priority = false }) {
+  const modes = normalizeShipModes(product.shipModes);
+  const isAccessory =
+    product.kind === "tool" ||
+    product.kind === "mini" ||
+    product.accessory ||
+    product.marketplace;
+  const [shipMode, setShipMode] = useState(modes[0] || "economy");
+
   return (
     <article className="product-card skin-card">
       <button
@@ -37,10 +50,19 @@ function ProductCard({ product, onOpenProduct, onAddToCart, priority = false }) 
           )}
         </div>
         <div className="product-body">
+          {product.line ? (
+            <p className="meta" style={{ marginBottom: "0.25rem" }}>
+              {product.line}
+              {product.marketplace ? " · Partner" : ""}
+            </p>
+          ) : null}
           <h3>{product.name}</h3>
           <p className="card-blurb">{product.blurb}</p>
           <div className="meta">
             {product.need ? `${product.need}, ` : ""}
+            {product.focus && product.kind !== "ready" && product.kind !== "mix"
+              ? `${product.focus} · `
+              : ""}
             {product.size}
           </div>
           <div className="price-row">
@@ -49,10 +71,40 @@ function ProductCard({ product, onOpenProduct, onAddToCart, priority = false }) 
         </div>
       </button>
       <div className="product-actions">
+        {isAccessory && modes.length > 0 ? (
+          <div className="meta" style={{ marginBottom: "0.5rem", width: "100%" }}>
+            {modes.map((id) => {
+              const opt = ACCESSORY_SHIP_OPTIONS[id];
+              if (!opt) return null;
+              return (
+                <label
+                  key={id}
+                  className="consent-check"
+                  style={{ marginBottom: "0.25rem" }}
+                >
+                  <input
+                    type="radio"
+                    name={`ship-${product.id}`}
+                    checked={shipMode === id}
+                    onChange={() => setShipMode(id)}
+                  />
+                  <span>
+                    {opt.label} · {opt.delivery}
+                    {opt.shippingFlat > 0
+                      ? ` · +${formatMoney(opt.shippingFlat)} ship`
+                      : " · free ship"}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        ) : null}
         <button
           type="button"
           className="cart-cta"
-          onClick={() => onAddToCart?.(product)}
+          onClick={() =>
+            onAddToCart?.(isAccessory ? { ...product, shipMode } : product)
+          }
         >
           Add to bag
         </button>
@@ -65,7 +117,14 @@ export default function SkincareHome({
   onShopSkin,
   onOpenProduct,
   onAddToCart,
+  onSell,
+  marketplaceListings = [],
 }) {
+  const accessoryCatalog = useMemo(
+    () => [...RENEW_ACCESSORIES, ...(marketplaceListings || [])],
+    [marketplaceListings]
+  );
+
   return (
     <>
       <section className="hero skin-hero">
@@ -339,6 +398,48 @@ export default function SkincareHome({
               />
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="section" id="accessories">
+        <div className="container">
+          <div className="section-head">
+            <div>
+              <p className="section-kicker">Accessories</p>
+              <h2>Tools and travel minis</h2>
+              <p>
+                Low-cost add-ons and partner listings. Pick Economy (China ·
+                2–4 weeks) or Fast (US · 2–5 days) on each card.
+              </p>
+            </div>
+            {onSell ? (
+              <button type="button" className="soft-btn" onClick={onSell}>
+                Sell on WellPept
+              </button>
+            ) : null}
+          </div>
+          <div className="product-grid skin-grid">
+            {accessoryCatalog.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onOpenProduct={onOpenProduct}
+                onAddToCart={onAddToCart}
+              />
+            ))}
+          </div>
+          {onSell ? (
+            <p className="meta" style={{ marginTop: "1rem" }}>
+              Vendor?{" "}
+              <button
+                type="button"
+                className="footer-chat-btn"
+                onClick={onSell}
+              >
+                Apply to list accessories
+              </button>
+            </p>
+          ) : null}
         </div>
       </section>
 

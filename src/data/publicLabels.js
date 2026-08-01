@@ -131,7 +131,12 @@ function fallbackStyle(name) {
 export function resolvePublicLabels(product = {}) {
   const rawName = String(product.name || "").trim() || "Item";
   const isSkin = Boolean(
-    product.skin || product.kind === "ready" || product.kind === "mix"
+    product.skin ||
+      product.kind === "ready" ||
+      product.kind === "mix" ||
+      product.kind === "tool" ||
+      product.kind === "mini" ||
+      product.kind === "accessory"
   );
   // Catalog already runs displayPeptideName; keep that as supplyLabel.
   const supplyLabel = String(product.supplyLabel || rawName).trim() || rawName;

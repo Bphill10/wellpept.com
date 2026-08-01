@@ -59,6 +59,95 @@ export const SKINCARE_PRODUCTS = [
 ];
 
 /**
+ * Low-cost Renew accessories — tools + travel minis.
+ * Same cosmetic legal as Ready. Margin add-ons for the main-page bag.
+ */
+export const RENEW_ACCESSORIES = [
+  {
+    id: "wp-acc-activate-kit",
+    name: "Activate Mix Kit",
+    line: "Tools",
+    kind: "tool",
+    price: 20,
+    size: "Spatula · bowl · dropper",
+    image: "/skincare/buffet-serum-mixing.webp",
+    blurb:
+      "Everything you need to tip dry actives into serum or cream without the mess.",
+    focus: "Mix, activate",
+    legal: PEPTIDE_LEGAL,
+    shipModes: ["economy", "fast"],
+  },
+  {
+    id: "wp-acc-dropper-duo",
+    name: "Glass Dropper Duo",
+    line: "Tools",
+    kind: "tool",
+    price: 15,
+    size: "2 droppers",
+    image: "/skincare/buffet-serum.webp",
+    blurb: "Spare glass droppers for Renew serum bottles after you activate.",
+    focus: "Refill, dose",
+    legal: PEPTIDE_LEGAL,
+    shipModes: ["economy", "fast"],
+  },
+  {
+    id: "wp-acc-cloths",
+    name: "Soft Ritual Cloths",
+    line: "Tools",
+    kind: "tool",
+    price: 15,
+    size: "Set of 3",
+    image: "",
+    blurb: "Gentle face cloths for mist resets and cream wipe-downs. Washable.",
+    focus: "Cleanse, reset",
+    legal: PEPTIDE_LEGAL,
+    shipModes: ["economy", "fast"],
+  },
+  {
+    id: "wp-mini-veil",
+    name: "Veil Cream Travel",
+    line: "Mini",
+    kind: "mini",
+    price: 25,
+    size: "15 mL",
+    image: "/skincare/cream-veil.webp",
+    blurb: "Same quiet Veil hydration in a travel size for day bags and trips.",
+    focus: "Barrier, softness",
+    texture: "Silken cream",
+    legal: PEPTIDE_LEGAL,
+    shipModes: ["economy", "fast"],
+  },
+  {
+    id: "wp-mini-calm",
+    name: "Calm Mist Travel",
+    line: "Mini",
+    kind: "mini",
+    price: 20,
+    size: "50 mL",
+    image: "/skincare/mist-calm.webp",
+    blurb: "Pocket Calm mist for desk resets and travel. Same mineral quiet.",
+    focus: "Reset, comfort",
+    texture: "Fine mist",
+    legal: PEPTIDE_LEGAL,
+    shipModes: ["economy", "fast"],
+  },
+  {
+    id: "wp-mini-signal",
+    name: "Signal Oil Travel",
+    line: "Mini",
+    kind: "mini",
+    price: 30,
+    size: "10 mL",
+    image: "/skincare/oil-signal.webp",
+    blurb: "A measured Signal glow in a smaller bottle. Last step, lights low.",
+    focus: "Glow, seal",
+    texture: "Dry-touch oil",
+    legal: PEPTIDE_LEGAL,
+    shipModes: ["economy", "fast"],
+  },
+];
+
+/**
  * Four core cosmetic actives, each with a different job.
  * GHK-Cu is the staple; pick 1 to 4 into one vehicle (serum or cream).
  */
@@ -403,7 +492,7 @@ export const SERUM_PRESETS = [
   },
 ];
 
-export const ALL_SKINCARE = [...SKINCARE_PRODUCTS];
+export const ALL_SKINCARE = [...SKINCARE_PRODUCTS, ...RENEW_ACCESSORIES];
 
 export function getSkincareById(id) {
   return ALL_SKINCARE.find((p) => p.id === id) || null;

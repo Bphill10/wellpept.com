@@ -51,11 +51,21 @@ import {
   buildStripePayUrl,
   parseStripePayPayload,
   notifyOrderRequest,
+  notifyAccessoryVendorApply,
   flattenOrderLines,
   applySupplyDecision,
   notifyCustomerOrderDecision,
   defaultsFromCatalogSelection,
 } from "./utils/automation";
+import {
+  loadAccessoryMarketplace,
+  saveAccessoryMarketplace,
+  applyAccessoryVendor,
+  setAccessoryVendorStatus,
+  setAccessoryListingStatus,
+  getApprovedAccessoryListings,
+  ACCESSORY_SHIP_OPTIONS,
+} from "./data/accessoryMarketplace";
 import { fetchChargebeeConfig } from "./utils/chargebeeClient";
 import { fetchPaymentConfig } from "./utils/payments";
 import CheckoutPayment from "./components/CheckoutPayment";
@@ -89,6 +99,7 @@ import PeptideCalculator, {
 } from "./components/PeptideCalculator";
 import GeneratedVial from "./components/GeneratedVial";
 import SkincareHome from "./components/SkincareHome";
+import SellOnWellpept from "./components/SellOnWellpept";
 import {
   UNDISCLOSED_LEGAL,
   WELLPEPT_COSMETIC_LEGAL,
@@ -128,6 +139,7 @@ import {
 const VIEWS = {
   skincare: "skincare",
   skinProduct: "skinProduct",
+  sell: "sell",
   shop: "shop",
   product: "product",
   cart: "cart",
@@ -209,6 +221,13 @@ export default function App() {
   const [products, setProducts] = useState(initial.products);
   const [supplyPolicy, setSupplyPolicy] = useState(
     () => initial.policy || loadSupplyPolicy()
+  );
+  const [accessoryMarket, setAccessoryMarket] = useState(() =>
+    loadAccessoryMarketplace()
+  );
+  const approvedAccessoryListings = useMemo(
+    () => getApprovedAccessoryListings(accessoryMarket),
+    [accessoryMarket]
   );
 
   const urlWantsLabQuery = useMemo(
@@ -531,6 +550,19 @@ export default function App() {
   }
 
   function addSkincareToCart(product) {
+    const isAccessory =
+      product.kind === "tool" ||
+      product.kind === "mini" ||
+      product.accessory ||
+      product.marketplace;
+    const shipMode =
+      product.shipMode ||
+      (Array.isArray(product.shipModes) ? product.shipModes[0] : null) ||
+      "economy";
+    const shipOpt =
+      isAccessory && ACCESSORY_SHIP_OPTIONS[shipMode]
+        ? ACCESSORY_SHIP_OPTIONS[shipMode]
+        : null;
     const mixLabel =
       product.kind === "mix" && product.buildSummary
         ? `${product.buildSummary.base}: ${product.buildSummary.peptides.join(" + ")}${
@@ -539,8 +571,11 @@ export default function App() {
               : ""
           }`
         : product.size;
+    const cartId = isAccessory
+      ? `${product.id}-${shipMode}`
+      : product.id;
     addToCart({
-      id: product.id,
+      id: cartId,
       name: product.name,
       price: product.price,
       form: mixLabel,
@@ -548,18 +583,32 @@ export default function App() {
       unit: "",
       unitLabel: product.size,
       vendor: "WellPept",
-      vendorId: "wellpept-skin",
-      shippingFlat: 8,
+      vendorId: shipOpt
+        ? `wellpept-mkt-${shipMode}`
+        : "wellpept-skin",
+      shippingFlat: shipOpt ? shipOpt.shippingFlat : 8,
       minOrder: 0,
-      shippingNote: "US ground, cold-pack when needed",
+      shippingNote: shipOpt
+        ? shipOpt.ships
+        : "US ground, cold-pack when needed",
       sku: String(product.id).toUpperCase().slice(0, 48),
-      category: product.kind === "mix" ? "Renew" : "Skincare",
+      category:
+        product.kind === "mix"
+          ? "Renew"
+          : isAccessory
+            ? "Accessories"
+            : "Skincare",
       skin: true,
       mix: product.kind === "mix",
+      accessory: isAccessory,
+      shipMode: shipOpt ? shipMode : undefined,
+      marketplaceVendorId: product.marketplaceVendorId || "",
       image: product.image || "",
-      ships: "2-3 weeks delivery",
+      ships: shipOpt ? shipOpt.ships : "2-3 weeks delivery",
       legalNote:
-        product.kind === "mix"
+        product.kind === "mix" ||
+        product.kind === "ready" ||
+        isAccessory
           ? "Cosmetic skincare only. Not for injection or medical use."
           : undefined,
       ...resolvePublicLabels({
@@ -570,10 +619,26 @@ export default function App() {
       }),
     });
     setFlash(
-      product.kind === "mix"
-        ? `Added ${product.name} (request only, no payment yet)`
+      isAccessory && shipOpt
+        ? `Added ${product.name} · ${shipOpt.label} (${shipOpt.delivery})`
         : `Added ${product.name} (request only, no payment yet)`
     );
+  }
+
+  async function handleAccessoryVendorApply(payload) {
+    const result = applyAccessoryVendor(payload);
+    if (!result.ok) return result;
+    setAccessoryMarket(result.market);
+    try {
+      await notifyAccessoryVendorApply({
+        vendor: result.vendor,
+        listing: result.listing,
+      });
+    } catch {
+      /* mailto fallback inside notify */
+    }
+    setFlash(`Sell application received · ${result.vendor.name}`);
+    return result;
   }
 
   useEffect(() => {
@@ -1306,6 +1371,28 @@ export default function App() {
               <button
                 type="button"
                 className="header-nav-link"
+                onClick={() => {
+                  setView(VIEWS.skincare);
+                  document
+                    .getElementById("accessories")
+                    ?.scrollIntoView({ behavior: "smooth" });
+                }}
+              >
+                Accessories
+              </button>
+              <button
+                type="button"
+                className="header-nav-link"
+                onClick={() => {
+                  setView(VIEWS.sell);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+              >
+                Sell
+              </button>
+              <button
+                type="button"
+                className="header-nav-link"
                 onClick={() =>
                   document
                     .getElementById("ritual")
@@ -1453,6 +1540,21 @@ export default function App() {
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
             onAddToCart={addSkincareToCart}
+            onSell={() => {
+              setView(VIEWS.sell);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            marketplaceListings={approvedAccessoryListings}
+          />
+        )}
+
+        {view === VIEWS.sell && (
+          <SellOnWellpept
+            onBack={() => {
+              setView(VIEWS.skincare);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            onSubmit={handleAccessoryVendorApply}
           />
         )}
 
@@ -1982,6 +2084,27 @@ export default function App() {
             onRejectSubmission={rejectSubmission}
             onApproveVendor={approveVendor}
             onRejectVendor={rejectVendor}
+            accessoryMarket={accessoryMarket}
+            onApproveAccessoryVendor={(id) => {
+              const next = setAccessoryVendorStatus(id, "approved");
+              setAccessoryMarket(next);
+              setFlash("Accessory vendor approved");
+            }}
+            onRejectAccessoryVendor={(id) => {
+              const next = setAccessoryVendorStatus(id, "rejected");
+              setAccessoryMarket(next);
+              setFlash("Accessory vendor rejected");
+            }}
+            onApproveAccessoryListing={(id) => {
+              const next = setAccessoryListingStatus(id, "approved");
+              setAccessoryMarket(next);
+              setFlash("Accessory listing approved");
+            }}
+            onRejectAccessoryListing={(id) => {
+              const next = setAccessoryListingStatus(id, "rejected");
+              setAccessoryMarket(next);
+              setFlash("Accessory listing rejected");
+            }}
             onApproveAllPending={approveAllPending}
             onApproveAllLines={approveAllPendingLines}
             onRejectAllLines={rejectAllPendingLines}
@@ -3961,9 +4084,22 @@ function AdminPanel({
   onMarkOrderPaid,
   onOrderDecided,
   onFlash,
+  accessoryMarket = { vendors: [], listings: [] },
+  onApproveAccessoryVendor,
+  onRejectAccessoryVendor,
+  onApproveAccessoryListing,
+  onRejectAccessoryListing,
 }) {
   const pendingVendors = vendors.filter((v) => v.status === "pending");
   const pendingItems = submissions.filter((s) => s.status === "pending");
+  const pendingAccVendors = (accessoryMarket.vendors || []).filter(
+    (v) => v.status === "pending"
+  );
+  const pendingAccListings = (accessoryMarket.listings || []).filter(
+    (l) => l.status === "pending"
+  );
+  const accVendorName = (id) =>
+    (accessoryMarket.vendors || []).find((v) => v.id === id)?.name || id;
   const vendorName = (id) => vendors.find((v) => v.id === id)?.name || id;
   const [payConfig, setPayConfig] = useState(() => loadManualPayConfig());
   const [discountCodes, setDiscountCodes] = useState(() => loadDiscountCodes());
@@ -4647,6 +4783,117 @@ function AdminPanel({
                 <X size={16} /> Reject all lines
               </button>
             </div>
+          </div>
+
+          <h2>Marketplace (accessories)</h2>
+          <p className="meta" style={{ marginBottom: "0.75rem" }}>
+            Public Sell on WellPept applications. Approved listings appear on the
+            Renew Accessories section (Economy / Fast ship options).
+          </p>
+          <div className="table-wrap" style={{ marginBottom: "1rem" }}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Vendor</th>
+                  <th>Notes</th>
+                  <th>Submitted</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingAccVendors.length === 0 ? (
+                  <tr>
+                    <td colSpan={4}>No accessory vendors waiting.</td>
+                  </tr>
+                ) : (
+                  pendingAccVendors.map((v) => (
+                    <tr key={v.id}>
+                      <td>
+                        <strong>{v.name}</strong>
+                        <div className="meta">{v.email}</div>
+                        {v.company ? (
+                          <div className="meta">{v.company}</div>
+                        ) : null}
+                      </td>
+                      <td className="meta">{v.notes || "—"}</td>
+                      <td className="meta">
+                        {new Date(v.createdAt).toLocaleString()}
+                      </td>
+                      <td>
+                        <div className="row-actions">
+                          <button
+                            type="button"
+                            className="primary-btn"
+                            onClick={() => onApproveAccessoryVendor?.(v.id)}
+                          >
+                            <Check size={16} /> Approve
+                          </button>
+                          <button
+                            type="button"
+                            className="danger-btn"
+                            onClick={() => onRejectAccessoryVendor?.(v.id)}
+                          >
+                            <X size={16} /> Reject
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <div className="table-wrap" style={{ marginBottom: "1.5rem" }}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Listing</th>
+                  <th>Vendor</th>
+                  <th>Ship</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingAccListings.length === 0 ? (
+                  <tr>
+                    <td colSpan={4}>No accessory listings waiting.</td>
+                  </tr>
+                ) : (
+                  pendingAccListings.map((l) => (
+                    <tr key={l.id}>
+                      <td>
+                        <strong>{l.name}</strong>
+                        <div className="meta">
+                          {formatMoney(l.price)} · {l.size || "—"} · {l.kind}
+                        </div>
+                      </td>
+                      <td className="meta">{accVendorName(l.vendorId)}</td>
+                      <td className="meta">
+                        {(l.shipModes || []).join(", ") || "economy"}
+                      </td>
+                      <td>
+                        <div className="row-actions">
+                          <button
+                            type="button"
+                            className="primary-btn"
+                            onClick={() => onApproveAccessoryListing?.(l.id)}
+                          >
+                            <Check size={16} /> Approve
+                          </button>
+                          <button
+                            type="button"
+                            className="danger-btn"
+                            onClick={() => onRejectAccessoryListing?.(l.id)}
+                          >
+                            <X size={16} /> Reject
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
 
           <h2>Pending partners</h2>
