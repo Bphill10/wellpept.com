@@ -1,21 +1,13 @@
 /** Public WellPept skincare: mix-and-match actives and ready formulas. */
 
-/** Shared legal language for cosmetic Renew products. */
-export const PEPTIDE_LEGAL = {
-  short:
-    "For external cosmetic use only. Not for injection, ingestion, or medical use. Not evaluated by the FDA. Not intended to diagnose, treat, cure, or prevent any disease.",
-  medium:
-    "WellPept Renew products are cosmetic skincare for external use on intact skin only. They are not drugs, not sterile injectables, and not for compounding into injectable preparations. Keep out of reach of children. Discontinue if irritation occurs. Consult a qualified professional if you are pregnant, nursing, or under medical care.",
-  long: [
-    "COSMETIC USE ONLY. External application on intact skin. Not for injection, IV, IM, SQ, oral, nasal, ocular (unless labeled as an eye serum for periocular skin), or any other route.",
-    "NOT A DRUG. These products are not intended to diagnose, treat, cure, or prevent any disease. No therapeutic or medical claims are made.",
-    "NOT FDA EVALUATED. Statements have not been evaluated by the U.S. Food and Drug Administration.",
-    "NOT FOR RESEARCH OR CLINICAL COMPOUNDING. Do not use as a starting material for sterile compounding, pharmacy preparations, or laboratory assays.",
-    "FRESH ACTIVATION. Key actives are sealed separately to limit shelf degradation. Once mixed into the base, use within the stated window and refrigerate when directed. Results after activation are not guaranteed beyond labeled guidance.",
-    "ASSUMPTION OF RISK. By purchasing you confirm you understand cosmetic actives may cause irritation or sensitization, will follow mix instructions, and will not misuse these products.",
-    "AGE AND JURISDICTION. You must be 18+ and purchasing for lawful personal cosmetic use in the United States. Void where prohibited.",
-  ],
-};
+export {
+  WELLPEPT_COSMETIC_LEGAL as PEPTIDE_LEGAL,
+  WELLPEPT_COSMETIC_LEGAL,
+} from "./siteLegal";
+import { WELLPEPT_COSMETIC_LEGAL } from "./siteLegal";
+
+/** @deprecated import PEPTIDE_LEGAL from siteLegal — kept for local references below. */
+const PEPTIDE_LEGAL = WELLPEPT_COSMETIC_LEGAL;
 
 /** Round a dollar amount to the nearest $5 (e.g. 54 → 55, 32 → 30). */
 export function roundToNearest5(n) {

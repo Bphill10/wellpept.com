@@ -89,7 +89,10 @@ import PeptideCalculator, {
 } from "./components/PeptideCalculator";
 import GeneratedVial from "./components/GeneratedVial";
 import SkincareHome from "./components/SkincareHome";
-import { PEPTIDE_LEGAL } from "./data/skincare";
+import {
+  UNDISCLOSED_LEGAL,
+  WELLPEPT_COSMETIC_LEGAL,
+} from "./data/siteLegal";
 import ChannelTuneOverlay, { TUNE_MS } from "./components/ChannelTuneOverlay";
 import PriceListDropzone from "./components/PriceListDropzone";
 import LiveChat, { openLiveChat, contactEmail } from "./components/LiveChat";
@@ -1153,11 +1156,13 @@ export default function App() {
       {!ageOk && (
         <AgeGate
           brand={labVisible ? "Undisclosed" : "WellPept"}
+          labMode={labVisible}
           onClear={() => setAgeOk(true)}
         />
       )}
       {showAuth && (
         <AuthGate
+          labMode={labVisible}
           onAuthed={(next) => {
             setSession(next);
             setShowAuth(false);
@@ -2023,21 +2028,8 @@ export default function App() {
             </p>
           </div>
           <p className="disclaimer">
-            {labVisible ? (
-              <>
-                Undisclosed is brought to you by WellPept. Items are for laboratory
-                research use only. Not for human consumption, medical use, or
-                household purposes. Ships to United States addresses only.
-              </>
-            ) : (
-              <>
-                WellPept Renew is cosmetic skincare for external use on intact
-                skin only. Not for injection, ingestion, or medical use. Not
-                evaluated by the FDA. Not intended to diagnose, treat, cure, or
-                prevent any disease. Ships to United States addresses only.
-                Questions: {contactEmail()}.
-              </>
-            )}
+            {labVisible ? UNDISCLOSED_LEGAL.footer : WELLPEPT_COSMETIC_LEGAL.footer}
+            {!labVisible ? <> Questions: {contactEmail()}.</> : null}
           </p>
         </div>
       </footer>
@@ -2280,10 +2272,7 @@ function ProductDetail({
                 {researchHelpFor(listing.name || product.name)}
               </p>
             )}
-            <p className="detail-research-note">
-              For laboratory research use only. Not for human consumption,
-              medical use, or household purposes.
-            </p>
+            <p className="detail-research-note">{UNDISCLOSED_LEGAL.short}</p>
             <p className="detail-research-note detail-dose-disclaimer">
               <strong>Dose range note:</strong> Any DOSE RANGE shown on
               Undisclosed vial labels is an auto-suggested lab convenience range
@@ -2537,6 +2526,7 @@ function CartPage({
   });
   const [waitConsent, setWaitConsent] = useState(false);
   const [cosmeticConsent, setCosmeticConsent] = useState(false);
+  const [researchConsent, setResearchConsent] = useState(false);
   const [step, setStep] = useState("shipping"); // shipping | done
   const [packet, setPacket] = useState(null);
   const [packetMsg, setPacketMsg] = useState("");
@@ -2631,6 +2621,12 @@ function CartPage({
       );
       return;
     }
+    if (labCart && !researchConsent) {
+      setPacketMsg(
+        "Confirm the research use acknowledgment (laboratory research only — not for human use)."
+      );
+      return;
+    }
     if (!waitConsent) {
       setPacketMsg(
         `Confirm you are willing to wait ${deliveryWindow} for delivery.`
@@ -2709,8 +2705,9 @@ function CartPage({
               <div className="notice" style={{ marginTop: "0.75rem" }}>
                 <strong>After-order confirmation</strong>
                 <p className="meta" style={{ margin: "0.35rem 0 0.5rem" }}>
-                  Invoice and card descriptors use WellPept Renew item names.
-                  Save the map below for your records.
+                  {labCart
+                    ? UNDISCLOSED_LEGAL.orderMapCaution
+                    : WELLPEPT_COSMETIC_LEGAL.orderMapCaution}
                 </p>
                 <strong>Invoice items</strong>
                 <ul style={{ margin: "0.5rem 0 0", paddingLeft: "1.1rem" }}>
@@ -2728,7 +2725,9 @@ function CartPage({
                     fontFamily: "inherit",
                   }}
                 >
-                  {formatOrderDecodeAppendix(payInvoice.lines)}
+                  {formatOrderDecodeAppendix(payInvoice.lines, {
+                    labMode: labCart,
+                  })}
                 </pre>
               </div>
             ) : null}
@@ -3017,10 +3016,12 @@ function CartPage({
 
                   {!labCart && (
                     <div className="sk-legal-box sk-legal-box--cart">
-                      <p className="sk-legal-title">Cosmetic use acknowledgment</p>
-                      <p>{PEPTIDE_LEGAL.medium}</p>
+                      <p className="sk-legal-title">
+                        {WELLPEPT_COSMETIC_LEGAL.cartTitle}
+                      </p>
+                      <p>{WELLPEPT_COSMETIC_LEGAL.medium}</p>
                       <ul className="sk-legal-long sk-legal-long--compact">
-                        {PEPTIDE_LEGAL.long.map((line) => (
+                        {WELLPEPT_COSMETIC_LEGAL.long.map((line) => (
                           <li key={line.slice(0, 28)}>{line}</li>
                         ))}
                       </ul>
@@ -3031,14 +3032,33 @@ function CartPage({
                           onChange={(e) => setCosmeticConsent(e.target.checked)}
                           required
                         />
-                        <span>
-                          I am 18+, ordering for personal cosmetic use only. I
-                          understand these products are for external use on
-                          intact skin — not for injection, ingestion, or medical
-                          use.
-                        </span>
+                        <span>{WELLPEPT_COSMETIC_LEGAL.cartCheckbox}</span>
                       </label>
-                      <p className="meta">{PEPTIDE_LEGAL.short}</p>
+                      <p className="meta">{WELLPEPT_COSMETIC_LEGAL.short}</p>
+                    </div>
+                  )}
+
+                  {labCart && (
+                    <div className="sk-legal-box sk-legal-box--cart">
+                      <p className="sk-legal-title">
+                        {UNDISCLOSED_LEGAL.cartTitle}
+                      </p>
+                      <p>{UNDISCLOSED_LEGAL.medium}</p>
+                      <ul className="sk-legal-long sk-legal-long--compact">
+                        {UNDISCLOSED_LEGAL.long.map((line) => (
+                          <li key={line.slice(0, 28)}>{line}</li>
+                        ))}
+                      </ul>
+                      <label className="consent-check">
+                        <input
+                          type="checkbox"
+                          checked={researchConsent}
+                          onChange={(e) => setResearchConsent(e.target.checked)}
+                          required
+                        />
+                        <span>{UNDISCLOSED_LEGAL.cartCheckbox}</span>
+                      </label>
+                      <p className="meta">{UNDISCLOSED_LEGAL.short}</p>
                     </div>
                   )}
 
@@ -3160,7 +3180,8 @@ function CartPage({
                       disabled={
                         submitting ||
                         !waitConsent ||
-                        (!labCart && !cosmeticConsent)
+                        (!labCart && !cosmeticConsent) ||
+                        (labCart && !researchConsent)
                       }
                     >
                       {submitting
@@ -3217,9 +3238,9 @@ function CartPage({
                     <div className="notice" style={{ marginTop: "0.75rem" }}>
                       <strong>After-order confirmation</strong>
                       <p className="meta" style={{ margin: "0.35rem 0 0.5rem" }}>
-                        Invoice and card descriptors use WellPept Renew item
-                        names. Save the map below — it confirms what you
-                        requested after placing this order.
+                        {labCart
+                          ? UNDISCLOSED_LEGAL.orderMapCaution
+                          : WELLPEPT_COSMETIC_LEGAL.orderMapCaution}
                       </p>
                       <strong>Invoice items</strong>
                       <ul style={{ margin: "0.35rem 0 0", paddingLeft: "1.1rem" }}>
@@ -3237,7 +3258,7 @@ function CartPage({
                           fontFamily: "inherit",
                         }}
                       >
-                        {formatOrderDecodeAppendix(packet)}
+                        {formatOrderDecodeAppendix(packet, { labMode: labCart })}
                       </pre>
                     </div>
                   ) : null}

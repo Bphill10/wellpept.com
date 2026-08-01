@@ -229,17 +229,41 @@ export function formatSupplyLineLabel(line) {
   return `${qty}× ${sku}${name}${strength}`.replace(/\s+/g, " ").trim();
 }
 
-/** Post-order caution + decode for the customer’s own confirmation record. */
-export const ORDER_MAP_CAUTION =
+// Mirrors siteLegal orderMapCaution — kept here to avoid circular imports.
+const WELLPEPT_COSMETIC_ORDER_MAP =
   "Please save this order map. Invoice / card descriptors use WellPept Renew item names. The map below is your confirmation of what you requested after placing this order. Keep it for your records.";
 
+const UNDISCLOSED_RESEARCH_ORDER_MAP =
+  "Please save this order map. Payment descriptors may use alternate WellPept product names. The map below confirms the research materials you requested after placing this order. Keep it for your records. Research use only — not for human consumption.";
+
+/** @deprecated Prefer formatOrderDecodeAppendix — skin default. */
+export const ORDER_MAP_CAUTION = WELLPEPT_COSMETIC_ORDER_MAP;
+
+export { WELLPEPT_COSMETIC_ORDER_MAP as ORDER_MAP_CAUTION_SKIN };
+export { UNDISCLOSED_RESEARCH_ORDER_MAP as ORDER_MAP_CAUTION_RESEARCH };
+
+function orderMapLooksResearch(rows) {
+  return rows.some(
+    (row) =>
+      row.publicLabel &&
+      row.supplyLabel &&
+      row.publicLabel !== row.supplyLabel &&
+      !String(row.publicCode || "").startsWith("WP-")
+  );
+}
+
 /** Decode appendix for customer email / pay page / post-order confirm. */
-export function formatOrderDecodeAppendix(orderOrLines) {
+export function formatOrderDecodeAppendix(orderOrLines, { labMode = null } = {}) {
   const rows = Array.isArray(orderOrLines)
     ? orderOrLines
     : orderPublicLines(orderOrLines);
   if (!rows.length) return "";
-  const lines = [ORDER_MAP_CAUTION, "", "Your order map:"];
+  const research =
+    labMode == null ? orderMapLooksResearch(rows) : Boolean(labMode);
+  const caution = research
+    ? UNDISCLOSED_RESEARCH_ORDER_MAP
+    : WELLPEPT_COSMETIC_ORDER_MAP;
+  const lines = [caution, "", "Your order map:"];
   for (const row of rows) {
     const code = row.publicCode || "—";
     const supply = row.supplyLabel || row.name || "item";

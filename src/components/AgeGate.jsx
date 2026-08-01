@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { siteLegal } from "../data/siteLegal";
 
 const AGE_KEY = "wellpept_age_ok_v1";
 
@@ -19,11 +20,16 @@ function persistAgeClearance() {
 }
 
 /**
- * Site-wide 18+ gate. Blocks browsing until confirmed; remembered locally.
+ * Site-wide 18+ gate. Copy depends on shell (skincare vs Undisclosed research).
  */
-export default function AgeGate({ brand = "WellPept", onClear }) {
+export default function AgeGate({
+  brand = "WellPept",
+  labMode = false,
+  onClear,
+}) {
   const [checked, setChecked] = useState(false);
   const [error, setError] = useState("");
+  const legal = siteLegal(labMode);
 
   function confirm() {
     if (!checked) {
@@ -40,16 +46,17 @@ export default function AgeGate({ brand = "WellPept", onClear }) {
   }
 
   return (
-    <div className="auth-gate age-gate" role="dialog" aria-modal="true" aria-labelledby="age-gate-title">
+    <div
+      className="auth-gate age-gate"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="age-gate-title"
+    >
       <div className="auth-gate-bg" aria-hidden="true" />
       <div className="auth-card age-gate-card">
         <p className="auth-kicker">{brand}</p>
         <h1 id="age-gate-title">Age verification</h1>
-        <p className="auth-lead">
-          You must be 18 or older to enter this site. {brand} products are for
-          adults for personal cosmetic use on intact skin only — not for
-          injection, ingestion, or medical use.
-        </p>
+        <p className="auth-lead">{legal.ageGate}</p>
 
         <label className="auth-check">
           <input

@@ -10,8 +10,10 @@ import {
   validatePassword,
   validateUserId,
 } from "../utils/auth";
+import { siteLegal } from "../data/siteLegal";
 
-export default function AuthGate({ onAuthed, onClose }) {
+export default function AuthGate({ onAuthed, onClose, labMode = false }) {
+  const legal = siteLegal(labMode);
   const [mode, setMode] = useState("signup"); // signup | login | confirm
   const [email, setEmail] = useState("");
   const [userId, setUserId] = useState("");
@@ -155,13 +157,13 @@ export default function AuthGate({ onAuthed, onClose }) {
           </button>
         )}
         <img
-          src="/wp-monogram.svg"
-          alt="WellPept"
+          src={labMode ? "/ud-monogram.svg" : "/wp-monogram.svg"}
+          alt={labMode ? "Undisclosed" : "WellPept"}
           className="auth-mark"
           width={72}
           height={72}
         />
-        <p className="auth-kicker">WellPept</p>
+        <p className="auth-kicker">{labMode ? "Undisclosed" : "WellPept"}</p>
         <h1>
           {mode === "confirm"
             ? "Confirm your email"
@@ -322,11 +324,7 @@ export default function AuthGate({ onAuthed, onClose }) {
                   checked={ageConfirmed}
                   onChange={(e) => setAgeConfirmed(e.target.checked)}
                 />
-                <span>
-                  I confirm I am 18 years of age or older. WellPept products are
-                  for personal cosmetic use on intact skin only — not for
-                  injection, ingestion, or medical use.
-                </span>
+                <span>{legal.signupAck}</span>
               </label>
             </>
           )}
@@ -381,7 +379,7 @@ export default function AuthGate({ onAuthed, onClose }) {
         )}
 
         <p className="auth-legal">
-          By continuing you agree to WellPept product notices. Contact{" "}
+          {legal.authFooter} Contact{" "}
           <a href="mailto:info@wellpept.com">info@wellpept.com</a>.
         </p>
         {mode === "signup" && email && !validateEmail(email) && (

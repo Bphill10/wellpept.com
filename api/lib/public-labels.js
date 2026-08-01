@@ -216,11 +216,17 @@ export function formatOrderDecodeAppendix(orderOrLines) {
     ? orderOrLines
     : orderPublicLines(orderOrLines);
   if (!rows.length) return "";
-  const lines = [
-    "Please save this order map. Invoice / card descriptors use WellPept Renew item names. The map below is your confirmation of what you requested after placing this order. Keep it for your records.",
-    "",
-    "Your order map:",
-  ];
+  const research = rows.some(
+    (row) =>
+      row.publicLabel &&
+      row.supplyLabel &&
+      row.publicLabel !== row.supplyLabel &&
+      !String(row.publicCode || "").startsWith("WP-")
+  );
+  const caution = research
+    ? "Please save this order map. Payment descriptors may use alternate WellPept product names. The map below confirms the research materials you requested after placing this order. Keep it for your records. Research use only — not for human consumption."
+    : "Please save this order map. Invoice / card descriptors use WellPept Renew item names. The map below is your confirmation of what you requested after placing this order. Keep it for your records.";
+  const lines = [caution, "", "Your order map:"];
   for (const row of rows) {
     const code = row.publicCode || "—";
     const supply = row.supplyLabel || row.name || "item";
