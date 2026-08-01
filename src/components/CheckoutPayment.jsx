@@ -68,22 +68,8 @@ function PaymentForm({ totalLabel, customer, onPaid, onError }) {
       confirmParams: {
         return_url: returnUrl.toString(),
         receipt_email: customer.email,
-        ...(customer.address1
-          ? {
-              shipping: {
-                name: customer.name,
-                phone: customer.phone || undefined,
-                address: {
-                  line1: customer.address1,
-                  line2: customer.address2 || undefined,
-                  city: customer.city,
-                  state: customer.state,
-                  postal_code: customer.zip,
-                  country: "US",
-                },
-              },
-            }
-          : {}),
+        // Do not pass shipping here — PaymentIntent already has shipping from
+        // the secret-key create call; client publishable key cannot overwrite it.
         payment_method_data: {
           billing_details: {
             name: customer.name,
