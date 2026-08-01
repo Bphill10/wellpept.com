@@ -92,12 +92,15 @@ function slugSku(name, mg) {
 }
 
 function detectVialMl(name, form = "") {
-  // Only NAD / Glutathione are 10 mL; everything else is 3 mL
+  // NAD / Glutathione / B12 are 10 mL; everything else is 3 mL
   const text = `${name || ""} ${form || ""}`;
   if (
     /\bglutathione\b/i.test(text) ||
     /\bgluta\b/i.test(text) ||
-    /\bnad\+?\b/i.test(text)
+    /\bnad\+?\b/i.test(text) ||
+    /\bvitamin\s*b\s*12\b/i.test(text) ||
+    /\bmethylcobalamin\b/i.test(text) ||
+    /\bb12\b/i.test(text)
   ) {
     return "10";
   }

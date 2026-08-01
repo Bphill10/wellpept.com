@@ -1071,9 +1071,11 @@ export const ERP_SUBMISSIONS = [
     "form": "Lyophilized vial · 36iu*10vials",
     "purity": "≥98%",
     "mg": 36,
+    "unit": "IU",
     "vendorCost": 159,
     "category": "Growth",
     "packVials": 10,
+    "coaUrl": "https://verify.janoshik.com/tests/152278-Sample_1_L3TH2ZJPHV6K",
     "status": "approved",
     "submittedAt": "2026-07-31T00:00:00.000Z",
     "reviewedAt": "2026-07-31T12:00:00.000Z"

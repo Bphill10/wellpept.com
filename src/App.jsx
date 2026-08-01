@@ -45,6 +45,9 @@ import {
   buildStripePayUrl,
   parseStripePayPayload,
   notifyOrderRequest,
+  flattenOrderLines,
+  applySupplyDecision,
+  notifyCustomerOrderDecision,
   defaultsFromCatalogSelection,
 } from "./utils/automation";
 import { fetchChargebeeConfig } from "./utils/chargebeeClient";
@@ -83,7 +86,6 @@ import SkincareHome from "./components/SkincareHome";
 import { PEPTIDE_LEGAL } from "./data/skincare";
 import ChannelTuneOverlay, { TUNE_MS } from "./components/ChannelTuneOverlay";
 import PriceListDropzone from "./components/PriceListDropzone";
-import PriceCompare from "./components/PriceCompare";
 import LiveChat, { openLiveChat, contactEmail } from "./components/LiveChat";
 import AuthGate from "./components/AuthGate";
 import AgeGate, { hasAgeClearance } from "./components/AgeGate";
@@ -129,7 +131,7 @@ function VialPreview({
   product,
   size = "md",
   showDownload = false,
-  showLabel = false,
+  showLabel = true,
 }) {
   if (product?.print) {
     if (product.image) {
@@ -1599,9 +1601,9 @@ export default function App() {
                     <h2>KLOW</h2>
                     <p>
                       Signature Undisclosed kit. 10 × 80 MG lyophilized vials
-                      with clinical wrap labels, QR, and research-only marking.
-                      Request first; we confirm supply within 24 hours, then
-                      payment. Shipping by warehouse (A / B).
+                      with clinical wrap labels. Request first; we confirm
+                      supply within 24 hours, then payment. Shipping by
+                      warehouse (A / B).
                     </p>
                     <ul className="featured-meta">
                       <li>80 MG blend · kit of 10 vials</li>
@@ -1935,6 +1937,10 @@ export default function App() {
               if (updated) setOrders(loadOrders());
               setFlash(`Marked paid · ${orderId} · ${provider}`);
             }}
+            onOrderDecided={(packet) => {
+              if (!packet) return;
+              setOrders(saveOrder(packet));
+            }}
             onFlash={setFlash}
           />
         )}
@@ -2097,26 +2103,24 @@ function ProductCard({ listing, preferredWarehouseId = "All", onOpen, onAdd }) {
         </div>
       </button>
 
-      {multiStrength && (
-        <label className="strength-field" onClick={(e) => e.stopPropagation()}>
-          <span>Strength</span>
-          <select
-            value={strength.key}
-            onChange={(e) => {
-              const next = strengths.find((s) => s.key === e.target.value);
-              if (next) setOfferId(next.defaultOfferId);
-            }}
-            aria-label={`${listing.name} strength`}
-          >
-            {strengths.map((s) => (
-              <option key={s.key} value={s.key}>
-                {s.selectLabel || formatStrengthSelectLabel(s)}
-                {s.lowestPrice == null ? "" : ` · ${formatMoney(s.lowestPrice)}`}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
+      <label className="strength-field" onClick={(e) => e.stopPropagation()}>
+        <span>Strength</span>
+        <select
+          value={strength.key}
+          onChange={(e) => {
+            const next = strengths.find((s) => s.key === e.target.value);
+            if (next) setOfferId(next.defaultOfferId);
+          }}
+          aria-label={`${listing.name} strength`}
+        >
+          {strengths.map((s) => (
+            <option key={s.key} value={s.key}>
+              {s.selectLabel || formatStrengthSelectLabel(s)}
+              {s.lowestPrice == null ? "" : ` · ${formatMoney(s.lowestPrice)}`}
+            </option>
+          ))}
+        </select>
+      </label>
 
       {multiVendor && (
         <label className="strength-field" onClick={(e) => e.stopPropagation()}>
@@ -2134,15 +2138,6 @@ function ProductCard({ listing, preferredWarehouseId = "All", onOpen, onAdd }) {
           </select>
         </label>
       )}
-
-      <PriceCompare
-        listing={listing}
-        product={product}
-        onSelect={setOfferId}
-        defaultOpen={false}
-        defaultScope="strength"
-        compact
-      />
 
       <button
         type="button"
@@ -2237,6 +2232,14 @@ function ProductDetail({
               For laboratory research use only. Not for human consumption,
               medical use, or household purposes.
             </p>
+            <p className="detail-research-note detail-dose-disclaimer">
+              <strong>Dose range note:</strong> Any DOSE RANGE shown on
+              Undisclosed vial labels is an auto-suggested lab convenience range
+              (research dose → about 2×, often framed as 10–20 syringe units).
+              It comes from Undisclosed reconstitution defaults — not from the
+              COA, not from manufacturer labeling, and not medical or clinical
+              dosing guidance.
+            </p>
             <div className="meta">
               {formatStrengthLabel(product)} · {formatCustomerForm(product)}
               {product.powderColor === "blue"
@@ -2252,41 +2255,28 @@ function ProductDetail({
               seedUrl={product.coaUrl || ""}
               onChanged={() => setCoaTick((n) => n + 1)}
             />
-
-            <div className="detail-compare">
-              <h2 className="detail-summary-label">Compare prices</h2>
-              <PriceCompare
-                listing={listing}
-                product={product}
-                onSelect={onSelectVariant}
-                defaultOpen
-                defaultScope="all"
-              />
-            </div>
           </div>
           <div className="buy-box panel">
-            {multiStrength && (
-              <label className="strength-field">
-                <span>Strength</span>
-                <select
-                  value={strength.key}
-                  onChange={(e) => {
-                    const next = strengths.find((s) => s.key === e.target.value);
-                    if (next) onSelectVariant(next.defaultOfferId);
-                  }}
-                  aria-label="Select strength"
-                >
-                  {strengths.map((s) => (
-                    <option key={s.key} value={s.key}>
-                      {s.selectLabel || formatStrengthSelectLabel(s)}
-                      {s.lowestPrice == null
-                        ? ""
-                        : ` · ${formatMoney(s.lowestPrice)}`}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
+            <label className="strength-field">
+              <span>Strength</span>
+              <select
+                value={strength.key}
+                onChange={(e) => {
+                  const next = strengths.find((s) => s.key === e.target.value);
+                  if (next) onSelectVariant(next.defaultOfferId);
+                }}
+                aria-label="Select strength"
+              >
+                {strengths.map((s) => (
+                  <option key={s.key} value={s.key}>
+                    {s.selectLabel || formatStrengthSelectLabel(s)}
+                    {s.lowestPrice == null
+                      ? ""
+                      : ` · ${formatMoney(s.lowestPrice)}`}
+                  </option>
+                ))}
+              </select>
+            </label>
             {multiVendor && (
               <label className="strength-field">
                 <span>Option</span>
@@ -3614,10 +3604,10 @@ function PriceListEditor({ lines, onChange }) {
                   resolveVialMl({ name: line.name, form: line.form })
                 )}
                 disabled
-                title="3 mL default · 10 mL only for NAD / Glutathione"
+                title="3 mL default · 10 mL for NAD / Glutathione / B12"
               >
                 <option value="3">3 mL (default)</option>
-                <option value="10">10 mL (NAD / Glutathione)</option>
+                <option value="10">10 mL (NAD / Glutathione / B12)</option>
               </select>
             </label>
             <label className="field">
@@ -3654,6 +3644,163 @@ function PriceListEditor({ lines, onChange }) {
   );
 }
 
+function OrderSupplyReviewRow({
+  order,
+  payConfig,
+  onFlash,
+  onOrderDecided,
+}) {
+  const lines = useMemo(() => flattenOrderLines(order), [order]);
+  const [kept, setKept] = useState(() => new Set(lines.map((l) => l.key)));
+  const [comment, setComment] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    setKept(new Set(flattenOrderLines(order).map((l) => l.key)));
+    setComment("");
+  }, [order.orderId]);
+
+  const preview = useMemo(() => {
+    const keys = [...kept];
+    if (!keys.length) return null;
+    return applySupplyDecision(order, {
+      decision: "yes",
+      keepKeys: keys,
+      comment,
+    });
+  }, [order, kept, comment]);
+
+  function toggle(key) {
+    setKept((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
+
+  async function runDecision(decision) {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const keepKeys =
+        decision === "no" ? [] : [...kept];
+      if (decision !== "no" && !keepKeys.length) {
+        onFlash?.("Check at least one item, or Decline");
+        return;
+      }
+      const updated = applySupplyDecision(order, {
+        decision: decision === "no" ? "no" : "yes",
+        keepKeys: decision === "no" ? null : keepKeys,
+        comment,
+      });
+      if (!updated) {
+        onFlash?.("Could not apply supply decision");
+        return;
+      }
+
+      const payUrl =
+        updated.status === "awaiting_payment"
+          ? buildStripePayUrl(updated)
+          : "";
+      const payText =
+        updated.status === "awaiting_payment"
+          ? formatManualPayText({
+              orderId: updated.orderId,
+              total: updated.totals?.total || 0,
+              config: payConfig,
+            })
+          : "";
+
+      const notify = await notifyCustomerOrderDecision(updated, {
+        payUrl,
+        payText,
+      });
+      onOrderDecided?.(updated);
+
+      const kind = updated.supplyDecision?.decision || decision;
+      const via = notify?.via || "none";
+      if (kind === "no") {
+        onFlash?.(
+          notify?.ok
+            ? `Declined · emailed customer (${via})`
+            : `Declined · email draft opened (${via})`
+        );
+      } else if (kind === "partial") {
+        onFlash?.(
+          `Partial confirm · ${formatMoney(updated.totals?.total || 0)} · emailed (${via})`
+        );
+      } else {
+        onFlash?.(
+          `Confirmed · pay link emailed (${via}) · ${formatMoney(updated.totals?.total || 0)}`
+        );
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const droppedCount = lines.length - kept.size;
+
+  return (
+    <div className="admin-supply-decide">
+      <ul className="admin-supply-lines">
+        {lines.map((line) => (
+          <li key={line.key}>
+            <label>
+              <input
+                type="checkbox"
+                checked={kept.has(line.key)}
+                onChange={() => toggle(line.key)}
+                disabled={busy}
+              />
+              <span>
+                {line.qty}× {line.name}
+                {line.mg != null && Number(line.mg) > 0
+                  ? ` (${line.mg}mg)`
+                  : ""}{" "}
+                <span className="meta">{formatMoney(line.lineTotal || 0)}</span>
+              </span>
+            </label>
+          </li>
+        ))}
+      </ul>
+      {droppedCount > 0 && preview ? (
+        <div className="meta">
+          Partial · new total {formatMoney(preview.totals?.total || 0)} (
+          {droppedCount} unavailable)
+        </div>
+      ) : null}
+      <textarea
+        className="admin-supply-comment"
+        rows={2}
+        placeholder="Optional note to customer (override / explanation)"
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        disabled={busy}
+      />
+      <div className="row-actions admin-pay-actions">
+        <button
+          type="button"
+          className="soft-btn"
+          disabled={busy || kept.size === 0}
+          onClick={() => runDecision("yes")}
+        >
+          {droppedCount > 0 ? "Confirm partial & email" : "Yes · email pay link"}
+        </button>
+        <button
+          type="button"
+          className="ghost-btn"
+          disabled={busy}
+          onClick={() => runDecision("no")}
+        >
+          No · decline
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function AdminPanel({
   vendors,
   submissions,
@@ -3672,6 +3819,7 @@ function AdminPanel({
   onApproveAllLines,
   onRejectAllLines,
   onMarkOrderPaid,
+  onOrderDecided,
   onFlash,
 }) {
   const pendingVendors = vendors.filter((v) => v.status === "pending");
@@ -4481,9 +4629,9 @@ function AdminPanel({
 
           <h2>Order requests (supply review)</h2>
           <p className="meta" style={{ marginBottom: "0.75rem" }}>
-            After you confirm supply, copy the pay link (or Venmo / Zelle /
-            crypto instructions) and email it to the customer. Mark paid when
-            funds arrive.
+            Uncheck anything you can’t fill, add an optional note, then Confirm
+            (emails pay link) or Decline. Partial orders recalculate the total
+            automatically.
           </p>
           <div className="table-wrap" style={{ marginBottom: "1.5rem" }}>
             <table>
@@ -4493,7 +4641,7 @@ function AdminPanel({
                   <th>Customer</th>
                   <th>Status</th>
                   <th>Quoted total</th>
-                  <th>Collect payment</th>
+                  <th>Decide</th>
                 </tr>
               </thead>
               <tbody>
@@ -4525,6 +4673,11 @@ function AdminPanel({
                         {o.payment?.provider ? (
                           <div className="meta">via {o.payment.provider}</div>
                         ) : null}
+                        {o.supplyDecision?.decision ? (
+                          <div className="meta">
+                            decided: {o.supplyDecision.decision}
+                          </div>
+                        ) : null}
                       </td>
                       <td>
                         {formatMoney(o.totals?.total || 0)}
@@ -4548,8 +4701,13 @@ function AdminPanel({
                       <td>
                         {o.status === "paid" ? (
                           <span className="meta">Paid</span>
-                        ) : (
+                        ) : o.status === "declined" ? (
+                          <span className="meta">Declined</span>
+                        ) : o.status === "awaiting_payment" ? (
                           <div className="row-actions admin-pay-actions">
+                            <span className="meta">
+                              Customer emailed · awaiting payment
+                            </span>
                             <button
                               type="button"
                               className="soft-btn"
@@ -4574,6 +4732,13 @@ function AdminPanel({
                               Mark paid
                             </button>
                           </div>
+                        ) : (
+                          <OrderSupplyReviewRow
+                            order={o}
+                            payConfig={payConfig}
+                            onFlash={onFlash}
+                            onOrderDecided={onOrderDecided}
+                          />
                         )}
                       </td>
                     </tr>

@@ -5,6 +5,7 @@
  *   { type: "order_request", subject, text, replyTo? }
  *   { type: "auth_confirm", to, userId, code, link }
  *   { type: "ops_signup", userId, email, createdAt? }
+ *   { type: "order_customer", to, subject, text }
  *
  * Env: RESEND_API_KEY, EMAIL_FROM, EMAIL_OPS_TO
  */
@@ -115,6 +116,24 @@ async function sendOpsSignup(body) {
   });
 }
 
+async function sendOrderCustomer(body) {
+  const to = String(body.to || "").trim();
+  const subject = String(body.subject || "WellPept order update").slice(0, 200);
+  const text = String(body.text || "").slice(0, 50000);
+  if (!looksLikeEmail(to) || !text.trim()) {
+    const err = new Error("Missing customer email fields");
+    err.status = 400;
+    throw err;
+  }
+  return sendWithResend({
+    to,
+    subject,
+    text,
+    html: textToHtml(text),
+    replyTo: emailOpsTo(),
+  });
+}
+
 export default async function handler(req, res) {
   if (req.method === "OPTIONS") {
     res.statusCode = 204;
@@ -147,6 +166,7 @@ export default async function handler(req, res) {
     if (type === "order_request") data = await sendOrderRequest(body);
     else if (type === "auth_confirm") data = await sendAuthConfirm(body);
     else if (type === "ops_signup") data = await sendOpsSignup(body);
+    else if (type === "order_customer") data = await sendOrderCustomer(body);
     else {
       sendJson(res, 400, { error: "Unknown email type" });
       return;

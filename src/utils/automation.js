@@ -193,6 +193,7 @@ export function formatDoseRangeLabel(dose, doseUnit, units = 10) {
   const uHigh = Number(units) * 2;
   const fmt = (n) => parseFloat(Number(n).toFixed(2)).toString();
   const unit = doseUnit === "IU" ? "IU" : "mg";
+  // Same " - " spacing on both lines so dashes can stack-align on the label
   return `${fmt(low)} - ${fmt(high)} ${unit} (${units} - ${uHigh} u)`;
 }
 
@@ -671,5 +672,297 @@ export function parseStripePayPayload(raw) {
     };
   } catch {
     return null;
+  }
+}
+
+function money(n) {
+  return Math.round((Number(n) || 0) * 100) / 100;
+}
+
+/** Flat line list with stable keys for Admin supply checkboxes. */
+export function flattenOrderLines(order) {
+  const rows = [];
+  (order?.shipments || []).forEach((ship, si) => {
+    (ship.lines || []).forEach((line, li) => {
+      rows.push({
+        key: `${si}:${li}:${line.sku || line.name || li}`,
+        shipmentIndex: si,
+        lineIndex: li,
+        sku: line.sku || "",
+        name: line.name || "",
+        mg: line.mg,
+        qty: line.qty,
+        unitPrice: line.unitPrice,
+        lineTotal: line.lineTotal,
+        warehouseLabel: ship.warehouseLabel || ship.vendorLabel || "",
+      });
+    });
+  });
+  return rows;
+}
+
+function formatLineLabel(line) {
+  const strength =
+    line.mg != null && Number(line.mg) > 0 ? ` (${line.mg}mg)` : "";
+  return `${line.qty}× ${line.name || line.sku || "item"}${strength}`;
+}
+
+/**
+ * Apply Yes / No / Partial supply decision.
+ * keepKeys = line keys to fulfill (ignored for "no").
+ */
+export function applySupplyDecision(
+  order,
+  { decision = "yes", keepKeys = null, comment = "" } = {}
+) {
+  if (!order?.orderId) return null;
+  const note = String(comment || "").trim();
+  const all = flattenOrderLines(order);
+  const decidedAt = new Date().toISOString();
+
+  if (decision === "no") {
+    return {
+      ...order,
+      status: "declined",
+      paymentDue: null,
+      supplyDecision: {
+        decision: "no",
+        decidedAt,
+        comment: note,
+        dropped: all.map((r) => ({
+          key: r.key,
+          label: formatLineLabel(r),
+        })),
+      },
+      notes: note
+        ? `DECLINED. Ops note: ${note}`
+        : "DECLINED. Could not fulfill this request.",
+    };
+  }
+
+  const keepSet =
+    keepKeys == null
+      ? new Set(all.map((r) => r.key))
+      : new Set((keepKeys || []).map(String));
+  const kept = all.filter((r) => keepSet.has(r.key));
+  const dropped = all.filter((r) => !keepSet.has(r.key));
+  if (!kept.length) return null;
+
+  const isPartial = dropped.length > 0;
+  const nextShipments = (order.shipments || [])
+    .map((ship, si) => {
+      const lines = (ship.lines || []).filter((line, li) =>
+        keepSet.has(`${si}:${li}:${line.sku || line.name || li}`)
+      );
+      if (!lines.length) return null;
+      const merchandise = money(
+        lines.reduce((sum, line) => sum + (Number(line.lineTotal) || 0), 0)
+      );
+      return {
+        ...ship,
+        lines,
+        merchandise,
+        shippingFee: Number(ship.shippingFee) || Number(ship.shippingFlat) || 0,
+        shippingFree: Boolean(ship.shippingFree),
+      };
+    })
+    .filter(Boolean);
+
+  const subtotal = money(
+    nextShipments.reduce((sum, s) => sum + (Number(s.merchandise) || 0), 0)
+  );
+  const shipping = money(
+    nextShipments.reduce((sum, s) => {
+      if (s.shippingFree) return sum;
+      return sum + (Number(s.shippingFee) || Number(s.shippingFlat) || 0);
+    }, 0)
+  );
+
+  let discountAmount = 0;
+  let discount = order.discount || null;
+  if (discount?.code) {
+    const type = String(discount.type || "").toLowerCase();
+    const value = Number(discount.value);
+    if (type === "percent" && value > 0) {
+      discountAmount = money(subtotal * (value / 100));
+    } else if (type === "fixed" && value > 0) {
+      discountAmount = money(Math.min(subtotal, value));
+    } else if (Number(discount.amount) > 0 && !isPartial) {
+      discountAmount = money(discount.amount);
+    } else if (Number(discount.amount) > 0 && isPartial) {
+      const origSub = Number(order.totals?.subtotal) || subtotal;
+      const ratio = origSub > 0 ? subtotal / origSub : 1;
+      discountAmount = money((Number(discount.amount) || 0) * ratio);
+    }
+    discount = {
+      ...discount,
+      amount: discountAmount,
+    };
+  }
+
+  const taxable = Math.max(0, subtotal - discountAmount);
+  let taxAmount = 0;
+  let tax = order.tax || null;
+  if (tax?.rate != null && Number(tax.rate) > 0) {
+    taxAmount = money(taxable * Number(tax.rate));
+    tax = { ...tax, amount: taxAmount };
+  } else if (!isPartial && Number(order.totals?.tax) > 0) {
+    taxAmount = money(order.totals.tax);
+  }
+
+  const total = money(taxable + taxAmount + shipping);
+
+  return {
+    ...order,
+    status: "awaiting_payment",
+    paymentDue: "after_supply_check",
+    shipments: nextShipments,
+    discount,
+    tax,
+    totals: {
+      subtotal,
+      discount: discountAmount,
+      tax: taxAmount,
+      shipping,
+      total,
+    },
+    originalTotals: order.originalTotals || order.totals,
+    supplyDecision: {
+      decision: isPartial ? "partial" : "yes",
+      decidedAt,
+      comment: note,
+      kept: kept.map((r) => ({ key: r.key, label: formatLineLabel(r) })),
+      dropped: dropped.map((r) => ({ key: r.key, label: formatLineLabel(r) })),
+    },
+    notes: [
+      isPartial
+        ? "PARTIAL FULFILL. Unavailable lines removed; customer emailed updated total + pay link."
+        : "SUPPLY CONFIRMED. Customer emailed pay link.",
+      note ? `Ops note: ${note}` : "",
+    ]
+      .filter(Boolean)
+      .join(" "),
+  };
+}
+
+export function formatCustomerDecisionEmail(order, { payUrl = "", payText = "" } = {}) {
+  const decision = order?.supplyDecision?.decision || "yes";
+  const comment = String(order?.supplyDecision?.comment || "").trim();
+  const name = order?.customer?.name || "there";
+  const lines = [
+    `Hi ${name},`,
+    "",
+    `Re: WellPept order ${order.orderId}`,
+    "",
+  ];
+
+  if (decision === "no") {
+    lines.push(
+      "We checked supply and unfortunately we cannot fulfill this request right now."
+    );
+    if (comment) {
+      lines.push("", comment);
+    }
+    lines.push(
+      "",
+      "No payment is due. Reply to this email if you want help picking alternatives.",
+      "",
+      "— WellPept"
+    );
+    return {
+      subject: `WellPept order ${order.orderId}: unable to fulfill`,
+      text: lines.join("\n"),
+    };
+  }
+
+  if (decision === "partial") {
+    lines.push(
+      "We can fulfill part of your request. Unavailable items were removed and your total was updated."
+    );
+    const dropped = order.supplyDecision?.dropped || [];
+    if (dropped.length) {
+      lines.push("", "Unavailable:");
+      dropped.forEach((d) => lines.push(`  • ${d.label}`));
+    }
+    lines.push("", "Available:");
+    (order.supplyDecision?.kept || []).forEach((k) =>
+      lines.push(`  • ${k.label}`)
+    );
+  } else {
+    lines.push("Good news — we confirmed supply for your order.");
+  }
+
+  if (comment) {
+    lines.push("", comment);
+  }
+
+  lines.push(
+    "",
+    `Amount due: $${Number(order.totals?.total || 0).toFixed(2)}`,
+    ""
+  );
+  if (payUrl) {
+    lines.push("Pay here:", payUrl, "");
+  }
+  if (payText) {
+    lines.push(payText, "");
+  }
+  lines.push(
+    "After you pay, tap “I’ve paid” on the pay page or reply to this email.",
+    "Delivery remains 2–3 weeks from payment (as accepted at checkout).",
+    "",
+    "— WellPept"
+  );
+
+  return {
+    subject:
+      decision === "partial"
+        ? `WellPept order ${order.orderId}: partial confirm · pay link`
+        : `WellPept order ${order.orderId}: confirmed · pay link`,
+    text: lines.join("\n"),
+  };
+}
+
+/** Email the customer the supply decision (Resend, else mailto draft). */
+export async function notifyCustomerOrderDecision(
+  order,
+  { payUrl = "", payText = "" } = {}
+) {
+  const to = String(order?.customer?.email || "").trim();
+  if (!to) return { ok: false, error: "Missing customer email" };
+  const { subject, text } = formatCustomerDecisionEmail(order, {
+    payUrl,
+    payText,
+  });
+
+  try {
+    const { fetchEmailConfig, sendTransactionalEmail, openMailto } =
+      await import("./emailClient");
+    const cfg = await fetchEmailConfig();
+    if (cfg?.enabled) {
+      await sendTransactionalEmail({
+        type: "order_customer",
+        to,
+        subject,
+        text,
+      });
+      return { ok: true, via: "resend", subject };
+    }
+    const mailto = openMailto({ to, subject, body: text });
+    return { ok: true, via: "mailto", mailto, subject };
+  } catch (err) {
+    try {
+      const { openMailto } = await import("./emailClient");
+      const mailto = openMailto({ to, subject, body: text });
+      return {
+        ok: false,
+        via: "mailto",
+        mailto,
+        subject,
+        error: err?.message,
+      };
+    } catch {
+      return { ok: false, error: err?.message || "notify failed" };
+    }
   }
 }

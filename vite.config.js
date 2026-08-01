@@ -65,5 +65,16 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return {
     plugins: [react(), paymentsLocalApiPlugin(env)],
+    // Pin IPv4 so Cursor/browser don't fail on localhost ↔ [::1] flips
+    server: {
+      host: "127.0.0.1",
+      port: 5173,
+      strictPort: true,
+    },
+    preview: {
+      host: "127.0.0.1",
+      port: 4173,
+      strictPort: true,
+    },
   };
 });

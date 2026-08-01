@@ -1222,8 +1222,8 @@ export const CHANGSHA_SUBMISSIONS = [
     id: "s-cp-klow",
     vendorId: "v-changsha-premium",
     sku: "KLOW",
-    name: "KLOW(GHK-UD 50mg+BPC157 10mg+TB500 10mg+KPV 10mg)",
-    form: "Lyophilized vial · 80mg*10vials · GHK-UD 50mg + BPC-157 10mg + TB500 10mg + KPV 10mg",
+    name: "KLOW(GHK-Cu 50mg+BPC157 10mg+TB500 10mg+KPV 10mg)",
+    form: "Lyophilized vial · 80mg*10vials · GHK-Cu 50mg + BPC-157 10mg + TB500 10mg + KPV 10mg",
     purity: "≥98%",
     mg: 80.0,
     vendorCost: 220.0,
@@ -2643,6 +2643,7 @@ export const CHANGSHA_SUBMISSIONS = [
     vendorCost: 50.0,
     category: "Cellular",
     packVials: 10,
+    vialMl: 10,
     status: "approved",
     submittedAt: "2026-07-01T00:00:00.000Z",
     reviewedAt: "2026-07-01T12:00:00.000Z"

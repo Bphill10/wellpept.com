@@ -41,6 +41,10 @@ export const RESEARCH_GLOSSARY = [
     def: "Salt form paired with the peptide. Trifluoroacetate (TFA) can remain from synthesis; NMR F-19 is used when labs want to screen for TFA.",
   },
   {
+    term: "Dose range (label)",
+    def: "Suggested low–high research amount printed on some Undisclosed wraps (often dose → ~2×, framed as 10–20 syringe units). Generated from Undisclosed reconstitution defaults for lab convenience — not COA data, not manufacturer labeling, and not medical advice.",
+  },
+  {
     term: "Kit",
     def: "Common wholesale pack: often 10 × 3 mL vials at the labeled mg each (e.g. a “30 mg kit” = ten 30 mg vials).",
   },

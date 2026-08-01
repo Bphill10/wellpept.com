@@ -221,7 +221,7 @@ const BLURBS = {
   GLOW:
     "Multi-peptide recovery blend used when labs want BPC, TB-500, and GHK-Cu signaling in one research kit.",
   KLOW:
-    "80 mg blend per vial: 50 mg GHK-UD, 10 mg BPC-157, 10 mg TB500, 10 mg KPV. Kit of 10 lyophilized research vials.",
+    "80 mg blend per vial: 50 mg GHK-Cu, 10 mg BPC-157, 10 mg TB500, 10 mg KPV. Kit of 10 lyophilized research vials.",
   Retatrutide:
     "Retatrutide is a triple agonist at GLP-1, GIP, and glucagon receptors. Studied for metabolic, weight, and energy-balance research (lab use only).",
   Tirzepatide:
@@ -342,7 +342,7 @@ const TAGLINES = {
   "TheProLobster Plus HGH": "Growth pathway research",
   Glow: "Multi-pathway tissue blend",
   GLOW: "BPC / TB / GHK-Cu blend",
-  KLOW: "GHK-UD / BPC / TB500 / KPV",
+  KLOW: "GHK-Cu / BPC / TB500 / KPV",
   Retatrutide: "Triple incretin agonist",
   Tirzepatide: "Dual GIP/GLP-1 research",
   Semaglutide: "GLP-1 metabolic research",
@@ -942,6 +942,11 @@ export function calculatorOptionsFromListings(listings = []) {
             packVials: Number(s.packVials) || 1,
             vialMl,
             form: s.form || "",
+            defaultOfferId: s.defaultOfferId || "",
+            coaUrl:
+              s.offers?.find((o) => o.coaUrl)?.coaUrl ||
+              s.offers?.[0]?.coaUrl ||
+              "",
             label:
               s.label ||
               formatStrengthLabel({

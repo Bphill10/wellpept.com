@@ -63,11 +63,18 @@ export function resolveCoaQrPayload({
   coaUrl = "",
   fallback = "",
 } = {}) {
+  const site = "https://www.wellpept.com";
   const fromProduct = String(coaUrl || "").trim();
   if (fromProduct) return fromProduct;
   const stored = getCoaUrl(productId);
   if (stored) return stored;
   const fromFallback = String(fallback || "").trim();
+  if (
+    fromFallback &&
+    !/^https?:\/\/(www\.)?wellpept\.com\/?$/i.test(fromFallback)
+  ) {
+    return fromFallback;
+  }
   if (fromFallback) return fromFallback;
-  return "https://www.wellpept.com";
+  return site;
 }
