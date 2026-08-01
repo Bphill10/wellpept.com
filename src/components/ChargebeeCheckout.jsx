@@ -61,7 +61,7 @@ export default function ChargebeeCheckout({
           country: "US",
         },
         items: lines.map((line) => ({
-          name: line.name,
+          name: line.publicLabel || line.name,
           unitPrice: line.price ?? line.unitPrice,
           quantity: line.qty ?? line.quantity ?? 1,
         })),

@@ -5,6 +5,11 @@
 
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { deflateSync, inflateSync } from "node:zlib";
+import {
+  formatPublicLineLabel,
+  formatOrderDecodeAppendix,
+  orderPublicLines,
+} from "./public-labels.js";
 
 function money(n) {
   return Math.round((Number(n) || 0) * 100) / 100;
@@ -147,6 +152,9 @@ function flattenOrderLines(order) {
         lineIndex: li,
         sku: line.sku || "",
         name: line.name || "",
+        supplyLabel: line.supplyLabel || line.name || "",
+        publicLabel: line.publicLabel || "",
+        publicCode: line.publicCode || "",
         mg: line.mg,
         qty: line.qty,
         unitPrice: line.unitPrice,
@@ -159,9 +167,7 @@ function flattenOrderLines(order) {
 }
 
 function formatLineLabel(line) {
-  const strength =
-    line.mg != null && Number(line.mg) > 0 ? ` (${line.mg}mg)` : "";
-  return `${line.qty}× ${line.name || line.sku || "item"}${strength}`;
+  return formatPublicLineLabel(line);
 }
 
 export function applySupplyDecision(
@@ -386,15 +392,22 @@ export function formatCustomerDecisionEmail(order, { payUrl = "", payText = "" }
       lines.push("", "Unavailable:");
       dropped.forEach((d) => lines.push(`  • ${d.label}`));
     }
-    lines.push("", "Available:");
+    lines.push("", "Your order (as charged / invoiced):");
     (order.supplyDecision?.kept || []).forEach((k) =>
       lines.push(`  • ${k.label}`)
     );
   } else {
     lines.push("Good news — we confirmed supply for your order.");
+    lines.push("", "Your order (as charged / invoiced):");
+    orderPublicLines(order).forEach((row) =>
+      lines.push(`  • ${formatPublicLineLabel(row)}`)
+    );
   }
 
   if (comment) lines.push("", comment);
+
+  const decode = formatOrderDecodeAppendix(order);
+  if (decode) lines.push("", decode);
 
   lines.push(
     "",

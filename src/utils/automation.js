@@ -10,6 +10,12 @@ import {
   warehouseForVendorId,
   cartShippingBreakdown,
 } from "../data/warehouses";
+import {
+  resolvePublicLabels,
+  formatPublicLineLabel,
+  formatOrderDecodeAppendix,
+  orderPublicLines,
+} from "../data/publicLabels";
 
 const SETTINGS_KEY = "wellpept-automation-v1";
 
@@ -344,9 +350,13 @@ export function buildOrderPacket({
       });
     }
     const group = byWarehouse.get(groupKey);
+    const labels = resolvePublicLabels(line);
     group.lines.push({
       sku: line.sku,
       name: line.name,
+      supplyLabel: line.supplyLabel || labels.supplyLabel,
+      publicLabel: line.publicLabel || labels.publicLabel,
+      publicCode: line.publicCode || labels.publicCode,
       mg: line.mg,
       form: line.form,
       qty: line.qty,
@@ -504,8 +514,15 @@ export function formatOrderPacketText(packet) {
       const strength =
         line.mg != null && Number(line.mg) > 0 ? ` (${line.mg}mg)` : "";
       const replaced = line.replacedSku ? ` (was ${line.replacedSku})` : "";
+      const supplyName = line.supplyLabel || line.name;
+      const publicBit =
+        line.publicLabel && line.publicLabel !== supplyName
+          ? ` · public: ${line.publicLabel}${
+              line.publicCode ? ` [${line.publicCode}]` : ""
+            }`
+          : "";
       lines.push(
-        `  ${line.qty}× ${line.sku} ${line.name}${strength}${replaced} @ $${line.unitPrice.toFixed(2)} = $${line.lineTotal.toFixed(2)}`
+        `  ${line.qty}× ${line.sku} ${supplyName}${strength}${replaced} @ $${line.unitPrice.toFixed(2)} = $${line.lineTotal.toFixed(2)}${publicBit}`
       );
     }
     const shipFee =
@@ -648,6 +665,14 @@ export function buildStripePayUrl(order, origin = window.location.origin) {
       state: order.shipments?.[0]?.shipTo?.state || "",
       zip: order.shipments?.[0]?.shipTo?.zip || "",
     },
+    // Compact public + decode lines for the pay page (CC-safe names).
+    lines: orderPublicLines(order).map((row) => ({
+      q: row.qty,
+      p: row.publicLabel,
+      c: row.publicCode,
+      s: row.supplyLabel,
+      m: row.mg != null && Number(row.mg) > 0 ? Number(row.mg) : null,
+    })),
   };
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))))
     .replace(/\+/g, "-")
@@ -678,6 +703,15 @@ export function parseStripePayPayload(raw) {
         state: data.customer?.state || "",
         zip: data.customer?.zip || "",
       },
+      lines: Array.isArray(data.lines)
+        ? data.lines.map((row) => ({
+            qty: row.q ?? row.qty ?? 1,
+            publicLabel: row.p || row.publicLabel || "",
+            publicCode: row.c || row.publicCode || "",
+            supplyLabel: row.s || row.supplyLabel || "",
+            mg: row.m ?? row.mg ?? null,
+          }))
+        : [],
     };
   } catch {
     return null;
@@ -699,6 +733,9 @@ export function flattenOrderLines(order) {
         lineIndex: li,
         sku: line.sku || "",
         name: line.name || "",
+        supplyLabel: line.supplyLabel || line.name || "",
+        publicLabel: line.publicLabel || "",
+        publicCode: line.publicCode || "",
         mg: line.mg,
         qty: line.qty,
         unitPrice: line.unitPrice,
@@ -711,9 +748,8 @@ export function flattenOrderLines(order) {
 }
 
 function formatLineLabel(line) {
-  const strength =
-    line.mg != null && Number(line.mg) > 0 ? ` (${line.mg}mg)` : "";
-  return `${line.qty}× ${line.name || line.sku || "item"}${strength}`;
+  // Customer-facing kept/dropped labels use public Renew names.
+  return formatPublicLineLabel(line);
 }
 
 /**
@@ -893,16 +929,25 @@ export function formatCustomerDecisionEmail(order, { payUrl = "", payText = "" }
       lines.push("", "Unavailable:");
       dropped.forEach((d) => lines.push(`  • ${d.label}`));
     }
-    lines.push("", "Available:");
+    lines.push("", "Your order (as charged / invoiced):");
     (order.supplyDecision?.kept || []).forEach((k) =>
       lines.push(`  • ${k.label}`)
     );
   } else {
     lines.push("Good news — we confirmed supply for your order.");
+    lines.push("", "Your order (as charged / invoiced):");
+    orderPublicLines(order).forEach((row) =>
+      lines.push(`  • ${formatPublicLineLabel(row)}`)
+    );
   }
 
   if (comment) {
     lines.push("", comment);
+  }
+
+  const decode = formatOrderDecodeAppendix(order);
+  if (decode) {
+    lines.push("", decode);
   }
 
   lines.push(

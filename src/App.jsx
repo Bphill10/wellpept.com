@@ -29,6 +29,12 @@ import {
   buildCalculatorListings,
 } from "./data/products";
 import {
+  resolvePublicLabels,
+  formatPublicLineLabel,
+  formatOrderDecodeAppendix,
+  orderPublicLines,
+} from "./data/publicLabels";
+import {
   getInitialMarketplace,
   persistMarketplace,
   uid,
@@ -518,6 +524,12 @@ export default function App() {
         product.kind === "mix"
           ? "Cosmetic skincare only. Not for injection or medical use."
           : undefined,
+      ...resolvePublicLabels({
+        name: product.name,
+        sku: String(product.id).toUpperCase().slice(0, 48),
+        skin: true,
+        kind: product.kind,
+      }),
     });
     setFlash(
       product.kind === "mix"
@@ -2653,6 +2665,29 @@ function CartPage({
               </div>
             </div>
 
+            {Array.isArray(payInvoice.lines) && payInvoice.lines.length > 0 ? (
+              <div className="notice" style={{ marginTop: "0.75rem" }}>
+                <strong>Invoice items</strong>
+                <ul style={{ margin: "0.5rem 0 0", paddingLeft: "1.1rem" }}>
+                  {payInvoice.lines.map((line, i) => (
+                    <li key={`${line.publicCode || i}-${i}`}>
+                      {formatPublicLineLabel(line)}
+                    </li>
+                  ))}
+                </ul>
+                <pre
+                  className="meta"
+                  style={{
+                    marginTop: "0.75rem",
+                    whiteSpace: "pre-wrap",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  {formatOrderDecodeAppendix(payInvoice.lines)}
+                </pre>
+              </div>
+            ) : null}
+
             <div style={{ marginTop: "1rem" }}>
               <ManualPayMethods
                 orderId={payInvoice.orderId}
@@ -2671,6 +2706,10 @@ function CartPage({
                   total={payInvoice.total}
                   orderId={payInvoice.orderId}
                   customer={payInvoice.customer}
+                  publicCodes={(payInvoice.lines || [])
+                    .map((l) => l.publicCode)
+                    .filter(Boolean)
+                    .join(",")}
                   onPaid={(payment) =>
                     onStripePaid?.(payInvoice.orderId, payment)
                   }
@@ -3129,6 +3168,28 @@ function CartPage({
                       <li>2-3 week delivery accepted</li>
                     ) : null}
                   </ul>
+                  {orderPublicLines(packet).length > 0 ? (
+                    <div style={{ marginTop: "0.75rem" }}>
+                      <strong>Invoice items</strong>
+                      <ul style={{ margin: "0.35rem 0 0", paddingLeft: "1.1rem" }}>
+                        {orderPublicLines(packet).map((row, i) => (
+                          <li key={`${row.publicCode}-${i}`}>
+                            {formatPublicLineLabel(row)}
+                          </li>
+                        ))}
+                      </ul>
+                      <pre
+                        className="meta"
+                        style={{
+                          marginTop: "0.65rem",
+                          whiteSpace: "pre-wrap",
+                          fontFamily: "inherit",
+                        }}
+                      >
+                        {formatOrderDecodeAppendix(packet)}
+                      </pre>
+                    </div>
+                  ) : null}
                   {packetMsg ? (
                     <p className="meta" style={{ marginTop: "0.5rem" }}>
                       {packetMsg}
@@ -3755,10 +3816,13 @@ function OrderSupplyReviewRow({
                 disabled={busy}
               />
               <span>
-                {line.qty}× {line.name}
+                {line.qty}× {line.supplyLabel || line.name}
                 {line.mg != null && Number(line.mg) > 0
                   ? ` (${line.mg}mg)`
-                  : ""}{" "}
+                  : ""}
+                {line.publicCode ? (
+                  <span className="meta"> · {line.publicCode}</span>
+                ) : null}{" "}
                 <span className="meta">{formatMoney(line.lineTotal || 0)}</span>
               </span>
             </label>

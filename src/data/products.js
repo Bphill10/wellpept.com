@@ -16,7 +16,7 @@ import {
   warehouseRank,
   withWarehouseFields,
 } from "./warehouses";
-
+import { resolvePublicLabels } from "./publicLabels";
 export { resolveVialMl, resolveVialUnit, resolvePowderColor };
 export {
   WAREHOUSES,
@@ -1089,11 +1089,19 @@ export function buildCatalog(vendors, submissions) {
     const vialMl = resolveVialMl(item);
     const displayName = displayPeptideName(item.name);
     const powderColor = resolvePowderColor({ name: displayName, form: item.form });
+    const labels = resolvePublicLabels({
+      name: displayName,
+      sku: item.sku,
+      mg: item.mg,
+    });
     return withWarehouseFields({
       id: `p-${item.vendorId}-${item.sku}`.toLowerCase().replace(/[^a-z0-9-]+/g, "-"),
       submissionId: item.id,
       sku: item.sku,
       name: displayName,
+      supplyLabel: labels.supplyLabel,
+      publicLabel: labels.publicLabel,
+      publicCode: labels.publicCode,
       form: item.form,
       purity: item.purity,
       coaUrl: item.coaUrl || "",

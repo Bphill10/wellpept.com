@@ -79,38 +79,55 @@ export default async function handler(req, res) {
 
   const stripe = new Stripe(secret);
 
+  const baseParams = {
+    amount: amountCents,
+    currency,
+    // Cards + Affirm (and any other methods enabled in the Dashboard).
+    automatic_payment_methods: { enabled: true },
+    receipt_email: email || undefined,
+    description: orderId
+      ? `Wellpept order ${orderId}`
+      : "Wellpept Renew order",
+    metadata: {
+      orderId: orderId || "",
+      channel: "wellpept",
+      customerName: customerName || "",
+      publicCodes: String(body.publicCodes || "").slice(0, 450),
+    },
+    shipping: shipping
+      ? {
+          name: String(shipping.name || customerName || "Customer").slice(0, 200),
+          phone: shipping.phone ? String(shipping.phone).slice(0, 40) : undefined,
+          address: {
+            line1: String(shipping.address1 || "").slice(0, 200),
+            line2: shipping.address2
+              ? String(shipping.address2).slice(0, 200)
+              : undefined,
+            city: String(shipping.city || "").slice(0, 100),
+            state: String(shipping.state || "").slice(0, 40),
+            postal_code: String(shipping.zip || "").slice(0, 20),
+            country: "US",
+          },
+        }
+      : undefined,
+  };
+
   try {
-    const intent = await stripe.paymentIntents.create({
-      amount: amountCents,
-      currency,
-      // Cards + Affirm (and any other methods enabled in the Dashboard).
-      automatic_payment_methods: { enabled: true },
-      receipt_email: email || undefined,
-      description: orderId
-        ? `Wellpept order ${orderId}`
-        : "Wellpept research marketplace order",
-      metadata: {
-        orderId: orderId || "",
-        channel: "wellpept",
-        customerName: customerName || "",
-      },
-      shipping: shipping
-        ? {
-            name: String(shipping.name || customerName || "Customer").slice(0, 200),
-            phone: shipping.phone ? String(shipping.phone).slice(0, 40) : undefined,
-            address: {
-              line1: String(shipping.address1 || "").slice(0, 200),
-              line2: shipping.address2
-                ? String(shipping.address2).slice(0, 200)
-                : undefined,
-              city: String(shipping.city || "").slice(0, 100),
-              state: String(shipping.state || "").slice(0, 40),
-              postal_code: String(shipping.zip || "").slice(0, 20),
-              country: "US",
-            },
-          }
-        : undefined,
-    });
+    let intent;
+    try {
+      intent = await stripe.paymentIntents.create({
+        ...baseParams,
+        // Soft descriptor suffix on card statements (WELLPEPT * RENEW …)
+        statement_descriptor_suffix: "RENEW",
+      });
+    } catch (suffixErr) {
+      // Some accounts disallow dynamic suffixes — fall back cleanly.
+      console.warn(
+        "statement_descriptor_suffix rejected, retrying without",
+        suffixErr?.message
+      );
+      intent = await stripe.paymentIntents.create(baseParams);
+    }
 
     send(res, 200, {
       clientSecret: intent.client_secret,

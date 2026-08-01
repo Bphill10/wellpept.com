@@ -186,6 +186,7 @@ export default function CheckoutPayment({
   customer,
   onPaid,
   onError,
+  publicCodes = "",
 }) {
   const amountCents = dollarsToCents(total);
   const stripePromise = useMemo(
@@ -207,6 +208,7 @@ export default function CheckoutPayment({
       orderId,
       email: customer.email,
       name: customer.name,
+      publicCodes,
       shipping: customer.address1
         ? {
             name: customer.name,
@@ -238,6 +240,7 @@ export default function CheckoutPayment({
   }, [
     amountCents,
     orderId,
+    publicCodes,
     customer.email,
     customer.name,
     customer.phone,
