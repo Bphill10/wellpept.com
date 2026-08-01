@@ -534,6 +534,14 @@ export function formatOrderPacketText(packet) {
     );
     lines.push("");
   }
+
+  const decode = formatOrderDecodeAppendix(packet);
+  if (decode) {
+    lines.push("── DECODE (customer invoice ↔ supply) ──");
+    lines.push(decode);
+    lines.push("");
+  }
+
   lines.push(packet.notes);
   if (packet.payment?.paymentIntentId) {
     lines.push(

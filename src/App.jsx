@@ -3819,11 +3819,15 @@ function OrderSupplyReviewRow({
                 {line.qty}× {line.supplyLabel || line.name}
                 {line.mg != null && Number(line.mg) > 0
                   ? ` (${line.mg}mg)`
-                  : ""}
-                {line.publicCode ? (
-                  <span className="meta"> · {line.publicCode}</span>
-                ) : null}{" "}
+                  : ""}{" "}
                 <span className="meta">{formatMoney(line.lineTotal || 0)}</span>
+                {line.publicLabel || line.publicCode ? (
+                  <div className="meta">
+                    Customer sees:{" "}
+                    {line.publicLabel || "—"}
+                    {line.publicCode ? ` [${line.publicCode}]` : ""}
+                  </div>
+                ) : null}
               </span>
             </label>
           </li>
