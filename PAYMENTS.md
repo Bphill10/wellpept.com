@@ -64,7 +64,11 @@ STRIPE_CURRENCY=usd
 
 6. Redeploy
 7. Optional: enable **Affirm** under Settings → Payment methods
-8. Optional: Instant Payouts → add an eligible debit card for same-day cashout
+8. **Apple Pay / Google Pay** (same Stripe Payment Element — no extra code keys):
+   - Dashboard → **Settings → Payment methods** → turn on **Apple Pay** and **Google Pay**
+   - For Apple Pay: **Add domain** → `www.wellpept.com` and `wellpept.com` → download/verify the domain file if Stripe asks (Vercel HTTPS already covers the site)
+   - Wallets only show on supported devices (Safari / iPhone for Apple Pay; Chrome / Android with a saved card for Google Pay)
+9. Optional: Instant Payouts → add an eligible debit card for same-day cashout
 
 ### Ops: collect payment after supply check
 

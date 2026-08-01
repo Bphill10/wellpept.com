@@ -144,9 +144,9 @@ function PaymentForm({ totalLabel, customer, orderId, total, onPaid, onError }) 
       <div className="stripe-pay-head">
         <CreditCard size={18} />
         <div>
-          <strong>Pay with card or Affirm</strong>
+          <strong>Pay with card, Apple Pay, Google Pay, or Affirm</strong>
           <div className="meta">
-            Secure Stripe checkout · US cards and Affirm installments
+            Secure Stripe checkout · wallets appear on supported phones/browsers
           </div>
         </div>
       </div>
@@ -154,7 +154,11 @@ function PaymentForm({ totalLabel, customer, orderId, total, onPaid, onError }) 
       <PaymentElement
         options={{
           layout: "tabs",
-          business: { name: "Wellpept" },
+          business: { name: "WellPept" },
+          wallets: {
+            applePay: "auto",
+            googlePay: "auto",
+          },
           fields: {
             billingDetails: {
               name: "never",
