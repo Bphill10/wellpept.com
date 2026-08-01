@@ -1820,7 +1820,7 @@ export default function App() {
                   </div>
                   <div className="featured-vendor-visual">
                     <img
-                      src="/undisclosed-vial.png"
+                      src="/undisclosed-vial.webp"
                       alt="Undisclosed labeled research vial"
                       className="featured-product-photo"
                       width={800}
