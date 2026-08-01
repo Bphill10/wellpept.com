@@ -534,6 +534,10 @@ export function formatOrderPacketText(packet) {
 export async function notifyOrderRequest(packet) {
   const body = formatOrderPacketText(packet);
   const subject = `WellPept order request ${packet.orderId}: supply check`;
+  const siteOrigin =
+    typeof window !== "undefined" && window.location?.origin
+      ? window.location.origin
+      : "";
 
   try {
     const { fetchEmailConfig, sendTransactionalEmail, openMailto } = await import(
@@ -546,6 +550,11 @@ export async function notifyOrderRequest(packet) {
         subject,
         text: body,
         replyTo: packet?.customer?.email || undefined,
+        order: packet,
+        siteOrigin:
+          siteOrigin ||
+          String(import.meta.env.VITE_SITE_URL || "").replace(/\/$/, "") ||
+          "https://www.wellpept.com",
       });
       return { ok: true, via: "resend" };
     }
@@ -945,6 +954,7 @@ export async function notifyCustomerOrderDecision(
         to,
         subject,
         text,
+        payUrl: payUrl || undefined,
       });
       return { ok: true, via: "resend", subject };
     }

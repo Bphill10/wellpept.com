@@ -32,11 +32,62 @@ async function sendOrderRequest(body) {
     err.status = 400;
     throw err;
   }
+
+  const order = body.order && typeof body.order === "object" ? body.order : null;
+  const origin = String(body.siteOrigin || process.env.VITE_SITE_URL || "")
+    .trim()
+    .replace(/\/$/, "");
+
+  let actionHtml = "";
+  let actionText = "";
+  if (order?.orderId && origin) {
+    try {
+      const { buildSupplyActionUrls } = await import("./lib/supply-actions.js");
+      const { yesUrl, noUrl, adminUrl } = buildSupplyActionUrls(origin, order);
+      actionText = [
+        "",
+        "── ONE-TAP SUPPLY ACTIONS ──",
+        `YES · confirm all & email pay link:`,
+        yesUrl,
+        "",
+        `NO · decline & notify customer:`,
+        noUrl,
+        "",
+        `Admin (partial / edit): ${adminUrl}`,
+        "",
+      ].join("\n");
+      actionHtml = `
+        <div style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:0 0 1.25rem;">
+          <p style="margin:0 0 .75rem;color:#111;"><strong>Supply check — tap one:</strong></p>
+          <p style="margin:0 0 .75rem;">
+            <a href="${escapeHtml(yesUrl)}"
+               style="display:inline-block;padding:.7rem 1.1rem;background:#0a7a32;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;margin:0 .4rem .5rem 0;">
+              YES · confirm &amp; email pay link
+            </a>
+            <a href="${escapeHtml(noUrl)}"
+               style="display:inline-block;padding:.7rem 1.1rem;background:#8a1f1f;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;margin:0 .4rem .5rem 0;">
+              NO · decline &amp; notify
+            </a>
+          </p>
+          <p style="margin:0;font-size:13px;color:#555;">
+            Partial fulfill? <a href="${escapeHtml(adminUrl)}">Open Admin</a>
+            (same browser that received the order, or after sync).
+          </p>
+        </div>
+      `;
+    } catch (err) {
+      actionText = `\n(Action links unavailable: ${err?.message || "sign failed"})\n`;
+    }
+  }
+
+  const fullText = `${text}${actionText}`;
+  const html = `${actionHtml}${textToHtml(text)}`;
+
   return sendWithResend({
     to: emailOpsTo(),
     subject,
-    text,
-    html: textToHtml(text),
+    text: fullText,
+    html,
     replyTo: body.replyTo,
   });
 }
@@ -120,16 +171,29 @@ async function sendOrderCustomer(body) {
   const to = String(body.to || "").trim();
   const subject = String(body.subject || "WellPept order update").slice(0, 200);
   const text = String(body.text || "").slice(0, 50000);
+  const payUrl = String(body.payUrl || "").trim();
   if (!looksLikeEmail(to) || !text.trim()) {
     const err = new Error("Missing customer email fields");
     err.status = 400;
     throw err;
   }
+  let html = textToHtml(text);
+  if (payUrl && /^https?:\/\//i.test(payUrl)) {
+    html = `
+      <div style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.5;color:#111;">
+        <p><a href="${escapeHtml(payUrl)}"
+           style="display:inline-block;padding:.75rem 1.2rem;background:#111;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;">
+          Pay for your order
+        </a></p>
+      </div>
+      ${html}
+    `;
+  }
   return sendWithResend({
     to,
     subject,
     text,
-    html: textToHtml(text),
+    html,
     replyTo: emailOpsTo(),
   });
 }
