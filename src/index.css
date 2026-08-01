@@ -1747,6 +1747,12 @@ button.linkish {
   border: 1px solid rgba(0, 71, 171, 0.28);
 }
 
+.featured-vendor-visual--plain {
+  min-height: 220px;
+  border-color: rgba(255, 255, 255, 0.12);
+  background: radial-gradient(ellipse at 50% 40%, #1a1a1a 0%, #050505 70%);
+}
+
 .featured-product-photo {
   display: block;
   width: min(100%, 420px);
@@ -1832,13 +1838,15 @@ a.cart-cta {
 }
 
 .cart-cta {
-  margin: 0 0.85rem 0.9rem;
+  margin: 0 0.85rem 0.75rem;
   width: calc(100% - 1.7rem);
-  border-radius: 999px;
+  border-radius: 8px;
   background: linear-gradient(180deg, var(--gold-bright) 0%, var(--gold) 100%);
   color: #0a0a0a;
   font-weight: 700;
-  padding: 0.55rem 0.9rem;
+  font-size: 0.82rem;
+  padding: 0.38rem 0.7rem;
+  min-height: 2rem;
   border: 1px solid var(--gold-deep);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset;
   position: relative;
@@ -1866,9 +1874,9 @@ a.cart-cta {
 
 .strength-field {
   display: grid;
-  gap: 0.3rem;
-  margin: 0 0.85rem 0.55rem;
-  font-size: 0.78rem;
+  gap: 0.2rem;
+  margin: 0 0.85rem 0.4rem;
+  font-size: 0.68rem;
   font-weight: 700;
   color: var(--ink-soft);
 }
@@ -1880,10 +1888,13 @@ a.cart-cta {
 
 .strength-field select {
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 6px;
   background: #fff;
-  padding: 0.55rem 0.65rem;
+  padding: 0.32rem 0.5rem;
+  font-size: 0.78rem;
   font-weight: 600;
+  line-height: 1.2;
+  min-height: 1.9rem;
   color: var(--ink);
 }
 
@@ -2646,6 +2657,77 @@ body:has(.app-shell--undisclosed)::before {
 .app-shell--undisclosed .product-card .price-row strong,
 .app-shell--undisclosed .price-row strong {
   color: #fff;
+}
+
+/* Compare panel is a light table — don't inherit Undisclosed light-on-dark text */
+.app-shell--undisclosed .price-compare-body,
+.app-shell--undisclosed .compare-panel {
+  color: #0a0a0a;
+}
+
+.app-shell--undisclosed .compare-panel {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.14);
+}
+
+.app-shell--undisclosed .compare-table th,
+.app-shell--undisclosed .compare-table td {
+  color: #0a0a0a;
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+.app-shell--undisclosed .compare-table th {
+  color: #444;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.app-shell--undisclosed .compare-table tr.is-selected {
+  background: rgba(0, 71, 171, 0.1);
+}
+
+.app-shell--undisclosed .compare-note {
+  color: #555;
+}
+
+.app-shell--undisclosed .compare-panel .soft-btn,
+.app-shell--undisclosed .compare-panel .compare-select {
+  color: #0a0a0a;
+  border-color: rgba(0, 0, 0, 0.28);
+  background: #f3f3f3;
+  letter-spacing: 0.04em;
+}
+
+.app-shell--undisclosed .compare-panel .soft-btn:hover,
+.app-shell--undisclosed .compare-panel .compare-select:hover {
+  color: #0a0a0a;
+  border-color: #0a0a0a;
+  background: #e8e8e8;
+}
+
+.app-shell--undisclosed .price-compare-scopes button {
+  background: #fff;
+  color: #333;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.app-shell--undisclosed .price-compare-scopes button.is-active {
+  color: #0a0a0a;
+  border-color: #0047ab;
+  background: rgba(0, 71, 171, 0.12);
+}
+
+.app-shell--undisclosed .best-price-tag {
+  background: rgba(0, 71, 171, 0.14);
+  color: #5a470e;
+}
+
+.app-shell--undisclosed .price-compare-count {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.app-shell--undisclosed .product-card:has(.price-compare-body) {
+  overflow: visible;
+  z-index: 4;
 }
 
 .app-shell--undisclosed .mission-band,
@@ -4302,6 +4384,11 @@ body:has(.app-shell--undisclosed)::before {
   letter-spacing: 0.01em;
 }
 
+.detail-dose-disclaimer {
+  line-height: 1.45;
+  max-width: 36rem;
+}
+
 .detail-help {
   margin: 0 0 0.65rem;
   padding: 0.75rem 0.85rem;
@@ -4431,7 +4518,31 @@ body:has(.app-shell--undisclosed)::before {
 .buy-box .soft-btn {
   width: 100%;
   margin: 0;
-  border-radius: 999px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  padding: 0.4rem 0.75rem;
+  min-height: 2.1rem;
+}
+
+.app-shell--undisclosed .product-card .strength-field {
+  margin: 0 0.75rem 0.35rem;
+  font-size: 0.65rem;
+}
+
+.app-shell--undisclosed .product-card .strength-field select {
+  padding: 0.28rem 0.45rem;
+  font-size: 0.74rem;
+  min-height: 1.75rem;
+  border-radius: 6px;
+}
+
+.app-shell--undisclosed .product-card .cart-cta {
+  margin: 0 0.75rem 0.65rem;
+  width: calc(100% - 1.5rem);
+  font-size: 0.78rem;
+  padding: 0.32rem 0.65rem;
+  min-height: 1.85rem;
+  border-radius: 7px;
 }
 
 .cart-list {
@@ -4676,19 +4787,6 @@ body:has(.app-shell--undisclosed)::before {
   gap: 0.75rem;
 }
 
-.calc-label-panel {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.72);
-  position: sticky;
-  top: calc(var(--header-clearance, 4.5rem) + 0.5rem);
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-}
-
 .calc-label-panel .calc-vial-stage {
   margin: 0.35rem 0 0.85rem;
   width: 100%;
@@ -4814,7 +4912,8 @@ body:has(.app-shell--undisclosed)::before {
   background: transparent;
 }
 
-/* Physical wrap preview — high-res canvas; keep edges crisp when scaled down */
+/* Physical wrap preview — high-res canvas; keep edges crisp when scaled down.
+   Aspect comes from JS (3 mL → 40/20); never stretch the die-cut. */
 .label-template.label-template--physical {
   width: auto;
   max-width: min(100%, 720px);
@@ -4826,6 +4925,12 @@ body:has(.app-shell--undisclosed)::before {
   object-fit: contain;
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
+}
+
+/* 3 mL clinical wrap — lock 40×20 mm proportion in CSS as a safety net */
+.label-template.label-template--physical[data-label-mm="40x20"],
+.label-template.label-template--physical[data-vial-ml="3"] {
+  aspect-ratio: 40 / 20;
 }
 
 @supports (image-rendering: high-quality) {
@@ -5580,7 +5685,7 @@ body:has(.app-shell--undisclosed)::before {
 .calc-result {
   border-radius: 14px;
   border: 1px solid var(--line);
-  background: linear-gradient(160deg, rgba(0, 71, 171, 0.08), rgba(255, 255, 255, 0.9));
+  background: linear-gradient(160deg, rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.92));
   padding: 1rem;
   margin-top: 0.85rem;
 }
@@ -5594,18 +5699,27 @@ body:has(.app-shell--undisclosed)::before {
   font-family: var(--font-display);
   font-size: 1.55rem;
   font-weight: 750;
-  color: var(--cobalt);
+  color: #0a0a0a;
   margin-bottom: 0.35rem;
 }
 
 .calc-result-main strong {
-  color: var(--cobalt-bright);
+  color: #000000;
   font-weight: 800;
+}
+
+.app-shell--undisclosed .calc-result {
+  background: linear-gradient(160deg, #141414, #0a0a0a);
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
 .app-shell--undisclosed .calc-result-main,
 .app-shell--undisclosed .calc-result-main strong {
-  color: #5b9fff;
+  color: #f4f6f8;
+}
+
+.app-shell--undisclosed .calc-result-sub {
+  color: rgba(244, 246, 248, 0.72);
 }
 
 .calc-refs {
@@ -5639,9 +5753,9 @@ body:has(.app-shell--undisclosed)::before {
   inset: 0 auto 0 0;
   background: linear-gradient(
     90deg,
-    rgba(0, 71, 171, 0.4),
-    rgba(26, 95, 212, 0.85),
-    #0047ab
+    rgba(0, 0, 0, 0.45),
+    rgba(20, 20, 20, 0.88),
+    #0a0a0a
   );
   transition: width 0.35s ease;
 }
@@ -5651,11 +5765,30 @@ body:has(.app-shell--undisclosed)::before {
   top: -2px;
   width: 3px;
   height: calc(100% + 4px);
-  background: var(--cobalt-bright);
+  background: #0a0a0a;
   border-radius: 2px;
   transform: translateX(-50%);
   transition: left 0.35s ease;
-  box-shadow: 0 0 0 1px rgba(0, 71, 171, 0.35);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.app-shell--undisclosed .syringe-bar {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.app-shell--undisclosed .syringe-fill {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.45),
+    rgba(20, 20, 20, 0.88),
+    #0a0a0a
+  );
+}
+
+.app-shell--undisclosed .syringe-marker {
+  background: #0a0a0a;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
 }
 
 .syringe-ticks {
@@ -7341,6 +7474,48 @@ label.field select,
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
+}
+
+.admin-supply-decide {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: min(280px, 70vw);
+}
+
+.admin-supply-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.admin-supply-lines label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.admin-supply-lines input {
+  margin-top: 0.15rem;
+}
+
+.admin-supply-comment {
+  width: 100%;
+  resize: vertical;
+  min-height: 2.5rem;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  color: #111;
 }
 
 @media (max-width: 700px) {

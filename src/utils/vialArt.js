@@ -1,25 +1,35 @@
 import QRCode from "qrcode";
+import { shortLabelName } from "../data/capNames";
 
 /** Wellpept / Undisclosed vial art — photoreal glass vial + compact clinical sticker. */
 
 /** Undisclosed brand plate (labeled vial with UD hex mark). */
 export const BRAND_IMAGE_SRC = "/undisclosed-brand.webp";
 export const BRAND_IMAGE_FALLBACK_SRC = "/undisclosed-brand.jpg";
-/** Photoreal 3 mL plate — user white-powder studio example. */
-export const BRAND_VIAL_SRC = "/references/label-example.png";
+/** Photoreal 3 mL plate — blank Undisclosed wrap, white powder. */
+export const BRAND_VIAL_SRC = "/references/vial-white-template.png";
 /** Compact plate for catalog cards / phone grids. */
-export const BRAND_VIAL_CARD_SRC = "/references/label-example.png";
+export const BRAND_VIAL_CARD_SRC = "/references/vial-white-template.png";
+/** Unlabeled white-powder 3 mL plate (no wrap) — hero / compositing base. */
+export const UNLABELED_VIAL_SRC = "/references/vial-unlabeled-white.png";
+export const UNLABELED_VIAL_CARD_SRC = "/real-vial-3ml-card.webp";
+/** Featured KLOW 10-vial case kit photo. */
+export const KLOW_CASE_KIT_SRC = "/references/klow-case-kit.png";
+export const KLOW_CASE_KIT_SM_SRC = "/undisclosed-hero-kit-sm.webp";
+/** Complete filled-label example (calculator target look). */
+export const VIAL_COMPLETE_EXAMPLE_SRC = "/references/vial-complete-example-klow.png";
 /** Photoreal unlabeled 10 mL research vial (studio photo). */
 export const BRAND_VIAL_10_SRC = "/real-vial-10ml.webp";
 export const BRAND_VIAL_10_CARD_SRC = "/real-vial-10ml-card.webp";
-/** Studio blue-cake vial — user KLOW reference (also GLOW / GHK-Cu). */
-export const KLOW_VIAL_SRC = "/klow-blue-vial.webp";
-export const KLOW_VIAL_CARD_SRC = "/klow-blue-vial-card.webp";
-export const KLOW_VIAL_FALLBACK_SRC = "/klow-blue-vial.jpg";
-export const BLUE_VIAL_SRC = "/references/klow-blue-vial.png";
-export const BLUE_VIAL_CARD_SRC = "/references/klow-blue-vial.png";
-/** Blank clinical wrap (peptide fields cleared, UD spine mark). */
-export const BLANK_LABEL_SRC = "/undisclosed-label-blank.webp";
+/** Studio blue-cake vial — blank Undisclosed wrap (KLOW / GLOW / GHK-Cu). */
+export const BLUE_VIAL_SRC = "/references/vial-blue-template.png";
+export const BLUE_VIAL_CARD_SRC = "/references/vial-blue-template.png";
+export const KLOW_VIAL_SRC = BLUE_VIAL_SRC;
+export const KLOW_VIAL_CARD_SRC = BLUE_VIAL_CARD_SRC;
+export const KLOW_VIAL_FALLBACK_SRC = BLUE_VIAL_SRC;
+/** Blank clinical wrap template (flat). */
+export const BLANK_LABEL_SRC = "/references/label-template.png";
+export const BLANK_LABEL_FALLBACK_SRC = "/undisclosed-label-blank.webp";
 /** Hex UD seal / monogram for Undisclosed. */
 export const UD_MARK_SRC = "/ud-monogram.svg";
 /** @deprecated use UD_MARK_SRC */
@@ -27,13 +37,22 @@ export const WP_MARK_SRC = UD_MARK_SRC;
 /** @deprecated use UD_MARK_SRC */
 export const WP_MONOGRAM_SRC = UD_MARK_SRC;
 
+/** Print resolution for physical wrap downloads (true mm size via PNG pHYs). */
+export const LABEL_PRINT_DPI = 600;
+
+/**
+ * Hard lock: 3 mL research vials use a 40 mm × 20 mm wrap (W × H).
+ * Do not change without updating die-cut stock.
+ */
+export const LABEL_3ML_MM = Object.freeze({ widthMm: 40, heightMm: 20 });
+
 /**
  * Physical wrap label size by vial bottle (rounded sticker).
  * 3 mL → 40×20 · 5 mL → 40×25 · 10 mL → 50×30 · 30 mL → 70×40
  * @type {Record<number, { widthMm: number, heightMm: number, src?: string }>}
  */
 export const LABEL_SPEC_BY_VIAL_ML = {
-  3: { widthMm: 40, heightMm: 20, src: BLANK_LABEL_SRC },
+  3: { ...LABEL_3ML_MM, src: BLANK_LABEL_SRC },
   5: { widthMm: 40, heightMm: 25 },
   10: { widthMm: 50, heightMm: 30 },
   30: { widthMm: 70, heightMm: 40 },
@@ -43,19 +62,21 @@ export const LABEL_BOTTLE_SIZES_ML = [3, 5, 10, 30];
 
 export function labelSpecForVialMl(vialMl = 3) {
   const ml = Number(vialMl) || 3;
+  // 3 mL always 40×20 mm — ignore any mutated table entry.
+  if (ml === 3) return { ...LABEL_3ML_MM, src: BLANK_LABEL_SRC };
   if (LABEL_SPEC_BY_VIAL_ML[ml]) return LABEL_SPEC_BY_VIAL_ML[ml];
-  // Nearest known bottle size
+  // Nearest known bottle size (never coerce unknown small bottles away from 3 mL)
   if (ml >= 20) return LABEL_SPEC_BY_VIAL_ML[30];
   if (ml >= 8) return LABEL_SPEC_BY_VIAL_ML[10];
   if (ml >= 4) return LABEL_SPEC_BY_VIAL_ML[5];
-  return LABEL_SPEC_BY_VIAL_ML[3];
+  return { ...LABEL_3ML_MM, src: BLANK_LABEL_SRC };
 }
 
 /** Print pixels + on-screen preview size for a physical wrap label. */
 export function physicalLabelCanvasSize(vialMl = 3, size = "md") {
   const spec = labelSpecForVialMl(vialMl);
-  // 600 DPI keeps type + QR crisp for download and retina previews.
-  const dpi = 600;
+  const dpi = LABEL_PRINT_DPI;
+  // Exact mm → px at LABEL_PRINT_DPI (3 mL → 945 × 472 @ 600 DPI).
   const printW = Math.round((spec.widthMm / 25.4) * dpi);
   const printH = Math.round((spec.heightMm / 25.4) * dpi);
   // Larger on-screen preview so text stays readable in the 50/50 calc column.
@@ -64,6 +85,7 @@ export function physicalLabelCanvasSize(vialMl = 3, size = "md") {
   const cornerR = Math.max(14, Math.round((2 / 25.4) * dpi));
   return {
     spec,
+    dpi,
     printW,
     printH,
     cssW: `${Math.round(spec.widthMm * pxPerMm)}px`,
@@ -86,6 +108,12 @@ let klowVialCache = null;
 let klowVialPromise = null;
 let klowVialCardCache = null;
 let klowVialCardPromise = null;
+let blueVialCache = null;
+let blueVialPromise = null;
+let blueVialCardCache = null;
+let blueVialCardPromise = null;
+let unlabeledVialCache = null;
+let unlabeledVialPromise = null;
 let blankLabelCache = null;
 let blankLabelPromise = null;
 let udMarkCache = null;
@@ -148,21 +176,28 @@ export function loadBrandVialCard() {
   return brandVialCardPromise;
 }
 
-/** Blue-cake studio plate (GLOW / GHK-Cu / fallback). */
+/** Blue-cake studio plate (KLOW / GLOW / GHK-Cu) — blank wrap template. */
 export function loadBlueVial() {
-  if (klowVialCache) return Promise.resolve(klowVialCache);
-  return loadKlowVial().then(async (img) => {
-    if (img) return img;
-    return loadImage(BLUE_VIAL_SRC);
+  if (blueVialCache) return Promise.resolve(blueVialCache);
+  if (blueVialPromise) return blueVialPromise;
+  blueVialPromise = loadImage(BLUE_VIAL_SRC).then((img) => {
+    blueVialCache = img;
+    return img;
   });
+  return blueVialPromise;
 }
 
 export function loadBlueVialCard() {
-  if (klowVialCardCache) return Promise.resolve(klowVialCardCache);
-  return loadKlowVialCard().then(async (img) => {
-    if (img) return img;
-    return loadImage(BLUE_VIAL_CARD_SRC);
+  if (blueVialCardCache) return Promise.resolve(blueVialCardCache);
+  if (blueVialCardPromise) return blueVialCardPromise;
+  blueVialCardPromise = loadImage(BLUE_VIAL_CARD_SRC).then(async (img) => {
+    if (img) {
+      blueVialCardCache = img;
+      return img;
+    }
+    return loadBlueVial();
   });
+  return blueVialCardPromise;
 }
 
 /** Prefetch the real studio 10 mL vial photo. */
@@ -192,33 +227,34 @@ export function loadBrandVial10Card() {
   return brandVial10CardPromise;
 }
 
-/** Prefetch the studio KLOW reference vial (labeled, blue cake). */
-export function loadKlowVial() {
-  if (klowVialCache) return Promise.resolve(klowVialCache);
-  if (klowVialPromise) return klowVialPromise;
-  klowVialPromise = loadImage(KLOW_VIAL_SRC).then(async (img) => {
+/** Prefetch unlabeled 3 mL studio plate (no wrap — calculator composites the live label). */
+export function loadUnlabeledVial() {
+  if (unlabeledVialCache) return Promise.resolve(unlabeledVialCache);
+  if (unlabeledVialPromise) return unlabeledVialPromise;
+  unlabeledVialPromise = loadImage(UNLABELED_VIAL_SRC).then(async (img) => {
     if (img) {
-      klowVialCache = img;
+      unlabeledVialCache = img;
       return img;
     }
-    const jpg = await loadImage(KLOW_VIAL_FALLBACK_SRC);
-    klowVialCache = jpg;
-    return jpg;
+    // Fall back to blank-wrap white plate if unlabeled asset missing
+    return loadBrandVial();
   });
-  return klowVialPromise;
+  return unlabeledVialPromise;
+}
+
+/** Prefetch the studio blue-cake plate (blank wrap). */
+export function loadKlowVial() {
+  return loadBlueVial().then((img) => {
+    klowVialCache = img;
+    return img;
+  });
 }
 
 export function loadKlowVialCard() {
-  if (klowVialCardCache) return Promise.resolve(klowVialCardCache);
-  if (klowVialCardPromise) return klowVialCardPromise;
-  klowVialCardPromise = loadImage(KLOW_VIAL_CARD_SRC).then(async (img) => {
-    if (img) {
-      klowVialCardCache = img;
-      return img;
-    }
-    return loadKlowVial();
+  return loadBlueVialCard().then((img) => {
+    klowVialCardCache = img;
+    return img;
   });
-  return klowVialCardPromise;
 }
 
 /** Prefetch the Undisclosed UD hex mark. */
@@ -394,13 +430,16 @@ function drawPowderCake(ctx, bodyX, cakeY, bodyW, cakeH, radius, powderColor = "
   ctx.restore();
 }
 
-/** True for NAD / Glutathione — the only 10 mL bottles. */
+/** True for NAD / Glutathione / B12 — the only 10 mL bottles. */
 export function isTenMlCompound(name = "", form = "") {
   const text = `${name || ""} ${form || ""}`;
   return (
     /\bglutathione\b/i.test(text) ||
     /\bgluta\b/i.test(text) ||
-    /\bnad\+?\b/i.test(text)
+    /\bnad\+?\b/i.test(text) ||
+    /\bvitamin\s*b\s*12\b/i.test(text) ||
+    /\bmethylcobalamin\b/i.test(text) ||
+    /\bb12\b/i.test(text)
   );
 }
 
@@ -412,17 +451,30 @@ export function isHghCompound(name = "", form = "") {
 
 /** KLOW uses the dedicated blue studio plate. */
 export function isKlowCompound(name = "", form = "") {
-  const text = `${name || ""} ${form || ""}`;
-  return /\bklow\b/i.test(text);
+  void form;
+  const head = String(name || "")
+    .split("(")[0]
+    .trim()
+    .toUpperCase();
+  return head === "KLOW" || /^KLOW\b/.test(head);
 }
 
-/** Blue lyophilized cake: KLOW, GLOW, and GHK-Cu. */
+/**
+ * Blue lyophilized cake plate — only GLOW, KLOW, and GHK-Cu.
+ * Name-only (ignore form/subtitle) so blend ingredient text can't flip other vials.
+ */
 export function isBluePowderCompound(name = "", form = "") {
-  const text = `${name || ""} ${form || ""}`;
-  if (/\bklow\b/i.test(text) || /\bglow\b/i.test(text)) return true;
-  // GHK-Cu / GHK Cu / copper GHK — not GHK BASIC
-  if (/\bghk\b/i.test(text) && /\b(cu|copper)\b/i.test(text)) return true;
-  if (/ghk-?\s*cu\b/i.test(text)) return true;
+  void form;
+  const raw = String(name || "").trim();
+  if (!raw) return false;
+  const upper = raw.toUpperCase();
+  const head = upper.split("(")[0].trim();
+
+  if (head === "KLOW" || /^KLOW\b/.test(head)) return true;
+  if (head === "GLOW" || /^GLOW\b/.test(head)) return true;
+  // GHK-Cu / GHK CU / GHK-CU — not GHK BASIC
+  if (/\bBASIC\b/.test(head)) return false;
+  if (/^GHK[-\s]?CU\b/.test(head) || /^GHK[-\s]?CU\b/.test(upper)) return true;
   return false;
 }
 
@@ -432,7 +484,7 @@ export function resolvePowderColor({ name = "", form = "" } = {}) {
 }
 
 /**
- * Vial volume: default 3 mL. Only NAD and Glutathione are 10 mL.
+ * Vial volume: default 3 mL. NAD, Glutathione, and B12 are 10 mL.
  * Ignores stale form text / vialMl on other compounds.
  */
 export function resolveVialMl({ form = "", name = "", vialMl } = {}) {
@@ -1047,8 +1099,9 @@ function drawBrandTenMl(ctx, dims, options) {
 }
 
 /**
- * Draw a photoreal unlabeled vial on black marble.
- * Async — waits for the studio vial image to load.
+ * Draw a photoreal vial on black marble.
+ * Catalog: blank-wrap template + short name.
+ * Calculator: unlabeled glass plate + full clinical wrap composited on.
  */
 export async function drawGeneratedVial(canvas, options = {}) {
   const {
@@ -1070,15 +1123,13 @@ export async function drawGeneratedVial(canvas, options = {}) {
     showLabel = true,
   } = options;
 
-  // Catalog hero always uses the same 3 mL bottle plate for identical framing
-  const vialMl = catalogTemplate
-    ? 3
-    : resolveVialMl({
-        name,
-        form: form || subtitle,
-        vialMl: vialMlOpt,
-      });
-  const isTen = !catalogTemplate && vialMl >= 10;
+  // Catalog uses the resolved bottle (3 mL default · 10 mL for NAD / Gluta / B12)
+  const vialMl = resolveVialMl({
+    name,
+    form: form || subtitle,
+    vialMl: vialMlOpt,
+  });
+  const isTen = vialMl >= 10;
 
   // Catalog cards are small on phones — keep canvas light
   const dims = catalogTemplate
@@ -1110,43 +1161,50 @@ export async function drawGeneratedVial(canvas, options = {}) {
   ctx.imageSmoothingQuality = catalogTemplate ? "medium" : "high";
 
   const useBluePlate = isBluePowderCompound(name, form || subtitle);
-  const isExactKlow = isKlowCompound(name, form || subtitle);
 
-  // Exact KLOW: show the user reference photo as-is
-  if (isExactKlow) {
-    const klowPhoto = await (catalogTemplate || size !== "lg"
-      ? loadKlowVialCard()
-      : loadKlowVial());
-    if (klowPhoto && klowPhoto.width) {
-      drawExamplePlate(ctx, dims, klowPhoto, { showLabel: false });
-      if (options.exportPng) return canvas.toDataURL("image/png");
-      return "";
-    }
-  }
-
-  const photo = useBluePlate
-    ? await (catalogTemplate || size !== "lg"
-        ? loadBlueVialCard()
-        : loadBlueVial())
+  // Calculator: bare glass + live wrap (swappable label art). Catalog: blank printed wrap + name.
+  const photo = !catalogTemplate
+    ? isTen
+      ? await (size !== "lg" ? loadBrandVial10Card() : loadBrandVial10())
+      : await loadUnlabeledVial()
     : isTen
-      ? await (catalogTemplate || size !== "lg"
-          ? loadBrandVial10Card()
-          : loadBrandVial10())
-      : await (catalogTemplate || size !== "lg"
-          ? loadBrandVialCard()
-          : loadBrandVial());
+      ? await (size !== "lg" ? loadBrandVial10Card() : loadBrandVial10())
+      : useBluePlate
+        ? await (size !== "lg" ? loadBlueVialCard() : loadBlueVial())
+        : await (size !== "lg" ? loadBrandVialCard() : loadBrandVial());
 
   if (photo && photo.width) {
-    drawExamplePlate(ctx, dims, photo, {
-      name,
-      mass,
-      unit,
-      sku,
-      bacWater,
-      concentration,
-      doseRange,
-      showLabel,
-    });
+    if (!catalogTemplate) {
+      await loadUdMark();
+      drawUnlabeledPlateWithWrap(ctx, dims, photo, {
+        name,
+        mass,
+        unit,
+        sku,
+        bacWater,
+        concentration,
+        doseRange,
+        showLabel,
+        powderBlue: useBluePlate,
+        qrPayload,
+        coaUrl,
+        isTen,
+      });
+    } else {
+      drawExamplePlate(ctx, dims, photo, {
+        name,
+        mass,
+        unit,
+        bacWater,
+        concentration,
+        doseRange,
+        showLabel,
+        fullLabel: false,
+        powderWhite: false,
+        qrPayload,
+        coaUrl,
+      });
+    }
   } else {
     const fallbackOpts = {
       name,
@@ -1160,6 +1218,7 @@ export async function drawGeneratedVial(canvas, options = {}) {
       coaUrl,
       reconstituted: catalogTemplate ? false : reconstituted,
       showLabel,
+      powderColor: useBluePlate ? "blue" : "white",
     };
     if (isTen) drawLabeledTenMl(ctx, dims, fallbackOpts);
     else drawLabeledThreeMl(ctx, dims, fallbackOpts);
@@ -1172,13 +1231,23 @@ export async function drawGeneratedVial(canvas, options = {}) {
 }
 
 /**
- * Draw the user studio example plate and only swap the product name.
- * Spine, QR, mass, and grid stay from the photo — no second label overlay.
+ * Unlabeled studio vial + full clinical wrap (same art as the flat printable).
+ * Used above the calculator label preview.
  */
-function drawExamplePlate(ctx, dims, photo, options = {}) {
+function drawUnlabeledPlateWithWrap(ctx, dims, photo, options = {}) {
   const {
     name = "Peptide",
+    mass = "",
+    unit = "mg",
+    sku = "",
+    bacWater = "",
+    concentration = "",
+    doseRange = "",
     showLabel = true,
+    powderBlue = false,
+    qrPayload = "",
+    coaUrl = "",
+    isTen = false,
   } = options;
 
   ctx.fillStyle = "#000000";
@@ -1193,44 +1262,245 @@ function drawExamplePlate(ctx, dims, photo, options = {}) {
   const dy = (dims.h - dh) / 2;
   ctx.drawImage(photo, dx, dy, dw, dh);
 
+  // Blue cake for KLOW / GLOW / GHK-Cu on the white unlabeled plate
+  if (powderBlue) {
+    tintStudioCakeBlue(ctx, {
+      bodyX: dx + dw * 0.28,
+      bodyW: dw * 0.44,
+      cakeTop: dy + dh * 0.7,
+      cakeBottom: dy + dh * 0.96,
+    });
+  }
+
   if (!showLabel) return;
 
-  // Label face on the shared 683×1024 example plates
-  const lx = dx + dw * 0.268;
-  const ly = dy + dh * 0.398;
-  const lw = dw * 0.464;
-  const lh = dh * 0.292;
+  // Full glass OD, then wrap band inset 10% width + seated with extra top gap.
+  const glassX = dx + dw * (isTen ? 0.24 : 0.276);
+  const glassW = dw * (isTen ? 0.52 : 0.434);
+  const bodyW = glassW * 1.117;
+  const bodyX = glassX + (glassW - bodyW) / 2;
+  // Wide glass body (below shoulder → near base) ≈ 54% of plate height.
+  const glassBodyTop = dy + dh * (isTen ? 0.32 : 0.36);
+  const glassBodyH = dh * (isTen ? 0.52 : 0.54);
+  const sleeveHFull = glassBodyH * 0.7;
+  const sleeveH = sleeveHFull * 0.855;
+  // Prior nudges, then whole band down 10%, then back up 5%
+  // (top locked to full-height seat; height shrink comes off the bottom)
+  const sleeveTop =
+    glassBodyTop +
+    glassBodyH -
+    sleeveHFull -
+    dh * 0.02 -
+    glassBodyH * 0.2 +
+    glassBodyH * 0.1 -
+    glassBodyH * 0.05 -
+    glassBodyH * 0.03 +
+    glassBodyH * 0.1 -
+    glassBodyH * 0.05;
 
-  // Center text panel (skip spine left + QR right)
-  const midX = lx + lw * 0.12;
-  const midW = lw * 0.62;
+  const wrapBmp = createWrapLabelBitmap({
+    name,
+    mass,
+    unit,
+    sku,
+    bacWater,
+    concentration,
+    doseRange,
+    qrPayload: qrPayload || coaUrl || SITE_QR_URL,
+    coaUrl: coaUrl || "",
+    forceSiteQr: false,
+    footerText: "",
+    udMark: udMarkCache,
+    // Square corners on the vial — rounded sticker corners + white underfill
+    // read as a white flare past the black spine (esp. bottom / DILUTENT).
+    squareCorners: true,
+  });
+  if (!wrapBmp) return;
+
+  // Capture glass lighting under the wrap so shade follows the photo
+  // (dark left / bright right highlight), not a fake symmetric cylinder.
+  const snapX = Math.max(0, Math.floor(bodyX));
+  const snapY = Math.max(0, Math.floor(sleeveTop));
+  const snapW = Math.min(Math.ceil(bodyW), dims.w - snapX);
+  const snapH = Math.min(Math.ceil(sleeveH), dims.h - snapY);
+  let glassSnap = null;
+  try {
+    glassSnap = ctx.getImageData(snapX, snapY, snapW, snapH);
+  } catch {
+    glassSnap = null;
+  }
+
+  drawCatalogWrapOnVial(ctx, wrapBmp, {
+    bodyX,
+    bodyW,
+    sleeveTop,
+    sleeveH,
+    radius: Math.max(2, bodyW * 0.03),
+    snug: true,
+    glassSnap,
+    snapX,
+    snapY,
+  });
+}
+
+/**
+ * Draw blank Undisclosed wrap plate.
+ * Catalog (fullLabel false): peptide name only.
+ * Calculator (fullLabel true): name + mass + BAC / concentration / dose — matches
+ * public/references/vial-complete-example-klow.png
+ */
+function drawExamplePlate(ctx, dims, photo, options = {}) {
+  const {
+    name = "Peptide",
+    mass = "",
+    unit = "mg",
+    bacWater = "",
+    concentration = "",
+    doseRange = "",
+    showLabel = true,
+    fullLabel = false,
+    powderWhite = false,
+    qrPayload = "",
+    coaUrl = "",
+  } = options;
+
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(0, 0, dims.w, dims.h);
+
+  const iw = photo.width;
+  const ih = photo.height;
+  const scale = Math.max(dims.w / iw, dims.h / ih);
+  const dw = iw * scale;
+  const dh = ih * scale;
+  const dx = (dims.w - dw) / 2;
+  const dy = (dims.h - dh) / 2;
+  ctx.drawImage(photo, dx, dy, dw, dh);
+
+  // Same 3 mL blue plate for everyone — whiten cake when peptide isn't blue
+  if (powderWhite) {
+    tintStudioCakeWhite(ctx, {
+      bodyX: dims.w * 0.28,
+      bodyW: dims.w * 0.44,
+      cakeTop: dims.h * 0.70,
+      cakeBottom: dims.h * 0.96,
+    });
+  }
+
+  if (!showLabel) return;
+
+  // Label face on 682×1024 blank wrap templates
+  const lx = dx + dw * 0.255;
+  const ly = dy + dh * 0.39;
+  const lw = dw * 0.49;
+  const lh = dh * 0.30;
+
+  // Center write-in panel (between spine and QR)
+  const midX = lx + lw * 0.14;
+  const midW = lw * 0.58;
   const midCx = midX + midW / 2;
 
-  const product = String(name || "PEPTIDE")
-    .replace(/\(.*?\)/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toUpperCase();
-
-  // Only erase the original product name (e.g. KLOW)
-  const nameBandY = ly + lh * 0.14;
-  const nameBandH = lh * 0.3;
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(midX, nameBandY, midW, nameBandH);
+  const massText =
+    mass !== "" && mass != null
+      ? `${String(mass).trim()}${unit ? ` ${String(unit).trim()}` : ""}`.toUpperCase()
+      : "";
 
   const family = 'Outfit, "Segoe UI", "Arial Black", sans-serif';
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = "#000000";
-  const nameSize = fitCenteredText(
-    ctx,
-    product,
-    midW * 0.96,
-    Math.max(13, lh * 0.22),
-    family
-  );
-  ctx.font = `800 ${nameSize}px ${family}`;
-  ctx.fillText(product, midCx, nameBandY + nameBandH * 0.55);
+
+  if (!fullLabel) {
+    // Catalog: always the suggested short name (black text only)
+    const shortName = shortLabelName(name);
+    drawLabelNameBlock(ctx, {
+      name: shortName,
+      rawName: name,
+      cx: midCx,
+      y: ly + lh * 0.28,
+      h: lh * 0.32,
+      maxWidth: midW * 0.96,
+      family,
+      maxLines: 1,
+      basePx: Math.max(14, lh * 0.26),
+      minPx: 9,
+      weight: "800",
+      skipShorten: true,
+    });
+    return;
+  }
+
+  // Full calculator label — short name + mass + grid values (black text only)
+  // Nudge auto-gen text down ~20% of the wrap face (catalog unchanged)
+  const calcNudgeY = lh * 0.2;
+  const nameBandY = ly + lh * 0.12 + calcNudgeY;
+  const nameBandH = lh * 0.28;
+  drawLabelNameBlock(ctx, {
+    name: shortLabelName(name),
+    rawName: name,
+    cx: midCx,
+    y: nameBandY,
+    h: nameBandH,
+    maxWidth: midW * 0.96,
+    family,
+    maxLines: 1,
+    basePx: Math.max(14, lh * 0.24),
+    minPx: 9,
+    weight: "800",
+    skipShorten: true,
+  });
+
+  if (massText) {
+    // Center mass between the two write-in rules on the blank wrap
+    const ruleTop = ly + lh * 0.607;
+    const ruleBot = ly + lh * 0.813;
+    const massH = Math.min(lh * 0.14, (ruleBot - ruleTop) * 0.72);
+    const massY = (ruleTop + ruleBot) / 2 - massH / 2;
+    drawLabelNameBlock(ctx, {
+      name: massText,
+      rawName: massText,
+      cx: midCx,
+      y: massY,
+      h: massH,
+      maxWidth: midW * 0.9,
+      family,
+      maxLines: 1,
+      basePx: Math.max(11, lh * 0.14),
+      minPx: 8,
+      weight: "700",
+      skipShorten: true,
+    });
+  }
+
+  const bac = String(bacWater || "").trim();
+  const conc = String(concentration || "").trim();
+  const dose = String(doseRange || "").trim();
+  if (bac || conc || dose) {
+    // Three footer cells — values centered under headers near wrap bottom
+    const gridY = ly + lh * 0.82;
+    const gridH = lh * 0.14;
+    const colW = midW / 3;
+    const vals = [bac, conc, dose];
+    vals.forEach((val, i) => {
+      if (!val) return;
+      const cx = midX + colW * (i + 0.5);
+      drawLabelNameBlock(ctx, {
+        name: val,
+        rawName: val,
+        cx,
+        y: gridY,
+        h: gridH,
+        maxWidth: colW * 0.94,
+        family,
+        maxLines: 2,
+        basePx: Math.max(11, lh * 0.13),
+        minPx: 8,
+        weight: "700",
+        skipShorten: true,
+      });
+    });
+  }
+
+  // Keep the printed QR on blank-wrap photos — do not paint a second live QR on top.
 }
 
 /** Cover-fit photo into canvas. */
@@ -1286,6 +1556,16 @@ function drawPhotorealVial(ctx, dims, options) {
     const bodyW = dims.w * (isTen ? 0.52 : 0.5);
     const bodyX = dims.w / 2 - bodyW / 2;
     tintStudioCakeBlue(ctx, {
+      bodyX,
+      bodyW,
+      cakeTop: dims.h * (isTen ? 0.74 : 0.78),
+      cakeBottom: dims.h * 0.96,
+    });
+  } else {
+    // Ensure no leftover blue cake on shared plates
+    const bodyW = dims.w * (isTen ? 0.52 : 0.5);
+    const bodyX = dims.w / 2 - bodyW / 2;
+    tintStudioCakeWhite(ctx, {
       bodyX,
       bodyW,
       cakeTop: dims.h * (isTen ? 0.74 : 0.78),
@@ -1381,6 +1661,52 @@ function tintStudioCakeBlue(ctx, { bodyX, bodyW, cakeTop, cakeBottom }) {
   ctx.putImageData(img, x0, y0);
 }
 
+/** Recolor blue lyophilized cake → white powder on the shared blue vial plate. */
+function tintStudioCakeWhite(ctx, { bodyX, bodyW, cakeTop, cakeBottom }) {
+  const scale = ctx.getTransform?.().a || 1;
+  const x0 = Math.max(0, Math.floor(bodyX * scale));
+  const x1 = Math.min(ctx.canvas.width, Math.ceil((bodyX + bodyW) * scale));
+  const y0 = Math.max(0, Math.floor(cakeTop * scale));
+  const y1 = Math.min(ctx.canvas.height, Math.ceil(cakeBottom * scale));
+  const w = x1 - x0;
+  const h = y1 - y0;
+  if (w < 4 || h < 4) return;
+  let img;
+  try {
+    img = ctx.getImageData(x0, y0, w, h);
+  } catch {
+    return;
+  }
+  const data = img.data;
+  const cx = w / 2;
+  for (let y = 0; y < h; y += 1) {
+    for (let x = 0; x < w; x += 1) {
+      const i = (y * w + x) * 4;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const a = data[i + 3];
+      if (a < 30) continue;
+      // Blue / cyan cake pixels (skip glass highlights and dark seal)
+      const isBlueCake =
+        b > 90 && b >= r + 18 && b >= g + 8 && (r + g + b) / 3 > 70;
+      const isBrightCake =
+        Math.max(r, g, b) > 140 &&
+        Math.max(r, g, b) - Math.min(r, g, b) < 55 &&
+        (r + g + b) / 3 > 120;
+      if (!isBlueCake && !isBrightCake) continue;
+      const nx = (x - cx) / (w * 0.48);
+      const ny = (y - h * 0.12) / (h * 0.88);
+      if (nx * nx + ny * ny > 1.08) continue;
+      const lum = Math.min(1, Math.max(0.35, (r + g + b) / (3 * 255)));
+      data[i] = Math.round(210 + lum * 40);
+      data[i + 1] = Math.round(212 + lum * 38);
+      data[i + 2] = Math.round(216 + lum * 35);
+    }
+  }
+  ctx.putImageData(img, x0, y0);
+}
+
 /**
  * Front-of-vial clinical sticker — tall portrait so name / mass / QR stay sharp
  * on product cards (full wrap remains on the printable flat label).
@@ -1391,11 +1717,12 @@ function createBottleFaceLabel(options = {}) {
 
 /** Build an offscreen flat wrap-label for the printable template / vial face. */
 function createWrapLabelBitmap(options) {
-  // 2:1 matches the 40×20 mm clinical wrap — avoids vertical stretch on vials.
+  // Match physical 3 mL wrap (40×20 mm → 2:1) so vial overlays aren't stretched.
+  const square = Boolean(options.squareCorners);
   const dims = {
     w: 1000,
-    h: 500,
-    cornerR: Math.round(500 * 0.07),
+    h: Math.round(1000 * (LABEL_3ML_MM.heightMm / LABEL_3ML_MM.widthMm)),
+    cornerR: square ? 0 : Math.round(500 * 0.07),
   };
   const c =
     typeof document !== "undefined"
@@ -1417,39 +1744,86 @@ function createWrapLabelBitmap(options) {
  */
 function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   if (!labelCanvas || !labelCanvas.width) return;
-  const { bodyX, bodyW, sleeveTop, sleeveH } = geom;
+  const {
+    bodyX,
+    bodyW,
+    sleeveTop,
+    sleeveH,
+    snug = false,
+    glassSnap = null,
+    snapX = Math.floor(bodyX),
+    snapY = Math.floor(sleeveTop),
+  } = geom;
+  // Push white border back ~4% each side and round the rim so edges wrap away
+  const sideInset = snug ? Math.max(1.2, bodyW * 0.04) : 0;
+  const drawX = bodyX + sideInset;
+  const drawW = bodyW - sideInset * 2;
   const cx = bodyX + bodyW / 2;
-  const R = bodyW / 2;
+  const R = (snug ? drawW : bodyW) / 2;
   const lw = labelCanvas.width;
   const lh = labelCanvas.height;
-  const slices = 260;
-  // Turn so the product panel sits squarely on the front of the glass
-  // Bias past mid-panel center so name/mass read dead-center (spine left, QR wraps right)
-  const visibleArc = Math.PI * 0.9;
-  const yaw = (0.5 - 0.355) * visibleArc;
-  // Stretch a little further around the left rim
-  const leftExtra = 0.08;
+  const slices = snug ? 380 : 260;
+  // Front wrap across the glass face (height is sized separately to 70% of body)
+  const visibleArc = Math.PI * (snug ? 1.08 : 0.9);
+  // Bias yaw so black spine sits flush; +10° turns vial toward the right
+  const vialTurn = snug ? (10 * Math.PI) / 180 : 0;
+  const yaw = (0.5 - (snug ? 0.405 : 0.355)) * visibleArc + vialTurn;
+  const leftExtra = snug ? 0 : 0.08;
   const uStart = 0;
   const uEnd = 1;
+  const xMin = snug ? drawX : bodyX;
+  const xMax = snug ? drawX + drawW : bodyX + bodyW;
 
   ctx.save();
 
-  // Hairline contact into the glass (flush wrap, not a floating card)
-  ctx.fillStyle = "rgba(0,0,0,0.14)";
-  ctx.beginPath();
-  ctx.ellipse(cx, sleeveTop + 0.5, R * 0.98, 2.2, 0, Math.PI, 0, true);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.ellipse(cx, sleeveTop + sleeveH - 0.5, R * 0.98, 2.4, 0, 0, Math.PI);
-  ctx.fill();
+  // Soft contact shadow under the wrap onto the glass (label sits outside)
+  if (snug) {
+    ctx.fillStyle = "rgba(0,0,0,0.1)";
+    ctx.beginPath();
+    ctx.ellipse(cx, sleeveTop + sleeveH + 0.8, R * 0.92, 1.4, 0, 0, Math.PI);
+    ctx.fill();
+  } else {
+    ctx.fillStyle = "rgba(0,0,0,0.18)";
+    ctx.beginPath();
+    ctx.ellipse(cx, sleeveTop + 0.5, R * 0.98, 2.2, 0, Math.PI, 0, true);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx, sleeveTop + sleeveH - 0.5, R * 0.98, 2.4, 0, 0, Math.PI);
+    ctx.fill();
+  }
 
+  // Clip to glass band; bottom corners inset — spine/DILUTENT side more,
+  // QR (opposite) side a lighter pull-back. Side inset rounds L/R white border.
+  // Viewer-left (spine) tilts ~2% — top pulls in so the edge wraps away.
+  // Bottom-left pulled back toward glass another 2%.
+  const botInsetL = snug ? Math.max(1.2, drawW * 0.048) : 0;
+  const botInsetR = snug ? Math.max(0.8, drawW * 0.014) : 0;
+  const leftTilt = snug ? Math.max(1, drawW * 0.02) : 0;
+  // Bottom-left was riding high — drop it 2% of band height so the hem sits even
+  const botDropL = snug ? Math.max(1, sleeveH * 0.02) : 0;
+  // Bottom 25% of left edge pulled toward glass (~4%)
+  const botLeftPush = snug ? Math.max(1, drawW * 0.04) : 0;
+  const yLeftBreak = sleeveTop + sleeveH * 0.75;
+  const xLeftBreak = xMin + leftTilt + (botInsetL - leftTilt) * 0.75;
+  const xLeftBot = xMin + botInsetL + botLeftPush;
   ctx.beginPath();
-  ctx.rect(bodyX - 0.5, sleeveTop, bodyW + 1, sleeveH);
+  if (snug) {
+    ctx.moveTo(xMin + leftTilt, sleeveTop);
+    ctx.lineTo(xMax, sleeveTop);
+    ctx.lineTo(xMax - botInsetR, sleeveTop + sleeveH);
+    ctx.lineTo(xLeftBot, sleeveTop + sleeveH + botDropL);
+    ctx.lineTo(xLeftBreak, yLeftBreak);
+    ctx.closePath();
+  } else {
+    ctx.rect(bodyX, sleeveTop, bodyW, sleeveH);
+  }
   ctx.clip();
 
-  // Opaque paper kills glass speculars under the sleeve
-  ctx.fillStyle = "#f2f3f5";
-  ctx.fillRect(bodyX - 1, sleeveTop, bodyW + 2, sleeveH);
+  // No full-band white underfill in snug mode — it showed past the black spine.
+  if (!snug) {
+    ctx.fillStyle = "#f7f7f5";
+    ctx.fillRect(bodyX, sleeveTop, bodyW, sleeveH);
+  }
 
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
@@ -1457,16 +1831,17 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   for (let i = 0; i < slices; i += 1) {
     const t0 = i / slices;
     const t1 = (i + 1) / slices;
-    // Asymmetric: a bit more arc on the left
     const theta0 = (t0 - 0.5) * visibleArc + yaw - leftExtra * (1 - t0);
     const theta1 = (t1 - 0.5) * visibleArc + yaw - leftExtra * (1 - t1);
     const cos = (Math.cos(theta0) + Math.cos(theta1)) / 2;
-    if (cos < 0.025) continue;
+    if (cos < (snug ? 0.02 : 0.025)) continue;
 
     const x0 = cx + R * Math.sin(theta0);
     const x1 = cx + R * Math.sin(theta1);
-    const destX = Math.min(x0, x1);
-    const destW = Math.max(0.85, Math.abs(x1 - x0) + 0.55);
+    const destX = Math.max(xMin, Math.min(x0, x1));
+    const destRight = Math.min(xMax, Math.max(x0, x1));
+    const destW = Math.max(0.6, destRight - destX + (snug ? 0.15 : 0.55));
+    if (destX >= xMax || destRight <= xMin) continue;
 
     const u0 = uStart + t0 * (uEnd - uStart);
     const u1 = uStart + t1 * (uEnd - uStart);
@@ -1483,55 +1858,200 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
       destX,
       sleeveTop,
       destW,
-      sleeveH
+      sleeveH + (snug ? botDropL : 0)
     );
 
-    // Soft wrap shade — darker only as paper turns the rim
-    const shadeAmt = Math.pow(1 - Math.max(0, cos), 1.35);
-    if (shadeAmt > 0.015) {
-      ctx.fillStyle = `rgba(8,10,14,${(shadeAmt * 0.48).toFixed(3)})`;
-      ctx.fillRect(destX, sleeveTop, destW, sleeveH);
+    // Catalog path keeps a light geometric rim; snug uses photo shade after.
+    if (!snug) {
+      const shadeAmt = Math.pow(1 - Math.max(0, cos), 1.35);
+      if (shadeAmt > 0.015) {
+        ctx.fillStyle = `rgba(8,10,14,${(shadeAmt * 0.48).toFixed(3)})`;
+        ctx.fillRect(destX, sleeveTop, destW, sleeveH);
+      }
     }
   }
   ctx.globalAlpha = 1;
 
-  // Gentle cylinder occlusion matching studio light
-  const occ = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW, 0);
-  occ.addColorStop(0, "rgba(0,0,0,0.28)");
-  occ.addColorStop(0.12, "rgba(0,0,0,0.06)");
-  occ.addColorStop(0.38, "rgba(0,0,0,0)");
-  occ.addColorStop(0.62, "rgba(0,0,0,0)");
-  occ.addColorStop(0.88, "rgba(0,0,0,0.05)");
-  occ.addColorStop(1, "rgba(0,0,0,0.26)");
-  ctx.fillStyle = occ;
-  ctx.fillRect(bodyX, sleeveTop, bodyW, sleeveH);
+  // Soft-round L/R white border — edges turn away into the cylinder
+  if (snug) {
+    const edge = Math.max(1.5, sideInset);
+    // Follow the tilted left edge (top inset more)
+    const leftFade = ctx.createLinearGradient(
+      xMin + leftTilt,
+      sleeveTop,
+      xMin + leftTilt + edge * 1.35,
+      sleeveTop
+    );
+    leftFade.addColorStop(0, "rgba(0,0,0,0.55)");
+    leftFade.addColorStop(0.4, "rgba(0,0,0,0.18)");
+    leftFade.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = leftFade;
+    ctx.beginPath();
+    ctx.moveTo(xMin + leftTilt, sleeveTop);
+    ctx.lineTo(xMin + leftTilt + edge * 1.35, sleeveTop);
+    ctx.lineTo(xLeftBreak + edge * 1.35, yLeftBreak);
+    ctx.lineTo(xLeftBot + edge * 1.35, sleeveTop + sleeveH + botDropL);
+    ctx.lineTo(xLeftBot, sleeveTop + sleeveH + botDropL);
+    ctx.lineTo(xLeftBreak, yLeftBreak);
+    ctx.closePath();
+    ctx.fill();
 
-  // Thin laminate catch-light (same side as glass highlight)
-  const spec = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW, 0);
-  spec.addColorStop(0, "rgba(255,255,255,0)");
-  spec.addColorStop(0.14, "rgba(255,255,255,0)");
-  spec.addColorStop(0.2, "rgba(255,255,255,0.12)");
-  spec.addColorStop(0.26, "rgba(255,255,255,0)");
-  spec.addColorStop(0.82, "rgba(255,255,255,0)");
-  spec.addColorStop(0.9, "rgba(255,255,255,0.05)");
-  spec.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = spec;
-  ctx.fillRect(bodyX, sleeveTop, bodyW, sleeveH);
+    const rightFade = ctx.createLinearGradient(xMax - edge * 1.35, 0, xMax, 0);
+    rightFade.addColorStop(0, "rgba(0,0,0,0)");
+    rightFade.addColorStop(0.6, "rgba(0,0,0,0.16)");
+    rightFade.addColorStop(1, "rgba(0,0,0,0.5)");
+    ctx.fillStyle = rightFade;
+    ctx.fillRect(xMax - edge * 1.35, sleeveTop, edge * 1.35, sleeveH);
 
-  // Flush paper edges
-  ctx.strokeStyle = "rgba(255,255,255,0.22)";
+    // Keep spine edge clean (no white hairline past black)
+    const trim = Math.max(1, drawW * 0.01);
+    ctx.fillStyle = "rgba(0,0,0,0.88)";
+    ctx.beginPath();
+    ctx.moveTo(xMin + leftTilt, sleeveTop);
+    ctx.lineTo(xMin + leftTilt + trim, sleeveTop);
+    ctx.lineTo(xLeftBreak + trim, yLeftBreak);
+    ctx.lineTo(xLeftBot + trim, sleeveTop + sleeveH + botDropL);
+    ctx.lineTo(xLeftBot, sleeveTop + sleeveH + botDropL);
+    ctx.lineTo(xLeftBreak, yLeftBreak);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  if (!snug) {
+    const occ = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW, 0);
+    occ.addColorStop(0, "rgba(0,0,0,0.28)");
+    occ.addColorStop(0.12, "rgba(0,0,0,0.06)");
+    occ.addColorStop(0.38, "rgba(0,0,0,0)");
+    occ.addColorStop(0.62, "rgba(0,0,0,0)");
+    occ.addColorStop(0.88, "rgba(0,0,0,0.05)");
+    occ.addColorStop(1, "rgba(0,0,0,0.26)");
+    ctx.fillStyle = occ;
+    ctx.fillRect(bodyX, sleeveTop, bodyW, sleeveH);
+
+    const spec = ctx.createLinearGradient(bodyX, 0, bodyX + bodyW, 0);
+    spec.addColorStop(0, "rgba(255,255,255,0)");
+    spec.addColorStop(0.16, "rgba(255,255,255,0)");
+    spec.addColorStop(0.22, "rgba(255,255,255,0.12)");
+    spec.addColorStop(0.28, "rgba(255,255,255,0)");
+    spec.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = spec;
+    ctx.fillRect(bodyX, sleeveTop, bodyW, sleeveH);
+  }
+
+  ctx.strokeStyle = snug ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.25)";
+  ctx.lineWidth = snug ? 0.8 : 0.7;
+  ctx.beginPath();
+  ctx.moveTo(xMin + 2, sleeveTop + 0.5);
+  ctx.lineTo(xMax - 2, sleeveTop + 0.5);
+  ctx.stroke();
+  ctx.strokeStyle = snug ? "rgba(0,0,0,0.1)" : "rgba(0,0,0,0.2)";
   ctx.lineWidth = 0.7;
   ctx.beginPath();
-  ctx.moveTo(bodyX + R * 0.1, sleeveTop + 0.35);
-  ctx.lineTo(bodyX + bodyW - R * 0.1, sleeveTop + 0.35);
-  ctx.stroke();
-  ctx.strokeStyle = "rgba(0,0,0,0.18)";
-  ctx.beginPath();
-  ctx.moveTo(bodyX + R * 0.1, sleeveTop + sleeveH - 0.35);
-  ctx.lineTo(bodyX + bodyW - R * 0.1, sleeveTop + sleeveH - 0.35);
+  ctx.moveTo(xLeftBot + 2, sleeveTop + sleeveH + botDropL - 0.4);
+  ctx.lineTo(xMax - botInsetR - 2, sleeveTop + sleeveH - 0.4);
   ctx.stroke();
 
   ctx.restore();
+
+  // Multiply wrap by the real glass luminance so left dark / right highlight
+  // (and top-forward falloff in the photo) drive the label shading.
+  if (snug && glassSnap && glassSnap.data && glassSnap.width && glassSnap.height) {
+    applyPhotoShadeToWrap(ctx, {
+      snapX,
+      snapY,
+      glassSnap,
+    });
+  }
+}
+
+/**
+ * Re-shade the drawn wrap using luminance from the unlabeled vial photo.
+ * Horizontal glass lighting only (dark left / bright right). Vertical photo
+ * falloff is ignored — cake + heel under the band were crushing the bottom.
+ */
+function applyPhotoShadeToWrap(ctx, { snapX, snapY, glassSnap }) {
+  const w = glassSnap.width;
+  const h = glassSnap.height;
+  let wrapped;
+  try {
+    wrapped = ctx.getImageData(snapX, snapY, w, h);
+  } catch {
+    return;
+  }
+  const g = glassSnap.data;
+  const d = wrapped.data;
+
+  const lumAt = (x, y) => {
+    const i = (y * w + x) * 4;
+    return (g[i] + g[i + 1] + g[i + 2]) / 3;
+  };
+  const isCakeOrHot = (x, y) => {
+    const i = (y * w + x) * 4;
+    const r = g[i];
+    const gr = g[i + 1];
+    const b = g[i + 2];
+    const L = (r + gr + b) / 3;
+    const chroma = Math.max(r, gr, b) - Math.min(r, gr, b);
+    return L > 170 && chroma < 32;
+  };
+
+  // Sample clear glass in the upper-mid band only — skip cake / heel
+  const y0 = Math.floor(h * 0.12);
+  const y1 = Math.max(y0 + 2, Math.floor(h * 0.55));
+  const colShade = new Float32Array(w);
+  let midSum = 0;
+  let midN = 0;
+  for (let x = 0; x < w; x += 1) {
+    let sum = 0;
+    let n = 0;
+    for (let y = y0; y < y1; y += 1) {
+      if (isCakeOrHot(x, y)) continue;
+      const L = lumAt(x, y);
+      if (L < 14) continue;
+      sum += L;
+      n += 1;
+    }
+    colShade[x] = n ? sum / n : 0;
+    if (colShade[x] > 0) {
+      midSum += colShade[x];
+      midN += 1;
+    }
+  }
+  for (let x = 0; x < w; x += 1) {
+    if (colShade[x] > 0) continue;
+    let found = 0;
+    for (let dlt = 1; dlt < w && !found; dlt += 1) {
+      if (x - dlt >= 0 && colShade[x - dlt] > 0) found = colShade[x - dlt];
+      else if (x + dlt < w && colShade[x + dlt] > 0) found = colShade[x + dlt];
+    }
+    colShade[x] = found || 95;
+  }
+  const mid = Math.max(48, (midSum / Math.max(1, midN)) * 1.0);
+
+  for (let y = 0; y < h; y += 1) {
+    const v = y / Math.max(1, h - 1); // 0 top → 1 bottom
+    // Top 75% pops out of glass — was reading dark/in-glass
+    const topLift = v < 0.75 ? 1.05 : 1 + (1 - (v - 0.75) / 0.25) * 0.05;
+
+    for (let x = 0; x < w; x += 1) {
+      const i = (y * w + x) * 4;
+      if (d[i + 3] < 8) continue;
+
+      // Tiny left/right cue only — paper stays bright (outside glass)
+      let shade = colShade[x] / mid;
+      shade = Math.min(1.05, Math.max(0.9, shade));
+      shade = 1 + (shade - 1) * 0.16;
+      shade *= 1.07 * topLift;
+
+      const lum = (d[i] + d[i + 1] + d[i + 2]) / 3;
+      const ink = lum < 55 ? 0.12 : lum < 120 ? 0.25 : 1;
+      const m = 1 + (shade - 1) * ink;
+      d[i] = Math.min(255, Math.round(d[i] * m));
+      d[i + 1] = Math.min(255, Math.round(d[i + 1] * m));
+      d[i + 2] = Math.min(255, Math.round(d[i + 2] * m));
+    }
+  }
+  ctx.putImageData(wrapped, snapX, snapY);
 }
 
 /**
@@ -1843,6 +2363,170 @@ function fitCenteredText(ctx, text, maxWidth, basePx, family) {
   return size;
 }
 
+/** Full → mid → short (or short-first) for label fitting. */
+function labelNameOptions(displayName, rawName = "", { skipShorten = false, preferShort = false } = {}) {
+  const full = String(displayName || "")
+    .replace(/\(.*?\)/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toUpperCase();
+  if (skipShorten) return full ? [full] : ["—"];
+
+  const mid = full
+    .replace(/\bCJC-1295\s*WITHOUT\s*DAC\s*\+\s*IPAMORELIN\b/g, "CJC/IPA")
+    .replace(/\bCJC-1295\s*\/\s*IPAMORELIN\b/g, "CJC/IPA")
+    .replace(/\bCJC-1295\b/g, "CJC")
+    .replace(/\bBPC-157\b/g, "BPC157")
+    .replace(/\bTB-500\b/g, "TB500")
+    .replace(/\bTB500\b/g, "TB500")
+    .replace(/\bFOX04-DRI\b/g, "FOX4")
+    .replace(/\bFOXO4-DRI\b/g, "FOX4")
+    .replace(/\bFOXO4\b/g, "FOX4")
+    .replace(/\bFOX04\b/g, "FOX4")
+    .replace(/\bTHYMOSIN ALPHA-1\b/g, "TA-1")
+    .replace(/\bTHYMOSIN ALPHA 1\b/g, "TA-1")
+    .replace(/\bTESAMORELIN\b/g, "TESA")
+    .replace(/\bIPAMORELIN\b/g, "IPA")
+    .replace(/\bGLUTATHIONE\b/g, "GLUTA")
+    .replace(/\bEPITHALON\b/g, "EPIT")
+    .replace(/\bEPITALON\b/g, "EPIT")
+    .replace(/\bCAGRILINTIDE\b/g, "CARGI")
+    .replace(/\bRETATRUTIDE\b/g, "RETA")
+    .replace(/\bSEMAGLUTIDE\b/g, "SEMA")
+    .replace(/\bTIRZEPATIDE\b/g, "TIRZ")
+    .replace(/\s*\/\s*/g, "/")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const short = String(shortLabelName(rawName || displayName) || "")
+    .trim()
+    .toUpperCase();
+
+  const ordered = preferShort ? [short, mid, full] : [full, mid, short];
+  const opts = [];
+  for (const v of ordered) {
+    if (v && !opts.includes(v)) opts.push(v);
+  }
+  return opts.length ? opts : ["PEPTIDE"];
+}
+
+function wrapTextLines(ctx, text, maxWidth) {
+  const raw = String(text || "").trim();
+  if (!raw) return [""];
+  if (ctx.measureText(raw).width <= maxWidth) return [raw];
+
+  // Keep slash/hyphen compounds (CJC/IPA) intact — only break on spaces.
+  const words = raw.split(/\s+/).filter(Boolean);
+  const lines = [];
+  let cur = "";
+  for (const word of words) {
+    const next = cur ? `${cur} ${word}` : word;
+    if (!cur || ctx.measureText(next).width <= maxWidth) {
+      cur = next;
+      continue;
+    }
+    // Word itself is wider than the column — soft-break at / or -
+    if (ctx.measureText(word).width > maxWidth && /[/-]/.test(word)) {
+      if (cur) {
+        lines.push(cur);
+        cur = "";
+      }
+      const parts = word.split(/(?=[/-])/);
+      let buf = "";
+      for (const p of parts) {
+        if (!buf) {
+          buf = p;
+        } else if (ctx.measureText(buf + p).width <= maxWidth) {
+          buf += p;
+        } else {
+          lines.push(buf);
+          buf = p.replace(/^[/-]/, "") || p;
+        }
+      }
+      cur = buf;
+      continue;
+    }
+    lines.push(cur);
+    cur = word;
+  }
+  if (cur) lines.push(cur);
+  return lines.length ? lines : [raw];
+}
+
+/**
+ * Black text only (transparent background). Wraps up to maxLines;
+ * uses shortened peptide names when the full name can't stay readable.
+ */
+function drawLabelNameBlock(
+  ctx,
+  {
+    name,
+    rawName = "",
+    cx,
+    y,
+    h,
+    maxWidth,
+    family,
+    maxLines = 2,
+    basePx = 14,
+    minPx = 8,
+    weight = "800",
+    skipShorten = false,
+    preferShort = false,
+  }
+) {
+  ctx.fillStyle = "#000000";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  const candidates = labelNameOptions(name, rawName, { skipShorten, preferShort });
+  const readableMin = Math.max(minPx + 1, Math.round(basePx * 0.78));
+
+  function tryFit(candidate) {
+    for (let size = basePx; size >= minPx; size -= 1) {
+      ctx.font = `${weight} ${size}px ${family}`;
+      const lines = wrapTextLines(ctx, candidate, maxWidth);
+      if (lines.length > maxLines) continue;
+      const lineH = size * 1.12;
+      if (lines.length * lineH > h * 1.05) continue;
+      return { lines, size, lineH, candidate };
+    }
+    return null;
+  }
+
+  let best = null;
+  let bestAny = null;
+  for (const candidate of candidates) {
+    const fit = tryFit(candidate);
+    if (!fit) continue;
+    if (!bestAny || fit.size > bestAny.size) bestAny = fit;
+    // Prefer first readable candidate (short-first on catalog, else full → mid → short)
+    if (fit.size >= readableMin) {
+      best = fit;
+      break;
+    }
+  }
+  best = best || bestAny;
+
+  if (!best) {
+    const fallback = candidates[candidates.length - 1];
+    ctx.font = `${weight} ${minPx}px ${family}`;
+    best = {
+      lines: wrapTextLines(ctx, fallback, maxWidth).slice(0, maxLines),
+      size: minPx,
+      lineH: minPx * 1.12,
+    };
+  }
+
+  const totalH = best.lines.length * best.lineH;
+  let ty = y + (h - totalH) / 2 + best.lineH / 2;
+  ctx.font = `${weight} ${best.size}px ${family}`;
+  for (const line of best.lines) {
+    ctx.fillText(line, cx, ty);
+    ty += best.lineH;
+  }
+}
+
 /** White hexagon with bold UD letters (Undisclosed print mark). */
 function drawLabelSpineMark(ctx, cx, cy, r) {
   ctx.save();
@@ -1889,19 +2573,22 @@ export function drawBlankLabelFromImage(canvas, options = {}) {
 
 export function drawPhysicalLabel(canvas, options = {}) {
   const { vialMl = 3, size = "md", blank = false } = options;
-  const { printW, printH, cssW, cssH, cornerR, spec } = physicalLabelCanvasSize(
+  const { printW, printH, cssW, cornerR, spec, dpi } = physicalLabelCanvasSize(
     vialMl,
     size
   );
 
-  // Buffer matches print pixels exactly (600 DPI). Display fills the parent
-  // column (50/50 calc layout) while keeping the print aspect ratio.
+  // Buffer matches print pixels exactly (LABEL_PRINT_DPI). Display fills the
+  // parent column while locking the physical W×H aspect (3 mL → 40×20).
   canvas.width = printW;
   canvas.height = printH;
   canvas.style.width = "100%";
   canvas.style.height = "auto";
   canvas.style.maxWidth = cssW;
+  canvas.style.aspectRatio = `${spec.widthMm} / ${spec.heightMm}`;
   canvas.dataset.labelMm = `${spec.widthMm}x${spec.heightMm}`;
+  canvas.dataset.labelDpi = String(dpi);
+  canvas.dataset.vialMl = String(Number(vialMl) || 3);
 
   const ctx = canvas.getContext("2d", { alpha: true });
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1927,9 +2614,11 @@ export function drawPhysicalLabel(canvas, options = {}) {
     {
       ...options,
       blank,
-      forceSiteQr: true,
-      qrPayload: SITE_QR_URL,
-      coaUrl: "",
+      forceSiteQr: Boolean(options.forceSiteQr) && blank,
+      qrPayload: blank
+        ? SITE_QR_URL
+        : options.qrPayload || options.coaUrl || SITE_QR_URL,
+      coaUrl: blank ? "" : options.coaUrl || "",
     }
   );
 
@@ -1943,7 +2632,7 @@ export function drawPhysicalLabel(canvas, options = {}) {
   ctx.stroke();
   ctx.restore();
 
-  return canvas.toDataURL("image/png");
+  return embedPngDpi(canvas.toDataURL("image/png"), dpi);
 }
 
 export function drawLabelTemplate(canvas, options = {}) {
@@ -1952,9 +2641,6 @@ export function drawLabelTemplate(canvas, options = {}) {
     ...options,
     vialMl,
     size,
-    forceSiteQr: true,
-    qrPayload: SITE_QR_URL,
-    coaUrl: "",
   });
 }
 
@@ -1982,7 +2668,7 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   const cornerR =
     dims.cornerR ?? Math.max(8, Math.round(Math.min(dims.w, dims.h) * 0.07));
   const spineW = Math.round(dims.w * 0.095);
-  const rightW = Math.round(dims.w * 0.22);
+  const rightW = Math.round(dims.w * 0.225);
   const midX = spineW;
   const midW = dims.w - spineW - rightW;
   const rightX = spineW + midW;
@@ -1999,14 +2685,15 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   const midCx = midX + midW / 2;
 
   // Reference vertical rhythm (full white face, no Made-in-China bar)
-  const yHeader = bodyH * 0.07;
-  const yName = bodyH * 0.28;
-  const yRule2 = bodyH * 0.42;
-  const yMass = bodyH * 0.54;
+  const yHeader = bodyH * 0.12;
+  const yName = bodyH * 0.34;
+  const yRule2 = bodyH * 0.44;
+  const yMass = bodyH * 0.55;
   const yRule3 = bodyH * 0.66;
-  const gridTop = bodyH * 0.7;
-  const gridBottom = bodyH * 0.96;
-  const gridH = Math.max(18, gridBottom - gridTop);
+  // BAC / concentration / dose grid — low on the face, room for readable type
+  const gridTop = bodyH * 0.74;
+  const gridBottom = bodyH * 0.98;
+  const gridH = Math.max(22, gridBottom - gridTop);
 
   ctx.fillStyle = paper;
   roundRect(ctx, 0, 0, dims.w, dims.h, cornerR);
@@ -2024,20 +2711,21 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   ctx.fillStyle = paper;
   ctx.fillRect(spineW - railW, 0, railW, bodyH);
 
+  // Spine wordmark — bold + larger; UD mark pulled up toward it
+  const spineFont = Math.max(13, Math.min(bodyH * 0.077, spineW * 0.456));
+  const spineWord = "UNDISCLOSED";
+  const track = spineFont * 0.12;
   ctx.save();
-  ctx.translate(spineW * 0.48, bodyH * 0.38);
+  ctx.font = `800 ${spineFont}px Outfit, "Segoe UI", sans-serif`;
+  let spineTextW = 0;
+  for (const ch of spineWord) spineTextW += ctx.measureText(ch).width + track;
+  spineTextW -= track;
+  ctx.translate(spineW * 0.48, bodyH * 0.44);
   ctx.rotate(-Math.PI / 2);
   ctx.fillStyle = "#ffffff";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const spineFont = Math.max(10, Math.min(bodyH * 0.058, spineW * 0.34));
-  ctx.font = `700 ${spineFont}px Outfit, "Segoe UI", sans-serif`;
-  const spineWord = "UNDISCLOSED";
-  const track = spineFont * 0.14;
-  let totalW = 0;
-  for (const ch of spineWord) totalW += ctx.measureText(ch).width + track;
-  totalW -= track;
-  let sx = -totalW / 2;
+  let sx = -spineTextW / 2;
   for (const ch of spineWord) {
     const cw = ctx.measureText(ch).width;
     ctx.fillText(ch, sx + cw / 2, 0);
@@ -2045,8 +2733,11 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   }
   ctx.restore();
 
-  const markR = Math.min(spineW * 0.28, bodyH * 0.072);
-  drawLabelSpineMark(ctx, spineW * 0.48, bodyH - markR * 1.4, markR);
+  const markR = Math.min(spineW * 0.32, bodyH * 0.082);
+  const spineCy = bodyH * 0.44;
+  const textBottom = spineCy + spineTextW / 2;
+  const markCy = Math.min(bodyH - markR * 1.2, textBottom + markR * 1.45);
+  drawLabelSpineMark(ctx, spineW * 0.48, markCy, markR);
 
   // Hairline between mid panel and QR column
   ctx.strokeStyle = "rgba(0,0,0,0.28)";
@@ -2056,12 +2747,12 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   ctx.lineTo(rightX, bodyH * 0.95);
   ctx.stroke();
 
-  // — UNDISCLOSED —
+  // — UNDISCLOSED — (bold + larger)
   ctx.fillStyle = ink;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const brandHeaderPx = Math.max(7, bodyH * 0.036);
-  ctx.font = `600 ${brandHeaderPx}px Outfit, "Segoe UI", sans-serif`;
+  const brandHeaderPx = Math.max(14, bodyH * 0.067);
+  ctx.font = `800 ${brandHeaderPx}px Outfit, "Segoe UI", sans-serif`;
   ctx.fillText("— UNDISCLOSED —", midCx, yHeader);
 
   if (!blank) {
@@ -2113,12 +2804,12 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   const gridLeft = ruleX;
   const cells = blank
     ? [
-        { label: "BAC WATER", value: "" },
+        { label: "DILUTENT", value: "" },
         { label: "CONCENTRATION", value: "" },
         { label: "DOSE RANGE", value: "" },
       ]
     : [
-        { label: "BAC WATER", value: formatBacForLabel(bacWater) },
+        { label: "DILUTENT", value: formatBacForLabel(bacWater) },
         { label: "CONCENTRATION", value: String(concentration || "—") },
         { label: "DOSE RANGE", value: String(doseRange || "—") },
       ];
@@ -2133,14 +2824,21 @@ function paintLabelTemplate(ctx, dims, options = {}) {
       ctx.lineTo(gridLeft + colW * i, gridTop + gridH * 0.9);
       ctx.stroke();
     }
-    ctx.fillStyle = muted;
-    ctx.font = `700 ${Math.max(5.5, bodyH * 0.026)}px Outfit, "Segoe UI", sans-serif`;
+    // Headers just below the lower write-in rule; values stay lower in the grid
+    const headerY = yRule3 + bodyH * 0.048;
+    ctx.fillStyle = ink;
+    ctx.font = `800 ${Math.max(10, bodyH * 0.046)}px Outfit, "Segoe UI", sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(cell.label, cellCx, gridTop + gridH * 0.22);
+    ctx.fillText(cell.label, cellCx, headerY);
 
     const rawVal = String(cell.value ?? "");
     if (!rawVal) return;
+    // Center values in the band between headers and label bottom,
+    // and horizontally between the column side lines.
+    const valueBandTop = headerY + bodyH * 0.04;
+    const valueBandBot = bodyH * 0.96;
+    const valueMid = (valueBandTop + valueBandBot) / 2;
     const split = rawVal.match(/^(.*?)\s*(\([^)]+\))\s*$/);
     if (split) {
       const line1 = split[1].trim();
@@ -2148,46 +2846,55 @@ function paintLabelTemplate(ctx, dims, options = {}) {
       const v1 = fitCenteredText(
         ctx,
         line1,
-        colW * 0.9,
-        Math.max(9, bodyH * 0.042),
+        colW * 0.92,
+        Math.max(14, bodyH * 0.068),
         'Outfit, "Segoe UI", sans-serif'
       );
       ctx.font = `700 ${v1}px Outfit, "Segoe UI", sans-serif`;
       ctx.fillStyle = ink;
-      ctx.fillText(line1, cellCx, gridTop + gridH * 0.52);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(line1, cellCx, valueMid - bodyH * 0.032);
       const v2 = fitCenteredText(
         ctx,
         line2,
-        colW * 0.9,
-        Math.max(7, bodyH * 0.032),
+        colW * 0.92,
+        Math.max(11, bodyH * 0.05),
         'Outfit, "Segoe UI", sans-serif'
       );
       ctx.font = `600 ${v2}px Outfit, "Segoe UI", sans-serif`;
       ctx.fillStyle = muted;
-      ctx.fillText(line2, cellCx, gridTop + gridH * 0.78);
+      ctx.fillText(line2, cellCx, valueMid + bodyH * 0.038);
     } else {
       const valueSize = fitCenteredText(
         ctx,
         rawVal,
-        colW * 0.9,
-        Math.max(9, bodyH * 0.045),
+        colW * 0.92,
+        Math.max(14, bodyH * 0.07),
         'Outfit, "Segoe UI", sans-serif'
       );
       ctx.font = `700 ${valueSize}px Outfit, "Segoe UI", sans-serif`;
       ctx.fillStyle = ink;
-      ctx.fillText(rawVal, cellCx, gridTop + gridH * 0.62);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(rawVal, cellCx, valueMid);
     }
   });
 
-  // QR + research disclaimer (right column) — matches refs
+  // QR + research disclaimer — QR top aligns with the upper write-in rule
   const discLines = ["RESEARCH USE", "NOT FOR HUMAN", "CONSUMPTION"];
-  const discPx = Math.max(5.5, bodyH * 0.028);
+  const discPx = Math.max(8, bodyH * 0.04);
+  const discLead = discPx * 1.35;
   const discBlockH = discPx * 3.4;
-  const qrBox = Math.max(28, Math.min(rightW * 0.72, bodyH * 0.42));
+  let qrBox = Math.max(
+    46,
+    Math.min(rightW * 0.96, bodyH * 0.618)
+  );
+  // Align with the two mid rules: top near upper rule, nudged up 9%
+  const qrY = yRule2 - bodyH * 0.09;
+  const maxBox = bodyH * 0.98 - qrY - discLead - discBlockH;
+  if (qrBox > maxBox) qrBox = Math.max(28, maxBox);
   const qrX = rightX + (rightW - qrBox) / 2;
-  let qrY = bodyH * 0.1;
-  const maxQrY = bodyH - qrBox - discBlockH - bodyH * 0.06;
-  qrY = Math.min(qrY, Math.max(bodyH * 0.06, maxQrY));
 
   ctx.fillStyle = paper;
   ctx.fillRect(qrX, qrY, qrBox, qrBox);
@@ -2197,7 +2904,7 @@ function paintLabelTemplate(ctx, dims, options = {}) {
     const payload = forceSiteQr
       ? SITE_QR_URL
       : qrPayloadFromOptions({
-          qrPayload: blank ? qrPayload || SITE_QR_URL : qrPayload,
+          qrPayload: blank ? SITE_QR_URL : qrPayload,
           coaUrl: blank ? "" : coaUrl,
         });
     drawQrCode(
@@ -2236,9 +2943,104 @@ function paintLabelTemplate(ctx, dims, options = {}) {
   ctx.restore();
 }
 
-export function downloadVialPng(dataUrl, filename = "wellpept-vial.png") {
+/**
+ * Insert/replace PNG pHYs so printers treat the file as `dpi` (e.g. 600 →
+ * 945×472 px prints as 40×20 mm).
+ */
+export function embedPngDpi(dataUrl, dpi = LABEL_PRINT_DPI) {
+  if (!dataUrl || typeof dataUrl !== "string" || !dataUrl.startsWith("data:image/png")) {
+    return dataUrl;
+  }
+  try {
+    const b64 = dataUrl.split(",")[1];
+    if (!b64) return dataUrl;
+    const binary = atob(b64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+    const ppm = Math.round(dpi * (100 / 2.54)); // dots per meter
+    const phys = new Uint8Array(9);
+    const view = new DataView(phys.buffer);
+    view.setUint32(0, ppm);
+    view.setUint32(4, ppm);
+    phys[8] = 1; // meters
+
+    const chunkType = [0x70, 0x48, 0x59, 0x73]; // pHYs
+    const crcInput = new Uint8Array(4 + phys.length);
+    crcInput.set(chunkType, 0);
+    crcInput.set(phys, 4);
+    const crc = crc32(crcInput);
+
+    // Strip any existing pHYs, then insert after IHDR.
+    const cleaned = stripPngChunk(bytes, "pHYs");
+    const ihdrEnd = 8 + 4 + 4 + 13 + 4; // sig + len + IHDR + data + crc
+    const chunk = new Uint8Array(4 + 4 + phys.length + 4);
+    const cv = new DataView(chunk.buffer);
+    cv.setUint32(0, phys.length);
+    chunk.set(chunkType, 4);
+    chunk.set(phys, 8);
+    cv.setUint32(8 + phys.length, crc);
+
+    const out = new Uint8Array(cleaned.length + chunk.length);
+    out.set(cleaned.subarray(0, ihdrEnd), 0);
+    out.set(chunk, ihdrEnd);
+    out.set(cleaned.subarray(ihdrEnd), ihdrEnd + chunk.length);
+
+    let s = "";
+    const chunkSize = 0x8000;
+    for (let i = 0; i < out.length; i += chunkSize) {
+      s += String.fromCharCode(...out.subarray(i, i + chunkSize));
+    }
+    return `data:image/png;base64,${btoa(s)}`;
+  } catch {
+    return dataUrl;
+  }
+}
+
+function stripPngChunk(bytes, typeName) {
+  const type = [...typeName].map((c) => c.charCodeAt(0));
+  const out = [];
+  out.push(...bytes.subarray(0, 8));
+  let i = 8;
+  while (i + 8 <= bytes.length) {
+    const len =
+      (bytes[i] << 24) | (bytes[i + 1] << 16) | (bytes[i + 2] << 8) | bytes[i + 3];
+    const t0 = bytes[i + 4];
+    const t1 = bytes[i + 5];
+    const t2 = bytes[i + 6];
+    const t3 = bytes[i + 7];
+    const chunkTotal = 12 + len;
+    const match =
+      t0 === type[0] && t1 === type[1] && t2 === type[2] && t3 === type[3];
+    if (!match) {
+      for (let j = 0; j < chunkTotal && i + j < bytes.length; j++) {
+        out.push(bytes[i + j]);
+      }
+    }
+    i += chunkTotal;
+    if (t0 === 0x49 && t1 === 0x45 && t2 === 0x4e && t3 === 0x44) break; // IEND
+  }
+  return Uint8Array.from(out);
+}
+
+function crc32(buf) {
+  let c = 0xffffffff;
+  for (let i = 0; i < buf.length; i++) {
+    c ^= buf[i];
+    for (let k = 0; k < 8; k++) {
+      c = c & 1 ? (0xedb88320 ^ (c >>> 1)) : c >>> 1;
+    }
+  }
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+export function downloadVialPng(
+  dataUrl,
+  filename = "wellpept-vial.png",
+  { dpi = LABEL_PRINT_DPI } = {}
+) {
   const link = document.createElement("a");
-  link.href = dataUrl;
+  link.href = embedPngDpi(dataUrl, dpi);
   link.download = filename;
   link.click();
 }

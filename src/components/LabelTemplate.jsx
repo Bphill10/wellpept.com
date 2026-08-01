@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Download } from "lucide-react";
 import {
   drawLabelTemplate,
@@ -7,6 +7,7 @@ import {
   labelSpecForVialMl,
   SITE_QR_URL,
 } from "../utils/vialArt";
+import { resolveCoaQrPayload } from "../utils/coaStore";
 
 export default function LabelTemplate({
   name = "Peptide",
@@ -23,6 +24,9 @@ export default function LabelTemplate({
   className = "",
   /** Layout + brand chrome only — no peptide fields filled. */
   blank = false,
+  productId = "",
+  coaUrl = "",
+  qrPayload = "",
 }) {
   const canvasRef = useRef(null);
   const [png, setPng] = useState("");
@@ -30,6 +34,22 @@ export default function LabelTemplate({
 
   const ml = Number(vialMl) || 3;
   const spec = labelSpecForVialMl(ml);
+  const resolvedQr = useMemo(
+    () =>
+      blank
+        ? SITE_QR_URL
+        : resolveCoaQrPayload({
+            productId,
+            coaUrl,
+            fallback: qrPayload || SITE_QR_URL,
+          }),
+    [blank, productId, coaUrl, qrPayload]
+  );
+  const qrIsCoa = Boolean(
+    !blank &&
+      resolvedQr &&
+      !/^https?:\/\/(www\.)?wellpept\.com\/?$/i.test(resolvedQr)
+  );
 
   useEffect(() => {
     let alive = true;
@@ -56,9 +76,9 @@ export default function LabelTemplate({
         size,
         vialMl: ml,
         udMark,
-        qrPayload: SITE_QR_URL,
-        coaUrl: "",
-        forceSiteQr: true,
+        qrPayload: resolvedQr,
+        coaUrl: blank ? "" : resolvedQr,
+        forceSiteQr: false,
         blank,
       });
       setPng(dataUrl);
@@ -77,6 +97,7 @@ export default function LabelTemplate({
     ml,
     udMark,
     blank,
+    resolvedQr,
   ]);
 
   function handleDownload() {
@@ -84,14 +105,18 @@ export default function LabelTemplate({
     const safe = blank
       ? `blank-${ml}ml`
       : (name || "label").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
-    downloadVialPng(png, `undisclosed-label-${safe || "template"}.png`);
+    const mm = `${spec.widthMm}x${spec.heightMm}mm`;
+    downloadVialPng(
+      png,
+      `undisclosed-label-${safe || "template"}-${mm}.png`
+    );
   }
 
   return (
     <div className={`label-template-wrap ${className}`.trim()}>
       <p className="label-template-size meta">
-        {spec.widthMm} × {spec.heightMm} mm · {ml} mL · rounded · QR →
-        wellpept.com
+        {spec.widthMm} × {spec.heightMm} mm · {ml} mL · rounded · QR →{" "}
+        {blank ? "wellpept.com" : qrIsCoa ? "peptide COA" : "wellpept.com"}
       </p>
       <canvas
         ref={canvasRef}

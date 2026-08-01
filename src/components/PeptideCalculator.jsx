@@ -580,7 +580,8 @@ export default function PeptideCalculator({
               </div>
               <p className="meta">
                 {bottleOptionLabel(Number(vialMl) || 3)}. Live on the vial and
-                flat wrap · QR → wellpept.com · download free
+                flat wrap · QR → peptide COA when linked, otherwise wellpept.com
+                · download free
               </p>
               <div className="calc-vial-stage">
                 <GeneratedVial
@@ -599,6 +600,8 @@ export default function PeptideCalculator({
                   catalogTemplate={false}
                   showLabel
                   showDownload={false}
+                  productId={selectedStrength?.defaultOfferId || ""}
+                  coaUrl={selectedStrength?.coaUrl || ""}
                 />
               </div>
               <div className="calc-label-stage">
@@ -617,6 +620,8 @@ export default function PeptideCalculator({
                   )}
                   vialMl={Number(vialMl) || 3}
                   showDownload
+                  productId={selectedStrength?.defaultOfferId || ""}
+                  coaUrl={selectedStrength?.coaUrl || ""}
                 />
               </div>
             </aside>

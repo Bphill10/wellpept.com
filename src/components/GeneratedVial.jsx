@@ -9,8 +9,9 @@ import {
   loadBrandVialCard,
   loadBrandImage,
   loadUdMark,
-  loadKlowVial,
-  loadKlowVialCard,
+  loadBlueVial,
+  loadBlueVialCard,
+  loadUnlabeledVial,
   isKlowCompound,
   KLOW_VIAL_SRC,
   KLOW_VIAL_CARD_SRC,
@@ -25,12 +26,13 @@ if (typeof window !== "undefined") {
   loadBrandImage();
   loadUdMark();
   loadBrandVialCard();
-  loadKlowVialCard();
+  loadBlueVialCard();
+  loadUnlabeledVial();
   // Full plates only when likely needed (detail / calculator)
   if (window.matchMedia("(min-width: 701px)").matches) {
     loadBrandVial();
     loadBrandVial10();
-    loadKlowVial();
+    loadBlueVial();
   }
 }
 
@@ -65,12 +67,11 @@ export default function GeneratedVial({
   const wrapRef = useRef(null);
   const [png, setPng] = useState("");
   const [visible, setVisible] = useState(!catalogTemplate || size === "lg");
-  const isKlow = isKlowCompound(name, form || subtitle);
+  // Always composite via canvas so blank templates get the product name.
+  const isKlow = false;
   const klowSrc =
     size === "lg" ? KLOW_VIAL_SRC : KLOW_VIAL_CARD_SRC;
-  const resolvedMl = catalogTemplate
-    ? 3
-    : resolveVialMl({ form: form || subtitle, vialMl, name });
+  const resolvedMl = resolveVialMl({ form: form || subtitle, vialMl, name });
   const resolvedQr = catalogTemplate
     ? CATALOG_VIAL_TEMPLATE.qrPayload
     : resolveCoaQrPayload({
