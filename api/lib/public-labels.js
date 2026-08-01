@@ -216,7 +216,11 @@ export function formatOrderDecodeAppendix(orderOrLines) {
     ? orderOrLines
     : orderPublicLines(orderOrLines);
   if (!rows.length) return "";
-  const lines = ["Order map (save this — confirms what you ordered):"];
+  const lines = [
+    "Please save this order map. Invoice / card descriptors use WellPept Renew item names. The map below is your confirmation of what you requested after placing this order. Keep it for your records.",
+    "",
+    "Your order map:",
+  ];
   for (const row of rows) {
     const code = row.publicCode || "—";
     const supply = row.supplyLabel || row.name || "item";

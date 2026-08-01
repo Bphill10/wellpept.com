@@ -2667,6 +2667,11 @@ function CartPage({
 
             {Array.isArray(payInvoice.lines) && payInvoice.lines.length > 0 ? (
               <div className="notice" style={{ marginTop: "0.75rem" }}>
+                <strong>After-order confirmation</strong>
+                <p className="meta" style={{ margin: "0.35rem 0 0.5rem" }}>
+                  Invoice and card descriptors use WellPept Renew item names.
+                  Save the map below for your records.
+                </p>
                 <strong>Invoice items</strong>
                 <ul style={{ margin: "0.5rem 0 0", paddingLeft: "1.1rem" }}>
                   {payInvoice.lines.map((line, i) => (
@@ -3169,7 +3174,13 @@ function CartPage({
                     ) : null}
                   </ul>
                   {orderPublicLines(packet).length > 0 ? (
-                    <div style={{ marginTop: "0.75rem" }}>
+                    <div className="notice" style={{ marginTop: "0.75rem" }}>
+                      <strong>After-order confirmation</strong>
+                      <p className="meta" style={{ margin: "0.35rem 0 0.5rem" }}>
+                        Invoice and card descriptors use WellPept Renew item
+                        names. Save the map below — it confirms what you
+                        requested after placing this order.
+                      </p>
                       <strong>Invoice items</strong>
                       <ul style={{ margin: "0.35rem 0 0", paddingLeft: "1.1rem" }}>
                         {orderPublicLines(packet).map((row, i) => (

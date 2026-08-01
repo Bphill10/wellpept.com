@@ -229,21 +229,22 @@ export function formatSupplyLineLabel(line) {
   return `${qty}× ${sku}${name}${strength}`.replace(/\s+/g, " ").trim();
 }
 
-/** Decode appendix for customer email / pay page. */
+/** Post-order caution + decode for the customer’s own confirmation record. */
+export const ORDER_MAP_CAUTION =
+  "Please save this order map. Invoice / card descriptors use WellPept Renew item names. The map below is your confirmation of what you requested after placing this order. Keep it for your records.";
+
+/** Decode appendix for customer email / pay page / post-order confirm. */
 export function formatOrderDecodeAppendix(orderOrLines) {
   const rows = Array.isArray(orderOrLines)
     ? orderOrLines
     : orderPublicLines(orderOrLines);
   if (!rows.length) return "";
-  const lines = [
-    "Order map (save this — confirms what you ordered):",
-  ];
+  const lines = [ORDER_MAP_CAUTION, "", "Your order map:"];
   for (const row of rows) {
     const code = row.publicCode || "—";
     const supply = row.supplyLabel || row.name || "item";
     const strength =
       row.mg != null && Number(row.mg) > 0 ? ` ${row.mg}mg` : "";
-    // Skip identity maps (true skincare)
     if (row.publicLabel === supply || !row.publicLabel) {
       lines.push(`  ${code}  ·  ${supply}${strength}`);
     } else {

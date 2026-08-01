@@ -535,12 +535,8 @@ export function formatOrderPacketText(packet) {
     lines.push("");
   }
 
-  const decode = formatOrderDecodeAppendix(packet);
-  if (decode) {
-    lines.push("── DECODE (customer invoice ↔ supply) ──");
-    lines.push(decode);
-    lines.push("");
-  }
+  // Do not attach a formal invoice↔peptide decode map here (ops email).
+  // Customer gets that acknowledgment after order / on pay for their records.
 
   lines.push(packet.notes);
   if (packet.payment?.paymentIntentId) {
@@ -955,7 +951,7 @@ export function formatCustomerDecisionEmail(order, { payUrl = "", payText = "" }
 
   const decode = formatOrderDecodeAppendix(order);
   if (decode) {
-    lines.push("", decode);
+    lines.push("", "── After-order confirmation (please save) ──", decode);
   }
 
   lines.push(

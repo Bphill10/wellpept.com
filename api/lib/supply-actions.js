@@ -407,7 +407,9 @@ export function formatCustomerDecisionEmail(order, { payUrl = "", payText = "" }
   if (comment) lines.push("", comment);
 
   const decode = formatOrderDecodeAppendix(order);
-  if (decode) lines.push("", decode);
+  if (decode) {
+    lines.push("", "── After-order confirmation (please save) ──", decode);
+  }
 
   lines.push(
     "",
