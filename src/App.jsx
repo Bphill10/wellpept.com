@@ -100,6 +100,7 @@ import PeptideCalculator, {
 import GeneratedVial from "./components/GeneratedVial";
 import SkincareHome from "./components/SkincareHome";
 import SellOnWellpept from "./components/SellOnWellpept";
+import PartnerMarketplaceSection from "./components/PartnerMarketplaceSection";
 import {
   UNDISCLOSED_LEGAL,
   WELLPEPT_COSMETIC_LEGAL,
@@ -225,8 +226,16 @@ export default function App() {
   const [accessoryMarket, setAccessoryMarket] = useState(() =>
     loadAccessoryMarketplace()
   );
-  const approvedAccessoryListings = useMemo(
-    () => getApprovedAccessoryListings(accessoryMarket),
+  const wellpeptMarketplaceListings = useMemo(
+    () =>
+      getApprovedAccessoryListings(accessoryMarket, { channel: "wellpept" }),
+    [accessoryMarket]
+  );
+  const undisclosedMarketplaceListings = useMemo(
+    () =>
+      getApprovedAccessoryListings(accessoryMarket, {
+        channel: "undisclosed",
+      }),
     [accessoryMarket]
   );
 
@@ -555,6 +564,11 @@ export default function App() {
       product.kind === "mini" ||
       product.accessory ||
       product.marketplace;
+    const forUndisclosed =
+      product.channel === "undisclosed" ||
+      (Array.isArray(product.channels) &&
+        product.channels.includes("undisclosed") &&
+        !product.channels.includes("wellpept"));
     const shipMode =
       product.shipMode ||
       (Array.isArray(product.shipModes) ? product.shipModes[0] : null) ||
@@ -574,6 +588,7 @@ export default function App() {
     const cartId = isAccessory
       ? `${product.id}-${shipMode}`
       : product.id;
+    const isSkinLine = !forUndisclosed;
     addToCart({
       id: cartId,
       name: product.name,
@@ -582,10 +597,12 @@ export default function App() {
       mg: 0,
       unit: "",
       unitLabel: product.size,
-      vendor: "WellPept",
+      vendor: forUndisclosed ? "Undisclosed Partner" : "WellPept",
       vendorId: shipOpt
         ? `wellpept-mkt-${shipMode}`
-        : "wellpept-skin",
+        : forUndisclosed
+          ? "undisclosed-mkt"
+          : "wellpept-skin",
       shippingFlat: shipOpt ? shipOpt.shippingFlat : 8,
       minOrder: 0,
       shippingNote: shipOpt
@@ -596,25 +613,28 @@ export default function App() {
         product.kind === "mix"
           ? "Renew"
           : isAccessory
-            ? "Accessories"
+            ? forUndisclosed
+              ? "Partner"
+              : "Accessories"
             : "Skincare",
-      skin: true,
+      skin: isSkinLine,
       mix: product.kind === "mix",
       accessory: isAccessory,
       shipMode: shipOpt ? shipMode : undefined,
       marketplaceVendorId: product.marketplaceVendorId || "",
       image: product.image || "",
       ships: shipOpt ? shipOpt.ships : "2-3 weeks delivery",
-      legalNote:
-        product.kind === "mix" ||
-        product.kind === "ready" ||
-        isAccessory
+      legalNote: forUndisclosed
+        ? "For research use only. Not for human consumption."
+        : product.kind === "mix" ||
+            product.kind === "ready" ||
+            isAccessory
           ? "Cosmetic skincare only. Not for injection or medical use."
           : undefined,
       ...resolvePublicLabels({
         name: product.name,
         sku: String(product.id).toUpperCase().slice(0, 48),
-        skin: true,
+        skin: isSkinLine,
         kind: product.kind,
       }),
     });
@@ -1422,6 +1442,19 @@ export default function App() {
                 type="button"
                 className="ghost-btn"
                 onClick={() => {
+                  setView(VIEWS.sell);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+              >
+                <Store size={16} />
+                <span>Sell</span>
+              </button>
+            )}
+            {labVisible && (
+              <button
+                type="button"
+                className="ghost-btn"
+                onClick={() => {
                   setCalcInitial(null);
                   setView(VIEWS.calculator);
                 }}
@@ -1544,14 +1577,15 @@ export default function App() {
               setView(VIEWS.sell);
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            marketplaceListings={approvedAccessoryListings}
+            marketplaceListings={wellpeptMarketplaceListings}
           />
         )}
 
         {view === VIEWS.sell && (
           <SellOnWellpept
+            labMode={labVisible}
             onBack={() => {
-              setView(VIEWS.skincare);
+              setView(labVisible ? VIEWS.shop : VIEWS.skincare);
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
             onSubmit={handleAccessoryVendorApply}
@@ -1738,16 +1772,30 @@ export default function App() {
                   >
                     Shop featured
                   </button>
-                  <button
-                    type="button"
-                    className="soft-btn"
-                    onClick={() => {
-                      setCalcInitial(null);
-                      setView(VIEWS.calculator);
-                    }}
-                  >
-                    Calculator
-                  </button>
+              <button
+                type="button"
+                className="soft-btn"
+                onClick={() => {
+                  setView(VIEWS.shop);
+                  window.setTimeout(() => {
+                    document
+                      .getElementById("partner-listings")
+                      ?.scrollIntoView({ behavior: "smooth" });
+                  }, 40);
+                }}
+              >
+                Partner listings
+              </button>
+              <button
+                type="button"
+                className="soft-btn"
+                onClick={() => {
+                  setCalcInitial(null);
+                  setView(VIEWS.calculator);
+                }}
+              >
+                Calculator
+              </button>
                 </div>
               </div>
             </section>
@@ -1948,6 +1996,15 @@ export default function App() {
                 )}
               </div>
             </section>
+
+            <PartnerMarketplaceSection
+              listings={undisclosedMarketplaceListings}
+              onAddToCart={addSkincareToCart}
+              onSell={() => {
+                setView(VIEWS.sell);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            />
           </>
         )}
 
@@ -4785,16 +4842,18 @@ function AdminPanel({
             </div>
           </div>
 
-          <h2>Marketplace (accessories)</h2>
+          <h2>Marketplace (partners)</h2>
           <p className="meta" style={{ marginBottom: "0.75rem" }}>
-            Public Sell on WellPept applications. Approved listings appear on the
-            Renew Accessories section (Economy / Fast ship options).
+            Public Sell applications for WellPept Renew and/or Undisclosed.
+            Approved WellPept → Accessories. Approved Undisclosed → Partner
+            listings. Economy / Fast ship options.
           </p>
           <div className="table-wrap" style={{ marginBottom: "1rem" }}>
             <table>
               <thead>
                 <tr>
                   <th>Vendor</th>
+                  <th>Sites</th>
                   <th>Notes</th>
                   <th>Submitted</th>
                   <th>Actions</th>
@@ -4803,7 +4862,7 @@ function AdminPanel({
               <tbody>
                 {pendingAccVendors.length === 0 ? (
                   <tr>
-                    <td colSpan={4}>No accessory vendors waiting.</td>
+                    <td colSpan={5}>No partner vendors waiting.</td>
                   </tr>
                 ) : (
                   pendingAccVendors.map((v) => (
@@ -4814,6 +4873,9 @@ function AdminPanel({
                         {v.company ? (
                           <div className="meta">{v.company}</div>
                         ) : null}
+                      </td>
+                      <td className="meta">
+                        {(v.channels || ["wellpept"]).join(", ")}
                       </td>
                       <td className="meta">{v.notes || "—"}</td>
                       <td className="meta">
@@ -4849,6 +4911,7 @@ function AdminPanel({
                 <tr>
                   <th>Listing</th>
                   <th>Vendor</th>
+                  <th>Sites</th>
                   <th>Ship</th>
                   <th>Actions</th>
                 </tr>
@@ -4856,7 +4919,7 @@ function AdminPanel({
               <tbody>
                 {pendingAccListings.length === 0 ? (
                   <tr>
-                    <td colSpan={4}>No accessory listings waiting.</td>
+                    <td colSpan={5}>No partner listings waiting.</td>
                   </tr>
                 ) : (
                   pendingAccListings.map((l) => (
@@ -4868,6 +4931,9 @@ function AdminPanel({
                         </div>
                       </td>
                       <td className="meta">{accVendorName(l.vendorId)}</td>
+                      <td className="meta">
+                        {(l.channels || ["wellpept"]).join(", ")}
+                      </td>
                       <td className="meta">
                         {(l.shipModes || []).join(", ") || "economy"}
                       </td>

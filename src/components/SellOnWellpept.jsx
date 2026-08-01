@@ -1,24 +1,33 @@
 import React, { useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import { ACCESSORY_SHIP_OPTIONS } from "../data/accessoryMarketplace";
-import { PEPTIDE_LEGAL } from "../data/skincare";
+import {
+  ACCESSORY_SHIP_OPTIONS,
+  MARKET_CHANNELS,
+} from "../data/accessoryMarketplace";
+import { siteLegal } from "../data/siteLegal";
 
 /**
- * Public “Sell on WellPept” — accessories marketplace application.
- * Vendors list tools / travel minis; you approve in Admin.
+ * Public sell application — list on WellPept Renew and/or Undisclosed.
  */
-export default function SellOnWellpept({ onBack, onSubmit }) {
+export default function SellOnWellpept({
+  onBack,
+  onSubmit,
+  labMode = false,
+}) {
+  const legal = siteLegal(labMode);
   const [form, setForm] = useState({
     name: "",
     email: "",
     company: "",
     notes: "",
+    channelWellpept: !labMode,
+    channelUndisclosed: labMode,
     productName: "",
     productPrice: "",
     productSize: "",
     productBlurb: "",
     productImage: "",
-    productKind: "tool",
+    productKind: labMode ? "research" : "tool",
     shipEconomy: true,
     shipFast: false,
   });
@@ -36,6 +45,14 @@ export default function SellOnWellpept({ onBack, onSubmit }) {
     setBusy(true);
     setMsg("");
     try {
+      const channels = [];
+      if (form.channelWellpept) channels.push("wellpept");
+      if (form.channelUndisclosed) channels.push("undisclosed");
+      if (!channels.length) {
+        setMsg("Pick at least one site: WellPept Renew and/or Undisclosed.");
+        setBusy(false);
+        return;
+      }
       const shipModes = [];
       if (form.shipEconomy) shipModes.push("economy");
       if (form.shipFast) shipModes.push("fast");
@@ -44,6 +61,23 @@ export default function SellOnWellpept({ onBack, onSubmit }) {
         setBusy(false);
         return;
       }
+      if (
+        form.productKind === "research" &&
+        !channels.includes("undisclosed")
+      ) {
+        setMsg("Research listings require the Undisclosed site.");
+        setBusy(false);
+        return;
+      }
+      if (
+        (form.productKind === "tool" || form.productKind === "mini") &&
+        channels.length === 1 &&
+        channels[0] === "undisclosed" &&
+        form.productKind === "mini"
+      ) {
+        // minis ok on undisclosed as partner tools too
+      }
+
       const product =
         form.productName.trim() && Number(form.productPrice) > 0
           ? {
@@ -62,6 +96,7 @@ export default function SellOnWellpept({ onBack, onSubmit }) {
         email: form.email.trim(),
         company: form.company.trim(),
         notes: form.notes.trim(),
+        channels,
         product,
       });
       if (result?.ok === false) {
@@ -80,24 +115,25 @@ export default function SellOnWellpept({ onBack, onSubmit }) {
     <section className="panel-page fade">
       <div className="container">
         <button type="button" className="ghost-btn" onClick={onBack}>
-          <ArrowLeft size={16} /> Back to WellPept
+          <ArrowLeft size={16} />{" "}
+          {labMode ? "Back to Undisclosed" : "Back to WellPept"}
         </button>
 
         <div className="panel" style={{ marginTop: "1rem" }}>
           <p className="section-kicker">Partners</p>
-          <h1>Sell on WellPept</h1>
+          <h1>Sell on {labMode ? "Undisclosed" : "WellPept"}</h1>
           <p className="lede">
-            List cosmetic accessories and travel minis on the Renew storefront.
-            You fulfill orders (China economy and/or US fast). We approve listings —
-            no Amazon-scale spend required.
+            List products for customers to buy on our storefronts. You fulfill
+            (China economy and/or US fast). We approve listings — pick one site
+            or both.
           </p>
 
           {done ? (
             <div className="notice ok" style={{ marginTop: "1rem" }}>
               <strong>Application received</strong>
               <p style={{ margin: "0.5rem 0 0" }}>
-                We’ll review and email you at the address you provided. Approved
-                products appear under Accessories on the main page.
+                We’ll review and email you. Approved WellPept listings appear
+                under Accessories; Undisclosed listings under Partner listings.
               </p>
               <button
                 type="button"
@@ -138,7 +174,7 @@ export default function SellOnWellpept({ onBack, onSubmit }) {
                 />
               </label>
               <label className="field">
-                Notes for WellPept
+                Notes for us
                 <textarea
                   rows={2}
                   value={form.notes}
@@ -147,13 +183,35 @@ export default function SellOnWellpept({ onBack, onSubmit }) {
                 />
               </label>
 
+              <h2 style={{ marginTop: "1.25rem" }}>Sell on which site?</h2>
+              <label className="consent-check">
+                <input
+                  type="checkbox"
+                  checked={form.channelWellpept}
+                  onChange={(e) => patch("channelWellpept", e.target.checked)}
+                />
+                <span>
+                  {MARKET_CHANNELS.wellpept.label} —{" "}
+                  {MARKET_CHANNELS.wellpept.blurb}
+                </span>
+              </label>
+              <label className="consent-check">
+                <input
+                  type="checkbox"
+                  checked={form.channelUndisclosed}
+                  onChange={(e) =>
+                    patch("channelUndisclosed", e.target.checked)
+                  }
+                />
+                <span>
+                  {MARKET_CHANNELS.undisclosed.label} —{" "}
+                  {MARKET_CHANNELS.undisclosed.blurb}
+                </span>
+              </label>
+
               <h2 style={{ marginTop: "1.5rem" }}>
                 First product <span className="meta">(optional)</span>
               </h2>
-              <p className="meta">
-                Tools, empty packaging, or filled cosmetic travel minis only —
-                not injectables or research chemicals.
-              </p>
               <div className="form-row">
                 <label className="field">
                   Product name
@@ -164,7 +222,7 @@ export default function SellOnWellpept({ onBack, onSubmit }) {
                   />
                 </label>
                 <label className="field">
-                  Your price to customer (USD)
+                  Price to customer (USD)
                   <input
                     type="number"
                     min="1"
@@ -181,7 +239,7 @@ export default function SellOnWellpept({ onBack, onSubmit }) {
                   <input
                     value={form.productSize}
                     onChange={(e) => patch("productSize", e.target.value)}
-                    placeholder="Set of 3 · 15 mL"
+                    placeholder="Set of 3 · 10 mg kit"
                   />
                 </label>
                 <label className="field">
@@ -191,7 +249,10 @@ export default function SellOnWellpept({ onBack, onSubmit }) {
                     onChange={(e) => patch("productKind", e.target.value)}
                   >
                     <option value="tool">Tool / packaging</option>
-                    <option value="mini">Filled travel mini</option>
+                    <option value="mini">Filled travel mini (cosmetic)</option>
+                    <option value="research">
+                      Research supply (Undisclosed only)
+                    </option>
                   </select>
                 </label>
               </div>
@@ -240,11 +301,12 @@ export default function SellOnWellpept({ onBack, onSubmit }) {
 
               <div className="sk-legal-box" style={{ marginTop: "1rem" }}>
                 <p className="sk-legal-title">Listing rules</p>
-                <p className="meta">{PEPTIDE_LEGAL.short}</p>
+                <p className="meta">{legal.short}</p>
                 <p className="meta" style={{ marginTop: "0.35rem" }}>
-                  By applying you confirm products are lawful cosmetic /
-                  accessory goods for the US, you will fulfill approved orders,
-                  and WellPept may reject any listing.
+                  WellPept listings must be lawful cosmetics / accessories.
+                  Undisclosed listings are research-use only — not for human
+                  consumption. You fulfill approved orders; we may reject any
+                  listing.
                 </p>
               </div>
 

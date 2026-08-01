@@ -600,13 +600,13 @@ export async function notifyOrderRequest(packet) {
   }
 }
 
-/** Ops alert when a vendor applies to sell accessories on WellPept. */
+/** Ops alert when a vendor applies to sell on WellPept / Undisclosed marketplace. */
 export async function notifyAccessoryVendorApply({ vendor, listing }) {
   const { formatAccessoryApplyText } = await import(
     "../data/accessoryMarketplace"
   );
   const body = formatAccessoryApplyText({ vendor, listing });
-  const subject = `WellPept Sell application: ${vendor?.name || "vendor"}`;
+  const subject = `Partner Sell application: ${vendor?.name || "vendor"}`;
 
   try {
     const { fetchEmailConfig, sendTransactionalEmail, openMailto } = await import(

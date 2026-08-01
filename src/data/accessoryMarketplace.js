@@ -1,11 +1,27 @@
 /**
- * Public accessories marketplace — vendors apply to list on WellPept Renew.
- * Separate from Undisclosed peptide vendors (wellpept-marketplace-v31).
+ * Partner marketplace — vendors apply to list on WellPept and/or Undisclosed.
+ * Separate from Undisclosed peptide supply vendors (wellpept-marketplace-v31).
  */
 
-import { WELLPEPT_COSMETIC_LEGAL as PEPTIDE_LEGAL } from "./siteLegal";
+import {
+  WELLPEPT_COSMETIC_LEGAL as PEPTIDE_LEGAL,
+  UNDISCLOSED_LEGAL,
+} from "./siteLegal";
 
 const STORAGE_KEY = "wellpept-accessory-marketplace-v1";
+
+export const MARKET_CHANNELS = {
+  wellpept: {
+    id: "wellpept",
+    label: "WellPept Renew",
+    blurb: "Main site · cosmetic accessories & travel minis only",
+  },
+  undisclosed: {
+    id: "undisclosed",
+    label: "Undisclosed",
+    blurb: "Lab catalog · research-use tools / supplies (not for human use)",
+  },
+};
 
 export const ACCESSORY_SHIP_OPTIONS = {
   economy: {
@@ -59,45 +75,16 @@ export function saveAccessoryMarketplace(next) {
   return payload;
 }
 
-export function getApprovedAccessoryListings(
-  market = loadAccessoryMarketplace()
-) {
-  const approvedVendors = new Set(
-    (market.vendors || [])
-      .filter((v) => v.status === "approved")
-      .map((v) => v.id)
-  );
-  return (market.listings || [])
-    .filter(
-      (l) => l.status === "approved" && approvedVendors.has(l.vendorId)
-    )
-    .map(listingToStoreProduct);
-}
-
-/** Normalize a marketplace listing (or seed accessory) for ProductCard / cart. */
-export function listingToStoreProduct(listing) {
-  const modes = normalizeShipModes(listing.shipModes || listing.shipMode);
-  const primary = modes[0] || "economy";
-  const ship = ACCESSORY_SHIP_OPTIONS[primary];
-  return {
-    id: listing.id,
-    name: listing.name,
-    line: listing.line || (listing.kind === "mini" ? "Mini" : "Tools"),
-    kind: listing.kind === "mini" ? "mini" : "tool",
-    price: Number(listing.price) || 0,
-    size: listing.size || "",
-    image: listing.image || "",
-    blurb: listing.blurb || "",
-    focus: listing.focus || "",
-    legal: PEPTIDE_LEGAL,
-    shipModes: modes,
-    shipMode: primary,
-    ships: ship.ships,
-    shippingFlat: ship.shippingFlat,
-    marketplace: true,
-    marketplaceVendorId: listing.vendorId || "",
-    vendorId: `wellpept-mkt-${primary}`,
-  };
+export function normalizeChannels(input) {
+  const list = Array.isArray(input) ? input : input ? [input] : [];
+  const out = [];
+  for (const c of list) {
+    const id = String(c || "").toLowerCase();
+    if ((id === "wellpept" || id === "undisclosed") && !out.includes(id)) {
+      out.push(id);
+    }
+  }
+  return out.length ? out : ["wellpept"];
 }
 
 export function normalizeShipModes(input) {
@@ -114,31 +101,118 @@ export function normalizeShipModes(input) {
   return out.length ? out : ["economy"];
 }
 
+export function getApprovedAccessoryListings(
+  market = loadAccessoryMarketplace(),
+  { channel = null } = {}
+) {
+  const approvedVendors = new Set(
+    (market.vendors || [])
+      .filter((v) => v.status === "approved")
+      .map((v) => v.id)
+  );
+  return (market.listings || [])
+    .filter((l) => {
+      if (l.status !== "approved" || !approvedVendors.has(l.vendorId)) {
+        return false;
+      }
+      if (!channel) return true;
+      const channels = normalizeChannels(l.channels || l.channel);
+      return channels.includes(channel);
+    })
+    .map((l) => listingToStoreProduct(l, { channel }));
+}
+
+/** Normalize a marketplace listing for ProductCard / cart. */
+export function listingToStoreProduct(listing, { channel = null } = {}) {
+  const modes = normalizeShipModes(listing.shipModes || listing.shipMode);
+  const primary = modes[0] || "economy";
+  const ship = ACCESSORY_SHIP_OPTIONS[primary];
+  const channels = normalizeChannels(listing.channels || listing.channel);
+  const forUndisclosed =
+    channel === "undisclosed" ||
+    (!channel && channels.includes("undisclosed") && !channels.includes("wellpept"));
+  const kind =
+    listing.kind === "mini"
+      ? "mini"
+      : listing.kind === "research"
+        ? "research"
+        : "tool";
+  const line =
+    listing.line ||
+    (kind === "mini" ? "Mini" : kind === "research" ? "Partner" : "Tools");
+
+  return {
+    id: listing.id,
+    name: listing.name,
+    line,
+    kind: kind === "research" ? "tool" : kind,
+    listingKind: kind,
+    price: Number(listing.price) || 0,
+    size: listing.size || "",
+    image: listing.image || "",
+    blurb: listing.blurb || "",
+    focus: listing.focus || "",
+    legal: forUndisclosed ? UNDISCLOSED_LEGAL : PEPTIDE_LEGAL,
+    shipModes: modes,
+    shipMode: primary,
+    ships: ship.ships,
+    shippingFlat: ship.shippingFlat,
+    marketplace: true,
+    marketplaceVendorId: listing.vendorId || "",
+    channels,
+    channel: forUndisclosed ? "undisclosed" : "wellpept",
+    vendorId: `wellpept-mkt-${primary}`,
+  };
+}
+
 export function applyAccessoryVendor({
   name,
   email,
   company = "",
   notes = "",
+  channels = ["wellpept"],
   product = null,
 }) {
   const market = loadAccessoryMarketplace();
   const vendorId = uid("av");
+  const channelList = normalizeChannels(channels);
   const vendor = {
     id: vendorId,
     name: String(name || "").trim(),
     email: String(email || "").trim().toLowerCase(),
     company: String(company || "").trim(),
     notes: String(notes || "").trim(),
+    channels: channelList,
     status: "pending",
     createdAt: new Date().toISOString(),
   };
   if (!vendor.name || !vendor.email) {
     return { ok: false, error: "Name and email are required." };
   }
+  if (!channelList.length) {
+    return { ok: false, error: "Pick at least one site to sell on." };
+  }
 
   const listings = [...market.listings];
   let listing = null;
   if (product?.name && Number(product.price) > 0) {
+    const kind =
+      product.kind === "mini"
+        ? "mini"
+        : product.kind === "research"
+          ? "research"
+          : "tool";
+    // Cosmetic minis/tools only on WellPept; research kind only for Undisclosed
+    let listingChannels = channelList;
+    if (kind === "research") {
+      listingChannels = channelList.filter((c) => c === "undisclosed");
+      if (!listingChannels.length) {
+        return {
+          ok: false,
+          error: "Research listings can only sell on Undisclosed.",
+        };
+      }
+    }
     listing = {
       id: uid("al"),
       vendorId,
@@ -147,10 +221,12 @@ export function applyAccessoryVendor({
       price: Number(product.price),
       size: String(product.size || "").trim(),
       image: String(product.image || "").trim(),
-      kind: product.kind === "mini" ? "mini" : "tool",
-      line: product.kind === "mini" ? "Mini" : "Tools",
+      kind,
+      line:
+        kind === "mini" ? "Mini" : kind === "research" ? "Partner" : "Tools",
       focus: String(product.focus || "").trim(),
       shipModes: normalizeShipModes(product.shipModes),
+      channels: listingChannels,
       status: "pending",
       submittedAt: new Date().toISOString(),
       reviewedAt: null,
@@ -202,17 +278,22 @@ export function setAccessoryListingStatus(listingId, status) {
 
 export function formatAccessoryApplyText({ vendor, listing }) {
   const lines = [
-    "WELLPEPT SELL APPLICATION (accessories marketplace)",
+    "WELLPEPT / UNDISCLOSED SELL APPLICATION (partner marketplace)",
     `Vendor: ${vendor.name} <${vendor.email}>`,
   ];
   if (vendor.company) lines.push(`Company: ${vendor.company}`);
   if (vendor.notes) lines.push(`Notes: ${vendor.notes}`);
-  lines.push(`Vendor ID: ${vendor.id}`, `Status: ${vendor.status}`, "");
+  lines.push(
+    `Sites: ${(vendor.channels || ["wellpept"]).join(", ")}`,
+    `Vendor ID: ${vendor.id}`,
+    `Status: ${vendor.status}`,
+    ""
+  );
   if (listing) {
     lines.push(
       "First listing:",
       `  ${listing.name} · $${Number(listing.price).toFixed(2)} · ${listing.size || "—"}`,
-      `  Kind: ${listing.kind} · Ship: ${(listing.shipModes || []).join(", ")}`,
+      `  Kind: ${listing.kind} · Sites: ${(listing.channels || []).join(", ")} · Ship: ${(listing.shipModes || []).join(", ")}`,
       `  ${listing.blurb || ""}`,
       `  Listing ID: ${listing.id}`
     );
@@ -221,8 +302,8 @@ export function formatAccessoryApplyText({ vendor, listing }) {
   }
   lines.push(
     "",
-    "Approve in Undisclosed Admin → Marketplace (accessories).",
-    "Approved listings appear on WellPept → Accessories."
+    "Approve in Undisclosed Admin → Marketplace (partners).",
+    "WellPept channel → Accessories. Undisclosed channel → Partner listings."
   );
   return lines.join("\n");
 }
