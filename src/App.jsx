@@ -1228,13 +1228,25 @@ export default function App() {
     setOrders(saveOrder(packet));
     setCart([]);
     if (notify && !payment) {
-      await notifyOrderRequest(packet);
+      const notifyResult = await notifyOrderRequest(packet);
+      if (notifyResult?.warning) {
+        setFlash(notifyResult.warning);
+      } else if (notifyResult?.via === "resend") {
+        setFlash(
+          `Request ${packet.orderId} sent · we’ll confirm supply within 24 hours`
+        );
+      } else {
+        setFlash(
+          `Request ${packet.orderId} drafted in your email app · send it, then use Yes/No links`
+        );
+      }
+    } else {
+      setFlash(
+        payment
+          ? `Payment received · order ${packet.orderId}`
+          : `Request ${packet.orderId} sent · we’ll confirm supply within 24 hours`
+      );
     }
-    setFlash(
-      payment
-        ? `Payment received · order ${packet.orderId}`
-        : `Request ${packet.orderId} sent · we’ll confirm supply within 24 hours`
-    );
     return packet;
   }
 
@@ -1822,11 +1834,13 @@ export default function App() {
                   </div>
                   <div className="featured-vendor-visual">
                     <img
-                      src="/undisclosed-vial.webp"
-                      alt="Undisclosed labeled research vial"
+                      src="/undisclosed-hero-kit-sm.webp"
+                      srcSet="/undisclosed-hero-kit-sm.webp 800w, /undisclosed-hero-kit.webp 1200w"
+                      sizes="(max-width: 700px) 100vw, 42vw"
+                      alt="Undisclosed KLOW 80 MG research kit"
                       className="featured-product-photo"
                       width={800}
-                      height={1000}
+                      height={534}
                       decoding="async"
                       loading="lazy"
                       fetchPriority="low"

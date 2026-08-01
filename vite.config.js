@@ -42,6 +42,7 @@ function attachApi(server, env) {
     "/api/email-config": "email-config.js",
     "/api/send-email": "send-email.js",
     "/api/supply-decide": "supply-decide.js",
+    "/api/supply-action-urls": "supply-action-urls.js",
   };
 
   server.middlewares.use(async (req, res, next) => {

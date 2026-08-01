@@ -551,14 +551,67 @@ export function formatOrderPacketText(packet) {
   return lines.join("\n");
 }
 
-  /** Notify ops at info@wellpept.com. Resend when configured, else mailto. */
+  /** Prefer live site for signed Yes/No links (mailto / phone taps). */
+function resolveActionOrigin() {
+  const env = String(import.meta.env.VITE_SITE_URL || "")
+    .trim()
+    .replace(/\/$/, "");
+  if (env && !/localhost|127\.0\.0\.1/i.test(env)) return env;
+  try {
+    const o = String(window.location?.origin || "").replace(/\/$/, "");
+    if (o && !/localhost|127\.0\.0\.1|\.vercel\.app$/i.test(o)) return o;
+  } catch {
+    /* ignore */
+  }
+  return "https://www.wellpept.com";
+}
+
+async function fetchSupplyActionUrls(order) {
+  try {
+    const res = await fetch("/api/supply-action-urls", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        order,
+        siteOrigin: resolveActionOrigin(),
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data?.yesUrl || !data?.noUrl) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function appendSupplyActions(body, urls) {
+  if (!urls?.yesUrl) return body;
+  return [
+    body,
+    "",
+    "── ONE-TAP SUPPLY ACTIONS ──",
+    "YES · confirm all & email pay link:",
+    urls.yesUrl,
+    "",
+    "NO · decline & notify customer:",
+    urls.noUrl,
+    "",
+    urls.adminUrl ? `Admin (partial / edit): ${urls.adminUrl}` : "",
+    "",
+  ]
+    .filter((line, i, arr) => !(line === "" && arr[i - 1] === ""))
+    .join("\n");
+}
+
+/** Notify ops at info@wellpept.com. Resend when configured, else mailto. */
 export async function notifyOrderRequest(packet) {
-  const body = formatOrderPacketText(packet);
+  const baseBody = formatOrderPacketText(packet);
   const subject = `WellPept order request ${packet.orderId}: supply check`;
-  const siteOrigin =
-    typeof window !== "undefined" && window.location?.origin
-      ? window.location.origin
-      : "";
+  const siteOrigin = resolveActionOrigin();
+
+  // Always try to mint Yes/No links (works for Resend + mailto).
+  const actionUrls = await fetchSupplyActionUrls(packet);
+  const bodyWithActions = appendSupplyActions(baseBody, actionUrls);
 
   try {
     const { fetchEmailConfig, sendTransactionalEmail, openMailto } = await import(
@@ -569,31 +622,47 @@ export async function notifyOrderRequest(packet) {
       await sendTransactionalEmail({
         type: "order_request",
         subject,
-        text: body,
+        text: baseBody,
         replyTo: packet?.customer?.email || undefined,
         order: packet,
-        siteOrigin:
-          siteOrigin ||
-          String(import.meta.env.VITE_SITE_URL || "").replace(/\/$/, "") ||
-          "https://www.wellpept.com",
+        siteOrigin,
       });
-      return { ok: true, via: "resend" };
+      return {
+        ok: true,
+        via: "resend",
+        hasActions: Boolean(actionUrls?.yesUrl),
+      };
     }
     const mailto = openMailto({
       to: ORDER_NOTIFY_EMAIL,
       subject,
-      body,
+      body: bodyWithActions,
     });
-    return { ok: true, via: "mailto", mailto };
+    return {
+      ok: true,
+      via: "mailto",
+      mailto,
+      hasActions: Boolean(actionUrls?.yesUrl),
+      warning:
+        "Resend email is off — opened your mail app. Use the Yes/No links in the draft (or turn on RESEND_API_KEY).",
+    };
   } catch (err) {
     try {
       const { openMailto } = await import("./emailClient");
       const mailto = openMailto({
         to: ORDER_NOTIFY_EMAIL,
         subject,
-        body,
+        body: bodyWithActions,
       });
-      return { ok: false, via: "mailto", mailto, error: err?.message };
+      return {
+        ok: false,
+        via: "mailto",
+        mailto,
+        hasActions: Boolean(actionUrls?.yesUrl),
+        error: err?.message,
+        warning:
+          "Could not send via Resend — opened your mail app with Yes/No links in the body.",
+      };
     } catch {
       return { ok: false, error: err?.message || "notify failed" };
     }

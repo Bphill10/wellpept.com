@@ -154,11 +154,23 @@ export default async function handler(req, res) {
     emailError = "Order has no customer email.";
   } else {
     try {
+      let html = textToHtml(text);
+      if (payUrl && /^https?:\/\//i.test(payUrl)) {
+        html = `
+          <div style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.5;color:#111;">
+            <p><a href="${escapeHtml(payUrl)}"
+               style="display:inline-block;padding:.75rem 1.2rem;background:#111;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;">
+              Pay for your order
+            </a></p>
+          </div>
+          ${html}
+        `;
+      }
       await sendWithResend({
         to,
         subject,
         text,
-        html: textToHtml(text),
+        html,
         replyTo: emailOpsTo(),
       });
       emailed = true;

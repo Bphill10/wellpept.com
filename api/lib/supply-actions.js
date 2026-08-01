@@ -73,6 +73,55 @@ function safeEqual(a, b) {
   return timingSafeEqual(aa, bb);
 }
 
+/** Strip order to fields needed for Yes/No + customer pay email (keeps URLs short). */
+export function compactOrderForToken(order) {
+  if (!order || typeof order !== "object") return order;
+  return {
+    orderId: order.orderId,
+    status: order.status || "awaiting_supply_review",
+    createdAt: order.createdAt || "",
+    customer: {
+      name: order.customer?.name || "",
+      email: order.customer?.email || "",
+      phone: order.customer?.phone || "",
+      userId: order.customer?.userId || "",
+    },
+    shipments: (order.shipments || []).map((ship) => ({
+      warehouseId: ship.warehouseId || "",
+      warehouseLabel: ship.warehouseLabel || ship.vendorLabel || "",
+      shippingFee: Number(ship.shippingFee) || Number(ship.shippingFlat) || 0,
+      shippingFlat: Number(ship.shippingFlat) || 0,
+      shippingFree: Boolean(ship.shippingFree),
+      shipTo: ship.shipTo
+        ? {
+            name: ship.shipTo.name || "",
+            address1: ship.shipTo.address1 || "",
+            address2: ship.shipTo.address2 || "",
+            city: ship.shipTo.city || "",
+            state: ship.shipTo.state || "",
+            zip: ship.shipTo.zip || "",
+          }
+        : undefined,
+      lines: (ship.lines || []).map((line) => ({
+        sku: line.sku || "",
+        name: line.name || "",
+        supplyLabel: line.supplyLabel || line.name || "",
+        publicLabel: line.publicLabel || "",
+        publicCode: line.publicCode || "",
+        mg: line.mg,
+        qty: line.qty,
+        unitPrice: line.unitPrice,
+        lineTotal: line.lineTotal,
+      })),
+    })),
+    totals: order.totals || {},
+    tax: order.tax || null,
+    discount: order.discount || null,
+    notes: order.notes || "",
+    waitConsent: Boolean(order.waitConsent),
+  };
+}
+
 /** Pack order into a compact signed action token (URL-safe). */
 export function makeSupplyToken(order, decision, ttlSec = 60 * 60 * 24 * 14) {
   const exp = Math.floor(Date.now() / 1000) + ttlSec;
@@ -80,7 +129,7 @@ export function makeSupplyToken(order, decision, ttlSec = 60 * 60 * 24 * 14) {
     v: 1,
     d: decision === "no" ? "no" : "yes",
     exp,
-    order,
+    order: compactOrderForToken(order),
   };
   const payload = b64url(deflateSync(Buffer.from(JSON.stringify(body), "utf8")));
   const sig = signRaw(`${payload}.${body.d}.${exp}`);

@@ -34,9 +34,17 @@ async function sendOrderRequest(body) {
   }
 
   const order = body.order && typeof body.order === "object" ? body.order : null;
-  const origin = String(body.siteOrigin || process.env.VITE_SITE_URL || "")
+  // Always use production site for Yes/No links so Gmail taps work
+  // (localhost / preview origins break phone clicks).
+  let origin = String(body.siteOrigin || process.env.VITE_SITE_URL || "")
     .trim()
     .replace(/\/$/, "");
+  if (
+    !origin ||
+    /localhost|127\.0\.0\.1|\.vercel\.app$/i.test(origin.replace(/^https?:\/\//, ""))
+  ) {
+    origin = "https://www.wellpept.com";
+  }
 
   let actionHtml = "";
   let actionText = "";
