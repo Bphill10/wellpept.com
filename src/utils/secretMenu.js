@@ -69,7 +69,9 @@ export function labUnlockFromUrl(search = "", hash = "", pathname = "") {
   return false;
 }
 
-/** Keep /undisclosed in the bar when unlocked; strip one-time query/hash unlocks. */
+/** Strip one-time query/hash unlocks. Do not rewrite `/` → `/undisclosed`
+ *  (that made every refresh land on Undisclosed). Intentional visits to
+ *  `/undisclosed` keep that path. */
 export function cleanLabUnlockUrl({ promotePath = false } = {}) {
   try {
     const url = new URL(window.location.href);
@@ -79,6 +81,7 @@ export function cleanLabUnlockUrl({ promotePath = false } = {}) {
     if (LAB_GATE_CODES.has(url.hash.replace(/^#/, "").toLowerCase())) {
       url.hash = "";
     }
+    // promotePath kept for rare callers that explicitly want a shareable lab URL.
     if (promotePath && normalizePath(url.pathname) === "/") {
       url.pathname = "/undisclosed";
     }

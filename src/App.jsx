@@ -425,9 +425,10 @@ export default function App() {
     if (!urlWantsLabQuery) return;
     setLabUnlocked(true);
     setLabUnlockedState(true);
-    cleanLabUnlockUrl({ promotePath: true });
+    // Strip ?lab= / #undisclosed but stay on `/` so refresh ≠ Undisclosed.
+    cleanLabUnlockUrl({ promotePath: false });
     setRoutePath(
-      typeof window !== "undefined" ? window.location.pathname : "/undisclosed"
+      typeof window !== "undefined" ? window.location.pathname : "/"
     );
     setFlash("Undisclosed unlocked");
   }, [urlWantsLabQuery]);
@@ -463,10 +464,11 @@ export default function App() {
   function unlockLabMenu(message = "Undisclosed unlocked", { flashMsg = true } = {}) {
     setLabUnlocked(true);
     setLabUnlockedState(true);
-    cleanLabUnlockUrl({ promotePath: true });
-    // replaceState does not fire popstate. keep routePath in sync
+    // Keep current path (usually `/`). Promoting to /undisclosed made every
+    // reload reopen the lab + age gate for anyone who unlocked once.
+    cleanLabUnlockUrl({ promotePath: false });
     setRoutePath(
-      typeof window !== "undefined" ? window.location.pathname : "/undisclosed"
+      typeof window !== "undefined" ? window.location.pathname : "/"
     );
     if (flashMsg && message) setFlash(message);
     setView(VIEWS.shop);
