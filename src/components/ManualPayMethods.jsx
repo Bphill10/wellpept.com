@@ -158,14 +158,15 @@ export default function ManualPayMethods({
         </div>
       )}
 
-      {config.zelleContact && (
+      {(config.zelleContact || config.zelleQrUrl) && (
         <div className="manual-pay-card">
           <h3>Zelle</h3>
           <p className="meta">Send {formatMoney(amount)}</p>
           {config.zelleQrUrl ? (
             <>
               <p className="meta">
-                Scan this code in your bank’s app, or send to the email below.
+                Scan this code in your bank’s app
+                {config.zelleContact ? ", or send to the email below." : "."}
               </p>
               <img
                 src={config.zelleQrUrl}
@@ -176,7 +177,9 @@ export default function ManualPayMethods({
           ) : (
             <p className="meta">Send via Zelle to the email below.</p>
           )}
-          <CopyRow label="Send to" value={config.zelleContact} />
+          {config.zelleContact ? (
+            <CopyRow label="Send to" value={config.zelleContact} />
+          ) : null}
           {config.zelleName ? (
             <p className="meta">Name: {config.zelleName}</p>
           ) : null}

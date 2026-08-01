@@ -86,13 +86,13 @@ export function saveManualPayConfig(patch = {}) {
 }
 
 export function manualPayConfigured(config = loadManualPayConfig()) {
-  // Real destinations only — QR counts for Venmo when explicitly configured
-  // (env/Admin). We no longer default phantom QR paths.
+  // Real destinations only — QR counts for Venmo/Zelle when explicitly configured.
   return Boolean(
     config.venmoHandle ||
       config.venmoCodeUrl ||
       config.venmoQrUrl ||
       config.zelleContact ||
+      config.zelleQrUrl ||
       config.solanaUsdc ||
       config.ethUsdc
   );
