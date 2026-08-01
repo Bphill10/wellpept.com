@@ -42,17 +42,17 @@ export const EMPTY_MANUAL_PAY = {
 };
 
 function envDefaults() {
+  // Only use QR paths when explicitly set — default paths often 404 (or SPA HTML)
+  // and must NOT count as “payment configured.”
+  const venmoQr = String(import.meta.env.VITE_VENMO_QR_URL || "").trim();
+  const zelleQr = String(import.meta.env.VITE_ZELLE_QR_URL || "").trim();
   return {
     venmoHandle: String(import.meta.env.VITE_VENMO_HANDLE || "").replace(/^@/, ""),
     venmoCodeUrl: String(import.meta.env.VITE_VENMO_CODE_URL || "").trim(),
-    venmoQrUrl: String(
-      import.meta.env.VITE_VENMO_QR_URL || "/venmo-qr-display.png"
-    ).trim() || "/venmo-qr-display.png",
+    venmoQrUrl: venmoQr,
     zelleContact: String(import.meta.env.VITE_ZELLE_CONTACT || ""),
     zelleName: String(import.meta.env.VITE_ZELLE_NAME || "WellPept"),
-    zelleQrUrl: String(
-      import.meta.env.VITE_ZELLE_QR_URL || "/zelle-qr.webp"
-    ).trim() || "/zelle-qr.webp",
+    zelleQrUrl: zelleQr,
     solanaUsdc: String(import.meta.env.VITE_CRYPTO_SOLANA_USDC || ""),
     solanaQrUrl: String(import.meta.env.VITE_CRYPTO_SOLANA_QR_URL || "").trim(),
     ethUsdc: String(import.meta.env.VITE_CRYPTO_ETH_USDC || ""),
@@ -86,6 +86,8 @@ export function saveManualPayConfig(patch = {}) {
 }
 
 export function manualPayConfigured(config = loadManualPayConfig()) {
+  // Real destinations only — QR counts for Venmo when explicitly configured
+  // (env/Admin). We no longer default phantom QR paths.
   return Boolean(
     config.venmoHandle ||
       config.venmoCodeUrl ||
@@ -97,7 +99,9 @@ export function manualPayConfigured(config = loadManualPayConfig()) {
 }
 
 export function hasVenmo(config = loadManualPayConfig()) {
-  return Boolean(config.venmoCodeUrl || config.venmoHandle || config.venmoQrUrl);
+  return Boolean(
+    config.venmoCodeUrl || config.venmoHandle || config.venmoQrUrl
+  );
 }
 
 /** Username-style Venmo deep link. */

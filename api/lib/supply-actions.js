@@ -309,6 +309,18 @@ export function applySupplyDecision(
 
 export function buildStripePayUrl(order, origin) {
   if (!order?.orderId) return "";
+  const lines = [];
+  for (const ship of order.shipments || []) {
+    for (const line of ship.lines || []) {
+      lines.push({
+        q: line.qty,
+        p: line.publicLabel || line.name || "",
+        c: line.publicCode || "",
+        s: line.supplyLabel || line.name || "",
+        m: line.mg != null && Number(line.mg) > 0 ? Number(line.mg) : null,
+      });
+    }
+  }
   const payload = {
     orderId: order.orderId,
     total: Number(order.totals?.total) || 0,
@@ -322,6 +334,7 @@ export function buildStripePayUrl(order, origin) {
       state: order.shipments?.[0]?.shipTo?.state || "",
       zip: order.shipments?.[0]?.shipTo?.zip || "",
     },
+    lines,
   };
   const encoded = Buffer.from(JSON.stringify(payload), "utf8")
     .toString("base64")
@@ -329,6 +342,7 @@ export function buildStripePayUrl(order, origin) {
     .replace(/\//g, "_")
     .replace(/=+$/g, "");
   const base = String(origin || "").replace(/\/$/, "");
+  // Public homepage pay page (works for skincare + Undisclosed)
   return `${base}/?view=cart&pay=${encodeURIComponent(encoded)}`;
 }
 

@@ -323,14 +323,18 @@ export default function App() {
     const viewParam = params.get("view");
     const cb = params.get("cb");
     const payRaw = params.get("pay");
+    const paidFlag = params.get("paid");
+    const redirectStatus = params.get("redirect_status");
+    const paymentIntentId = params.get("payment_intent");
+    let parsedPay = null;
     if (payRaw) {
-      const parsed = parseStripePayPayload(payRaw);
-      if (parsed) {
-        setPayInvoice(parsed);
+      parsedPay = parseStripePayPayload(payRaw);
+      if (parsedPay) {
+        setPayInvoice(parsedPay);
         setView(VIEWS.cart);
       }
     }
-    if (viewParam === "cart" || cb === "success" || cb === "cancel") {
+    if (viewParam === "cart" || cb === "success" || cb === "cancel" || paidFlag === "1") {
       setView(VIEWS.cart);
     }
     if (params.get("ops") === "1") {
@@ -346,11 +350,42 @@ export default function App() {
     } else if (cb === "cancel") {
       setFlash("Chargebee checkout canceled");
     }
-    if (cb || viewParam === "cart" || payRaw) {
+
+    // Affirm / Stripe redirect return — mark paid when redirect_status succeeded
+    if (
+      paidFlag === "1" &&
+      parsedPay?.orderId &&
+      (redirectStatus === "succeeded" ||
+        redirectStatus === "processing" ||
+        !redirectStatus)
+    ) {
+      const orderId = parsedPay.orderId;
+      const invoice = parsedPay;
+      window.setTimeout(() => {
+        handleStripePaid(
+          orderId,
+          {
+            id: paymentIntentId || `stripe-redirect-${Date.now()}`,
+            paymentIntentId: paymentIntentId || "",
+            status: redirectStatus || "succeeded",
+            provider: "stripe",
+            methods: "card_or_affirm",
+            amountCents: Math.round(Number(invoice.total || 0) * 100),
+          },
+          invoice
+        );
+      }, 0);
+    }
+
+    if (cb || viewParam === "cart" || payRaw || paidFlag) {
       const url = new URL(window.location.href);
       url.searchParams.delete("cb");
-      // Keep pay payload in URL until paid so refresh still works; strip view only
       url.searchParams.delete("view");
+      url.searchParams.delete("paid");
+      url.searchParams.delete("redirect_status");
+      url.searchParams.delete("payment_intent");
+      url.searchParams.delete("payment_intent_client_secret");
+      // Keep pay payload until paid handler clears it
       window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
     }
   }, []);
@@ -960,24 +995,25 @@ export default function App() {
     setFlash("Partner shipping & minimum order updated");
   }
 
-  function handleStripePaid(orderId, payment) {
+  function handleStripePaid(orderId, payment, invoiceOverride = null) {
     const provider = payment?.provider || "stripe";
+    const invoice = invoiceOverride || payInvoice;
     let updated = markOrderPaid(orderId, {
       ...payment,
       provider,
     });
-    if (!updated && payInvoice?.orderId === orderId) {
+    if (!updated && invoice?.orderId === orderId) {
       updated = {
         orderId,
         createdAt: new Date().toISOString(),
         status: "paid",
         paymentDue: null,
         paidAt: new Date().toISOString(),
-        customer: payInvoice.customer,
+        customer: invoice.customer,
         totals: {
-          subtotal: payInvoice.total,
+          subtotal: invoice.total,
           shipping: 0,
-          total: payInvoice.total,
+          total: invoice.total,
         },
         shipments: [],
         notes: `Paid via ${provider}`,
@@ -997,6 +1033,10 @@ export default function App() {
     try {
       const url = new URL(window.location.href);
       url.searchParams.delete("pay");
+      url.searchParams.delete("paid");
+      url.searchParams.delete("redirect_status");
+      url.searchParams.delete("payment_intent");
+      url.searchParams.delete("payment_intent_client_secret");
       window.history.replaceState(
         {},
         "",
@@ -2652,8 +2692,8 @@ function CartPage({
             <h1>Pay order {payInvoice.orderId}</h1>
             <p className="lede">
               Supply confirmed. Pay the quoted total with Venmo, Zelle, or
-              crypto (USDC or USDT only on Solana / Ethereum (5% off for
-              crypto).
+              crypto (USDC or USDT only on Solana / Ethereum — 5% off for
+              crypto). Card checkout appears below when Stripe is enabled.
             </p>
             <div className="notice" style={{ marginTop: "0.75rem" }}>
               <strong>Amount due:</strong> {formatMoney(payInvoice.total)}
