@@ -19,11 +19,9 @@ export const UNLABELED_VIAL_SRC =
   "/ud-labels/vials/UD_3mL_White_Peptide_Black_Cap_Unlabeled.png";
 export const UNLABELED_VIAL_CARD_SRC =
   "/ud-labels/vials/UD_3mL_White_Peptide_Black_Cap_Unlabeled.png";
-/** Featured KLOW vial photo. */
-export const KLOW_CASE_KIT_SRC =
-  "/ud-labels/approved/KLOW_80mg_3mL_Blue_BlackCap_Website.png";
-export const KLOW_CASE_KIT_SM_SRC =
-  "/ud-labels/approved/KLOW_80mg_3mL_Blue_BlackCap_Website.png";
+/** Featured KLOW 10-vial clear kit case photo. */
+export const KLOW_CASE_KIT_SRC = "/references/klow-case-kit.png";
+export const KLOW_CASE_KIT_SM_SRC = "/references/klow-case-kit.png";
 /** Complete filled-label example (calculator target look). */
 export const VIAL_COMPLETE_EXAMPLE_SRC =
   "/ud-labels/approved/KLOW_80mg_3mL_Blue_BlackCap_Website.png";
@@ -85,6 +83,65 @@ export const LABEL_SPEC_BY_VIAL_ML = {
 };
 
 export const LABEL_BOTTLE_SIZES_ML = [3, 5, 10, 30];
+
+/**
+ * Four Undisclosed NIIMBOT-aligned label templates for the calculator UI.
+ * Catalog = name/amount/form/storage · Calculator = + diluent/conc/dose block.
+ */
+export const UD_LABEL_TEMPLATE_OPTIONS = Object.freeze([
+  {
+    id: "catalog-40x20",
+    labelType: "CATALOG",
+    labelSize: "40x20",
+    vialMl: 3,
+    title: "Catalog · 40×20",
+    blurb: "3 mL · wrap without dosage block",
+  },
+  {
+    id: "calculator-40x20",
+    labelType: "CALCULATOR",
+    labelSize: "40x20",
+    vialMl: 3,
+    title: "Calculator · 40×20",
+    blurb: "3 mL · diluent / concentration / dose",
+  },
+  {
+    id: "catalog-50x30",
+    labelType: "CATALOG",
+    labelSize: "50x30",
+    vialMl: 10,
+    title: "Catalog · 50×30",
+    blurb: "10 mL · wrap without dosage block",
+  },
+  {
+    id: "calculator-50x30",
+    labelType: "CALCULATOR",
+    labelSize: "50x30",
+    vialMl: 10,
+    title: "Calculator · 50×30",
+    blurb: "10 mL · diluent / concentration / dose",
+  },
+]);
+
+export function udLabelTemplateById(id) {
+  return (
+    UD_LABEL_TEMPLATE_OPTIONS.find((t) => t.id === id) ||
+    UD_LABEL_TEMPLATE_OPTIONS[1]
+  );
+}
+
+export function udLabelTemplateFor(vialMl = 3, labelType = "CALCULATOR") {
+  const ml = Number(vialMl) >= 8 ? 10 : 3;
+  const type = String(labelType || "CALCULATOR").toUpperCase() === "CATALOG"
+    ? "CATALOG"
+    : "CALCULATOR";
+  const size = ml >= 10 ? "50x30" : "40x20";
+  return (
+    UD_LABEL_TEMPLATE_OPTIONS.find(
+      (t) => t.vialMl === ml && t.labelType === type && t.labelSize === size
+    ) || UD_LABEL_TEMPLATE_OPTIONS[1]
+  );
+}
 
 export function labelSpecForVialMl(vialMl = 3) {
   const ml = Number(vialMl) || 3;
@@ -513,11 +570,18 @@ export function resolvePowderColor({ name = "", form = "" } = {}) {
 }
 
 /**
- * Vial volume: default 3 mL. NAD, Glutathione, and B12 are 10 mL.
- * Ignores stale form text / vialMl on other compounds.
+ * Vial volume for composited plates.
+ * Prefer an explicit bottle size when the caller passed one (calculator
+ * templates, catalog Excel map). Otherwise: NAD / Glutathione / B12 → 10 mL.
  */
 export function resolveVialMl({ form = "", name = "", vialMl } = {}) {
-  void vialMl;
+  const explicit = Number(vialMl);
+  if (Number.isFinite(explicit) && explicit > 0) {
+    if (explicit >= 20) return 30;
+    if (explicit >= 8) return 10;
+    if (explicit >= 4) return 5;
+    return 3;
+  }
   if (isTenMlCompound(name, form)) return 10;
   return 3;
 }
@@ -1150,6 +1214,9 @@ export async function drawGeneratedVial(canvas, options = {}) {
     coaUrl = "",
     catalogTemplate = true,
     showLabel = true,
+    labelType = "CALCULATOR",
+    formText = "LYOPHILIZED POWDER",
+    storageTemp = "36–46°F",
   } = options;
 
   // Catalog uses the resolved bottle (3 mL default · 10 mL for NAD / Gluta / B12)
@@ -1159,6 +1226,10 @@ export async function drawGeneratedVial(canvas, options = {}) {
     vialMl: vialMlOpt,
   });
   const isTen = vialMl >= 10;
+  const wrapLabelType =
+    String(labelType || "").toUpperCase() === "CATALOG"
+      ? "CATALOG"
+      : "CALCULATOR";
 
   // Catalog cards are small on phones — keep canvas light
   const dims = catalogTemplate
@@ -1218,6 +1289,9 @@ export async function drawGeneratedVial(canvas, options = {}) {
         qrPayload,
         coaUrl,
         isTen,
+        labelType: wrapLabelType,
+        formText,
+        storageTemp,
       });
     } else {
       drawExamplePlate(ctx, dims, photo, {
@@ -1232,6 +1306,9 @@ export async function drawGeneratedVial(canvas, options = {}) {
         powderWhite: false,
         qrPayload,
         coaUrl,
+        labelType: wrapLabelType,
+        formText,
+        storageTemp,
       });
     }
   } else {
@@ -1248,6 +1325,9 @@ export async function drawGeneratedVial(canvas, options = {}) {
       reconstituted: catalogTemplate ? false : reconstituted,
       showLabel,
       powderColor: useBluePlate ? "blue" : "white",
+      labelType: wrapLabelType,
+      formText,
+      storageTemp,
     };
     if (isTen) drawLabeledTenMl(ctx, dims, fallbackOpts);
     else drawLabeledThreeMl(ctx, dims, fallbackOpts);
@@ -1335,6 +1415,10 @@ function drawUnlabeledPlateWithWrap(ctx, dims, photo, options = {}) {
     bacWater,
     concentration,
     doseRange,
+    labelType: options.labelType || "CALCULATOR",
+    formText: options.formText,
+    storageTemp: options.storageTemp,
+    vialMl: isTen ? 10 : 3,
     qrPayload: qrPayload || coaUrl || SITE_QR_URL,
     coaUrl: coaUrl || "",
     forceSiteQr: false,
@@ -1746,11 +1830,13 @@ function createBottleFaceLabel(options = {}) {
 
 /** Build an offscreen flat wrap-label for the printable template / vial face. */
 function createWrapLabelBitmap(options) {
-  // Match physical 3 mL wrap (40×20 mm → 2:1) so vial overlays aren't stretched.
+  const ml = Number(options.vialMl) >= 8 ? 10 : 3;
+  const spec = labelSpecForVialMl(ml);
+  // Match physical wrap aspect so vial overlays aren't stretched.
   const square = Boolean(options.squareCorners);
   const dims = {
     w: 1000,
-    h: Math.round(1000 * (LABEL_3ML_MM.heightMm / LABEL_3ML_MM.widthMm)),
+    h: Math.round(1000 * (spec.heightMm / spec.widthMm)),
     cornerR: square ? 0 : Math.round(500 * 0.07),
   };
   const c =
@@ -2692,7 +2778,12 @@ function paintLabelTemplate(ctx, dims, options = {}) {
     footerText = "",
     blank = false,
     forceSiteQr = false,
+    labelType = "CALCULATOR",
+    formText = "LYOPHILIZED POWDER",
+    storageTemp = "36–46°F",
   } = options;
+
+  const isCatalog = String(labelType || "").toUpperCase() === "CATALOG";
 
   const cornerR =
     dims.cornerR ?? Math.max(8, Math.round(Math.min(dims.w, dims.h) * 0.07));
@@ -2715,9 +2806,9 @@ function paintLabelTemplate(ctx, dims, options = {}) {
 
   // Reference vertical rhythm (full white face, no Made-in-China bar)
   const yHeader = bodyH * 0.12;
-  const yName = bodyH * 0.34;
+  const yName = bodyH * (isCatalog ? 0.32 : 0.34);
   const yRule2 = bodyH * 0.44;
-  const yMass = bodyH * 0.55;
+  const yMass = bodyH * (isCatalog ? 0.52 : 0.55);
   const yRule3 = bodyH * 0.66;
   // BAC / concentration / dose grid — low on the face, room for readable type
   const gridTop = bodyH * 0.74;
@@ -2804,112 +2895,147 @@ function paintLabelTemplate(ctx, dims, options = {}) {
     ctx.fillText(product, midCx, yName);
   }
 
-  ctx.fillStyle = ink;
-  ctx.fillRect(ruleX, yRule2, contentW, hair);
-  ctx.fillRect(ruleX, yRule3, contentW, hair);
-
   const massNum =
     !blank && mass !== "" && mass != null ? String(mass).trim() : "";
   const massUnit = String(unit || "mg").toUpperCase();
-  if (massNum) {
-    const numSize = Math.max(22, bodyH * 0.14);
-    const unitSize = Math.max(12, bodyH * 0.07);
-    ctx.font = `800 ${numSize}px Outfit, "Segoe UI", sans-serif`;
-    const numW = ctx.measureText(massNum).width;
-    ctx.font = `800 ${unitSize}px Outfit, "Segoe UI", sans-serif`;
-    const unitLabel = ` ${massUnit}`;
-    const unitW = ctx.measureText(unitLabel).width;
-    const startX = midCx - (numW + unitW) / 2;
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    ctx.fillStyle = ink;
-    ctx.font = `800 ${numSize}px Outfit, "Segoe UI", sans-serif`;
-    ctx.fillText(massNum, startX, yMass);
-    ctx.font = `800 ${unitSize}px Outfit, "Segoe UI", sans-serif`;
-    ctx.fillText(unitLabel, startX + numW, yMass + unitSize * 0.02);
-  }
 
-  const colW = contentW / 3;
-  const gridLeft = ruleX;
-  const cells = blank
-    ? [
-        { label: "DILUTENT", value: "" },
-        { label: "CONCENTRATION", value: "" },
-        { label: "DOSE RANGE", value: "" },
-      ]
-    : [
-        { label: "DILUTENT", value: formatBacForLabel(bacWater) },
-        { label: "CONCENTRATION", value: String(concentration || "—") },
-        { label: "DOSE RANGE", value: String(doseRange || "—") },
-      ];
-
-  cells.forEach((cell, i) => {
-    const cellCx = gridLeft + colW * (i + 0.5);
-    if (i > 0) {
-      ctx.strokeStyle = "rgba(0,0,0,0.28)";
-      ctx.lineWidth = hair;
-      ctx.beginPath();
-      ctx.moveTo(gridLeft + colW * i, gridTop + gridH * 0.1);
-      ctx.lineTo(gridLeft + colW * i, gridTop + gridH * 0.9);
-      ctx.stroke();
+  if (isCatalog) {
+    // Catalog template: black amount bar + form + storage (no dosage block)
+    if (massNum) {
+      const barH = Math.max(28, bodyH * 0.145);
+      const barY = yMass - barH * 0.55;
+      const barW = contentW * 0.92;
+      const barX = midCx - barW / 2;
+      ctx.fillStyle = ink;
+      roundRect(ctx, barX, barY, barW, barH, Math.max(3, barH * 0.08));
+      ctx.fill();
+      const numSize = Math.max(18, bodyH * 0.12);
+      const unitSize = Math.max(11, bodyH * 0.055);
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.font = `800 ${numSize}px Outfit, "Segoe UI", sans-serif`;
+      const numW = ctx.measureText(massNum).width;
+      ctx.font = `800 ${unitSize}px Outfit, "Segoe UI", sans-serif`;
+      const unitLabel = ` ${massUnit}`;
+      const unitW = ctx.measureText(unitLabel).width;
+      const startX = midCx - (numW + unitW) / 2;
+      ctx.font = `800 ${numSize}px Outfit, "Segoe UI", sans-serif`;
+      ctx.fillText(massNum, startX, yMass);
+      ctx.font = `800 ${unitSize}px Outfit, "Segoe UI", sans-serif`;
+      ctx.fillText(unitLabel, startX + numW, yMass + unitSize * 0.02);
     }
-    // Headers just below the lower write-in rule; values stay lower in the grid
-    const headerY = yRule3 + bodyH * 0.048;
+    const form = String(formText || "LYOPHILIZED POWDER").toUpperCase();
+    const store = `STORE AT ${String(storageTemp || "36–46°F")}`.toUpperCase();
     ctx.fillStyle = ink;
-    ctx.font = `800 ${Math.max(10, bodyH * 0.046)}px Outfit, "Segoe UI", sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(cell.label, cellCx, headerY);
+    ctx.font = `800 ${Math.max(11, bodyH * 0.05)}px Outfit, "Segoe UI", sans-serif`;
+    ctx.fillText(form, midCx, bodyH * 0.78);
+    ctx.font = `700 ${Math.max(10, bodyH * 0.045)}px Outfit, "Segoe UI", sans-serif`;
+    ctx.fillText(store, midCx, bodyH * 0.9);
+  } else {
+    // Calculator template: mass line + diluent / concentration / dose grid
+    ctx.fillStyle = ink;
+    ctx.fillRect(ruleX, yRule2, contentW, hair);
+    ctx.fillRect(ruleX, yRule3, contentW, hair);
 
-    const rawVal = String(cell.value ?? "");
-    if (!rawVal) return;
-    // Center values in the band between headers and label bottom,
-    // and horizontally between the column side lines.
-    const valueBandTop = headerY + bodyH * 0.04;
-    const valueBandBot = bodyH * 0.96;
-    const valueMid = (valueBandTop + valueBandBot) / 2;
-    const split = rawVal.match(/^(.*?)\s*(\([^)]+\))\s*$/);
-    if (split) {
-      const line1 = split[1].trim();
-      const line2 = split[2].trim();
-      const v1 = fitCenteredText(
-        ctx,
-        line1,
-        colW * 0.92,
-        Math.max(14, bodyH * 0.068),
-        'Outfit, "Segoe UI", sans-serif'
-      );
-      ctx.font = `700 ${v1}px Outfit, "Segoe UI", sans-serif`;
-      ctx.fillStyle = ink;
-      ctx.textAlign = "center";
+    if (massNum) {
+      const numSize = Math.max(22, bodyH * 0.14);
+      const unitSize = Math.max(12, bodyH * 0.07);
+      ctx.font = `800 ${numSize}px Outfit, "Segoe UI", sans-serif`;
+      const numW = ctx.measureText(massNum).width;
+      ctx.font = `800 ${unitSize}px Outfit, "Segoe UI", sans-serif`;
+      const unitLabel = ` ${massUnit}`;
+      const unitW = ctx.measureText(unitLabel).width;
+      const startX = midCx - (numW + unitW) / 2;
+      ctx.textAlign = "left";
       ctx.textBaseline = "middle";
-      ctx.fillText(line1, cellCx, valueMid - bodyH * 0.032);
-      const v2 = fitCenteredText(
-        ctx,
-        line2,
-        colW * 0.92,
-        Math.max(11, bodyH * 0.05),
-        'Outfit, "Segoe UI", sans-serif'
-      );
-      ctx.font = `600 ${v2}px Outfit, "Segoe UI", sans-serif`;
-      ctx.fillStyle = muted;
-      ctx.fillText(line2, cellCx, valueMid + bodyH * 0.038);
-    } else {
-      const valueSize = fitCenteredText(
-        ctx,
-        rawVal,
-        colW * 0.92,
-        Math.max(14, bodyH * 0.07),
-        'Outfit, "Segoe UI", sans-serif'
-      );
-      ctx.font = `700 ${valueSize}px Outfit, "Segoe UI", sans-serif`;
       ctx.fillStyle = ink;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(rawVal, cellCx, valueMid);
+      ctx.font = `800 ${numSize}px Outfit, "Segoe UI", sans-serif`;
+      ctx.fillText(massNum, startX, yMass);
+      ctx.font = `800 ${unitSize}px Outfit, "Segoe UI", sans-serif`;
+      ctx.fillText(unitLabel, startX + numW, yMass + unitSize * 0.02);
     }
-  });
 
+    const colW = contentW / 3;
+    const gridLeft = ruleX;
+    const cells = blank
+      ? [
+          { label: "DILUENT", value: "" },
+          { label: "CONCENTRATION", value: "" },
+          { label: "DOSE RANGE", value: "" },
+        ]
+      : [
+          { label: "DILUENT", value: formatBacForLabel(bacWater) },
+          { label: "CONCENTRATION", value: String(concentration || "—") },
+          { label: "DOSE RANGE", value: String(doseRange || "—") },
+        ];
+
+    cells.forEach((cell, i) => {
+      const cellCx = gridLeft + colW * (i + 0.5);
+      if (i > 0) {
+        ctx.strokeStyle = "rgba(0,0,0,0.28)";
+        ctx.lineWidth = hair;
+        ctx.beginPath();
+        ctx.moveTo(gridLeft + colW * i, gridTop + gridH * 0.1);
+        ctx.lineTo(gridLeft + colW * i, gridTop + gridH * 0.9);
+        ctx.stroke();
+      }
+      const headerY = yRule3 + bodyH * 0.048;
+      ctx.fillStyle = ink;
+      ctx.font = `800 ${Math.max(10, bodyH * 0.046)}px Outfit, "Segoe UI", sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(cell.label, cellCx, headerY);
+
+      const rawVal = String(cell.value ?? "");
+      if (!rawVal) return;
+      const valueBandTop = headerY + bodyH * 0.04;
+      const valueBandBot = bodyH * 0.96;
+      const valueMid = (valueBandTop + valueBandBot) / 2;
+      const split = rawVal.match(/^(.*?)\s*(\([^)]+\))\s*$/);
+      if (split) {
+        const line1 = split[1].trim();
+        const line2 = split[2].trim();
+        const v1 = fitCenteredText(
+          ctx,
+          line1,
+          colW * 0.92,
+          Math.max(14, bodyH * 0.068),
+          'Outfit, "Segoe UI", sans-serif'
+        );
+        ctx.font = `700 ${v1}px Outfit, "Segoe UI", sans-serif`;
+        ctx.fillStyle = ink;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(line1, cellCx, valueMid - bodyH * 0.032);
+        const v2 = fitCenteredText(
+          ctx,
+          line2,
+          colW * 0.92,
+          Math.max(11, bodyH * 0.05),
+          'Outfit, "Segoe UI", sans-serif'
+        );
+        ctx.font = `600 ${v2}px Outfit, "Segoe UI", sans-serif`;
+        ctx.fillStyle = muted;
+        ctx.fillText(line2, cellCx, valueMid + bodyH * 0.038);
+      } else {
+        const valueSize = fitCenteredText(
+          ctx,
+          rawVal,
+          colW * 0.92,
+          Math.max(14, bodyH * 0.07),
+          'Outfit, "Segoe UI", sans-serif'
+        );
+        ctx.font = `700 ${valueSize}px Outfit, "Segoe UI", sans-serif`;
+        ctx.fillStyle = ink;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(rawVal, cellCx, valueMid);
+      }
+    });
+  }
   // QR + research disclaimer — QR top aligns with the upper write-in rule
   const discLines = ["RESEARCH USE", "NOT FOR HUMAN", "CONSUMPTION"];
   const discPx = Math.max(8, bodyH * 0.04);

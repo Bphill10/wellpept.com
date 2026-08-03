@@ -5292,6 +5292,54 @@ body:has(.app-shell--undisclosed)::before {
   width: 100%;
 }
 
+.calc-label-templates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+  margin: 0.75rem 0 0.15rem;
+}
+
+.calc-label-template {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  text-align: left;
+  padding: 0.55rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1.25;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.calc-label-template strong {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.calc-label-template span {
+  font-size: 0.72rem;
+  opacity: 0.72;
+}
+
+.calc-label-template:hover {
+  border-color: color-mix(in srgb, var(--ink) 35%, var(--line));
+}
+
+.calc-label-template.is-active {
+  border-color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+.app-shell--undisclosed .calc-label-template.is-active {
+  border-color: var(--ud-hex, var(--ink));
+  background: color-mix(in srgb, var(--ud-hex, #111) 8%, transparent);
+}
+
 .calc-label-panel .calc-label-stage {
   flex: 1;
   width: 100%;

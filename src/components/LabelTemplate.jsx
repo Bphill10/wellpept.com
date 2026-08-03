@@ -6,6 +6,7 @@ import {
   loadUdMark,
   labelSpecForVialMl,
   SITE_QR_URL,
+  udLabelTemplateById,
 } from "../utils/vialArt";
 import { resolveCoaQrPayload } from "../utils/coaStore";
 
@@ -18,8 +19,12 @@ export default function LabelTemplate({
   doseRange = "",
   sku = "",
   size = "md",
-  /** Bottle size in mL — 3 → 40×20 mm, 5 → 40×25, 10 → 50×30, 30 → 70×40. */
+  /** Bottle size in mL — 3 → 40×20 mm, 10 → 50×30 mm. */
   vialMl = 3,
+  /** CATALOG (no dosage) | CALCULATOR (diluent / conc / dose). */
+  labelType = "CALCULATOR",
+  formText = "LYOPHILIZED POWDER",
+  storageTemp = "36–46°F",
   showDownload = true,
   className = "",
   /** Layout + brand chrome only — no peptide fields filled. */
@@ -27,6 +32,8 @@ export default function LabelTemplate({
   productId = "",
   coaUrl = "",
   qrPayload = "",
+  /** Optional UD template id for meta caption. */
+  templateId = "",
 }) {
   const canvasRef = useRef(null);
   const [png, setPng] = useState("");
@@ -34,6 +41,10 @@ export default function LabelTemplate({
 
   const ml = Number(vialMl) || 3;
   const spec = labelSpecForVialMl(ml);
+  const type = String(labelType || "CALCULATOR").toUpperCase() === "CATALOG"
+    ? "CATALOG"
+    : "CALCULATOR";
+  const templateMeta = templateId ? udLabelTemplateById(templateId) : null;
   const resolvedQr = useMemo(
     () =>
       blank
@@ -75,6 +86,9 @@ export default function LabelTemplate({
         sku: blank ? "" : sku,
         size,
         vialMl: ml,
+        labelType: type,
+        formText,
+        storageTemp,
         udMark,
         qrPayload: resolvedQr,
         coaUrl: blank ? "" : resolvedQr,
@@ -95,6 +109,9 @@ export default function LabelTemplate({
     sku,
     size,
     ml,
+    type,
+    formText,
+    storageTemp,
     udMark,
     blank,
     resolvedQr,
@@ -106,26 +123,29 @@ export default function LabelTemplate({
       ? `blank-${ml}ml`
       : (name || "label").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
     const mm = `${spec.widthMm}x${spec.heightMm}mm`;
+    const kind = type.toLowerCase();
     downloadVialPng(
       png,
-      `undisclosed-label-${safe || "template"}-${mm}.png`
+      `undisclosed-${kind}-label-${safe || "template"}-${mm}.png`
     );
   }
 
   return (
     <div className={`label-template-wrap ${className}`.trim()}>
       <p className="label-template-size meta">
-        {spec.widthMm} × {spec.heightMm} mm · {ml} mL · rounded · QR →{" "}
+        {templateMeta ? `${templateMeta.title} · ` : ""}
+        {spec.widthMm} × {spec.heightMm} mm · {ml} mL · {type.toLowerCase()} ·
+        QR →{" "}
         {blank ? "wellpept.com" : qrIsCoa ? "peptide COA" : "wellpept.com"}
       </p>
       <canvas
         ref={canvasRef}
         className={`label-template label-template--physical label-template--${size}`}
-        aria-label={`${blank ? "Blank" : name || "Peptide"} ${spec.widthMm} by ${spec.heightMm} millimeter label for ${ml} milliliter vial`}
+        aria-label={`${blank ? "Blank" : name || "Peptide"} ${type.toLowerCase()} ${spec.widthMm} by ${spec.heightMm} millimeter label for ${ml} milliliter vial`}
       />
       {showDownload && (
         <button type="button" className="soft-btn vial-download" onClick={handleDownload}>
-          <Download size={14} /> Download label · free
+          <Download size={14} /> Download {type === "CATALOG" ? "catalog" : "calculator"} label · free
         </button>
       )}
     </div>

@@ -21,7 +21,7 @@ export const UD_STOCK_VIALS = {
 };
 
 /** Featured KLOW 10-vial case photo. */
-export const UD_FEATURED_KIT_SRC = "/undisclosed-hero-kit.webp";
+export const UD_FEATURED_KIT_SRC = "/references/klow-case-kit.png";
 
 /** Hero labeling scene: unlabeled stock vial + catalog wrap preview. */
 export const UD_HERO_SCENE = {

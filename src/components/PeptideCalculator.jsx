@@ -17,8 +17,12 @@ import {
 import {
   LABEL_BOTTLE_SIZES_ML,
   labelSpecForVialMl,
+  UD_LABEL_TEMPLATE_OPTIONS,
+  udLabelTemplateById,
+  udLabelTemplateFor,
 } from "../utils/vialArt";
 import { shortCapName, capStlSlug } from "../data/capNames";
+import { UD_FEATURED_KIT_SRC } from "../data/udLabelAssets";
 
 const CUSTOM_ID = "custom";
 const BOTTLE_SIZES_ML = LABEL_BOTTLE_SIZES_ML;
@@ -109,6 +113,11 @@ export default function PeptideCalculator({
   );
   const [shareMsg, setShareMsg] = useState("");
   const [hydratedInitial, setHydratedInitial] = useState(null);
+  const [labelTemplateId, setLabelTemplateId] = useState(() =>
+    udLabelTemplateFor(boot.vialMl || 3, "CALCULATOR").id
+  );
+
+  const labelTemplate = udLabelTemplateById(labelTemplateId);
 
   const isCustom = peptideId === CUSTOM_ID;
   const selectedPeptide = isCustom
@@ -123,6 +132,13 @@ export default function PeptideCalculator({
     selectedPeptide?.strengths[0] ||
     null;
 
+  function applyLabelTemplate(templateId) {
+    const next = udLabelTemplateById(templateId);
+    setLabelTemplateId(next.id);
+    setVialMl(next.vialMl);
+    setShareMsg("");
+  }
+
   function applyCustomMode(seed = null) {
     setPeptideId(CUSTOM_ID);
     setStrengthKey("");
@@ -130,7 +146,9 @@ export default function PeptideCalculator({
     setMass(seed?.mass != null ? String(seed.mass) : "");
     setVialUnit(seed?.unit === "IU" ? "IU" : "mg");
     const ml = Number(seed?.vialMl);
-    setVialMl(BOTTLE_SIZES_ML.includes(ml) ? ml : 3);
+    const nextMl = BOTTLE_SIZES_ML.includes(ml) ? ml : 3;
+    setVialMl(nextMl);
+    setLabelTemplateId(udLabelTemplateFor(nextMl, labelTemplate.labelType).id);
     setDose(seed?.dose != null ? String(seed.dose) : "0.25");
     setDoseUnit(seed?.doseUnit === "IU" ? "IU" : "mg");
     setSolution(seed?.solution != null ? String(seed.solution) : "2");
@@ -146,6 +164,7 @@ export default function PeptideCalculator({
     setMass(String(d.mass));
     setVialUnit(d.unit);
     setVialMl(d.vialMl);
+    setLabelTemplateId(udLabelTemplateFor(d.vialMl, labelTemplate.labelType).id);
     setDose(String(d.dose));
     setDoseUnit(d.doseUnit);
     // BAC always follows peptide + dosage unless an explicit seed value is given
@@ -377,7 +396,13 @@ export default function PeptideCalculator({
                         Bottle + label size
                         <select
                           value={String(vialMl)}
-                          onChange={(e) => setVialMl(Number(e.target.value))}
+                          onChange={(e) => {
+                            const ml = Number(e.target.value);
+                            setVialMl(ml);
+                            setLabelTemplateId(
+                              udLabelTemplateFor(ml, labelTemplate.labelType).id
+                            );
+                          }}
                         >
                           {BOTTLE_SIZES_ML.map((ml) => (
                             <option key={ml} value={ml}>
@@ -579,10 +604,32 @@ export default function PeptideCalculator({
                 <h2>Vial label · free</h2>
               </div>
               <p className="meta">
-                {bottleOptionLabel(Number(vialMl) || 3)}. Live on the vial and
-                flat wrap · QR → peptide COA when linked, otherwise wellpept.com
-                · download free
+                Pick a label template · {bottleOptionLabel(Number(vialMl) || 3)} ·
+                live on the vial and flat wrap · QR → peptide COA when linked,
+                otherwise wellpept.com · download free
               </p>
+              <div
+                className="calc-label-templates"
+                role="radiogroup"
+                aria-label="Label template"
+              >
+                {UD_LABEL_TEMPLATE_OPTIONS.map((opt) => {
+                  const active = opt.id === labelTemplateId;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      className={`calc-label-template${active ? " is-active" : ""}`}
+                      onClick={() => applyLabelTemplate(opt.id)}
+                    >
+                      <strong>{opt.title}</strong>
+                      <span>{opt.blurb}</span>
+                    </button>
+                  );
+                })}
+              </div>
               <div className="calc-vial-stage">
                 <GeneratedVial
                   name={name || selectedPeptide?.name || "Peptide"}
@@ -598,6 +645,7 @@ export default function PeptideCalculator({
                   vialMl={Number(vialMl) || 3}
                   size="lg"
                   catalogTemplate={false}
+                  labelType={labelTemplate.labelType}
                   showLabel
                   showDownload={false}
                   productId={selectedStrength?.defaultOfferId || ""}
@@ -619,6 +667,8 @@ export default function PeptideCalculator({
                     result?.units ? Math.round(Number(result.units)) || 10 : 10
                   )}
                   vialMl={Number(vialMl) || 3}
+                  labelType={labelTemplate.labelType}
+                  templateId={labelTemplateId}
                   showDownload
                   productId={selectedStrength?.defaultOfferId || ""}
                   coaUrl={selectedStrength?.coaUrl || ""}
@@ -694,7 +744,7 @@ export default function PeptideCalculator({
             </p>
             <div className="calc-print-preview">
               <img
-                src="/ud-labels/approved/KLOW_80mg_3mL_Blue_BlackCap_Website.png"
+                src={UD_FEATURED_KIT_SRC}
                 alt="Undisclosed clear KLOW 10-vial research kit case"
                 width={800}
                 height={534}

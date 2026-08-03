@@ -60,6 +60,10 @@ export default function GeneratedVial({
   className = "",
   /** Storefront framing lock: same 3 mL plate. */
   catalogTemplate = true,
+  /** CATALOG (no dosage) | CALCULATOR (diluent / conc / dose). */
+  labelType = "CALCULATOR",
+  formText = "LYOPHILIZED POWDER",
+  storageTemp = "36–46°F",
   /** Clinical wrap label on the photoreal vial PNG. */
   showLabel = true,
 }) {
@@ -156,6 +160,9 @@ export default function GeneratedVial({
           coaUrl: catalogTemplate ? "" : resolvedQr,
           catalogTemplate,
           showLabel,
+          labelType,
+          formText,
+          storageTemp,
           exportPng: showDownload,
         });
         if (!cancelled && showDownload) setPng(dataUrl);
@@ -186,6 +193,9 @@ export default function GeneratedVial({
     resolvedQr,
     catalogTemplate,
     showLabel,
+    labelType,
+    formText,
+    storageTemp,
     showDownload,
   ]);
 

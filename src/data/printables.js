@@ -214,7 +214,7 @@ export function printKitLine({
       capMode === "color"
         ? `PRINT-KIT-${color.sku}`
         : `PRINT-KIT-${etch}`,
-    image: "/ud-labels/approved/KLOW_80mg_3mL_Blue_BlackCap_Website.png",
+    image: "/references/klow-case-kit.png",
     printKind: "kit",
     capMode,
     capColor: capMode === "color" ? color.id : "",
