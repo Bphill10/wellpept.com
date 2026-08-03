@@ -32,6 +32,8 @@
       "baseAsset": "assets/vials/UD_3mL_White_Peptide_Black_Cap_Unlabeled.png",
       "bodyBoundsPx": { "left": 194, "right": 742, "top": 536, "bottom": 1390 },
       "labelBoundsPx": { "left": 205, "right": 731, "top": 707, "bottom": 1219 },
+      "websiteClipPathD": "M0 7 Q263 0 526 7 L526 505 Q263 512 0 505 Z",
+      "websiteRenderMode": "front-facing-reflow",
       "material": "WHITE CAKE"
     },
     "3ML_BLUE": {
@@ -42,6 +44,8 @@
       "baseAsset": "assets/vials/UD_3mL_Blue_Peptide_Black_Cap_Unlabeled.png",
       "bodyBoundsPx": { "left": 194, "right": 742, "top": 536, "bottom": 1390 },
       "labelBoundsPx": { "left": 205, "right": 731, "top": 707, "bottom": 1219 },
+      "websiteClipPathD": "M0 7 Q263 0 526 7 L526 505 Q263 512 0 505 Z",
+      "websiteRenderMode": "front-facing-reflow",
       "material": "COBALT BLUE CAKE"
     },
     "10ML_WHITE": {
@@ -52,6 +56,8 @@
       "baseAsset": "assets/vials/UD_10mL_White_Peptide_Black_Cap_Unlabeled.png",
       "bodyBoundsPx": { "left": 258, "right": 770, "top": 396, "bottom": 1410 },
       "labelBoundsPx": { "left": 272, "right": 756, "top": 599, "bottom": 1207 },
+      "websiteClipPathD": "M0 8 Q242 0 484 8 L484 600 Q242 608 0 600 Z",
+      "websiteRenderMode": "front-facing-reflow",
       "material": "WHITE CAKE"
     }
   }

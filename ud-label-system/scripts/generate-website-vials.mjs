@@ -1,16 +1,21 @@
 /**
- * Generate CATALOG labels from the Excel/catalog map and place them on the
- * matching unlabeled stock vial templates for website product photos.
+ * Generate CATALOG website vials by compositing a front-facing web label
+ * (never stretch NIIMBOT print PNGs) onto unlabeled stock vial templates.
  *
  * Usage (from ud-label-system/):
  *   node scripts/generate-website-vials.mjs
  *   node scripts/generate-website-vials.mjs --limit 10
+ *   node scripts/generate-website-vials.mjs --id UD-0160
  */
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
-import { generateLabel } from "./generate-label.mjs";
+import {
+  buildWebsiteLabelSvg,
+  geometryFromProfile,
+  renderWebsiteLabelPng,
+} from "./render-website-label.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, "..");
@@ -42,42 +47,53 @@ function safeStem(value) {
     .replace(/^_|_$/g, "");
 }
 
-async function placeLabelOnVial({ labelPath, profileName, outputPath }) {
+/**
+ * Place a already-sized website label PNG (exact bounds W×H) onto the stock
+ * vial with one shared curved clip + light cylinder shade. No label stretch.
+ */
+async function placeWebsiteLabelOnVial({
+  labelPng,
+  profileName,
+  outputPath,
+  alsoSaveFullPng = null,
+}) {
   const profile = placement.profiles[profileName];
   if (!profile) throw new Error(`Unknown placement profile: ${profileName}`);
   const basePath = path.join(root, profile.baseAsset);
-  const bounds = profile.labelBoundsPx;
-  const width = bounds.right - bounds.left;
-  const height = bounds.bottom - bounds.top;
-  const curve = Math.max(4, Math.round(height * 0.014));
+  const geometry = geometryFromProfile(profile);
+  const { width, height, clipPathD, left, top } = geometry;
 
-  const label = await sharp(labelPath)
-    .resize(width, height, { fit: "fill", kernel: "lanczos3" })
-    .removeAlpha()
-    .png()
-    .toBuffer();
+  const meta = await sharp(labelPng).metadata();
+  if (meta.width !== width || meta.height !== height) {
+    throw new Error(
+      `Website label must be ${width}x${height}, got ${meta.width}x${meta.height}`
+    );
+  }
 
   const mask = Buffer.from(`
     <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-      <path d="M0 ${curve} Q${width / 2} 0 ${width} ${curve} L${width} ${height - curve} Q${width / 2} ${height} 0 ${height - curve} Z" fill="white"/>
+      <path d="${clipPathD}" fill="white"/>
     </svg>
   `);
   const shade = Buffer.from(`
     <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
       <defs>
+        <clipPath id="clip"><path d="${clipPathD}"/></clipPath>
         <linearGradient id="cylinder" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stop-color="#707070" stop-opacity="0.28"/>
+          <stop offset="0" stop-color="#707070" stop-opacity="0.22"/>
           <stop offset="0.13" stop-color="#ffffff" stop-opacity="0.04"/>
           <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
           <stop offset="0.87" stop-color="#ffffff" stop-opacity="0.04"/>
-          <stop offset="1" stop-color="#707070" stop-opacity="0.28"/>
+          <stop offset="1" stop-color="#707070" stop-opacity="0.22"/>
         </linearGradient>
       </defs>
-      <rect width="${width}" height="${height}" fill="url(#cylinder)"/>
+      <g clip-path="url(#clip)">
+        <rect width="${width}" height="${height}" fill="url(#cylinder)"/>
+      </g>
     </svg>
   `);
 
-  const wrappedLabel = await sharp(label)
+  const wrappedLabel = await sharp(labelPng)
     .ensureAlpha()
     .composite([
       { input: mask, blend: "dest-in" },
@@ -87,16 +103,30 @@ async function placeLabelOnVial({ labelPath, profileName, outputPath }) {
     .toBuffer();
 
   const full = await sharp(basePath)
-    .composite([{ input: wrappedLabel, left: bounds.left, top: bounds.top }])
+    .composite([{ input: wrappedLabel, left, top }])
     .png({ compressionLevel: 9 })
     .toBuffer();
 
+  const fullMeta = await sharp(full).metadata();
+  if (
+    fullMeta.width !== placement.canvas.widthPx ||
+    fullMeta.height !== placement.canvas.heightPx
+  ) {
+    throw new Error(
+      `Unexpected vial canvas: ${fullMeta.width}x${fullMeta.height}`
+    );
+  }
+
   await fs.mkdir(path.dirname(outputPath), { recursive: true });
-  // Web card size — keep aspect, shrink for deploy weight
+  // Full-resolution website output remains 1024×1536
   await sharp(full)
-    .resize({ width: 640, height: 960, fit: "inside", withoutEnlargement: true })
-    .webp({ quality: 82, effort: 4 })
+    .webp({ quality: 88, effort: 4 })
     .toFile(outputPath);
+
+  if (alsoSaveFullPng) {
+    await fs.mkdir(path.dirname(alsoSaveFullPng), { recursive: true });
+    await fs.writeFile(alsoSaveFullPng, full);
+  }
 
   return outputPath;
 }
@@ -129,9 +159,11 @@ async function main() {
     "catalog-manifest.json"
   );
   let manifest = {
-    version: "2.0",
+    version: "2.1",
     generatedAt: new Date().toISOString(),
     source: "data/UD_Peptide_Label_Catalog.xlsx → catalog.json",
+    renderer: "website-front-facing-reflow",
+    canvas: placement.canvas,
     count: 0,
     byCatalogId: {},
     byKey: {},
@@ -142,44 +174,73 @@ async function main() {
       const prev = JSON.parse(await fs.readFile(existingManifestPath, "utf8"));
       manifest = {
         ...prev,
+        version: "2.1",
         generatedAt: new Date().toISOString(),
+        renderer: "website-front-facing-reflow",
         byCatalogId: { ...(prev.byCatalogId || {}) },
         byKey: { ...(prev.byKey || {}) },
         products: [...(prev.products || [])],
       };
     } catch {
-      /* fresh manifest */
+      /* fresh */
     }
   }
 
+  const defaults = catalog.defaults || {};
+  const assetCache = {};
   let ok = 0;
   let fail = 0;
   const errors = [];
 
   for (let i = 0; i < products.length; i += 1) {
     const product = products[i];
-    const profile = String(product.placementProfile || "3ML_WHITE").toUpperCase();
+    const profileName = String(
+      product.placementProfile || "3ML_WHITE"
+    ).toUpperCase();
+    const profile = placement.profiles[profileName];
+    if (!profile) {
+      fail += 1;
+      errors.push({
+        catalogId: product.catalogId,
+        error: `Unknown profile ${profileName}`,
+      });
+      console.log(
+        `[${i + 1}/${products.length}] ${product.catalogId} FAIL unknown profile`
+      );
+      continue;
+    }
+
     const stem = safeStem(
       `${product.catalogId}_${product.websiteOutputStem || product.labelOutputStem || product.labelName}`
     );
     const webRel = `ud-labels/catalog/${stem}.webp`;
     const webAbs = path.join(siteRoot, "public", webRel.replace(/\//g, path.sep));
+    const labelSvgPath = path.join(tempLabelDir, `${stem}_WebsiteFace.svg`);
+    const labelPngPath = path.join(tempLabelDir, `${stem}_WebsiteFace.png`);
 
     process.stdout.write(
       `[${i + 1}/${products.length}] ${product.catalogId} ${product.labelName} ${product.amount}${product.unit}… `
     );
 
     try {
-      const label = await generateLabel(product, {
-        labelType: "CATALOG",
-        labelSize: product.labelSize || (Number(product.vialMl) >= 10 ? "50x30" : "40x20"),
-        outputDir: tempLabelDir,
-        outputStem: stem,
-      });
+      const geometry = geometryFromProfile(profile);
+      geometry.brandGapChars =
+        product.brandGapChars ?? defaults.BRAND_GAP_CHARS ?? 1;
 
-      await placeLabelOnVial({
-        labelPath: label.previewPath,
-        profileName: profile,
+      const svg = buildWebsiteLabelSvg(product, geometry, defaults);
+      await fs.writeFile(labelSvgPath, svg);
+
+      const labelPng = await renderWebsiteLabelPng(
+        product,
+        geometry,
+        defaults,
+        assetCache
+      );
+      await fs.writeFile(labelPngPath, labelPng);
+
+      await placeWebsiteLabelOnVial({
+        labelPng,
+        profileName,
         outputPath: webAbs,
       });
 
@@ -189,18 +250,20 @@ async function main() {
         amount: product.amount,
         unit: product.unit,
         vialMl: product.vialMl,
-        placementProfile: profile,
+        placementProfile: profileName,
         visualType: product.visualType,
         image: `/${webRel.replace(/\\/g, "/")}`,
+        renderer: "website-front-facing-reflow",
       };
       if (idFilter.length) {
         manifest.products = manifest.products.filter(
           (row) => row.catalogId !== product.catalogId
         );
-        // Drop stale CI keys when renaming labelName
         for (const key of Object.keys(manifest.byKey)) {
-          if (manifest.byCatalogId[product.catalogId] &&
-              manifest.byKey[key] === manifest.byCatalogId[product.catalogId]) {
+          if (
+            manifest.byCatalogId[product.catalogId] &&
+            manifest.byKey[key] === manifest.byCatalogId[product.catalogId]
+          ) {
             delete manifest.byKey[key];
           }
         }
@@ -209,10 +272,8 @@ async function main() {
       manifest.byCatalogId[product.catalogId] = entry.image;
       const key = `${String(product.labelName).toUpperCase()}|${product.amount}|${String(product.unit).toUpperCase()}|${product.vialMl}`;
       manifest.byKey[key] = entry.image;
-      // Also name+amount without unit for looser site matching
       const loose = `${String(product.labelName).toUpperCase()}|${product.amount}`;
       if (!manifest.byKey[loose]) manifest.byKey[loose] = entry.image;
-      // Full shop name aliases for CJC/IPA blends
       const full = String(product.fullProductName || "").toUpperCase();
       if (full) {
         const fullKey = `${full}|${product.amount}|${String(product.unit).toUpperCase()}|${product.vialMl}`;
@@ -235,9 +296,13 @@ async function main() {
   manifest.fail = fail;
   manifest.errors = errors;
 
-  const manifestPath = path.join(siteRoot, "public", "ud-labels", "catalog-manifest.json");
+  const manifestPath = path.join(
+    siteRoot,
+    "public",
+    "ud-labels",
+    "catalog-manifest.json"
+  );
   await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
-  // Convenience copy for src import fallbacks
   await fs.writeFile(
     path.join(siteRoot, "src", "data", "udCatalogVialManifest.json"),
     JSON.stringify(manifest, null, 2)
