@@ -694,7 +694,7 @@ export default function PeptideCalculator({
             </p>
             <div className="calc-print-preview">
               <img
-                src="/undisclosed-hero-kit-sm.webp"
+                src="/ud-labels/approved/KLOW_80mg_3mL_Blue_BlackCap_Website.png"
                 alt="Undisclosed clear KLOW 10-vial research kit case"
                 width={800}
                 height={534}

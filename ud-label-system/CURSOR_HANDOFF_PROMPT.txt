@@ -1,0 +1,14 @@
+Read START_HERE_CURSOR.md and .cursor/rules/ud-label-system.mdc before changing anything.
+
+Use data/UD_Peptide_Label_Catalog.xlsx as the editable source of truth. Keep the supplied latest UD brand mark and UD Sentinel mascot exactly as provided. Do not redraw or replace them. Update SVG content only through the documented data-field placeholders; do not move layout geometry.
+
+For each enabled catalog row:
+1. Use 40x20 for a 3 mL vial and 50x30 for a 10 mL vial.
+2. Use CATALOG unless the row requests CALCULATOR.
+3. Populate every text field from the workbook/defaults, including MG or IU, diluent, concentration, dose fields, storage, and the three legal lines.
+4. Generate the actual QR from QR Value and keep the mascot behind the QR box.
+5. Export the exact NIIMBOT M2 one-bit PNG with no outside border.
+6. Use the matching black-cap stock vial asset and the 20/60/20 placement rule.
+7. Keep the full-bleed black left rail clean, with no white strip after it and no uneven paper at the bottom right.
+
+Run npm install, npm run build, and stop if validation-report.json does not say PASS.

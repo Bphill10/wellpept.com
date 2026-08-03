@@ -26,10 +26,20 @@ import {
 } from "../utils/stgSync";
 
 /** Bump when focused vendors/catalog must replace stale local data. */
-const STORAGE_KEY = "wellpept-marketplace-v31";
+const STORAGE_KEY = "wellpept-marketplace-v32";
+
+function isPartnerVendor(v) {
+  if (!v?.id) return false;
+  if (ACTIVE_VENDOR_IDS.has(v.id)) return false;
+  return (
+    v.role === "partner" ||
+    Boolean(v.email) ||
+    String(v.id).startsWith("v-")
+  );
+}
 
 function syncVendor(v, policy = null) {
-  if (!v || !ACTIVE_VENDOR_IDS.has(v.id)) return null;
+  if (!v) return null;
   if (v.id === JEC_VENDOR_ID) {
     return {
       ...v,
@@ -73,10 +83,23 @@ function syncVendor(v, policy = null) {
       minOrder: WAREHOUSES.B.minOrder,
     };
   }
-  return {
-    ...v,
-    name: displayVendorName(v.name, v.id) || v.name,
-  };
+  if (ACTIVE_VENDOR_IDS.has(v.id)) {
+    return {
+      ...v,
+      name: displayVendorName(v.name, v.id) || v.name,
+    };
+  }
+  // Partner applications — keep so drag-drop lists survive reload
+  if (isPartnerVendor(v)) {
+    return {
+      ...v,
+      role: "partner",
+      warehouseId: v.warehouseId || "B",
+      status: v.status || "pending",
+      name: String(v.name || "Partner").trim() || "Partner",
+    };
+  }
+  return null;
 }
 
 function jecSeed() {
@@ -169,11 +192,25 @@ function resolveStgSeed(stgCached) {
 export function getInitialMarketplace() {
   const policy = loadSupplyPolicy();
   const stgSubs = resolveStgSeed(loadCachedStgSubmissions());
-  const vendors = SEED_VENDORS.map((seed) => syncVendor(seed, policy)).filter(
-    Boolean
+  const saved = loadState();
+  const seedVendors = SEED_VENDORS.map((seed) =>
+    syncVendor(seed, policy)
+  ).filter(Boolean);
+  const partnerVendors = (saved?.vendors || [])
+    .map((v) => syncVendor(v, policy))
+    .filter((v) => v && isPartnerVendor(v));
+  const vendors = [
+    ...seedVendors,
+    ...partnerVendors.filter((p) => !seedVendors.some((s) => s.id === p.id)),
+  ];
+  const warehouseSubs = mergeSubmissions(
+    saved?.submissions?.length ? saved.submissions : SEED_SUBMISSIONS,
+    stgSubs
   );
-  const submissions = mergeSubmissions(SEED_SUBMISSIONS, stgSubs);
-  void loadState();
+  const partnerSubs = (saved?.submissions || []).filter((s) =>
+    partnerVendors.some((v) => v.id === s.vendorId)
+  );
+  const submissions = [...warehouseSubs, ...partnerSubs];
   return {
     vendors,
     submissions,
@@ -213,7 +250,15 @@ export function persistMarketplace(vendors, submissions, policy) {
   const changsha = changshaFromState.length
     ? changshaFromState
     : changshaSeed(jec);
-  const finalSubs = mergeSubmissions([...jec, ...changsha, ...stgSubs], stgSubs);
+  const warehouseSubs = mergeSubmissions(
+    [...jec, ...changsha, ...stgSubs],
+    stgSubs
+  );
+  const partnerVendors = cleanVendors.filter((v) => isPartnerVendor(v));
+  const partnerSubs = submissions.filter((s) =>
+    partnerVendors.some((v) => v.id === s.vendorId)
+  );
+  const finalSubs = [...warehouseSubs, ...partnerSubs];
 
   saveState({ vendors: cleanVendors, submissions: finalSubs });
   return buildMarketplaceProducts(cleanVendors, finalSubs, pol);

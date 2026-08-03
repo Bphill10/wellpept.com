@@ -1055,13 +1055,20 @@ export function strengthForProduct(listing, product) {
  * JEC is the live vendor for now.
  */
 export function buildCatalog(vendors, submissions) {
+  const catalogVendors = (vendors || []).filter(
+    (v) =>
+      v &&
+      (ACTIVE_VENDOR_IDS.has(v.id) ||
+        (v.role === "partner" && v.status === "approved"))
+  );
   const vendorById = Object.fromEntries(
-    vendors
-      .filter((v) => ACTIVE_VENDOR_IDS.has(v.id))
-      .map((v) => [v.id, { ...v, name: displayVendorName(v.name, v.id) }])
+    catalogVendors.map((v) => [
+      v.id,
+      { ...v, name: displayVendorName(v.name, v.id) },
+    ])
   );
   const approved = submissions.filter(
-    (s) => s.status === "approved" && ACTIVE_VENDOR_IDS.has(s.vendorId)
+    (s) => s.status === "approved" && vendorById[s.vendorId]
   );
   const byOffer = new Map();
 

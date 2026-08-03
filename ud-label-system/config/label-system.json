@@ -1,0 +1,103 @@
+{
+  "version": "2.0",
+  "brand": {
+    "companyName": "UNDISCLOSED",
+    "headerCompanyName": "UNDISCLOSED",
+    "brandGapChars": 1,
+    "brandMarkOriginal": "assets/brand/UD_Brand_Mark_Latest_Original.png",
+    "brandMarkBlackTransparent": "assets/brand/UD_Brand_Mark_Black_Transparent.png",
+    "brandMarkWhiteTransparent": "assets/brand/UD_Brand_Mark_White_Transparent.png",
+    "mascotOriginal": "assets/brand/UD_Sentinel_Mascot_Original.png",
+    "mascotBlackTransparent": "assets/brand/UD_Sentinel_Mascot_Black_Transparent.png",
+    "rule": "Keep the supplied originals unchanged. Use the included transparent production derivatives for rendering; never redraw, substitute, add a background box, or change proportions."
+  },
+  "print": {
+    "printer": "NIIMBOT M2",
+    "dpi": 300,
+    "colorMode": "one-bit black/white",
+    "addOuterBorder": false,
+    "profiles": {
+      "40x20": {
+        "widthMm": 40,
+        "heightMm": 20,
+        "widthPx": 472,
+        "heightPx": 236,
+        "vialMl": 3
+      },
+      "50x30": {
+        "widthMm": 50,
+        "heightMm": 30,
+        "widthPx": 591,
+        "heightPx": 354,
+        "vialMl": 10
+      }
+    }
+  },
+  "templates": {
+    "CATALOG_40x20": "templates/UD_Catalog_40x20mm_M2.svg",
+    "CALCULATOR_40x20": "templates/UD_Calculator_40x20mm_M2.svg",
+    "CATALOG_50x30": "templates/UD_Catalog_50x30mm_M2.svg",
+    "CALCULATOR_50x30": "templates/UD_Calculator_50x30mm_M2.svg"
+  },
+  "editableFields": {
+    "shared": [
+      "COMPANY_NAME",
+      "HEADER_COMPANY_NAME",
+      "PEPTIDE_NAME",
+      "TOTAL_AMOUNT",
+      "UNIT",
+      "LEGAL_LINE_1",
+      "LEGAL_LINE_2",
+      "LEGAL_LINE_3",
+      "QR_VALUE",
+      "QR_ENABLED",
+      "MASCOT_ENABLED",
+      "BRAND_GAP_CHARS"
+    ],
+    "catalog": [
+      "FORM_TEXT",
+      "STORAGE_PREFIX",
+      "STORAGE_TEMP"
+    ],
+    "calculator": [
+      "DILUENT_HEADER",
+      "DILUENT",
+      "CONCENTRATION_HEADER",
+      "CONCENTRATION",
+      "DOSE_RANGE_HEADER",
+      "DOSE_RANGE",
+      "DOSE_UNITS"
+    ]
+  },
+  "qrSlots": {
+    "40x20": {
+      "x": 940,
+      "y": 176,
+      "size": 210,
+      "cornerRadius": 14,
+      "strokeWidth": 5,
+      "quietModules": 4
+    },
+    "50x30": {
+      "x": 1145,
+      "y": 300,
+      "size": 300,
+      "cornerRadius": 14,
+      "strokeWidth": 5,
+      "quietModules": 4
+    }
+  },
+  "unitRules": {
+    "allowed": ["MG", "MCG", "G", "IU", "ML"],
+    "iuProducts": ["HGH", "HCG", "HMG", "EPO"],
+    "note": "HGH and other unit-based products must display IU, not MG."
+  },
+  "layoutLocks": [
+    "No printed border around the label perimeter.",
+    "The left brand rail is solid black and full bleed to the physical paper edge.",
+    "Keep the right QR panel identical across all label types.",
+    "The mascot stays behind and above the QR box and is proportionally larger on 50x30.",
+    "All major center content is centered within the middle panel, not the full canvas.",
+    "Replace text and QR content only; do not move design geometry."
+  ]
+}

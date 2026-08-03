@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   confirmEmailWithCode,
   consumeConfirmEmailFromUrl,
@@ -11,6 +11,10 @@ import {
   validateUserId,
 } from "../utils/auth";
 import { siteLegal } from "../data/siteLegal";
+import {
+  hasPayoutDestination,
+  isAllowlisted,
+} from "../utils/referralCodes";
 
 export default function AuthGate({ onAuthed, onClose, labMode = false }) {
   const legal = siteLegal(labMode);
@@ -27,6 +31,17 @@ export default function AuthGate({ onAuthed, onClose, labMode = false }) {
   const [info, setInfo] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [payout, setPayout] = useState({
+    method: "venmo",
+    venmo: "",
+    zelle: "",
+    crypto: "",
+  });
+
+  const vipSignup = useMemo(
+    () => mode === "signup" && validateEmail(email) && isAllowlisted(email),
+    [mode, email]
+  );
 
   useEffect(() => {
     const result = consumeConfirmEmailFromUrl();
@@ -65,12 +80,19 @@ export default function AuthGate({ onAuthed, onClose, labMode = false }) {
       }
 
       if (mode === "signup") {
+        if (vipSignup && !hasPayoutDestination(payout)) {
+          setError(
+            "Add Venmo, Zelle, or a crypto wallet so we can send your friend-code earnings."
+          );
+          return;
+        }
         const result = await registerAccount({
           email,
           userId,
           password,
           confirmPassword,
           ageConfirmed,
+          payout: vipSignup ? payout : null,
         });
         if (!result.ok) {
           setError(result.error);
@@ -82,8 +104,12 @@ export default function AuthGate({ onAuthed, onClose, labMode = false }) {
           setMode("confirm");
           setInfo(
             result.emailVia === "resend"
-              ? "Account created. We emailed you a confirmation code. Enter it below or open the link in that message."
-              : "Account created. Confirm your email before shopping. We opened a message to your inbox. Send it, then enter the 6-digit code or open the link."
+              ? vipSignup
+                ? "Account created. Your 20% code and share code are ready after you confirm. Check your email for the code."
+                : "Account created. We emailed you a confirmation code. Enter it below or open the link in that message."
+              : vipSignup
+                ? "Account created. Confirm your email — then you’ll see your personal 20% code and the share code for friends."
+                : "Account created. Confirm your email before shopping. We opened a message to your inbox. Send it, then enter the 6-digit code or open the link."
           );
           return;
         }
@@ -318,6 +344,80 @@ export default function AuthGate({ onAuthed, onClose, labMode = false }) {
                   required
                 />
               </label>
+
+              {vipSignup ? (
+                <div className="auth-vip-payout">
+                  <p className="auth-vip-title">
+                    Direct payout (friend-code earnings)
+                  </p>
+                  <p className="auth-field-hint">
+                    You’re on the invite list. You’ll get a personal 20% code and
+                    a share code for friends (they get 10% off; you get the other
+                    10% after their order is delivered). Where should we send
+                    your cut?
+                  </p>
+                  <label>
+                    Payout method
+                    <select
+                      value={payout.method}
+                      onChange={(e) =>
+                        setPayout((p) => ({ ...p, method: e.target.value }))
+                      }
+                    >
+                      <option value="venmo">Venmo</option>
+                      <option value="zelle">Zelle</option>
+                      <option value="crypto">Crypto / USDT</option>
+                    </select>
+                  </label>
+                  {payout.method === "venmo" ? (
+                    <label>
+                      Venmo handle
+                      <input
+                        value={payout.venmo}
+                        onChange={(e) =>
+                          setPayout((p) => ({
+                            ...p,
+                            venmo: e.target.value.replace(/^@/, ""),
+                          }))
+                        }
+                        placeholder="yourVenmo"
+                        required
+                      />
+                    </label>
+                  ) : null}
+                  {payout.method === "zelle" ? (
+                    <label>
+                      Zelle email / phone
+                      <input
+                        value={payout.zelle}
+                        onChange={(e) =>
+                          setPayout((p) => ({ ...p, zelle: e.target.value }))
+                        }
+                        placeholder="you@email.com"
+                        required
+                      />
+                    </label>
+                  ) : null}
+                  {payout.method === "crypto" ? (
+                    <label>
+                      Wallet address
+                      <input
+                        value={payout.crypto}
+                        onChange={(e) =>
+                          setPayout((p) => ({
+                            ...p,
+                            crypto: e.target.value.trim(),
+                          }))
+                        }
+                        placeholder="USDT / wallet address"
+                        spellCheck={false}
+                        required
+                      />
+                    </label>
+                  ) : null}
+                </div>
+              ) : null}
+
               <label className="auth-check">
                 <input
                   type="checkbox"

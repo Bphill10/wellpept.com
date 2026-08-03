@@ -1,0 +1,188 @@
+{
+  "version": "2.0",
+  "status": "PASS",
+  "printer": "NIIMBOT M2",
+  "productCount": 303,
+  "brandMark": "latest supplied UD image",
+  "mascot": "UD Sentinel",
+  "checks": [
+    {
+      "check": "file",
+      "path": "data/UD_Peptide_Label_Catalog.xlsx",
+      "status": "pass"
+    },
+    {
+      "check": "file",
+      "path": "data/catalog.json",
+      "status": "pass"
+    },
+    {
+      "check": "file",
+      "path": "assets/brand/UD_Brand_Mark_Latest_Original.png",
+      "status": "pass"
+    },
+    {
+      "check": "file",
+      "path": "assets/brand/UD_Brand_Mark_Black_Transparent.png",
+      "status": "pass"
+    },
+    {
+      "check": "file",
+      "path": "assets/brand/UD_Brand_Mark_White_Transparent.png",
+      "status": "pass"
+    },
+    {
+      "check": "file",
+      "path": "assets/brand/UD_Sentinel_Mascot_Original.png",
+      "status": "pass"
+    },
+    {
+      "check": "file",
+      "path": "assets/vials/UD_3mL_White_Peptide_Black_Cap_Unlabeled.png",
+      "status": "pass"
+    },
+    {
+      "check": "file",
+      "path": "assets/vials/UD_3mL_Blue_Peptide_Black_Cap_Unlabeled.png",
+      "status": "pass"
+    },
+    {
+      "check": "file",
+      "path": "assets/vials/UD_10mL_White_Peptide_Black_Cap_Unlabeled.png",
+      "status": "pass"
+    },
+    {
+      "check": "file",
+      "path": "assets/approved-products/TA1_5mg_3mL_White_BlackCap_Website_Final.png",
+      "status": "pass"
+    },
+    {
+      "check": "file",
+      "path": "assets/approved-products/KLOW_80mg_3mL_Blue_BlackCap_Website.png",
+      "status": "pass"
+    },
+    {
+      "check": "file",
+      "path": "assets/approved-products/NAD_PLUS_1000mg_10mL_White_BlackCap_Website.png",
+      "status": "pass"
+    },
+    {
+      "check": "file",
+      "path": "templates/UD_Catalog_40x20mm_M2.svg",
+      "status": "pass"
+    },
+    {
+      "check": "template",
+      "template": "CATALOG_40x20",
+      "size": "40x20",
+      "status": "pass"
+    },
+    {
+      "check": "file",
+      "path": "templates/UD_Calculator_40x20mm_M2.svg",
+      "status": "pass"
+    },
+    {
+      "check": "template",
+      "template": "CALCULATOR_40x20",
+      "size": "40x20",
+      "status": "pass"
+    },
+    {
+      "check": "file",
+      "path": "templates/UD_Catalog_50x30mm_M2.svg",
+      "status": "pass"
+    },
+    {
+      "check": "template",
+      "template": "CATALOG_50x30",
+      "size": "50x30",
+      "status": "pass"
+    },
+    {
+      "check": "file",
+      "path": "templates/UD_Calculator_50x30mm_M2.svg",
+      "status": "pass"
+    },
+    {
+      "check": "template",
+      "template": "CALCULATOR_50x30",
+      "size": "50x30",
+      "status": "pass"
+    },
+    {
+      "check": "print",
+      "file": "examples\\generated\\KLOW_80MG_Calculator_40x20_M2_300dpi_1bit.png",
+      "dimensions": "472x236",
+      "colors": 2,
+      "status": "pass"
+    },
+    {
+      "check": "print",
+      "file": "examples\\generated\\KLOW_80MG_Catalog_40x20_M2_300dpi_1bit.png",
+      "dimensions": "472x236",
+      "colors": 2,
+      "status": "pass"
+    },
+    {
+      "check": "print",
+      "file": "examples\\generated\\TA1_5MG_Catalog_40x20_M2_300dpi_1bit.png",
+      "dimensions": "472x236",
+      "colors": 2,
+      "status": "pass"
+    },
+    {
+      "check": "print",
+      "file": "examples\\generated\\KLOW_80MG_Calculator_50x30_M2_300dpi_1bit.png",
+      "dimensions": "591x354",
+      "colors": 2,
+      "status": "pass"
+    },
+    {
+      "check": "print",
+      "file": "examples\\generated\\KLOW_80MG_Catalog_50x30_M2_300dpi_1bit.png",
+      "dimensions": "591x354",
+      "colors": 2,
+      "status": "pass"
+    },
+    {
+      "check": "print",
+      "file": "examples\\generated\\NAD_PLUS_1000MG_Catalog_50x30_M2_300dpi_1bit.png",
+      "dimensions": "591x354",
+      "colors": 2,
+      "status": "pass"
+    },
+    {
+      "check": "catalog",
+      "products": 303,
+      "hghUsesIU": true,
+      "status": "pass"
+    },
+    {
+      "check": "placement",
+      "profile": "3ML_WHITE",
+      "coverage": "20/60/20",
+      "status": "pass"
+    },
+    {
+      "check": "placement",
+      "profile": "3ML_BLUE",
+      "coverage": "20/60/20",
+      "status": "pass"
+    },
+    {
+      "check": "placement",
+      "profile": "10ML_WHITE",
+      "coverage": "20/60/20",
+      "status": "pass"
+    }
+  ],
+  "hashes": {
+    "assets/brand/UD_Brand_Mark_Latest_Original.png": "0b2a5b0503a59483c19dea409f5fa4c97b32d4db5a609fd53c1af572ba51b967",
+    "assets/brand/UD_Sentinel_Mascot_Original.png": "f51f48b0e070a0ae1ae4d342a880b21a41e2e05c9277528d725f7a104a444139",
+    "assets/vials/UD_3mL_White_Peptide_Black_Cap_Unlabeled.png": "3f2d58a8665733b33fcd4579ab2964f8be347d539e05c1d77e741ee318cf474b",
+    "assets/vials/UD_3mL_Blue_Peptide_Black_Cap_Unlabeled.png": "0aa949d22ed29c2476cdba1f96365c932a2bcb5bd57e82afbcbd70055ad45532",
+    "assets/vials/UD_10mL_White_Peptide_Black_Cap_Unlabeled.png": "71e9ecb8be9fdeda932412cfc857bbbbdd0edf3de41a3e5a5220985a9fb450c4"
+  },
+  "errors": []
+}

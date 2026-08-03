@@ -1,0 +1,58 @@
+{
+  "version": "2.0",
+  "canvas": {
+    "widthPx": 1024,
+    "heightPx": 1536,
+    "background": "#000000"
+  },
+  "globalRules": {
+    "placement": "center within the straight vial body below the neck",
+    "topClearFraction": 0.2,
+    "labelFraction": 0.6,
+    "bottomClearFraction": 0.2,
+    "renderMode": "cylindrical-wrap",
+    "capColor": "BLACK",
+    "crimpColor": "BRUSHED SILVER",
+    "trim": "all four label edges clean and even; no white perimeter, tab, nub, or bottom-right sliver",
+    "never": [
+      "cover the neck",
+      "cover the cap",
+      "change vial geometry",
+      "change powder amount or texture",
+      "regenerate label text with AI",
+      "add an outside label border"
+    ]
+  },
+  "profiles": {
+    "3ML_WHITE": {
+      "vialMl": 3,
+      "bodyHeightMm": 35,
+      "labelWidthMm": 40,
+      "labelHeightMm": 20,
+      "baseAsset": "assets/vials/UD_3mL_White_Peptide_Black_Cap_Unlabeled.png",
+      "bodyBoundsPx": { "left": 194, "right": 742, "top": 536, "bottom": 1390 },
+      "labelBoundsPx": { "left": 205, "right": 731, "top": 707, "bottom": 1219 },
+      "material": "WHITE CAKE"
+    },
+    "3ML_BLUE": {
+      "vialMl": 3,
+      "bodyHeightMm": 35,
+      "labelWidthMm": 40,
+      "labelHeightMm": 20,
+      "baseAsset": "assets/vials/UD_3mL_Blue_Peptide_Black_Cap_Unlabeled.png",
+      "bodyBoundsPx": { "left": 194, "right": 742, "top": 536, "bottom": 1390 },
+      "labelBoundsPx": { "left": 205, "right": 731, "top": 707, "bottom": 1219 },
+      "material": "COBALT BLUE CAKE"
+    },
+    "10ML_WHITE": {
+      "vialMl": 10,
+      "bodyHeightMm": 52,
+      "labelWidthMm": 50,
+      "labelHeightMm": 30,
+      "baseAsset": "assets/vials/UD_10mL_White_Peptide_Black_Cap_Unlabeled.png",
+      "bodyBoundsPx": { "left": 258, "right": 770, "top": 396, "bottom": 1410 },
+      "labelBoundsPx": { "left": 272, "right": 756, "top": 599, "bottom": 1207 },
+      "material": "WHITE CAKE"
+    }
+  }
+}

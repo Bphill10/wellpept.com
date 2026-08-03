@@ -271,6 +271,7 @@ export async function registerAccount({
   password,
   confirmPassword,
   ageConfirmed,
+  payout = null,
 }) {
   if (!ageConfirmed) {
     return { ok: false, error: "You must confirm you are 18 or older." };
@@ -319,6 +320,21 @@ export async function registerAccount({
   const draft = await openConfirmEmailDraft(user, issued);
   // Fire-and-forget ops ping when Resend is configured
   notifyOpsNewSignup(user);
+
+  // VIP allowlist: mint dual codes + save payout destination at signup
+  try {
+    const { isAllowlisted, ensureVipMember, saveReferralPayout, hasPayoutDestination } =
+      await import("./referralCodes.js");
+    if (isAllowlisted(mail)) {
+      ensureVipMember(mail);
+      if (payout && hasPayoutDestination(payout)) {
+        saveReferralPayout(mail, payout);
+      }
+    }
+  } catch {
+    /* referral module optional at signup */
+  }
+
   return {
     ok: true,
     needsEmailConfirm: true,

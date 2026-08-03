@@ -1,0 +1,19 @@
+{
+  "name": "undisclosed-cursor-label-system",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync": "node scripts/sync-workbook.mjs",
+    "label": "node scripts/generate-label.mjs",
+    "examples": "node scripts/generate-approved-examples.mjs",
+    "place": "node scripts/place-label.mjs",
+    "validate": "node scripts/validate-package.mjs",
+    "build": "npm run sync && npm run examples && npm run validate"
+  },
+  "dependencies": {
+    "qrcode": "1.5.4",
+    "sharp": "0.34.3",
+    "xlsx": "0.18.5"
+  }
+}

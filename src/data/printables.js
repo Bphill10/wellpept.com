@@ -165,7 +165,7 @@ export function printLabels10Line({
     form: `10 wraps · ${peptide} · ${strength} · ${ml} mL bottle`,
     unitLabel: "10 labels",
     sku: `PRINT-LBL10-${etch}`,
-    image: "/undisclosed-label-flat.jpg",
+    image: "/ud-labels/examples/KLOW_80mg_40x20_Catalog_Preview.png",
     printKind: "labels10",
     etch,
     etchPeptide: peptide,
@@ -214,7 +214,7 @@ export function printKitLine({
       capMode === "color"
         ? `PRINT-KIT-${color.sku}`
         : `PRINT-KIT-${etch}`,
-    image: "/undisclosed-hero-kit-sm.webp",
+    image: "/ud-labels/approved/KLOW_80mg_3mL_Blue_BlackCap_Website.png",
     printKind: "kit",
     capMode,
     capColor: capMode === "color" ? color.id : "",

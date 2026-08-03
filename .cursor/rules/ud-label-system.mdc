@@ -1,0 +1,55 @@
+---
+description: Locked rules for all Undisclosed peptide labels and vial catalog images
+alwaysApply: true
+---
+
+# Undisclosed label system
+
+Use `data/UD_Peptide_Label_Catalog.xlsx` as the editable source of truth and run `npm run sync` after workbook edits.
+
+## Locked brand assets
+
+- Latest UD brand mark: `assets/brand/UD_Brand_Mark_Latest_Original.png`
+- Mascot: `assets/brand/UD_Sentinel_Mascot_Original.png`
+- Keep both originals unchanged. Use the included transparent production derivatives; do not redraw, substitute, distort, or add a background box.
+- Both assets are already embedded in the SVG masters for portable printing.
+- Default `BRAND_GAP_CHARS` is 1 and may be changed from 0 through 4.
+
+## Locked label design
+
+- White stock, black-only ink.
+- No outside printed border.
+- Full-bleed black rail on the left physical edge.
+- Vertical company name and brand mark centered in the rail.
+- Centered `— UNDISCLOSED —` header.
+- Product name and amount bar centered in the middle panel.
+- Mascot behind and above the QR box; larger proportionally on 50×30.
+- Same QR/legal panel on every template.
+- Replace values only inside elements marked by `data-field` or `{{FIELD}}`.
+- Never move the rail, center panel, amount bar, dividers, QR panel, mascot anchor, or safety margins.
+
+## Sizes and printer
+
+- 3 mL vial: 40×20 mm, 472×236 px at 300 DPI.
+- 10 mL vial: 50×30 mm, 591×354 px at 300 DPI.
+- Export monochrome one-bit PNG. Do not scale, crop, fit-to-page, enhance, or add an outline.
+
+## Fields
+
+All fields in `config/label-system.json` are editable. This includes company/header text, peptide name, amount, unit, storage, form, calculator headers and values, legal lines, QR value/toggle, mascot toggle, and brand spacing.
+
+Use `IU` for HGH, HCG, HMG, EPO, and other IU products. Do not force every product to MG.
+
+## Vial placement
+
+- Use only the stock black-cap vial images in `assets/vials/`.
+- Labels sit below the neck and cover 60% of the straight body.
+- Leave 20% exposed glass above and 20% below.
+- Preserve the round black flip top, brushed-silver crimp, vial geometry, powder amount, powder texture, and pure black background.
+- KLOW, GLOW, GHK-Cu, and AHK-Cu use the cobalt-blue cake unless the workbook overrides the visual.
+- Both 3 mL stock images must remain identical except for peptide cake color.
+- Trim all paper edges evenly. Never leave a white perimeter, tab, nub, torn corner, or bottom-right sliver.
+
+## Required verification
+
+Run `npm run build`. Do not treat the update as finished unless `validation-report.json` says `PASS`.

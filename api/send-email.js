@@ -6,6 +6,7 @@
  *   { type: "auth_confirm", to, userId, code, link }
  *   { type: "ops_signup", userId, email, createdAt? }
  *   { type: "order_customer", to, subject, text }
+ *   { type: "referral_payout", to, subject, text, amount, orderId, code, payoutSummary, venmoUrl? }
  *
  * Env: RESEND_API_KEY, EMAIL_FROM, EMAIL_OPS_TO
  */
@@ -206,6 +207,88 @@ async function sendOrderCustomer(body) {
   });
 }
 
+/** Commission notice → referrer directly; ops gets a copy with Venmo send link. */
+async function sendReferralPayout(body) {
+  const to = String(body.to || "").trim();
+  const subject = String(body.subject || "WellPept referral payout").slice(0, 200);
+  const text = String(body.text || "").slice(0, 50000);
+  const amount = Number(body.amount) || 0;
+  const venmoUrl = String(body.venmoUrl || "").trim();
+  const payoutSummary = String(body.payoutSummary || "").trim();
+  const orderId = String(body.orderId || "").trim();
+  const code = String(body.code || "").trim();
+  if (!looksLikeEmail(to) || !text.trim()) {
+    const err = new Error("Missing referral payout email fields");
+    err.status = 400;
+    throw err;
+  }
+
+  let html = `
+    <div style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.5;color:#111;max-width:520px;">
+      <h2 style="margin:0 0 .5rem;">You earned $${amount.toFixed(2)}</h2>
+      <p style="margin:0 0 .75rem;">Friend-code commission from WellPept.</p>
+      <p style="margin:0 0 .35rem;"><strong>Order:</strong> ${escapeHtml(orderId)}</p>
+      <p style="margin:0 0 .35rem;"><strong>Your code:</strong> ${escapeHtml(code)}</p>
+      <p style="margin:0 0 1rem;"><strong>Send to:</strong> ${escapeHtml(payoutSummary || "see message")}</p>
+      ${textToHtml(text)}
+    </div>
+  `;
+
+  const referrerResult = await sendWithResend({
+    to,
+    subject,
+    text,
+    html,
+    replyTo: emailOpsTo(),
+  });
+
+  // Ops copy — includes Venmo deep link to pay the referrer
+  const opsTo = emailOpsTo();
+  if (opsTo && opsTo.toLowerCase() !== to.toLowerCase()) {
+    const opsText = [
+      `REFERRAL PAYOUT — send to referrer`,
+      "",
+      `Pay: $${amount.toFixed(2)}`,
+      `To: ${to}`,
+      `Destination: ${payoutSummary}`,
+      `Order: ${orderId}`,
+      `Code: ${code}`,
+      venmoUrl ? `Venmo send link:\n${venmoUrl}` : "",
+      "",
+      "The referrer was emailed this notice directly.",
+    ]
+      .filter(Boolean)
+      .join("\n");
+    const opsHtml = `
+      <div style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.5;color:#111;">
+        <p><strong>Send $${amount.toFixed(2)} to referrer</strong></p>
+        <p>Email: ${escapeHtml(to)}<br/>Destination: ${escapeHtml(payoutSummary)}</p>
+        ${
+          venmoUrl && /^https?:\/\//i.test(venmoUrl)
+            ? `<p><a href="${escapeHtml(venmoUrl)}"
+                 style="display:inline-block;padding:.7rem 1.1rem;background:#008CFF;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;">
+                 Open Venmo · send $${amount.toFixed(2)}
+               </a></p>`
+            : ""
+        }
+        <p style="font-size:13px;color:#555;">Referrer already received their notice email.</p>
+      </div>
+    `;
+    try {
+      await sendWithResend({
+        to: opsTo,
+        subject: `Pay referrer $${amount.toFixed(2)} · ${orderId || code}`,
+        text: opsText,
+        html: opsHtml,
+      });
+    } catch {
+      /* referrer email already sent — don't fail the whole call */
+    }
+  }
+
+  return referrerResult;
+}
+
 export default async function handler(req, res) {
   if (req.method === "OPTIONS") {
     res.statusCode = 204;
@@ -239,6 +322,7 @@ export default async function handler(req, res) {
     else if (type === "auth_confirm") data = await sendAuthConfirm(body);
     else if (type === "ops_signup") data = await sendOpsSignup(body);
     else if (type === "order_customer") data = await sendOrderCustomer(body);
+    else if (type === "referral_payout") data = await sendReferralPayout(body);
     else {
       sendJson(res, 400, { error: "Unknown email type" });
       return;

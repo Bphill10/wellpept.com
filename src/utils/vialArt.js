@@ -3,35 +3,61 @@ import { shortLabelName } from "../data/capNames";
 
 /** Wellpept / Undisclosed vial art — photoreal glass vial + compact clinical sticker. */
 
-/** Undisclosed brand plate (labeled vial with UD hex mark). */
-export const BRAND_IMAGE_SRC = "/undisclosed-brand.webp";
-export const BRAND_IMAGE_FALLBACK_SRC = "/undisclosed-brand.jpg";
+/** Undisclosed brand plate (labeled vial with UD mark). */
+export const BRAND_IMAGE_SRC =
+  "/ud-labels/approved/TA1_5mg_3mL_White_BlackCap_Website_Final.png";
+export const BRAND_IMAGE_FALLBACK_SRC =
+  "/ud-labels/vials/UD_3mL_White_Peptide_Black_Cap_Unlabeled.png";
 /** Photoreal 3 mL plate — blank Undisclosed wrap, white powder. */
-export const BRAND_VIAL_SRC = "/references/vial-white-template.png";
+export const BRAND_VIAL_SRC =
+  "/ud-labels/vials/UD_3mL_White_Peptide_Black_Cap_Unlabeled.png";
 /** Compact plate for catalog cards / phone grids. */
-export const BRAND_VIAL_CARD_SRC = "/references/vial-white-template.png";
+export const BRAND_VIAL_CARD_SRC =
+  "/ud-labels/vials/UD_3mL_White_Peptide_Black_Cap_Unlabeled.png";
 /** Unlabeled white-powder 3 mL plate (no wrap) — hero / compositing base. */
-export const UNLABELED_VIAL_SRC = "/references/vial-unlabeled-white.png";
-export const UNLABELED_VIAL_CARD_SRC = "/real-vial-3ml-card.webp";
-/** Featured KLOW 10-vial case kit photo. */
-export const KLOW_CASE_KIT_SRC = "/references/klow-case-kit.png";
-export const KLOW_CASE_KIT_SM_SRC = "/undisclosed-hero-kit-sm.webp";
+export const UNLABELED_VIAL_SRC =
+  "/ud-labels/vials/UD_3mL_White_Peptide_Black_Cap_Unlabeled.png";
+export const UNLABELED_VIAL_CARD_SRC =
+  "/ud-labels/vials/UD_3mL_White_Peptide_Black_Cap_Unlabeled.png";
+/** Featured KLOW vial photo. */
+export const KLOW_CASE_KIT_SRC =
+  "/ud-labels/approved/KLOW_80mg_3mL_Blue_BlackCap_Website.png";
+export const KLOW_CASE_KIT_SM_SRC =
+  "/ud-labels/approved/KLOW_80mg_3mL_Blue_BlackCap_Website.png";
 /** Complete filled-label example (calculator target look). */
-export const VIAL_COMPLETE_EXAMPLE_SRC = "/references/vial-complete-example-klow.png";
+export const VIAL_COMPLETE_EXAMPLE_SRC =
+  "/ud-labels/approved/KLOW_80mg_3mL_Blue_BlackCap_Website.png";
 /** Photoreal unlabeled 10 mL research vial (studio photo). */
-export const BRAND_VIAL_10_SRC = "/real-vial-10ml.webp";
-export const BRAND_VIAL_10_CARD_SRC = "/real-vial-10ml-card.webp";
+export const BRAND_VIAL_10_SRC =
+  "/ud-labels/vials/UD_10mL_White_Peptide_Black_Cap_Unlabeled.png";
+export const BRAND_VIAL_10_CARD_SRC =
+  "/ud-labels/vials/UD_10mL_White_Peptide_Black_Cap_Unlabeled.png";
 /** Studio blue-cake vial — blank Undisclosed wrap (KLOW / GLOW / GHK-Cu). */
-export const BLUE_VIAL_SRC = "/references/vial-blue-template.png";
-export const BLUE_VIAL_CARD_SRC = "/references/vial-blue-template.png";
-export const KLOW_VIAL_SRC = BLUE_VIAL_SRC;
-export const KLOW_VIAL_CARD_SRC = BLUE_VIAL_CARD_SRC;
-export const KLOW_VIAL_FALLBACK_SRC = BLUE_VIAL_SRC;
+export const BLUE_VIAL_SRC =
+  "/ud-labels/vials/UD_3mL_Blue_Peptide_Black_Cap_Unlabeled.png";
+export const BLUE_VIAL_CARD_SRC =
+  "/ud-labels/vials/UD_3mL_Blue_Peptide_Black_Cap_Unlabeled.png";
+export const KLOW_VIAL_SRC =
+  "/ud-labels/approved/KLOW_80mg_3mL_Blue_BlackCap_Website.png";
+export const KLOW_VIAL_CARD_SRC =
+  "/ud-labels/approved/KLOW_80mg_3mL_Blue_BlackCap_Website.png";
+export const KLOW_VIAL_FALLBACK_SRC =
+  "/ud-labels/vials/UD_3mL_Blue_Peptide_Black_Cap_Unlabeled.png";
 /** Blank clinical wrap template (flat). */
-export const BLANK_LABEL_SRC = "/references/label-template.png";
-export const BLANK_LABEL_FALLBACK_SRC = "/undisclosed-label-blank.webp";
-/** Hex UD seal / monogram for Undisclosed. */
+export const BLANK_LABEL_SRC =
+  "/ud-labels/examples/KLOW_80mg_40x20_Catalog_Preview.png";
+export const BLANK_LABEL_FALLBACK_SRC =
+  "/ud-labels/examples/TA1_5mg_40x20_Catalog_Preview.png";
+/** Hex UD seal / monogram for Undisclosed UI chrome. */
 export const UD_MARK_SRC = "/ud-monogram.svg";
+/** Latest supplied UD brand mark (authoritative for labels). */
+export const UD_BRAND_MARK_LATEST =
+  "/ud-labels/brand/UD_Brand_Mark_Latest_Original.png";
+export const UD_BRAND_MARK_WHITE =
+  "/ud-labels/brand/UD_Brand_Mark_White_Transparent.png";
+/** UD Sentinel mascot. */
+export const UD_SENTINEL_MASCOT =
+  "/ud-labels/brand/UD_Sentinel_Mascot_Original.png";
 /** @deprecated use UD_MARK_SRC */
 export const WP_MARK_SRC = UD_MARK_SRC;
 /** @deprecated use UD_MARK_SRC */
@@ -282,7 +308,9 @@ export function loadBlankLabelImage() {
       blankLabelCache = img;
       return img;
     }
-    const jpg = await loadImage("/undisclosed-label-blank.jpg");
+    const jpg = await loadImage(
+      "/ud-labels/examples/TA1_5mg_40x20_Catalog_Preview.png"
+    );
     blankLabelCache = jpg;
     return jpg;
   });
@@ -472,9 +500,10 @@ export function isBluePowderCompound(name = "", form = "") {
 
   if (head === "KLOW" || /^KLOW\b/.test(head)) return true;
   if (head === "GLOW" || /^GLOW\b/.test(head)) return true;
-  // GHK-Cu / GHK CU / GHK-CU — not GHK BASIC
+  // GHK-Cu / GHK CU / AHK-Cu — not GHK BASIC
   if (/\bBASIC\b/.test(head)) return false;
   if (/^GHK[-\s]?CU\b/.test(head) || /^GHK[-\s]?CU\b/.test(upper)) return true;
+  if (/^AHK[-\s]?CU\b/.test(head) || /^AHK[-\s]?CU\b/.test(upper)) return true;
   return false;
 }
 
