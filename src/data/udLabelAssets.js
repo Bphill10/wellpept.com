@@ -73,6 +73,9 @@ export function catalogVialImage(product = {}) {
   if (/^AHK\b/.test(head)) nameAliases.push("AHK-CU", "AHK CU");
   if (/^GHK\b/.test(head) && !/\bBASIC\b/.test(head))
     nameAliases.push("GHK-CU", "GHK CU");
+  if (/CJC/.test(head) && /IPA|IPAMORELIN/.test(head)) {
+    nameAliases.push("CJC/IPA", "CJC-1295 / IPAMORELIN", "CI");
+  }
 
   const candidates = [];
   for (const n of [...new Set(nameAliases)]) {

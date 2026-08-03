@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "generatedAt": "2026-08-03T01:14:01.176Z",
+  "generatedAt": "2026-08-03T01:36:06.518Z",
   "source": "data/UD_Peptide_Label_Catalog.xlsx → catalog.json",
   "count": 303,
   "byCatalogId": {
@@ -78,14 +78,14 @@
     "UD-0072": "/ud-labels/catalog/UD_0072_CJC_1295_NO_DAC_0_5MG_3mL_Website.webp",
     "UD-0073": "/ud-labels/catalog/UD_0073_CJC_1295_NO_DAC_1MG_3mL_Website.webp",
     "UD-0074": "/ud-labels/catalog/UD_0074_CJC_1295_NO_DAC_2MG_3mL_Website.webp",
-    "UD-0075": "/ud-labels/catalog/UD_0075_CI_10MG_3mL_Website.webp",
+    "UD-0075": "/ud-labels/catalog/UD_0075_CJC_IPA_10MG_3mL_Website.webp",
     "UD-0076": "/ud-labels/catalog/UD_0076_CJC_IPA_1MG_3mL_Website.webp",
     "UD-0077": "/ud-labels/catalog/UD_0077_CWD_5MG_3mL_Website.webp",
     "UD-0078": "/ud-labels/catalog/UD_0078_CJC_1295_WITH_DAC_0_5MG_3mL_Website.webp",
     "UD-0079": "/ud-labels/catalog/UD_0079_CJC_1295_WITH_DAC_2MG_3mL_Website.webp",
     "UD-0080": "/ud-labels/catalog/UD_0080_CJC_1295_WITH_DAC_5MG_3mL_Website.webp",
     "UD-0081": "/ud-labels/catalog/UD_0081_CWD_10MG_3mL_Website.webp",
-    "UD-0082": "/ud-labels/catalog/UD_0082_CWD_I_10MG_3mL_Website.webp",
+    "UD-0082": "/ud-labels/catalog/UD_0082_CJC_IPA_NO_DAC_BLEND_10MG_3mL_Website.webp",
     "UD-0083": "/ud-labels/catalog/UD_0083_CORTAGEN_20MG_3mL_Website.webp",
     "UD-0084": "/ud-labels/catalog/UD_0084_CP20_20MG_3mL_Website.webp",
     "UD-0085": "/ud-labels/catalog/UD_0085_CRYSTAGEN_20MG_3mL_Website.webp",
@@ -454,8 +454,6 @@
     "CJC-1295 (NO DAC)|1": "/ud-labels/catalog/UD_0073_CJC_1295_NO_DAC_1MG_3mL_Website.webp",
     "CJC-1295 (NO DAC)|2|MG|3": "/ud-labels/catalog/UD_0074_CJC_1295_NO_DAC_2MG_3mL_Website.webp",
     "CJC-1295 (NO DAC)|2": "/ud-labels/catalog/UD_0074_CJC_1295_NO_DAC_2MG_3mL_Website.webp",
-    "CI|10|MG|3": "/ud-labels/catalog/UD_0075_CI_10MG_3mL_Website.webp",
-    "CI|10": "/ud-labels/catalog/UD_0075_CI_10MG_3mL_Website.webp",
     "CJC/IPA|1|MG|3": "/ud-labels/catalog/UD_0076_CJC_IPA_1MG_3mL_Website.webp",
     "CJC/IPA|1": "/ud-labels/catalog/UD_0076_CJC_IPA_1MG_3mL_Website.webp",
     "CWD|5|MG|3": "/ud-labels/catalog/UD_0077_CWD_5MG_3mL_Website.webp",
@@ -468,8 +466,6 @@
     "CJC-1295 WITH DAC|5": "/ud-labels/catalog/UD_0080_CJC_1295_WITH_DAC_5MG_3mL_Website.webp",
     "CWD|10|MG|3": "/ud-labels/catalog/UD_0081_CWD_10MG_3mL_Website.webp",
     "CWD|10": "/ud-labels/catalog/UD_0081_CWD_10MG_3mL_Website.webp",
-    "CWD+I|10|MG|3": "/ud-labels/catalog/UD_0082_CWD_I_10MG_3mL_Website.webp",
-    "CWD+I|10": "/ud-labels/catalog/UD_0082_CWD_I_10MG_3mL_Website.webp",
     "CORTAGEN|20|MG|3": "/ud-labels/catalog/UD_0083_CORTAGEN_20MG_3mL_Website.webp",
     "CORTAGEN|20": "/ud-labels/catalog/UD_0083_CORTAGEN_20MG_3mL_Website.webp",
     "CP20|20|MG|3": "/ud-labels/catalog/UD_0084_CP20_20MG_3mL_Website.webp",
@@ -899,7 +895,13 @@
     "WOLVERINE|20|MG|3": "/ud-labels/catalog/UD_0302_WOLVERINE_20MG_3mL_Website.webp",
     "WOLVERINE|20": "/ud-labels/catalog/UD_0302_WOLVERINE_20MG_3mL_Website.webp",
     "WOLVERINE|30|MG|3": "/ud-labels/catalog/UD_0303_WOLVERINE_30MG_3mL_Website.webp",
-    "WOLVERINE|30": "/ud-labels/catalog/UD_0303_WOLVERINE_30MG_3mL_Website.webp"
+    "WOLVERINE|30": "/ud-labels/catalog/UD_0303_WOLVERINE_30MG_3mL_Website.webp",
+    "CJC/IPA|10|MG|3": "/ud-labels/catalog/UD_0082_CJC_IPA_NO_DAC_BLEND_10MG_3mL_Website.webp",
+    "CJC/IPA|10": "/ud-labels/catalog/UD_0075_CJC_IPA_10MG_3mL_Website.webp",
+    "CJC-1295 / IPAMORELIN|10|MG|3": "/ud-labels/catalog/UD_0075_CJC_IPA_10MG_3mL_Website.webp",
+    "CJC-1295 / IPAMORELIN|10": "/ud-labels/catalog/UD_0075_CJC_IPA_10MG_3mL_Website.webp",
+    "CJC-1295 WITHOUT DAC + IPAMORELIN|10|MG|3": "/ud-labels/catalog/UD_0082_CJC_IPA_NO_DAC_BLEND_10MG_3mL_Website.webp",
+    "CJC-1295 WITHOUT DAC + IPAMORELIN|10": "/ud-labels/catalog/UD_0082_CJC_IPA_NO_DAC_BLEND_10MG_3mL_Website.webp"
   },
   "products": [
     {
@@ -1643,16 +1645,6 @@
       "image": "/ud-labels/catalog/UD_0074_CJC_1295_NO_DAC_2MG_3mL_Website.webp"
     },
     {
-      "catalogId": "UD-0075",
-      "labelName": "CI",
-      "amount": 10,
-      "unit": "MG",
-      "vialMl": 3,
-      "placementProfile": "3ML_WHITE",
-      "visualType": "WHITE CAKE",
-      "image": "/ud-labels/catalog/UD_0075_CI_10MG_3mL_Website.webp"
-    },
-    {
       "catalogId": "UD-0076",
       "labelName": "CJC/IPA",
       "amount": 1,
@@ -1711,16 +1703,6 @@
       "placementProfile": "3ML_WHITE",
       "visualType": "WHITE CAKE",
       "image": "/ud-labels/catalog/UD_0081_CWD_10MG_3mL_Website.webp"
-    },
-    {
-      "catalogId": "UD-0082",
-      "labelName": "CWD+I",
-      "amount": 10,
-      "unit": "MG",
-      "vialMl": 3,
-      "placementProfile": "3ML_WHITE",
-      "visualType": "WHITE CAKE",
-      "image": "/ud-labels/catalog/UD_0082_CWD_I_10MG_3mL_Website.webp"
     },
     {
       "catalogId": "UD-0083",
@@ -3931,6 +3913,26 @@
       "placementProfile": "3ML_WHITE",
       "visualType": "WHITE CAKE",
       "image": "/ud-labels/catalog/UD_0303_WOLVERINE_30MG_3mL_Website.webp"
+    },
+    {
+      "catalogId": "UD-0075",
+      "labelName": "CJC/IPA",
+      "amount": 10,
+      "unit": "MG",
+      "vialMl": 3,
+      "placementProfile": "3ML_WHITE",
+      "visualType": "WHITE CAKE",
+      "image": "/ud-labels/catalog/UD_0075_CJC_IPA_10MG_3mL_Website.webp"
+    },
+    {
+      "catalogId": "UD-0082",
+      "labelName": "CJC/IPA",
+      "amount": 10,
+      "unit": "MG",
+      "vialMl": 3,
+      "placementProfile": "3ML_WHITE",
+      "visualType": "WHITE CAKE",
+      "image": "/ud-labels/catalog/UD_0082_CJC_IPA_NO_DAC_BLEND_10MG_3mL_Website.webp"
     }
   ],
   "fail": 0,

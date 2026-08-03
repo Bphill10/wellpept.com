@@ -104,13 +104,31 @@ async function placeLabelOnVial({ labelPath, profileName, outputPath }) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const limit = Number(args.limit) || 0;
+  const idFilter = String(args.id || "")
+    .split(",")
+    .map((s) => s.trim().toUpperCase())
+    .filter(Boolean);
   let products = catalog.products.filter((p) => p.enabled !== false);
+  if (idFilter.length) {
+    products = products.filter((p) =>
+      idFilter.includes(String(p.catalogId || "").toUpperCase())
+    );
+    if (!products.length) {
+      throw new Error(`No products matched --id ${idFilter.join(",")}`);
+    }
+  }
   if (limit > 0) products = products.slice(0, limit);
 
   await fs.mkdir(publicCatalogDir, { recursive: true });
   await fs.mkdir(tempLabelDir, { recursive: true });
 
-  const manifest = {
+  const existingManifestPath = path.join(
+    siteRoot,
+    "public",
+    "ud-labels",
+    "catalog-manifest.json"
+  );
+  let manifest = {
     version: "2.0",
     generatedAt: new Date().toISOString(),
     source: "data/UD_Peptide_Label_Catalog.xlsx → catalog.json",
@@ -119,6 +137,20 @@ async function main() {
     byKey: {},
     products: [],
   };
+  if (idFilter.length) {
+    try {
+      const prev = JSON.parse(await fs.readFile(existingManifestPath, "utf8"));
+      manifest = {
+        ...prev,
+        generatedAt: new Date().toISOString(),
+        byCatalogId: { ...(prev.byCatalogId || {}) },
+        byKey: { ...(prev.byKey || {}) },
+        products: [...(prev.products || [])],
+      };
+    } catch {
+      /* fresh manifest */
+    }
+  }
 
   let ok = 0;
   let fail = 0;
@@ -161,6 +193,18 @@ async function main() {
         visualType: product.visualType,
         image: `/${webRel.replace(/\\/g, "/")}`,
       };
+      if (idFilter.length) {
+        manifest.products = manifest.products.filter(
+          (row) => row.catalogId !== product.catalogId
+        );
+        // Drop stale CI keys when renaming labelName
+        for (const key of Object.keys(manifest.byKey)) {
+          if (manifest.byCatalogId[product.catalogId] &&
+              manifest.byKey[key] === manifest.byCatalogId[product.catalogId]) {
+            delete manifest.byKey[key];
+          }
+        }
+      }
       manifest.products.push(entry);
       manifest.byCatalogId[product.catalogId] = entry.image;
       const key = `${String(product.labelName).toUpperCase()}|${product.amount}|${String(product.unit).toUpperCase()}|${product.vialMl}`;
@@ -168,6 +212,14 @@ async function main() {
       // Also name+amount without unit for looser site matching
       const loose = `${String(product.labelName).toUpperCase()}|${product.amount}`;
       if (!manifest.byKey[loose]) manifest.byKey[loose] = entry.image;
+      // Full shop name aliases for CJC/IPA blends
+      const full = String(product.fullProductName || "").toUpperCase();
+      if (full) {
+        const fullKey = `${full}|${product.amount}|${String(product.unit).toUpperCase()}|${product.vialMl}`;
+        const fullLoose = `${full}|${product.amount}`;
+        manifest.byKey[fullKey] = entry.image;
+        if (!manifest.byKey[fullLoose]) manifest.byKey[fullLoose] = entry.image;
+      }
 
       ok += 1;
       console.log("ok");
@@ -179,7 +231,7 @@ async function main() {
     }
   }
 
-  manifest.count = ok;
+  manifest.count = Object.keys(manifest.byCatalogId).length;
   manifest.fail = fail;
   manifest.errors = errors;
 

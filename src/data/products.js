@@ -200,6 +200,8 @@ const BLURBS = {
     "GHRP-2 is a GH-releasing peptide studied for pulsatile GH secretion, with a different receptor bias than GHRP-6.",
   Ipamorelin:
     "Ipamorelin is a selective ghrelin-receptor agonist. It is studied for cleaner GH pulses with less off-target hormone noise in research models.",
+  "CJC-1295 / Ipamorelin":
+    "CJC/IPA blend — short-acting GHRH analogue (CJC-1295, no DAC) with selective Ipamorelin. Used for pulsed GH-axis research stacks.",
   "CJC-1295 (no DAC)":
     "A short-acting GHRH analogue without a drug-affinity complex. Used for pulsed growth-hormone axis research.",
   "CJC-1295 with DAC":
@@ -332,6 +334,7 @@ const TAGLINES = {
   "GHRP-6": "GH pulse & appetite axis",
   "GHRP-2": "Pulsatile GH research",
   Ipamorelin: "Selective GH secretagogue",
+  "CJC-1295 / Ipamorelin": "CJC/IPA pulse stack",
   "CJC-1295 (no DAC)": "Short-acting GHRH research",
   "CJC-1295 with DAC": "Extended GHRH research",
   Sermorelin: "Pituitary GH release",
@@ -414,6 +417,8 @@ function resolveCompoundKey(name) {
   if (/AHK/.test(n)) return "AHK-CU";
   if (/GHRP-?6/.test(n)) return "GHRP-6";
   if (/GHRP-?2/.test(n)) return "GHRP-2";
+  // Blend before standalone Ipamorelin / plain CJC
+  if (/CJC/.test(n) && /IPA/.test(n)) return "CJC-1295 / Ipamorelin";
   if (/IPAMORELIN/.test(n)) return "Ipamorelin";
   if (/CJC/.test(n) && /DAC/.test(n) && !/WITHOUT|NO DAC|WHITOUT/.test(n))
     return "CJC-1295 with DAC";
