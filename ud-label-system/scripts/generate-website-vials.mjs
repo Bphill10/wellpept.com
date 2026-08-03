@@ -16,6 +16,11 @@ import {
   geometryFromProfile,
   renderWebsiteLabelPng,
 } from "./render-website-label.mjs";
+import {
+  applyB12LiquidFields,
+  isB12Product,
+  renderLiquidVial,
+} from "./render-vial-contents.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, "..");
@@ -45,6 +50,23 @@ function safeStem(value) {
     .replace(/\+/g, " PLUS ")
     .replace(/[^A-Za-z0-9]+/g, "_")
     .replace(/^_|_$/g, "");
+}
+
+/**
+ * Powder cakes vs liquid stocks are separate assets.
+ * Standalone B12 only → dedicated ruby liquid 10 mL plate (never recolored cake).
+ */
+function resolvePlacementProfile(product) {
+  const p = applyB12LiquidFields(product);
+  if (isB12Product(p) || String(p.contentsType || "").toUpperCase() === "LIQUID") {
+    if (isB12Product(p)) return "10ML_B12_LIQUID";
+  }
+  const explicit = String(p.placementProfile || "").toUpperCase();
+  if (explicit && placement.profiles[explicit]) return explicit;
+  if (Number(p.vialMl) >= 8) return "10ML_WHITE";
+  const material = String(p.materialColor || p.visualType || "").toUpperCase();
+  if (material.includes("BLUE")) return "3ML_BLUE";
+  return "3ML_WHITE";
 }
 
 /**
@@ -194,9 +216,7 @@ async function main() {
 
   for (let i = 0; i < products.length; i += 1) {
     const product = products[i];
-    const profileName = String(
-      product.placementProfile || "3ML_WHITE"
-    ).toUpperCase();
+    const profileName = resolvePlacementProfile(product);
     const profile = placement.profiles[profileName];
     if (!profile) {
       fail += 1;
@@ -223,15 +243,23 @@ async function main() {
     );
 
     try {
+      const productForLabel = applyB12LiquidFields(product);
+      if (profileName === "10ML_B12_LIQUID") {
+        await renderLiquidVial({
+          liquidColor: productForLabel.liquidColor,
+          fillFraction: productForLabel.fillFraction,
+        });
+      }
+
       const geometry = geometryFromProfile(profile);
       geometry.brandGapChars =
-        product.brandGapChars ?? defaults.BRAND_GAP_CHARS ?? 1;
+        productForLabel.brandGapChars ?? defaults.BRAND_GAP_CHARS ?? 1;
 
-      const svg = buildWebsiteLabelSvg(product, geometry, defaults);
+      const svg = buildWebsiteLabelSvg(productForLabel, geometry, defaults);
       await fs.writeFile(labelSvgPath, svg);
 
       const labelPng = await renderWebsiteLabelPng(
-        product,
+        productForLabel,
         geometry,
         defaults,
         assetCache
@@ -245,13 +273,14 @@ async function main() {
       });
 
       const entry = {
-        catalogId: product.catalogId,
-        labelName: product.labelName,
-        amount: product.amount,
-        unit: product.unit,
-        vialMl: product.vialMl,
+        catalogId: productForLabel.catalogId,
+        labelName: productForLabel.labelName,
+        amount: productForLabel.amount,
+        unit: productForLabel.unit,
+        vialMl: productForLabel.vialMl,
         placementProfile: profileName,
-        visualType: product.visualType,
+        contentsType: productForLabel.contentsType || "POWDER",
+        visualType: productForLabel.visualType,
         image: `/${webRel.replace(/\\/g, "/")}`,
         renderer: "website-front-facing-reflow",
       };

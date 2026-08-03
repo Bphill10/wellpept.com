@@ -59,6 +59,22 @@
       "websiteClipPathD": "M0 8 Q242 0 484 8 L484 600 Q242 608 0 600 Z",
       "websiteRenderMode": "front-facing-reflow",
       "material": "WHITE CAKE"
+    },
+    "10ML_B12_LIQUID": {
+      "vialMl": 10,
+      "bodyHeightMm": 52,
+      "labelWidthMm": 50,
+      "labelHeightMm": 30,
+      "baseAsset": "assets/vials/UD_10mL_B12_Red_Liquid_Black_Cap_Unlabeled.png",
+      "bodyBoundsPx": { "left": 258, "right": 770, "top": 396, "bottom": 1410 },
+      "labelBoundsPx": { "left": 272, "right": 756, "top": 599, "bottom": 1207 },
+      "websiteClipPathD": "M0 8 Q242 0 484 8 L484 600 Q242 608 0 600 Z",
+      "websiteRenderMode": "front-facing-reflow",
+      "contentsType": "LIQUID",
+      "liquidColor": "#A50018",
+      "fillFraction": 0.75,
+      "material": "RUBY RED LIQUID 75%",
+      "never": ["powderColor", "cakeColor", "powderMask", "white peptide cake stock"]
     }
   }
 }

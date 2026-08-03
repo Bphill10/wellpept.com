@@ -1333,8 +1333,8 @@
       "storageTemp": "36–46°F",
       "materialColor": "RED",
       "visualType": "RED LIQUID 75%",
-      "baseVialAsset": "CREATE_10mL_Red_Liquid_75pct.png",
-      "placementProfile": "10ML_WHITE",
+      "baseVialAsset": "UD_10mL_B12_Red_Liquid_Black_Cap_Unlabeled.png",
+      "placementProfile": "10ML_B12_LIQUID",
       "diluent": "",
       "concentration": "",
       "doseRange": "",
@@ -1352,7 +1352,11 @@
       "labelOutputStem": "B12_10MG_50x30_Catalog",
       "websiteOutputStem": "B12_10MG_10mL_Website",
       "source": "peptide-master-list / Live shop; peptide-master-list / extended list",
-      "notes": ""
+      "notes": "",
+      "contentsType": "LIQUID",
+      "liquidColor": "#A50018",
+      "fillFraction": 0.75,
+      "vialProfile": "10ML"
     },
     {
       "enabled": true,
@@ -10621,8 +10625,8 @@
       "storageTemp": "36–46°F",
       "materialColor": "RED",
       "visualType": "RED LIQUID 75%",
-      "baseVialAsset": "CREATE_10mL_Red_Liquid_75pct.png",
-      "placementProfile": "10ML_WHITE",
+      "baseVialAsset": "UD_10mL_B12_Red_Liquid_Black_Cap_Unlabeled.png",
+      "placementProfile": "10ML_B12_LIQUID",
       "diluent": "",
       "concentration": "",
       "doseRange": "",
@@ -10640,7 +10644,11 @@
       "labelOutputStem": "B12_10MG_50x30_Catalog",
       "websiteOutputStem": "B12_10MG_10mL_Website",
       "source": "peptide-master-list / Live shop; peptide-master-list / extended list",
-      "notes": ""
+      "notes": "",
+      "contentsType": "LIQUID",
+      "liquidColor": "#A50018",
+      "fillFraction": 0.75,
+      "vialProfile": "10ML"
     },
     {
       "enabled": true,

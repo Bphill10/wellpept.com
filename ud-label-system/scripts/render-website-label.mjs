@@ -97,6 +97,10 @@ export function buildWebsiteLabelSvg(product, geometry, defaults = {}) {
     Math.min(4, Number(geometry.brandGapChars ?? product.brandGapChars ?? defaults.BRAND_GAP_CHARS ?? 1))
   );
 
+  const labelType = String(product.labelType || "CATALOG").toUpperCase() === "CALCULATOR"
+    ? "CALCULATOR"
+    : "CATALOG";
+  const isCalculator = labelType === "CALCULATOR";
   const company = String(
     product.companyName ?? defaults.COMPANY_NAME ?? "UNDISCLOSED"
   ).toUpperCase();
@@ -110,6 +114,15 @@ export function buildWebsiteLabelSvg(product, geometry, defaults = {}) {
   const storagePrefix = String(defaults.STORAGE_PREFIX ?? "STORE AT");
   const storageTemp = String(product.storageTemp ?? defaults.STORAGE_TEMP ?? "36–46°F");
   const storageLine = `${storagePrefix} ${storageTemp}`.toUpperCase();
+  const diluentHeader = String(defaults.DILUENT_HEADER ?? "DILUENT").toUpperCase();
+  const concHeader = String(
+    defaults.CONCENTRATION_HEADER ?? "CONCENTRATION"
+  ).toUpperCase();
+  const doseHeader = String(defaults.DOSE_RANGE_HEADER ?? "DOSE RANGE").toUpperCase();
+  const diluent = String(product.diluent ?? "");
+  const concentration = String(product.concentration ?? "");
+  const doseRange = String(product.doseRange ?? "");
+  const doseUnits = String(product.doseUnits ?? "");
   const legal1 = String(product.legalLine1 ?? defaults.LEGAL_LINE_1 ?? "RESEARCH USE");
   const legal2 = String(product.legalLine2 ?? defaults.LEGAL_LINE_2 ?? "NOT FOR HUMAN");
   const legal3 = String(product.legalLine3 ?? defaults.LEGAL_LINE_3 ?? "CONSUMPTION");
@@ -118,12 +131,13 @@ export function buildWebsiteLabelSvg(product, geometry, defaults = {}) {
   const qrValue = String(
     product.qrUrlOverride ||
       product.qrValue ||
-      `UD|${peptide}|${amount}${unit}|CATALOG`
+      `UD|${peptide}|${amount}${unit}|${labelType}`
   );
 
-  // Three-column reflow proportions for nearly-square face (not print AR).
-  const railW = Math.round(W * 0.105);
-  const rightW = Math.round(W * 0.275);
+  // Locked three-column layout (never stretch print 2:1 onto vial face).
+  // Left rail 9% · center 66% · right QR/legal 25%.
+  const railW = Math.round(W * 0.09);
+  const rightW = Math.round(W * 0.25);
   const centerL = railW;
   const centerR = W - rightW;
   const centerW = centerR - centerL;
@@ -131,31 +145,59 @@ export function buildWebsiteLabelSvg(product, geometry, defaults = {}) {
   const rightCx = W - rightW / 2;
 
   // Shared vertical content window — identical top/bottom for all sections.
+  // Typography locks are authored against the 3 mL face (~526×512) which
+  // sits on the 1024×1536 master at the placement bounds.
   const padY = Math.max(10, Math.round(H * 0.028));
   const contentTop = padY;
   const contentBottom = H - padY;
   const contentH = contentBottom - contentTop;
+  const isTenFace = W < 500 || H > 560;
 
-  // ---- Left rail (full-bleed black to left edge; height = full label) ----
-  const companySize = Math.max(14, Math.round(H * 0.055));
-  const logoSize = Math.round(railW * 0.72);
-  const logoGap = Math.round(logoSize * 0.18) * gapChars;
-  const logoY = contentBottom - logoSize - Math.round(H * 0.02) - (gapChars - 1) * Math.round(H * 0.012);
-  const companyX = Math.round(railW * 0.58);
+  // ---- Left rail (full-bleed black to left edge; height = FULL label) ----
+  const companySize = isTenFace
+    ? Math.max(16, Math.round(H * 0.048))
+    : Math.max(14, Math.round(H * 0.045));
+  const logoSize = Math.round(railW * 0.78);
+  const logoY =
+    contentBottom -
+    logoSize -
+    Math.round(H * 0.02) -
+    (gapChars - 1) * Math.round(H * 0.012);
+  const companyX = Math.round(railW * 0.55);
   const companyY = contentTop + contentH * 0.42;
 
-  // ---- Center panel ----
-  const headerSize = Math.max(11, Math.round(H * 0.042));
+  // ---- Center panel (3 mL locks: header 22–24 · name 46–56 · amount 52–60) ----
+  const headerSize = isTenFace
+    ? Math.max(20, Math.round(H * 0.042))
+    : 23;
   const peptideMaxW = centerW * 0.92;
-  const peptidePreferred = Math.round(H * 0.125);
-  const peptideSize = fitFontSize(peptide, peptideMaxW, peptidePreferred, Math.round(H * 0.055));
+  const peptidePreferred = isTenFace ? Math.round(H * 0.1) : 52;
+  const peptideMin = isTenFace ? Math.round(H * 0.055) : 46;
+  const peptideSize = fitFontSize(
+    peptide,
+    peptideMaxW,
+    peptidePreferred,
+    peptideMin
+  );
   const amountText = `${amount} ${unit}`;
-  const amountPreferred = Math.round(H * 0.095);
-  const amountSize = fitFontSize(amountText, centerW * 0.78, amountPreferred, Math.round(H * 0.05));
-  const unitSize = Math.round(amountSize * 0.55);
-  const formSize = Math.max(10, Math.round(H * 0.04));
-  const storageSize = Math.max(10, Math.round(H * 0.038));
-  const barH = Math.round(H * 0.145);
+  const amountPreferred = isTenFace ? Math.round(H * 0.095) : 56;
+  const amountMin = isTenFace ? Math.round(H * 0.055) : 52;
+  const amountSize = fitFontSize(
+    amountText,
+    centerW * 0.78,
+    amountPreferred,
+    amountMin
+  );
+  const unitSize = isTenFace
+    ? Math.round(amountSize * 0.5)
+    : Math.min(28, Math.max(24, Math.round(amountSize * 0.48)));
+  const formSize = isTenFace
+    ? Math.max(14, Math.round(H * 0.038))
+    : 24;
+  const storageSize = isTenFace
+    ? Math.max(13, Math.round(H * 0.036))
+    : 22;
+  const barH = Math.round(H * (isTenFace ? 0.13 : 0.145));
   const barW = Math.round(centerW * 0.9);
   const barX = centerCx - barW / 2;
 
@@ -166,19 +208,21 @@ export function buildWebsiteLabelSvg(product, geometry, defaults = {}) {
   const formY = contentTop + contentH * 0.72;
   const storageY = contentTop + contentH * 0.88;
 
-  // ---- Right QR panel (QR remains a true square) ----
-  const qrSize = Math.min(
-    Math.round(rightW * 0.68),
-    Math.round(contentH * 0.30)
+  // ---- Right QR panel — true square, min 105×105 on 3 mL face ----
+  const qrSize = Math.max(
+    isTenFace ? 96 : 105,
+    Math.min(Math.round(rightW * 0.84), Math.round(contentH * 0.34))
   );
   const qrX = rightCx - qrSize / 2;
-  const qrY = contentTop + contentH * 0.42;
+  const qrY = contentTop + contentH * 0.4;
   const mascotSize = Math.round(qrSize * 0.62);
   const mascotX = rightCx - mascotSize / 2;
   const mascotY = qrY - mascotSize - Math.round(H * 0.018);
-  const legalSize = Math.max(8, Math.round(H * 0.032));
-  const legalMaxW = rightW * 0.88;
-  const legalY1 = qrY + qrSize + contentH * 0.08;
+  const legalSize = isTenFace
+    ? Math.max(12, Math.round(H * 0.03))
+    : 18;
+  const legalMaxW = rightW * 0.9;
+  const legalY1 = qrY + qrSize + contentH * 0.07;
   const legalY2 = legalY1 + legalSize * 1.35;
   const legalY3 = legalY2 + legalSize * 1.35;
 
@@ -199,10 +243,70 @@ export function buildWebsiteLabelSvg(product, geometry, defaults = {}) {
     ? `<image id="mascot-icon" href="${mascotHref}" xlink:href="${mascotHref}" x="${mascotX}" y="${mascotYClamped}" width="${mascotSize}" height="${mascotSize}" preserveAspectRatio="xMidYMid meet"/>`
     : "";
 
+  // Center content below amount — CATALOG form/storage vs CALCULATOR dosage grid.
+  // Geometry (rail / panels / QR / mascot) stays locked; only this block swaps.
+  let centerLower = "";
+  if (isCalculator) {
+    const gridTop = contentTop + contentH * 0.62;
+    const gridBottom = contentBottom - contentH * 0.02;
+    const colW = centerW / 3;
+    const headerPx = Math.max(11, Math.round(H * (isTenFace ? 0.028 : 0.032)));
+    const valuePx = Math.max(14, Math.round(H * (isTenFace ? 0.038 : 0.042)));
+    const unitsPx = Math.max(12, Math.round(valuePx * 0.78));
+    const cells = [
+      { header: diluentHeader, value: diluent, x: centerL + colW * 0.5 },
+      { header: concHeader, value: concentration, x: centerL + colW * 1.5 },
+      {
+        header: doseHeader,
+        value: doseRange,
+        units: doseUnits,
+        x: centerL + colW * 2.5,
+      },
+    ];
+    const dividers = [1, 2]
+      .map(
+        (i) =>
+          `<line x1="${centerL + colW * i}" y1="${gridTop}" x2="${centerL + colW * i}" y2="${gridBottom}" stroke="#000" stroke-width="1.5"/>`
+      )
+      .join("\n");
+    const cellMarkup = cells
+      .map((cell) => {
+        const valueY = cell.units
+          ? gridTop + (gridBottom - gridTop) * 0.48
+          : gridTop + (gridBottom - gridTop) * 0.58;
+        const unitsLine = cell.units
+          ? `<text text-anchor="middle" x="${cell.x}" y="${valueY + unitsPx * 1.25}"
+              font-family="Arial Narrow,Arial,Helvetica,sans-serif" font-size="${unitsPx}"
+              font-weight="800">${xml(cell.units)}</text>`
+          : "";
+        return `<text text-anchor="middle" x="${cell.x}" y="${gridTop + headerPx}"
+            font-family="Arial Narrow,Arial,Helvetica,sans-serif" font-size="${headerPx}"
+            font-weight="900">${xml(cell.header)}</text>
+          <text text-anchor="middle" x="${cell.x}" y="${valueY}"
+            font-family="Arial Narrow,Arial,Helvetica,sans-serif" font-size="${valuePx}"
+            font-weight="900">${xml(cell.value || "—")}</text>
+          ${unitsLine}`;
+      })
+      .join("\n");
+    centerLower = `
+  <line x1="${centerL + centerW * 0.04}" y1="${contentTop + contentH * 0.58}" x2="${centerR - centerW * 0.04}" y2="${contentTop + contentH * 0.58}" stroke="#000" stroke-width="2"/>
+  ${dividers}
+  ${cellMarkup}`;
+  } else {
+    centerLower = `
+  <text id="form-text" x="${centerCx}" y="${formY}" text-anchor="middle"
+    font-family="Arial Narrow,Arial,Helvetica,sans-serif" font-size="${formSize}"
+    font-weight="900" letter-spacing="0.5">${xml(form)}</text>
+  <text id="storage-temp" x="${centerCx}" y="${storageY}" text-anchor="middle"
+    font-family="Arial Narrow,Arial,Helvetica,sans-serif" font-size="${storageSize}"
+    font-weight="800">${xml(storageLine)}</text>`;
+  }
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
   width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"
-  data-renderer="website-front-facing" data-print-stretched="false">
+  data-renderer="website-front-facing" data-print-stretched="false"
+  data-label-type="${labelType}">
   <defs>
     <style>
       text { fill: #000; text-rendering: geometricPrecision; }
@@ -225,7 +329,7 @@ export function buildWebsiteLabelSvg(product, geometry, defaults = {}) {
     width="${logoSize}" height="${logoSize}"
     preserveAspectRatio="xMidYMid meet" data-brand-gap-chars="${gapChars}"/>
 
-  <!-- Center panel -->
+  <!-- Center panel (shared chrome — amount in black bar) -->
   <text id="header-company-name" x="${centerCx}" y="${headerY}" text-anchor="middle"
     font-family="Arial Narrow,Arial,Helvetica,sans-serif" font-size="${headerSize}"
     font-weight="900" letter-spacing="1.5">— ${xml(header)} —</text>
@@ -237,12 +341,7 @@ export function buildWebsiteLabelSvg(product, geometry, defaults = {}) {
     font-family="Arial Narrow,Arial,Helvetica,sans-serif" font-size="${amountSize}" font-weight="900">
     ${xml(amount)} <tspan font-size="${unitSize}">${xml(unit)}</tspan>
   </text>
-  <text id="form-text" x="${centerCx}" y="${formY}" text-anchor="middle"
-    font-family="Arial Narrow,Arial,Helvetica,sans-serif" font-size="${formSize}"
-    font-weight="900" letter-spacing="0.5">${xml(form)}</text>
-  <text id="storage-temp" x="${centerCx}" y="${storageY}" text-anchor="middle"
-    font-family="Arial Narrow,Arial,Helvetica,sans-serif" font-size="${storageSize}"
-    font-weight="800">${xml(storageLine)}</text>
+  ${centerLower}
 
   <!-- Right divider + QR panel -->
   <line x1="${centerR}" y1="${contentTop}" x2="${centerR}" y2="${contentBottom}"
