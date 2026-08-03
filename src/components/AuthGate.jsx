@@ -15,6 +15,7 @@ import {
   hasPayoutDestination,
   isAllowlisted,
 } from "../utils/referralCodes";
+import { UD_LABEL_BRAND } from "../data/udLabelAssets";
 
 export default function AuthGate({ onAuthed, onClose, labMode = false }) {
   const legal = siteLegal(labMode);
@@ -183,9 +184,9 @@ export default function AuthGate({ onAuthed, onClose, labMode = false }) {
           </button>
         )}
         <img
-          src={labMode ? "/ud-monogram.svg" : "/wp-monogram.svg"}
+          src={labMode ? UD_LABEL_BRAND.whiteTransparent : "/wp-monogram.svg"}
           alt={labMode ? "Undisclosed" : "WellPept"}
-          className="auth-mark"
+          className={`auth-mark${labMode ? " brand-logo--ud-hex" : ""}`}
           width={72}
           height={72}
         />

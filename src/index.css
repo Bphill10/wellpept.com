@@ -358,10 +358,14 @@ svg {
 }
 
 .app-shell--undisclosed .brand-logo {
-  /* Hex mark — do not clip with the WellPept circular seal */
+  /* Latest UD hex brand — not the old circular seal */
   width: 3.55rem;
   height: 3.55rem;
   border-radius: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
   border: 0;
   box-shadow: none;
   background: transparent;
@@ -864,7 +868,7 @@ svg {
       rgba(0, 0, 0, 0.2) 58%,
       rgba(0, 0, 0, 0.05) 100%
     ),
-    url("/ud-labels/approved/KLOW_80mg_3mL_Blue_BlackCap_Website.png") right 8% center / contain no-repeat,
+    url("/ud-labels/catalog/UD_0160_KLOW_80MG_3mL_Website.webp") right 8% center / contain no-repeat,
     #000;
   background-color: #000;
 }
@@ -893,8 +897,43 @@ svg {
 }
 
 .hero--undisclosed .hero-brand-lockup {
+  position: relative;
   justify-content: flex-start;
   align-items: center;
+  gap: 0.75rem;
+}
+
+.brand-logo--ud-hex,
+.hero-brand-mark--hex {
+  object-fit: contain;
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.ud-sentinel-mascot {
+  display: block;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ud-sentinel-mascot--hero {
+  width: clamp(4.25rem, 9vw, 6.5rem);
+  height: auto;
+  opacity: 0.95;
+  align-self: flex-end;
+  margin-bottom: 0.15rem;
+}
+
+.ud-sentinel-mascot--featured {
+  position: absolute;
+  top: -0.4rem;
+  right: 6%;
+  z-index: 2;
+  width: clamp(3.25rem, 7.5vw, 5.25rem);
+  height: auto;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.55));
 }
 
 .hero--undisclosed .hero-brand-text {
@@ -1861,6 +1900,7 @@ button.linkish {
 }
 
 .featured-vendor-visual {
+  position: relative;
   display: grid;
   place-items: center;
   padding: 1.25rem;

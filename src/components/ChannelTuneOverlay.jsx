@@ -481,7 +481,7 @@ export default function ChannelTuneOverlay({ active, onReveal, onDone }) {
         </div>
 
         <div className="rift-mark rift-mark--to">
-          <img src="/ud-monogram.svg" alt="" width={120} height={120} />
+          <img src="/ud-labels/brand/UD_Brand_Mark_White_Transparent.png" alt="" width={120} height={120} />
           <span>UNDISCLOSED</span>
           <p className="rift-manifesto">Take control of your health.</p>
           <p className="rift-manifesto-sub">It&apos;s your human right.</p>

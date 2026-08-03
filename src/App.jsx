@@ -138,7 +138,7 @@ import LiveChat, { openLiveChat, contactEmail } from "./components/LiveChat";
 import AuthGate from "./components/AuthGate";
 import AgeGate, { hasAgeClearance } from "./components/AgeGate";
 import UndisclosedNews from "./components/UndisclosedNews";
-import { approvedCatalogImage } from "./data/udLabelAssets";
+import { approvedCatalogImage, UD_LABEL_BRAND } from "./data/udLabelAssets";
 import { getSession, logout as logoutAccount } from "./utils/auth";
 import { researchHelpFor } from "./data/researchGuide";
 import {
@@ -567,7 +567,7 @@ export default function App() {
       typeof window !== "undefined" && window.matchMedia("(max-width: 700px)").matches
         ? "/black-marble-sm.webp"
         : "/black-marble.webp";
-    [warmMarble, "/ud-monogram.svg", "/ud-labels/approved/KLOW_80mg_3mL_Blue_BlackCap_Website.png"].forEach((href) => {
+    [warmMarble, UD_LABEL_BRAND.whiteTransparent, UD_LABEL_BRAND.mascotWhite, "/ud-labels/catalog/UD_0160_KLOW_80MG_3mL_Website.webp"].forEach((href) => {
       const img = new Image();
       img.decoding = "async";
       img.src = href;
@@ -1423,9 +1423,9 @@ export default function App() {
             onClick={handleBrandClick}
           >
             <img
-              src={labVisible ? "/ud-monogram.svg" : "/wp-monogram.svg"}
+              src={labVisible ? UD_LABEL_BRAND.whiteTransparent : "/wp-monogram.svg"}
               alt={labVisible ? "Undisclosed" : "WellPept"}
-              className="brand-logo"
+              className={`brand-logo${labVisible ? " brand-logo--ud-hex" : ""}`}
               width={44}
               height={44}
               decoding="async"
@@ -1889,9 +1889,9 @@ export default function App() {
               <div className="container hero-content">
                 <div className="hero-brand-lockup rise">
                   <img
-                    src="/ud-monogram.svg"
-                    alt="Undisclosed U mark"
-                    className="hero-brand-mark"
+                    src={UD_LABEL_BRAND.whiteTransparent}
+                    alt="Undisclosed brand mark"
+                    className="hero-brand-mark hero-brand-mark--hex"
                     width={136}
                     height={136}
                   />
@@ -1901,6 +1901,14 @@ export default function App() {
                       Brought to you by <strong>WellPept</strong>
                     </p>
                   </div>
+                  <img
+                    src={UD_LABEL_BRAND.mascotWhite}
+                    alt=""
+                    className="ud-sentinel-mascot ud-sentinel-mascot--hero"
+                    width={112}
+                    height={112}
+                    decoding="async"
+                  />
                 </div>
                 <p className="hero-tagline rise-delay">
                   Full research catalog. Pick a category and order.
@@ -1945,8 +1953,6 @@ export default function App() {
               </div>
             </section>
 
-            <UndisclosedNews />
-
             <section className="section featured-vendor-section" id="featured">
               <div className="container">
                 <div className="featured-vendor panel">
@@ -1955,17 +1961,25 @@ export default function App() {
                     <h2>KLOW</h2>
                     <p>
                       Signature Undisclosed kit. 10 × 80 MG lyophilized vials
-                      with clinical wrap labels. Request first; we confirm
-                      supply within 24 hours, then payment. Shipping by
-                      warehouse (A / B).
+                      with catalog wrap labels (no calculator dosage block).
+                      Request first; we confirm supply within 24 hours, then
+                      payment. Shipping by warehouse (A / B).
                     </p>
                     <ul className="featured-meta">
                       <li>80 MG blend · kit of 10 vials</li>
-                      <li>Request first · pay after supply check</li>
+                      <li>Catalog label · QR + Sentinel</li>
                       <li>Warehouse A: 7–10 days · B: 2–4 weeks</li>
                     </ul>
                   </div>
                   <div className="featured-vendor-visual">
+                    <img
+                      src={UD_LABEL_BRAND.mascotWhite}
+                      alt=""
+                      className="ud-sentinel-mascot ud-sentinel-mascot--featured"
+                      width={96}
+                      height={96}
+                      decoding="async"
+                    />
                     <img
                       src="/ud-labels/catalog/UD_0160_KLOW_80MG_3mL_Website.webp"
                       alt="Undisclosed KLOW 80 MG research vial"
@@ -1980,6 +1994,8 @@ export default function App() {
                 </div>
               </div>
             </section>
+
+            <UndisclosedNews />
 
             <section className="section catalog-page" id="catalog">
               <div className="container">
