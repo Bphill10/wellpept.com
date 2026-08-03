@@ -138,7 +138,12 @@ import LiveChat, { openLiveChat, contactEmail } from "./components/LiveChat";
 import AuthGate from "./components/AuthGate";
 import AgeGate, { hasAgeClearance } from "./components/AgeGate";
 import UndisclosedNews from "./components/UndisclosedNews";
-import { approvedCatalogImage, UD_LABEL_BRAND } from "./data/udLabelAssets";
+import {
+  approvedCatalogImage,
+  UD_FEATURED_KIT_SRC,
+  UD_HERO_SCENE,
+  UD_LABEL_BRAND,
+} from "./data/udLabelAssets";
 import { getSession, logout as logoutAccount } from "./utils/auth";
 import { researchHelpFor } from "./data/researchGuide";
 import {
@@ -567,7 +572,14 @@ export default function App() {
       typeof window !== "undefined" && window.matchMedia("(max-width: 700px)").matches
         ? "/black-marble-sm.webp"
         : "/black-marble.webp";
-    [warmMarble, UD_LABEL_BRAND.whiteTransparent, UD_LABEL_BRAND.mascotWhite, "/ud-labels/catalog/UD_0160_KLOW_80MG_3mL_Website.webp"].forEach((href) => {
+    [
+      warmMarble,
+      UD_LABEL_BRAND.whiteTransparent,
+      UD_LABEL_BRAND.mascotWhite,
+      UD_HERO_SCENE.emptyVial,
+      UD_HERO_SCENE.catalogLabel,
+      UD_FEATURED_KIT_SRC,
+    ].forEach((href) => {
       const img = new Image();
       img.decoding = "async";
       img.src = href;
@@ -1885,7 +1897,36 @@ export default function App() {
             </div>
 
             <section className="hero hero--undisclosed hero--undisclosed-compact">
-              <div className="hero-media hero-media--undisclosed" aria-hidden="true" />
+              <div className="hero-media hero-media--undisclosed" aria-hidden="true">
+                <div className="hero-labeling-scene">
+                  <img
+                    src={UD_LABEL_BRAND.mascotWhite}
+                    alt=""
+                    className="hero-scene-mascot"
+                    width={160}
+                    height={160}
+                    decoding="async"
+                  />
+                  <div className="hero-scene-vial-wrap">
+                    <img
+                      src={UD_HERO_SCENE.emptyVial}
+                      alt=""
+                      className="hero-scene-vial"
+                      width={420}
+                      height={560}
+                      decoding="async"
+                    />
+                    <img
+                      src={UD_HERO_SCENE.catalogLabel}
+                      alt=""
+                      className="hero-scene-label"
+                      width={320}
+                      height={160}
+                      decoding="async"
+                    />
+                  </div>
+                </div>
+              </div>
               <div className="container hero-content">
                 <div className="hero-brand-lockup rise">
                   <img
@@ -1901,14 +1942,6 @@ export default function App() {
                       Brought to you by <strong>WellPept</strong>
                     </p>
                   </div>
-                  <img
-                    src={UD_LABEL_BRAND.mascotWhite}
-                    alt=""
-                    className="ud-sentinel-mascot ud-sentinel-mascot--hero"
-                    width={112}
-                    height={112}
-                    decoding="async"
-                  />
                 </div>
                 <p className="hero-tagline rise-delay">
                   Full research catalog. Pick a category and order.
@@ -1971,21 +2004,13 @@ export default function App() {
                       <li>Warehouse A: 7–10 days · B: 2–4 weeks</li>
                     </ul>
                   </div>
-                  <div className="featured-vendor-visual">
+                  <div className="featured-vendor-visual featured-vendor-visual--kit">
                     <img
-                      src={UD_LABEL_BRAND.mascotWhite}
-                      alt=""
-                      className="ud-sentinel-mascot ud-sentinel-mascot--featured"
-                      width={96}
-                      height={96}
-                      decoding="async"
-                    />
-                    <img
-                      src="/ud-labels/catalog/UD_0160_KLOW_80MG_3mL_Website.webp"
-                      alt="Undisclosed KLOW 80 MG research vial"
-                      className="featured-product-photo"
-                      width={640}
-                      height={960}
+                      src={UD_FEATURED_KIT_SRC}
+                      alt="Undisclosed KLOW 80 MG 10-vial research kit"
+                      className="featured-product-photo featured-product-photo--kit"
+                      width={1200}
+                      height={800}
                       decoding="async"
                       loading="lazy"
                       fetchPriority="low"

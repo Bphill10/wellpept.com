@@ -20,6 +20,15 @@ export const UD_STOCK_VIALS = {
   white10ml: "/ud-labels/vials/UD_10mL_White_Peptide_Black_Cap_Unlabeled.png",
 };
 
+/** Featured KLOW 10-vial case photo. */
+export const UD_FEATURED_KIT_SRC = "/undisclosed-hero-kit.webp";
+
+/** Hero labeling scene: unlabeled stock vial + catalog wrap preview. */
+export const UD_HERO_SCENE = {
+  emptyVial: "/references/vial-unlabeled-white.png",
+  catalogLabel: "/ud-labels/examples/KLOW_80mg_40x20_Catalog_Preview.png",
+};
+
 /** Hand-approved finals (optional overrides when present). */
 export const UD_APPROVED_PRODUCT_IMAGES = {
   KLOW: "/ud-labels/approved/KLOW_80mg_3mL_Blue_BlackCap_Website.png",

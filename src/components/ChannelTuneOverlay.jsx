@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { UD_LABEL_BRAND } from "../data/udLabelAssets";
 
 const TUNE_MS = 8200;
 const REVEAL_MS = 4500; // Undisclosed mounts under solid cover before fade
@@ -481,7 +482,7 @@ export default function ChannelTuneOverlay({ active, onReveal, onDone }) {
         </div>
 
         <div className="rift-mark rift-mark--to">
-          <img src="/ud-labels/brand/UD_Brand_Mark_White_Transparent.png" alt="" width={120} height={120} />
+          <img src={UD_LABEL_BRAND.whiteTransparent} alt="" width={120} height={120} />
           <span>UNDISCLOSED</span>
           <p className="rift-manifesto">Take control of your health.</p>
           <p className="rift-manifesto-sub">It&apos;s your human right.</p>

@@ -48,13 +48,13 @@ export const BLANK_LABEL_SRC =
   "/ud-labels/examples/KLOW_80mg_40x20_Catalog_Preview.png";
 export const BLANK_LABEL_FALLBACK_SRC =
   "/ud-labels/examples/TA1_5mg_40x20_Catalog_Preview.png";
-/** Hex UD seal / monogram for Undisclosed UI chrome. */
-export const UD_MARK_SRC = "/ud-monogram.svg";
-/** Latest supplied UD brand mark (authoritative for labels). */
+/** Latest supplied UD hex brand mark (authoritative — replaces old ud-monogram.svg). */
 export const UD_BRAND_MARK_LATEST =
   "/ud-labels/brand/UD_Brand_Mark_Latest_Original.png";
 export const UD_BRAND_MARK_WHITE =
   "/ud-labels/brand/UD_Brand_Mark_White_Transparent.png";
+/** Hex UD seal / monogram for Undisclosed UI chrome + vial art. */
+export const UD_MARK_SRC = UD_BRAND_MARK_WHITE;
 /** UD Sentinel mascot. */
 export const UD_SENTINEL_MASCOT =
   "/ud-labels/brand/UD_Sentinel_Mascot_Original.png";
