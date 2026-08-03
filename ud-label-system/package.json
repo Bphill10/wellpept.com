@@ -8,8 +8,9 @@
     "label": "node scripts/generate-label.mjs",
     "examples": "node scripts/generate-approved-examples.mjs",
     "place": "node scripts/place-label.mjs",
+    "website-vials": "node scripts/generate-website-vials.mjs",
     "validate": "node scripts/validate-package.mjs",
-    "build": "npm run sync && npm run examples && npm run validate"
+    "build": "npm run sync && npm run examples && npm run website-vials && npm run validate"
   },
   "dependencies": {
     "qrcode": "1.5.4",

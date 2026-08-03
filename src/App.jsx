@@ -215,7 +215,7 @@ function VialPreview({
       </div>
     );
   }
-  // Catalog + detail: prefer locked approved website photos when available.
+  // Catalog + detail: Excel-mapped label placed on stock vial template.
   const approvedSrc = approvedCatalogImage(product);
   if (approvedSrc) {
     return (
@@ -1967,11 +1967,11 @@ export default function App() {
                   </div>
                   <div className="featured-vendor-visual">
                     <img
-                      src="/ud-labels/approved/KLOW_80mg_3mL_Blue_BlackCap_Website.png"
+                      src="/ud-labels/catalog/UD_0160_KLOW_80MG_3mL_Website.webp"
                       alt="Undisclosed KLOW 80 MG research vial"
                       className="featured-product-photo"
-                      width={800}
-                      height={800}
+                      width={640}
+                      height={960}
                       decoding="async"
                       loading="lazy"
                       fetchPriority="low"
