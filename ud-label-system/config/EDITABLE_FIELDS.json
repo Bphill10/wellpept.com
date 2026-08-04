@@ -1,0 +1,67 @@
+{
+  "version": "1.0",
+  "rule": "Replace content only. Never change template or vial geometry.",
+  "editableText": [
+    "COMPANY_NAME",
+    "HEADER_COMPANY_NAME",
+    "PRODUCT_NAME",
+    "TOTAL_AMOUNT",
+    "UNIT",
+    "FORM_TEXT",
+    "STORAGE_TEMP",
+    "DILUENT",
+    "CONCENTRATION",
+    "DOSE_RANGE",
+    "DOSE_UNITS",
+    "LEGAL_LINE_1",
+    "LEGAL_LINE_2",
+    "LEGAL_LINE_3"
+  ],
+  "editableImagesAndControls": {
+    "BRAND_IMAGE": {
+      "replaceable": true,
+      "lockedBounds": true,
+      "preserveAspectRatio": true
+    },
+    "QR_VALUE": {
+      "replaceable": true,
+      "renderInsideExistingQrSlot": true,
+      "lockedBounds": true
+    },
+    "QR_IMAGE": {
+      "replaceable": true,
+      "lockedBounds": true,
+      "mustRemainSquare": true
+    },
+    "MASCOT_IMAGE": {
+      "replaceable": true,
+      "lockedBounds": true,
+      "preserveAspectRatio": true,
+      "stacking": "behind-and-above-QR"
+    },
+    "BRAND_GAP_CHARS": {
+      "replaceable": true,
+      "allowedRange": [0, 4],
+      "default": 1
+    },
+    "QR_ENABLED": {
+      "replaceable": true,
+      "default": true
+    },
+    "MASCOT_ENABLED": {
+      "replaceable": true,
+      "default": true
+    }
+  },
+  "locked": [
+    "label dimensions",
+    "vial geometry",
+    "label placement",
+    "left rail geometry",
+    "center panel geometry",
+    "amount bar geometry",
+    "right panel geometry",
+    "divider geometry",
+    "all replacement bounding boxes"
+  ]
+}

@@ -134,6 +134,7 @@ export function resolvePublicLabels(product = {}) {
     product.skin ||
       product.kind === "ready" ||
       product.kind === "mix" ||
+      product.kind === "kit" ||
       product.kind === "tool" ||
       product.kind === "mini" ||
       product.kind === "accessory"

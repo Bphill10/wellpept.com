@@ -3394,11 +3394,22 @@ body:has(.app-shell--undisclosed)::before {
   display: block;
 }
 
+.skin-product-img--contain {
+  object-fit: contain;
+  object-position: center;
+  background: #fff;
+}
+
 .skin-product-img--detail {
   width: 100%;
   max-height: 460px;
   border-radius: 0;
   object-fit: cover;
+}
+
+.skin-product-img--detail.skin-product-img--contain {
+  object-fit: contain;
+  max-height: 520px;
 }
 
 .skin-visual-col {
@@ -7803,14 +7814,17 @@ body:has(.app-shell--undisclosed)::before {
 /* ---------- Cross-phone (iOS Safari + Android Chrome) ---------- */
 #build,
 #renew,
+#flagship,
 #ritual,
 #skin-catalog,
+#accessories,
 #contact-wellpept,
 #peptide-legal,
 #about,
 #catalog,
 #featured {
-  scroll-margin-top: calc(5.75rem + env(safe-area-inset-top, 0px));
+  /* Clears sticky WellPept header (~114px) so section images aren’t clipped */
+  scroll-margin-top: calc(7.5rem + env(safe-area-inset-top, 0px));
 }
 
 /* Undisclosed sticky chrome is taller (search + dept bar) */

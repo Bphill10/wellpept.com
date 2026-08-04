@@ -649,6 +649,7 @@ export default function App() {
     const isAccessory =
       product.kind === "tool" ||
       product.kind === "mini" ||
+      product.kind === "kit" ||
       product.accessory ||
       product.marketplace;
     const forUndisclosed =
@@ -695,15 +696,17 @@ export default function App() {
       shippingNote: shipOpt
         ? shipOpt.ships
         : "US ground, cold-pack when needed",
-      sku: String(product.id).toUpperCase().slice(0, 48),
+      sku: String(product.sku || product.id).toUpperCase().slice(0, 48),
       category:
         product.kind === "mix"
           ? "Renew"
-          : isAccessory
-            ? forUndisclosed
-              ? "Partner"
-              : "Accessories"
-            : "Skincare",
+          : product.kind === "kit"
+            ? "Fresh Mix"
+            : isAccessory
+              ? forUndisclosed
+                ? "Partner"
+                : "Accessories"
+              : "Skincare",
       skin: isSkinLine,
       mix: product.kind === "mix",
       accessory: isAccessory,
@@ -715,12 +718,13 @@ export default function App() {
         ? "For research use only. Not for human consumption."
         : product.kind === "mix" ||
             product.kind === "ready" ||
+            product.kind === "kit" ||
             isAccessory
           ? "Cosmetic skincare only. Not for injection or medical use."
           : undefined,
       ...resolvePublicLabels({
         name: product.name,
-        sku: String(product.id).toUpperCase().slice(0, 48),
+        sku: String(product.sku || product.id).toUpperCase().slice(0, 48),
         skin: isSkinLine,
         kind: product.kind,
       }),
@@ -1767,8 +1771,12 @@ export default function App() {
                     {skinProduct.image ? (
                       <img
                         src={skinProduct.image}
-                        alt={skinProduct.name}
-                        className="skin-product-img skin-product-img--detail"
+                        alt={skinProduct.alt || skinProduct.name}
+                        className={`skin-product-img skin-product-img--detail${
+                          skinProduct.imageContain
+                            ? " skin-product-img--contain"
+                            : ""
+                        }`}
                         loading="eager"
                         fetchPriority="high"
                         decoding="async"
@@ -1844,6 +1852,36 @@ export default function App() {
                                 ? "Activate"
                                 : "Mix steps"}
                             </h3>
+                            <ol className="mix-steps">
+                              {skinProduct.steps.map((step) => (
+                                <li key={step}>{step}</li>
+                              ))}
+                            </ol>
+                          </>
+                        )}
+                      </div>
+                    )}
+                    {skinProduct.kind === "kit" && (
+                      <div className="mix-panel">
+                        {skinProduct.sku ? (
+                          <p className="meta">SKU: {skinProduct.sku}</p>
+                        ) : null}
+                        {Array.isArray(skinProduct.ingredients) && (
+                          <>
+                            <h3>Contents</h3>
+                            <ul className="mix-list">
+                              {skinProduct.ingredients.map((ing) => (
+                                <li key={ing.name}>
+                                  <strong>{ing.name}</strong>
+                                  <span>{ing.amount}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </>
+                        )}
+                        {Array.isArray(skinProduct.steps) && (
+                          <>
+                            <h3>Activation instructions</h3>
                             <ol className="mix-steps">
                               {skinProduct.steps.map((step) => (
                                 <li key={step}>{step}</li>

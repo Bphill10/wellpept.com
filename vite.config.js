@@ -72,6 +72,10 @@ export default defineConfig(({ mode }) => {
       host: "127.0.0.1",
       port: 5173,
       strictPort: true,
+      watch: {
+        // Handoff/tmp PNGs can be EBUSY on Windows and crash the watcher
+        ignored: ["**/tmp-*/**", "**/tmp-*"],
+      },
     },
     preview: {
       host: "127.0.0.1",

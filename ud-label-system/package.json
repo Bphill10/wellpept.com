@@ -7,12 +7,11 @@
     "sync": "node scripts/sync-workbook.mjs",
     "label": "node scripts/generate-label.mjs",
     "examples": "node scripts/generate-approved-examples.mjs",
-    "place": "node scripts/place-label.mjs",
-    "website-vials": "node scripts/generate-website-vials.mjs",
     "red-liquid-vial": "node scripts/render-vial-contents.mjs",
     "b12-liquid-vial": "node scripts/render-vial-contents.mjs",
     "validate": "node scripts/validate-package.mjs",
-    "build": "npm run sync && npm run b12-liquid-vial && npm run examples && npm run website-vials && npm run validate"
+    "proof:reta": "node scripts/proof-reta-website-vial.mjs",
+    "build": "npm run sync && npm run b12-liquid-vial && npm run examples && npm run validate"
   },
   "dependencies": {
     "qrcode": "1.5.4",

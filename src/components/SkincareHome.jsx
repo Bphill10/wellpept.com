@@ -21,6 +21,7 @@ function ProductCard({ product, onOpenProduct, onAddToCart, priority = false }) 
   const isAccessory =
     product.kind === "tool" ||
     product.kind === "mini" ||
+    product.kind === "kit" ||
     product.accessory ||
     product.marketplace;
   const [shipMode, setShipMode] = useState(modes[0] || "economy");
@@ -36,8 +37,10 @@ function ProductCard({ product, onOpenProduct, onAddToCart, priority = false }) 
           {product.image ? (
             <img
               src={product.image}
-              alt={product.name}
-              className="skin-product-img"
+              alt={product.alt || product.name}
+              className={`skin-product-img${
+                product.imageContain ? " skin-product-img--contain" : ""
+              }`}
               loading={priority ? "eager" : "lazy"}
               fetchPriority={priority ? "high" : "auto"}
               decoding="async"
