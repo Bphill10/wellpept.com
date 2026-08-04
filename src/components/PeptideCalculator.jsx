@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Calculator, RotateCcw, Link2, Download } from "lucide-react";
 import LabelTemplate from "./LabelTemplate";
-import GeneratedVial from "./GeneratedVial";
 import {
   CATEGORIES,
   calculatorOptionsFromListings,
@@ -22,7 +21,10 @@ import {
   udLabelTemplateFor,
 } from "../utils/vialArt";
 import { shortCapName, capStlSlug } from "../data/capNames";
-import { UD_FEATURED_KIT_SRC } from "../data/udLabelAssets";
+import {
+  UD_FEATURED_KIT_SRC,
+  UD_STOCK_VIALS,
+} from "../data/udLabelAssets";
 
 const CUSTOM_ID = "custom";
 const BOTTLE_SIZES_ML = LABEL_BOTTLE_SIZES_ML;
@@ -631,25 +633,16 @@ export default function PeptideCalculator({
                 })}
               </div>
               <div className="calc-vial-stage">
-                <GeneratedVial
-                  name={name || selectedPeptide?.name || "Peptide"}
-                  mass={mass}
-                  unit={vialUnit || "mg"}
-                  bacWater={solution ? `${formatNum(solution, 2)} mL` : ""}
-                  concentration={result?.concLabel || ""}
-                  doseRange={formatDoseRangeLabel(
-                    dose,
-                    doseUnit,
-                    result?.units ? Math.round(Number(result.units)) || 10 : 10
-                  )}
-                  vialMl={Number(vialMl) || 3}
-                  size="lg"
-                  catalogTemplate={false}
-                  labelType={labelTemplate.labelType}
-                  showLabel
-                  showDownload={false}
-                  productId={selectedStrength?.defaultOfferId || ""}
-                  coaUrl={selectedStrength?.coaUrl || ""}
+                {/* Live GeneratedVial compositor disconnected. Stock plate only. */}
+                <img
+                  src={
+                    Number(vialMl) >= 8
+                      ? UD_STOCK_VIALS.white10ml
+                      : UD_STOCK_VIALS.white3ml
+                  }
+                  alt=""
+                  className="vial-approved-img"
+                  style={{ width: "100%", height: "auto", aspectRatio: "2 / 3" }}
                 />
               </div>
               <div className="calc-label-stage">

@@ -124,7 +124,6 @@ import {
 import PeptideCalculator, {
   parseCalculatorQuery,
 } from "./components/PeptideCalculator";
-import GeneratedVial from "./components/GeneratedVial";
 import SkincareHome from "./components/SkincareHome";
 import SellOnWellpept from "./components/SellOnWellpept";
 import PartnerMarketplaceSection from "./components/PartnerMarketplaceSection";
@@ -220,7 +219,8 @@ function VialPreview({
       </div>
     );
   }
-  // Catalog + detail: Excel-mapped label placed on stock vial template.
+  // Catalog + detail: static 1024×1536 build-time website vial only.
+  // Live GeneratedVial / rejected batch renderer outputs are disconnected.
   const approvedSrc = approvedCatalogImage(product);
   if (approvedSrc) {
     return (
@@ -228,30 +228,18 @@ function VialPreview({
         className={`skin-bottle-preview skin-bottle-preview--${size} skin-bottle-preview--photo vial-approved-photo`}
       >
         <img
-          src={approvedSrc}
+          src={`${approvedSrc}?v=mounted-label-v1`}
           alt=""
-          className="skin-cart-thumb vial-approved-img"
+          className="vial-approved-img"
         />
       </div>
     );
   }
-  // Fallback: clinical wrap on studio vial plate.
+  // No live canvas fallback — wait for build-time website PNG.
   return (
-    <GeneratedVial
-      name={product.name}
-      mass={product.mg}
-      unit={product.unit || "mg"}
-      sku={product.sku || ""}
-      category={product.category}
-      subtitle={formatCustomerForm(product)}
-      form={product.form}
-      vialMl={product.vialMl}
-      productId={product.id}
-      coaUrl={product.coaUrl || ""}
-      size={size}
-      showDownload={showDownload}
-      showLabel={showLabel}
-      catalogTemplate
+    <div
+      className={`skin-bottle-preview skin-bottle-preview--${size} skin-bottle-preview--photo vial-approved-photo vial-approved-photo--empty`}
+      aria-hidden="true"
     />
   );
 }

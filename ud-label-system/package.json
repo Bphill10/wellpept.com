@@ -10,7 +10,8 @@
     "red-liquid-vial": "node scripts/render-vial-contents.mjs",
     "b12-liquid-vial": "node scripts/render-vial-contents.mjs",
     "validate": "node scripts/validate-package.mjs",
-    "proof:reta": "node scripts/proof-reta-website-vial.mjs",
+    "website-vial": "node scripts/generate-website-vial.mjs",
+    "proof:reta": "node scripts/generate-website-vial.mjs",
     "build": "npm run sync && npm run b12-liquid-vial && npm run examples && npm run validate"
   },
   "dependencies": {

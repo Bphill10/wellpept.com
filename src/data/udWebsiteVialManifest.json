@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "renderer": "build-time-mounted-label-v1",
+  "note": "Static 1024×1536 website vials only. No live canvas compositing. RETA proof only until approved.",
+  "canvas": { "widthPx": 1024, "heightPx": 1536 },
+  "byKey": {
+    "RETA|10|MG|3": "/ud-labels/website/RETA_10MG_3mL.png",
+    "RETATRUTIDE|10|MG|3": "/ud-labels/website/RETA_10MG_3mL.png"
+  },
+  "products": [
+    {
+      "displayName": "RETA",
+      "labelName": "RETATRUTIDE",
+      "amount": 10,
+      "unit": "MG",
+      "vialMl": 3,
+      "image": "/ud-labels/website/RETA_10MG_3mL.png"
+    }
+  ]
+}
