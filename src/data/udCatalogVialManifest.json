@@ -1,8 +1,8 @@
 {
   "version": "2.1",
-  "generatedAt": "2026-08-03T19:33:09.904Z",
+  "generatedAt": "2026-08-04T00:15:32.472Z",
   "source": "data/UD_Peptide_Label_Catalog.xlsx → catalog.json",
-  "renderer": "website-front-facing-reflow",
+  "renderer": "website-reference-content-replace",
   "canvas": {
     "widthPx": 1024,
     "heightPx": 1536,
@@ -398,7 +398,6 @@
     "ARA-290|16": "/ud-labels/catalog/UD_0036_ARA_290_16MG_3mL_Website.webp",
     "ARA290 (CIBINETIDE)|16|MG|3": "/ud-labels/catalog/UD_0036_ARA_290_16MG_3mL_Website.webp",
     "ARA290 (CIBINETIDE)|16": "/ud-labels/catalog/UD_0036_ARA_290_16MG_3mL_Website.webp",
-    "B12|10|MG|10": "/ud-labels/catalog/UD_0295_B12_10MG_10mL_Website.webp",
     "BAC WATER|3|MG|3": "/ud-labels/catalog/UD_0038_BAC_WATER_3MG_3mL_Website.webp",
     "BAC WATER|3": "/ud-labels/catalog/UD_0038_BAC_WATER_3MG_3mL_Website.webp",
     "BAC WATER|10|MG|3": "/ud-labels/catalog/UD_0039_BAC_WATER_10MG_3mL_Website.webp",
@@ -597,8 +596,6 @@
     "GLOW|70": "/ud-labels/catalog/UD_0122_GLOW_70MG_3mL_Website.webp",
     "GLOW(BPC 157 10MG+GHK-CU50MG+TB500 10MG)|70|MG|3": "/ud-labels/catalog/UD_0123_GLOW_70MG_3mL_Website.webp",
     "GLOW(BPC 157 10MG+GHK-CU50MG+TB500 10MG)|70": "/ud-labels/catalog/UD_0123_GLOW_70MG_3mL_Website.webp",
-    "GLUTATHIONE|600|MG|10": "/ud-labels/catalog/UD_0124_GLUTATHIONE_600MG_10mL_Website.webp",
-    "GLUTATHIONE|600": "/ud-labels/catalog/UD_0124_GLUTATHIONE_600MG_10mL_Website.webp",
     "GLUTATHIONE|1200|MG|10": "/ud-labels/catalog/UD_0125_GLUTATHIONE_1200MG_10mL_Website.webp",
     "GLUTATHIONE|1200": "/ud-labels/catalog/UD_0125_GLUTATHIONE_1200MG_10mL_Website.webp",
     "GLUTATHIONE|1500|MG|10": "/ud-labels/catalog/UD_0126_GLUTATHIONE_1500MG_10mL_Website.webp",
@@ -691,8 +688,6 @@
     "KISSPETIN-10|5": "/ud-labels/catalog/UD_0158_KISSPETIN_10_5MG_3mL_Website.webp",
     "KISSPETIN-10|10|MG|3": "/ud-labels/catalog/UD_0159_KISSPETIN_10_10MG_3mL_Website.webp",
     "KISSPETIN-10|10": "/ud-labels/catalog/UD_0159_KISSPETIN_10_10MG_3mL_Website.webp",
-    "KLOW|80|MG|3": "/ud-labels/catalog/UD_0161_KLOW_80MG_3mL_Website.webp",
-    "KLOW|80": "/ud-labels/catalog/UD_0160_KLOW_80MG_3mL_Website.webp",
     "KLOW(GHK-CU 50MG+BPC157 10MG+TB500 10MG+KPV 10MG)|80|MG|3": "/ud-labels/catalog/UD_0161_KLOW_80MG_3mL_Website.webp",
     "KLOW(GHK-CU 50MG+BPC157 10MG+TB500 10MG+KPV 10MG)|80": "/ud-labels/catalog/UD_0161_KLOW_80MG_3mL_Website.webp",
     "KPV|5|MG|3": "/ud-labels/catalog/UD_0162_KPV_5MG_3mL_Website.webp",
@@ -781,8 +776,6 @@
     "NAD+|100": "/ud-labels/catalog/UD_0202_NAD_100MG_10mL_Website.webp",
     "NAD+|500|MG|10": "/ud-labels/catalog/UD_0203_NAD_500MG_10mL_Website.webp",
     "NAD+|500": "/ud-labels/catalog/UD_0203_NAD_500MG_10mL_Website.webp",
-    "NAD+|1000|MG|10": "/ud-labels/catalog/UD_0204_NAD_1000MG_10mL_Website.webp",
-    "NAD+|1000": "/ud-labels/catalog/UD_0204_NAD_1000MG_10mL_Website.webp",
     "OXYTOCIN ACETATE|2|MG|3": "/ud-labels/catalog/UD_0205_OXYTOCIN_ACETATE_2MG_3mL_Website.webp",
     "OXYTOCIN ACETATE|2": "/ud-labels/catalog/UD_0205_OXYTOCIN_ACETATE_2MG_3mL_Website.webp",
     "OXYTOCIN ACETATE|5|MG|3": "/ud-labels/catalog/UD_0206_OXYTOCIN_ACETATE_5MG_3mL_Website.webp",
@@ -817,8 +810,6 @@
     "RELAXATALONPM|10": "/ud-labels/catalog/UD_0219_RELAXATALONPM_10MG_3mL_Website.webp",
     "RETATRUTIDE|5|MG|3": "/ud-labels/catalog/UD_0220_RETATRUTIDE_5MG_3mL_Website.webp",
     "RETATRUTIDE|5": "/ud-labels/catalog/UD_0220_RETATRUTIDE_5MG_3mL_Website.webp",
-    "RETATRUTIDE|10|MG|3": "/ud-labels/catalog/UD_0221_RETATRUTIDE_10MG_3mL_Website.webp",
-    "RETATRUTIDE|10": "/ud-labels/catalog/UD_0221_RETATRUTIDE_10MG_3mL_Website.webp",
     "RETATRUTIDE|12|MG|3": "/ud-labels/catalog/UD_0222_RETATRUTIDE_12MG_3mL_Website.webp",
     "RETATRUTIDE|12": "/ud-labels/catalog/UD_0222_RETATRUTIDE_12MG_3mL_Website.webp",
     "RETATRUTIDE|15|MG|3": "/ud-labels/catalog/UD_0223_RETATRUTIDE_15MG_3mL_Website.webp",
@@ -993,11 +984,20 @@
     "WOLVERINE|20": "/ud-labels/catalog/UD_0302_WOLVERINE_20MG_3mL_Website.webp",
     "WOLVERINE|30|MG|3": "/ud-labels/catalog/UD_0303_WOLVERINE_30MG_3mL_Website.webp",
     "WOLVERINE|30": "/ud-labels/catalog/UD_0303_WOLVERINE_30MG_3mL_Website.webp",
+    "VITAMIN B12|10|MG|10": "/ud-labels/catalog/UD_0295_B12_10MG_10mL_Website.webp",
+    "VITAMIN B12|10": "/ud-labels/catalog/UD_0295_B12_10MG_10mL_Website.webp",
+    "B12|10|MG|10": "/ud-labels/catalog/UD_0037_B12_10MG_10mL_Website.webp",
     "B12|10": "/ud-labels/catalog/UD_0037_B12_10MG_10mL_Website.webp",
     "B12(METHYLCOBALAMIN) 1MG|10|MG|10": "/ud-labels/catalog/UD_0037_B12_10MG_10mL_Website.webp",
     "B12(METHYLCOBALAMIN) 1MG|10": "/ud-labels/catalog/UD_0037_B12_10MG_10mL_Website.webp",
-    "VITAMIN B12|10|MG|10": "/ud-labels/catalog/UD_0295_B12_10MG_10mL_Website.webp",
-    "VITAMIN B12|10": "/ud-labels/catalog/UD_0295_B12_10MG_10mL_Website.webp"
+    "GLUTATHIONE|600|MG|10": "/ud-labels/catalog/UD_0124_GLUTATHIONE_600MG_10mL_Website.webp",
+    "GLUTATHIONE|600": "/ud-labels/catalog/UD_0124_GLUTATHIONE_600MG_10mL_Website.webp",
+    "KLOW|80|MG|3": "/ud-labels/catalog/UD_0160_KLOW_80MG_3mL_Website.webp",
+    "KLOW|80": "/ud-labels/catalog/UD_0160_KLOW_80MG_3mL_Website.webp",
+    "NAD+|1000|MG|10": "/ud-labels/catalog/UD_0204_NAD_1000MG_10mL_Website.webp",
+    "NAD+|1000": "/ud-labels/catalog/UD_0204_NAD_1000MG_10mL_Website.webp",
+    "RETATRUTIDE|10|MG|3": "/ud-labels/catalog/UD_0221_RETATRUTIDE_10MG_3mL_Website.webp",
+    "RETATRUTIDE|10": "/ud-labels/catalog/UD_0221_RETATRUTIDE_10MG_3mL_Website.webp"
   },
   "products": [
     {
@@ -2343,17 +2343,6 @@
       "renderer": "website-front-facing-reflow"
     },
     {
-      "catalogId": "UD-0124",
-      "labelName": "GLUTATHIONE",
-      "amount": 600,
-      "unit": "MG",
-      "vialMl": 10,
-      "placementProfile": "10ML_WHITE",
-      "visualType": "WHITE CAKE",
-      "image": "/ud-labels/catalog/UD_0124_GLUTATHIONE_600MG_10mL_Website.webp",
-      "renderer": "website-front-facing-reflow"
-    },
-    {
       "catalogId": "UD-0125",
       "labelName": "GLUTATHIONE",
       "amount": 1200,
@@ -2736,17 +2725,6 @@
       "placementProfile": "3ML_WHITE",
       "visualType": "WHITE CAKE",
       "image": "/ud-labels/catalog/UD_0159_KISSPETIN_10_10MG_3mL_Website.webp",
-      "renderer": "website-front-facing-reflow"
-    },
-    {
-      "catalogId": "UD-0160",
-      "labelName": "KLOW",
-      "amount": 80,
-      "unit": "MG",
-      "vialMl": 3,
-      "placementProfile": "3ML_BLUE",
-      "visualType": "COBALT BLUE CAKE",
-      "image": "/ud-labels/catalog/UD_0160_KLOW_80MG_3mL_Website.webp",
       "renderer": "website-front-facing-reflow"
     },
     {
@@ -3223,17 +3201,6 @@
       "renderer": "website-front-facing-reflow"
     },
     {
-      "catalogId": "UD-0204",
-      "labelName": "NAD+",
-      "amount": 1000,
-      "unit": "MG",
-      "vialMl": 10,
-      "placementProfile": "10ML_WHITE",
-      "visualType": "WHITE CAKE",
-      "image": "/ud-labels/catalog/UD_0204_NAD_1000MG_10mL_Website.webp",
-      "renderer": "website-front-facing-reflow"
-    },
-    {
       "catalogId": "UD-0205",
       "labelName": "OXYTOCIN ACETATE",
       "amount": 2,
@@ -3407,17 +3374,6 @@
       "placementProfile": "3ML_WHITE",
       "visualType": "WHITE CAKE",
       "image": "/ud-labels/catalog/UD_0220_RETATRUTIDE_5MG_3mL_Website.webp",
-      "renderer": "website-front-facing-reflow"
-    },
-    {
-      "catalogId": "UD-0221",
-      "labelName": "RETATRUTIDE",
-      "amount": 10,
-      "unit": "MG",
-      "vialMl": 3,
-      "placementProfile": "3ML_WHITE",
-      "visualType": "WHITE CAKE",
-      "image": "/ud-labels/catalog/UD_0221_RETATRUTIDE_10MG_3mL_Website.webp",
       "renderer": "website-front-facing-reflow"
     },
     {
@@ -4312,18 +4268,6 @@
       "renderer": "website-front-facing-reflow"
     },
     {
-      "catalogId": "UD-0037",
-      "labelName": "B12",
-      "amount": 10,
-      "unit": "MG",
-      "vialMl": 10,
-      "placementProfile": "10ML_B12_LIQUID",
-      "contentsType": "LIQUID",
-      "visualType": "RED LIQUID 75%",
-      "image": "/ud-labels/catalog/UD_0037_B12_10MG_10mL_Website.webp",
-      "renderer": "website-front-facing-reflow"
-    },
-    {
       "catalogId": "UD-0295",
       "labelName": "B12",
       "amount": 10,
@@ -4334,6 +4278,71 @@
       "visualType": "RED LIQUID 75%",
       "image": "/ud-labels/catalog/UD_0295_B12_10MG_10mL_Website.webp",
       "renderer": "website-front-facing-reflow"
+    },
+    {
+      "catalogId": "UD-0037",
+      "labelName": "B12",
+      "displayName": "B12",
+      "amount": 10,
+      "unit": "MG",
+      "vialMl": 10,
+      "placementProfile": "10ML_B12_LIQUID",
+      "contentsType": "LIQUID",
+      "visualType": "RED LIQUID 75%",
+      "image": "/ud-labels/catalog/UD_0037_B12_10MG_10mL_Website.webp",
+      "renderer": "website-reference-content-replace"
+    },
+    {
+      "catalogId": "UD-0124",
+      "labelName": "GLUTATHIONE",
+      "displayName": "GLUTA",
+      "amount": 600,
+      "unit": "MG",
+      "vialMl": 10,
+      "placementProfile": "10ML_WHITE",
+      "contentsType": "POWDER",
+      "visualType": "WHITE CAKE",
+      "image": "/ud-labels/catalog/UD_0124_GLUTATHIONE_600MG_10mL_Website.webp",
+      "renderer": "website-reference-content-replace"
+    },
+    {
+      "catalogId": "UD-0160",
+      "labelName": "KLOW",
+      "displayName": "KLOW",
+      "amount": 80,
+      "unit": "MG",
+      "vialMl": 3,
+      "placementProfile": "3ML_BLUE",
+      "contentsType": "POWDER",
+      "visualType": "COBALT BLUE CAKE",
+      "image": "/ud-labels/catalog/UD_0160_KLOW_80MG_3mL_Website.webp",
+      "renderer": "website-reference-content-replace"
+    },
+    {
+      "catalogId": "UD-0204",
+      "labelName": "NAD+",
+      "displayName": "NAD+",
+      "amount": 1000,
+      "unit": "MG",
+      "vialMl": 10,
+      "placementProfile": "10ML_WHITE",
+      "contentsType": "POWDER",
+      "visualType": "WHITE CAKE",
+      "image": "/ud-labels/catalog/UD_0204_NAD_1000MG_10mL_Website.webp",
+      "renderer": "website-reference-content-replace"
+    },
+    {
+      "catalogId": "UD-0221",
+      "labelName": "RETATRUTIDE",
+      "displayName": "RETA",
+      "amount": 10,
+      "unit": "MG",
+      "vialMl": 3,
+      "placementProfile": "3ML_WHITE",
+      "contentsType": "POWDER",
+      "visualType": "WHITE CAKE",
+      "image": "/ud-labels/catalog/UD_0221_RETATRUTIDE_10MG_3mL_Website.webp",
+      "renderer": "website-reference-content-replace"
     }
   ],
   "fail": 0,

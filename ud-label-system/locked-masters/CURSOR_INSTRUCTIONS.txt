@@ -1,0 +1,49 @@
+CURSOR / CODEX IMPLEMENTATION INSTRUCTIONS
+
+GOAL
+Use these approved assets as locked visual masters for hundreds of catalog
+products. This is content replacement, not image generation or redesign.
+
+LABEL SELECTION
+01 = 3 mL catalog, 40 x 20 mm
+02 = 3 mL calculator, 40 x 20 mm
+03 = 10 mL catalog, 50 x 30 mm
+04 = 10 mL calculator, 50 x 30 mm
+
+SOURCE OF TRUTH
+Use labels/*_EDIT_CONTENT_ONLY.svg. The matching *_LOCKED.png is the visual
+reference. Do not use AI image generation to write text onto a vial.
+
+EDITABLE CONTENT
+- Text nodes identified by data-field.
+- BRAND_IMAGE: replace its image content inside the existing locked bounds.
+- QR_IMAGE: generate from QR_VALUE or replace the image inside the existing
+  square QR bounds.
+- MASCOT_IMAGE: replace its image content inside the existing locked bounds.
+- BRAND_GAP_CHARS: default 1; allowed 0 through 4.
+- QR_ENABLED and MASCOT_ENABLED.
+
+LOCKED BEHAVIOR
+- Do not change any label dimensions, viewBox, rail, panel, divider, amount bar,
+  legal panel, field coordinates, clipping path, or image bounds.
+- Preserve aspect ratio for brand and mascot. Never stretch them.
+- Keep QR square, high contrast, and inside its current slot.
+- Keep mascot behind and above the QR in the same stacking order.
+- Do not add an outside border or white margin.
+- Preserve the complete black left rail through the label edge.
+- Scale the complete SVG as one unit when placing it on a vial.
+
+VIAL SELECTION
+- KLOW, GLOW, GHK-Cu, AHK-Cu -> 3 mL cobalt-blue powder.
+- B12 -> 10 mL ruby-red transparent liquid at 75% fill.
+- Other 3 mL lyophilized products -> 3 mL white powder.
+- Other 10 mL lyophilized products -> 10 mL white powder.
+
+ACCEPTANCE TEST
+Render the changed SVG at print resolution and compare it with its locked PNG.
+Pixels outside the editable text, brand, QR, and mascot regions must not move.
+The entire label must remain inside the approved physical dimensions.
+
+IMPLEMENT THIS DATA CONTRACT
+Read EDITABLE_FIELDS.json. Product records supply values; the renderer only
+updates matching data-field content and never reconstructs the label.

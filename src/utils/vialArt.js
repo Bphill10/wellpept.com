@@ -30,6 +30,11 @@ export const BRAND_VIAL_10_SRC =
   "/ud-labels/vials/UD_10mL_White_Peptide_Black_Cap_Unlabeled.png";
 export const BRAND_VIAL_10_CARD_SRC =
   "/ud-labels/vials/UD_10mL_White_Peptide_Black_Cap_Unlabeled.png";
+/** Dedicated B12 10 mL ruby-red liquid plate (never a recolored powder cake). */
+export const BRAND_VIAL_B12_SRC =
+  "/ud-labels/vials/UD_10mL_B12_Red_Liquid_Black_Cap_Unlabeled.png";
+export const BRAND_VIAL_B12_CARD_SRC =
+  "/ud-labels/vials/UD_10mL_B12_Red_Liquid_Black_Cap_Unlabeled.png";
 /** Studio blue-cake vial — blank Undisclosed wrap (KLOW / GLOW / GHK-Cu). */
 export const BLUE_VIAL_SRC =
   "/ud-labels/vials/UD_3mL_Blue_Peptide_Black_Cap_Unlabeled.png";
@@ -187,6 +192,10 @@ let brandVial10Cache = null;
 let brandVial10Promise = null;
 let brandVial10CardCache = null;
 let brandVial10CardPromise = null;
+let brandVialB12Cache = null;
+let brandVialB12Promise = null;
+let brandVialB12CardCache = null;
+let brandVialB12CardPromise = null;
 let klowVialCache = null;
 let klowVialPromise = null;
 let klowVialCardCache = null;
@@ -308,6 +317,33 @@ export function loadBrandVial10Card() {
     return loadBrandVial10();
   });
   return brandVial10CardPromise;
+}
+
+/** Prefetch dedicated B12 ruby-liquid 10 mL plate. */
+export function loadBrandVialB12() {
+  if (brandVialB12Cache) return Promise.resolve(brandVialB12Cache);
+  if (brandVialB12Promise) return brandVialB12Promise;
+  brandVialB12Promise = loadImage(BRAND_VIAL_B12_SRC).then(async (img) => {
+    if (img) {
+      brandVialB12Cache = img;
+      return img;
+    }
+    return loadBrandVial10();
+  });
+  return brandVialB12Promise;
+}
+
+export function loadBrandVialB12Card() {
+  if (brandVialB12CardCache) return Promise.resolve(brandVialB12CardCache);
+  if (brandVialB12CardPromise) return brandVialB12CardPromise;
+  brandVialB12CardPromise = loadImage(BRAND_VIAL_B12_CARD_SRC).then(async (img) => {
+    if (img) {
+      brandVialB12CardCache = img;
+      return img;
+    }
+    return loadBrandVialB12();
+  });
+  return brandVialB12CardPromise;
 }
 
 /** Prefetch unlabeled 3 mL studio plate (no wrap — calculator composites the live label). */
@@ -515,6 +551,24 @@ function drawPowderCake(ctx, bodyX, cakeY, bodyW, cakeH, radius, powderColor = "
   ctx.restore();
 }
 
+/**
+ * Standalone B12 / methylcobalamin only — not Lipo-C / MIC blends that mention B12.
+ */
+export function isB12Compound(name = "", form = "") {
+  void form;
+  const raw = String(name || "").trim();
+  if (!raw) return false;
+  const head = raw.split("(")[0].trim();
+  const upper = raw.toUpperCase();
+  if (/LIPO|MIC\b|WITHOUT|WITH\s+B12/i.test(upper) && !/^B12\b/i.test(head) && !/^VITAMIN\s*B\s*12\b/i.test(head)) {
+    return false;
+  }
+  if (/^B12$/i.test(head) || /^B12\b/i.test(head)) return true;
+  if (/^VITAMIN\s*B\s*12\b/i.test(head) || /^VITAMIN\s*B\s*12\b/i.test(raw)) return true;
+  if (/\bmethylcobalamin\b/i.test(raw) && /\bb12\b/i.test(raw)) return true;
+  return false;
+}
+
 /** True for NAD / Glutathione / B12 — the only 10 mL bottles. */
 export function isTenMlCompound(name = "", form = "") {
   const text = `${name || ""} ${form || ""}`;
@@ -522,9 +576,7 @@ export function isTenMlCompound(name = "", form = "") {
     /\bglutathione\b/i.test(text) ||
     /\bgluta\b/i.test(text) ||
     /\bnad\+?\b/i.test(text) ||
-    /\bvitamin\s*b\s*12\b/i.test(text) ||
-    /\bmethylcobalamin\b/i.test(text) ||
-    /\bb12\b/i.test(text)
+    isB12Compound(name, form)
   );
 }
 
@@ -1261,17 +1313,24 @@ export async function drawGeneratedVial(canvas, options = {}) {
   ctx.imageSmoothingQuality = catalogTemplate ? "medium" : "high";
 
   const useBluePlate = isBluePowderCompound(name, form || subtitle);
+  const useB12Liquid = isB12Compound(name, form || subtitle);
+  const resolvedFormText = useB12Liquid
+    ? "LIQUID"
+    : formText || "LYOPHILIZED POWDER";
 
   // Calculator: bare glass + live wrap (swappable label art). Catalog: blank printed wrap + name.
-  const photo = !catalogTemplate
-    ? isTen
-      ? await (size !== "lg" ? loadBrandVial10Card() : loadBrandVial10())
-      : await loadUnlabeledVial()
-    : isTen
-      ? await (size !== "lg" ? loadBrandVial10Card() : loadBrandVial10())
-      : useBluePlate
-        ? await (size !== "lg" ? loadBlueVialCard() : loadBlueVial())
-        : await (size !== "lg" ? loadBrandVialCard() : loadBrandVial());
+  // B12 always uses the dedicated ruby-liquid 10 mL plate (never white cake recolored).
+  const photo = useB12Liquid
+    ? await (size !== "lg" ? loadBrandVialB12Card() : loadBrandVialB12())
+    : !catalogTemplate
+      ? isTen
+        ? await (size !== "lg" ? loadBrandVial10Card() : loadBrandVial10())
+        : await loadUnlabeledVial()
+      : isTen
+        ? await (size !== "lg" ? loadBrandVial10Card() : loadBrandVial10())
+        : useBluePlate
+          ? await (size !== "lg" ? loadBlueVialCard() : loadBlueVial())
+          : await (size !== "lg" ? loadBrandVialCard() : loadBrandVial());
 
   if (photo && photo.width) {
     if (!catalogTemplate) {
@@ -1285,12 +1344,12 @@ export async function drawGeneratedVial(canvas, options = {}) {
         concentration,
         doseRange,
         showLabel,
-        powderBlue: useBluePlate,
+        powderBlue: useBluePlate && !useB12Liquid,
         qrPayload,
         coaUrl,
-        isTen,
+        isTen: isTen || useB12Liquid,
         labelType: wrapLabelType,
-        formText,
+        formText: resolvedFormText,
         storageTemp,
       });
     } else {
@@ -1307,7 +1366,7 @@ export async function drawGeneratedVial(canvas, options = {}) {
         qrPayload,
         coaUrl,
         labelType: wrapLabelType,
-        formText,
+        formText: resolvedFormText,
         storageTemp,
       });
     }
@@ -1322,11 +1381,11 @@ export async function drawGeneratedVial(canvas, options = {}) {
       doseRange,
       qrPayload,
       coaUrl,
-      reconstituted: catalogTemplate ? false : reconstituted,
+      reconstituted: catalogTemplate ? false : reconstituted || useB12Liquid,
       showLabel,
       powderColor: useBluePlate ? "blue" : "white",
       labelType: wrapLabelType,
-      formText,
+      formText: resolvedFormText,
       storageTemp,
     };
     if (isTen) drawLabeledTenMl(ctx, dims, fallbackOpts);

@@ -10,7 +10,12 @@ import {
   isJecSellable,
   isTop25Peptide,
 } from "./catalogFocus";
-import { resolveVialMl, resolveVialUnit, resolvePowderColor } from "../utils/vialArt";
+import {
+  resolveVialMl,
+  resolveVialUnit,
+  resolvePowderColor,
+  isB12Compound,
+} from "../utils/vialArt";
 import {
   warehouseForVendorId,
   warehouseRank,
@@ -781,6 +786,9 @@ export function formatCustomerForm(product) {
   if (product?.skin) {
     return product.form || product.unitLabel || product.size || "Skincare";
   }
+  if (isB12Compound(product?.name || "", product?.form || "")) {
+    return "Liquid vial";
+  }
   const form = String(product?.form || "");
   if (/capsule/i.test(form)) return "Capsule";
   if (/raw/i.test(form)) return "Raw material";
@@ -1100,7 +1108,10 @@ export function buildCatalog(vendors, submissions) {
     const featured = Boolean(item.vendor.featured);
     const vialMl = resolveVialMl(item);
     const displayName = displayPeptideName(item.name);
-    const powderColor = resolvePowderColor({ name: displayName, form: item.form });
+    const isB12 = isB12Compound(displayName, item.form);
+    const powderColor = isB12
+      ? "liquid-red"
+      : resolvePowderColor({ name: displayName, form: item.form });
     const labels = resolvePublicLabels({
       name: displayName,
       sku: item.sku,
@@ -1122,6 +1133,7 @@ export function buildCatalog(vendors, submissions) {
       packVials,
       vialMl,
       powderColor,
+      contentsType: isB12 ? "LIQUID" : "POWDER",
       unitLabel: "kit of 10",
       // Prefer curated category (e.g. Cagrilintide → Metabolic) over vendor sheet tags
       category: guessCategory(displayName) || item.category || "Research",

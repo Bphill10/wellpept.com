@@ -1,6 +1,6 @@
 /**
- * Generate CATALOG website vials by compositing a front-facing web label
- * (never stretch NIIMBOT print PNGs) onto unlabeled stock vial templates.
+ * Generate CATALOG website vials from locked SVG masters.
+ * Content replacement only — never reconstruct or stretch NIIMBOT geometry.
  *
  * Usage (from ud-label-system/):
  *   node scripts/generate-website-vials.mjs
@@ -10,17 +10,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import sharp from "sharp";
+import { applyB12LiquidFields } from "./render-vial-contents.mjs";
 import {
-  buildWebsiteLabelSvg,
-  geometryFromProfile,
-  renderWebsiteLabelPng,
-} from "./render-website-label.mjs";
-import {
-  applyB12LiquidFields,
-  isB12Product,
-  renderLiquidVial,
-} from "./render-vial-contents.mjs";
+  renderWebsiteVialFromReference,
+  resolveWebsiteProfileName,
+} from "./render-website-from-reference.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, "..");
@@ -57,100 +51,7 @@ function safeStem(value) {
  * Standalone B12 only → dedicated ruby liquid 10 mL plate (never recolored cake).
  */
 function resolvePlacementProfile(product) {
-  const p = applyB12LiquidFields(product);
-  if (isB12Product(p) || String(p.contentsType || "").toUpperCase() === "LIQUID") {
-    if (isB12Product(p)) return "10ML_B12_LIQUID";
-  }
-  const explicit = String(p.placementProfile || "").toUpperCase();
-  if (explicit && placement.profiles[explicit]) return explicit;
-  if (Number(p.vialMl) >= 8) return "10ML_WHITE";
-  const material = String(p.materialColor || p.visualType || "").toUpperCase();
-  if (material.includes("BLUE")) return "3ML_BLUE";
-  return "3ML_WHITE";
-}
-
-/**
- * Place a already-sized website label PNG (exact bounds W×H) onto the stock
- * vial with one shared curved clip + light cylinder shade. No label stretch.
- */
-async function placeWebsiteLabelOnVial({
-  labelPng,
-  profileName,
-  outputPath,
-  alsoSaveFullPng = null,
-}) {
-  const profile = placement.profiles[profileName];
-  if (!profile) throw new Error(`Unknown placement profile: ${profileName}`);
-  const basePath = path.join(root, profile.baseAsset);
-  const geometry = geometryFromProfile(profile);
-  const { width, height, clipPathD, left, top } = geometry;
-
-  const meta = await sharp(labelPng).metadata();
-  if (meta.width !== width || meta.height !== height) {
-    throw new Error(
-      `Website label must be ${width}x${height}, got ${meta.width}x${meta.height}`
-    );
-  }
-
-  const mask = Buffer.from(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-      <path d="${clipPathD}" fill="white"/>
-    </svg>
-  `);
-  const shade = Buffer.from(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-      <defs>
-        <clipPath id="clip"><path d="${clipPathD}"/></clipPath>
-        <linearGradient id="cylinder" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stop-color="#707070" stop-opacity="0.22"/>
-          <stop offset="0.13" stop-color="#ffffff" stop-opacity="0.04"/>
-          <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
-          <stop offset="0.87" stop-color="#ffffff" stop-opacity="0.04"/>
-          <stop offset="1" stop-color="#707070" stop-opacity="0.22"/>
-        </linearGradient>
-      </defs>
-      <g clip-path="url(#clip)">
-        <rect width="${width}" height="${height}" fill="url(#cylinder)"/>
-      </g>
-    </svg>
-  `);
-
-  const wrappedLabel = await sharp(labelPng)
-    .ensureAlpha()
-    .composite([
-      { input: mask, blend: "dest-in" },
-      { input: shade, blend: "multiply" },
-    ])
-    .png()
-    .toBuffer();
-
-  const full = await sharp(basePath)
-    .composite([{ input: wrappedLabel, left, top }])
-    .png({ compressionLevel: 9 })
-    .toBuffer();
-
-  const fullMeta = await sharp(full).metadata();
-  if (
-    fullMeta.width !== placement.canvas.widthPx ||
-    fullMeta.height !== placement.canvas.heightPx
-  ) {
-    throw new Error(
-      `Unexpected vial canvas: ${fullMeta.width}x${fullMeta.height}`
-    );
-  }
-
-  await fs.mkdir(path.dirname(outputPath), { recursive: true });
-  // Full-resolution website output remains 1024×1536
-  await sharp(full)
-    .webp({ quality: 88, effort: 4 })
-    .toFile(outputPath);
-
-  if (alsoSaveFullPng) {
-    await fs.mkdir(path.dirname(alsoSaveFullPng), { recursive: true });
-    await fs.writeFile(alsoSaveFullPng, full);
-  }
-
-  return outputPath;
+  return resolveWebsiteProfileName(product);
 }
 
 async function main() {
@@ -184,7 +85,7 @@ async function main() {
     version: "2.1",
     generatedAt: new Date().toISOString(),
     source: "data/UD_Peptide_Label_Catalog.xlsx → catalog.json",
-    renderer: "website-front-facing-reflow",
+    renderer: "website-reference-content-replace",
     canvas: placement.canvas,
     count: 0,
     byCatalogId: {},
@@ -198,7 +99,7 @@ async function main() {
         ...prev,
         version: "2.1",
         generatedAt: new Date().toISOString(),
-        renderer: "website-front-facing-reflow",
+        renderer: "website-reference-content-replace",
         byCatalogId: { ...(prev.byCatalogId || {}) },
         byKey: { ...(prev.byKey || {}) },
         products: [...(prev.products || [])],
@@ -209,7 +110,6 @@ async function main() {
   }
 
   const defaults = catalog.defaults || {};
-  const assetCache = {};
   let ok = 0;
   let fail = 0;
   const errors = [];
@@ -235,8 +135,8 @@ async function main() {
     );
     const webRel = `ud-labels/catalog/${stem}.webp`;
     const webAbs = path.join(siteRoot, "public", webRel.replace(/\//g, path.sep));
-    const labelSvgPath = path.join(tempLabelDir, `${stem}_WebsiteFace.svg`);
-    const labelPngPath = path.join(tempLabelDir, `${stem}_WebsiteFace.png`);
+    const labelPngPath = path.join(tempLabelDir, `${stem}_LockedFace.png`);
+    const fullPngPath = path.join(tempLabelDir, `${stem}_Full.png`);
 
     process.stdout.write(
       `[${i + 1}/${products.length}] ${product.catalogId} ${product.labelName} ${product.amount}${product.unit}… `
@@ -244,45 +144,24 @@ async function main() {
 
     try {
       const productForLabel = applyB12LiquidFields(product);
-      if (profileName === "10ML_B12_LIQUID") {
-        await renderLiquidVial({
-          liquidColor: productForLabel.liquidColor,
-          fillFraction: productForLabel.fillFraction,
-        });
-      }
-
-      const geometry = geometryFromProfile(profile);
-      geometry.brandGapChars =
-        productForLabel.brandGapChars ?? defaults.BRAND_GAP_CHARS ?? 1;
-
-      const svg = buildWebsiteLabelSvg(productForLabel, geometry, defaults);
-      await fs.writeFile(labelSvgPath, svg);
-
-      const labelPng = await renderWebsiteLabelPng(
-        productForLabel,
-        geometry,
-        defaults,
-        assetCache
-      );
-      await fs.writeFile(labelPngPath, labelPng);
-
-      await placeWebsiteLabelOnVial({
-        labelPng,
-        profileName,
+      const rendered = await renderWebsiteVialFromReference(productForLabel, defaults, {
         outputPath: webAbs,
+        alsoSaveFullPng: fullPngPath,
       });
+      await fs.writeFile(labelPngPath, rendered.full);
 
       const entry = {
         catalogId: productForLabel.catalogId,
         labelName: productForLabel.labelName,
+        displayName: rendered.peptide,
         amount: productForLabel.amount,
         unit: productForLabel.unit,
         vialMl: productForLabel.vialMl,
-        placementProfile: profileName,
+        placementProfile: rendered.profileName || profileName,
         contentsType: productForLabel.contentsType || "POWDER",
         visualType: productForLabel.visualType,
         image: `/${webRel.replace(/\\/g, "/")}`,
-        renderer: "website-front-facing-reflow",
+        renderer: "website-reference-content-replace",
       };
       if (idFilter.length) {
         manifest.products = manifest.products.filter(

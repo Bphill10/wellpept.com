@@ -2506,7 +2506,11 @@ function ProductCard({ listing, preferredWarehouseId = "All", onOpen, onAdd }) {
             {formatStrengthLabel(product)} · {formatCustomerForm(product)}
           </div>
           <div className="meta vial-size-tag">
-            {product.powderColor === "blue" ? "Blue powder" : "White powder"}
+            {product.powderColor === "liquid-red" || product.contentsType === "LIQUID"
+              ? "Ruby liquid"
+              : product.powderColor === "blue"
+                ? "Blue powder"
+                : "White powder"}
           </div>
           {Number(listing.reviews) > 0 && listing.rating != null && (
             <div className="rating">
@@ -2682,9 +2686,11 @@ function ProductDetail({
             </p>
             <div className="meta">
               {formatStrengthLabel(product)} · {formatCustomerForm(product)}
-              {product.powderColor === "blue"
-                ? " · blue lyophilized powder"
-                : " · white lyophilized powder"}
+              {product.powderColor === "liquid-red" || product.contentsType === "LIQUID"
+                ? " · ruby-red liquid"
+                : product.powderColor === "blue"
+                  ? " · blue lyophilized powder"
+                  : " · white lyophilized powder"}
               {product.purity ? ` · Purity ${product.purity}` : ""}
             </div>
             <div className="meta">US shipping via WellPept</div>

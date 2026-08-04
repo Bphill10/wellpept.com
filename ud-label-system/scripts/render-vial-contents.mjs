@@ -1,6 +1,10 @@
 /**
  * Vial content renderers — LIQUID vs POWDER are separate paths.
  * Never recolor a peptide-cake stock to imitate liquid.
+ *
+ * B12: wipe every cake pixel from the full glass ID, then paint a dedicated
+ * translucent ruby liquid volume (75% fill, curved meniscus). Glass speculars
+ * are composited back on top — never a recolored powder cake.
  */
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -21,12 +25,20 @@ export const B12_LIQUID = Object.freeze({
   sourceRel: "assets/vials/UD_10mL_White_Peptide_Black_Cap_Unlabeled.png",
 });
 
-/** Inner usable chamber on the 1024×1536 10 mL plate (not full canvas). */
-const CHAMBER = Object.freeze({
-  left: 300,
-  right: 724,
+/** Full inner glass ID — used to wipe cake (wider than liquid paint). */
+const BODY = Object.freeze({
+  left: 258,
+  right: 766,
   top: 470,
-  bottom: 1355,
+  bottom: 1372,
+});
+
+/** Liquid paint cylinder — clipped inside the clear chamber. */
+const CHAMBER = Object.freeze({
+  left: 286,
+  right: 738,
+  top: 490,
+  bottom: 1370,
 });
 
 function hexToRgb(hex) {
@@ -67,50 +79,66 @@ export function applyB12LiquidFields(product) {
   };
 }
 
-/**
- * Empty the inner chamber: wipe peptide cake with vertically sampled clear glass.
- * No powder/granule texture remains.
- */
-function emptyChamber(out, width, height, chamber) {
-  const cx = (chamber.left + chamber.right) / 2;
-  const rx = (chamber.right - chamber.left) * 0.495;
-  const sampleY0 = chamber.top + Math.round((chamber.bottom - chamber.top) * 0.12);
-  const sampleY1 = chamber.top + Math.round((chamber.bottom - chamber.top) * 0.28);
+function cylinderHit(x, y, box, rxScale = 1) {
+  const cx = (box.left + box.right) / 2;
+  const rx = ((box.right - box.left) / 2) * rxScale;
+  const t = (y - box.top) / Math.max(1, box.bottom - box.top);
+  // Follow the rounded heel — gentle taper only in the last 4%
+  const taper = t > 0.96 ? 1 - (t - 0.96) * 2.2 : 1;
+  const dx = (x - cx) / Math.max(1, rx * Math.max(0.55, taper));
+  if (dx * dx > 1) return null;
+  return {
+    dx,
+    edge: Math.sqrt(Math.max(0, 1 - dx * dx)),
+    t,
+    cx,
+    rx: rx * Math.max(0.55, taper),
+  };
+}
 
-  for (let y = chamber.top; y <= chamber.bottom; y += 1) {
-    for (let x = chamber.left; x <= chamber.right; x += 1) {
-      const dx = (x - cx) / rx;
-      if (dx * dx > 1) continue;
+function isCakePixel(r, g, b) {
+  const lum = (r + g + b) / 3;
+  const sat = Math.max(r, g, b) - Math.min(r, g, b);
+  if (lum > 48 && sat < 52 && Math.abs(r - g) < 40 && Math.abs(g - b) < 40) {
+    return true;
+  }
+  if (lum > 32 && sat < 22 && Math.abs(r - g) < 18 && Math.abs(g - b) < 18) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Remove every lyophilized cake / powder pixel from the glass ID.
+ * Replace with clear-glass samples from the empty upper chamber.
+ */
+function emptyChamber(out, width, box) {
+  const sampleY0 = box.top + Math.round((box.bottom - box.top) * 0.06);
+  const sampleY1 = box.top + Math.round((box.bottom - box.top) * 0.32);
+
+  for (let y = box.top; y <= box.bottom; y += 1) {
+    for (let x = box.left; x <= box.right; x += 1) {
+      const hit = cylinderHit(x, y, box, 1.04);
+      if (!hit) continue;
 
       const i = (y * width + x) * 4;
-      const r0 = out[i];
-      const g0 = out[i + 1];
-      const b0 = out[i + 2];
-      const lum = (r0 + g0 + b0) / 3;
-      const sat = Math.max(r0, g0, b0) - Math.min(r0, g0, b0);
+      if (!isCakePixel(out[i], out[i + 1], out[i + 2])) continue;
 
-      // Pale cake / milky sediment — replace with clear-glass sample from same column
-      const looksCake =
-        lum > 70 && sat < 55 && Math.abs(r0 - g0) < 40 && Math.abs(g0 - b0) < 40;
-      if (!looksCake) continue;
-
-      // Average a few pixels from the empty upper chamber in this column
       let sr = 0;
       let sg = 0;
       let sb = 0;
       let n = 0;
-      for (let sy = sampleY0; sy <= sampleY1; sy += 3) {
+      for (let sy = sampleY0; sy <= sampleY1; sy += 2) {
         const si = (sy * width + x) * 4;
         const sl = (out[si] + out[si + 1] + out[si + 2]) / 3;
-        if (sl > 120) continue; // skip specular spikes
+        if (sl > 100) continue;
         sr += out[si];
         sg += out[si + 1];
         sb += out[si + 2];
         n += 1;
       }
       if (n < 2) {
-        const edge = Math.sqrt(Math.max(0, 1 - dx * dx));
-        const glass = 18 + edge * 10;
+        const glass = 10 + hit.edge * 16;
         out[i] = glass;
         out[i + 1] = glass;
         out[i + 2] = Math.min(255, glass + 2);
@@ -124,63 +152,128 @@ function emptyChamber(out, width, height, chamber) {
 }
 
 /**
- * Smooth ruby liquid inside the chamber only. Center translucent, edges/bottom darker.
- * Subtle curved meniscus. Never a rectangle; never red outside the inner mask.
+ * Paint a dedicated translucent ruby volume (not an alpha rectangle on black).
+ * Glass speculars from the original plate are restored on top of the liquid.
  */
-function paintLiquid(out, width, chamber, opts) {
+function paintLiquid(out, cleared, source, width, chamber, body, opts) {
   const fill = Number(opts.fillFraction) || 0.75;
   const rgb = hexToRgb(opts.liquidColor || "#A50018");
-  const cx = (chamber.left + chamber.right) / 2;
-  const rx = (chamber.right - chamber.left) * 0.495;
   const chamberH = chamber.bottom - chamber.top;
   const liquidTopFlat = chamber.bottom - chamberH * fill;
+  const meniscusAmp = Math.max(36, Math.round(chamberH * 0.055));
 
   for (let y = chamber.top; y <= chamber.bottom; y += 1) {
     for (let x = chamber.left; x <= chamber.right; x += 1) {
-      const dx = (x - cx) / rx;
-      if (dx * dx > 1) continue;
+      const hit = cylinderHit(x, y, chamber, 1);
+      if (!hit) continue;
 
-      // Path length through cylinder (1 at center, 0 at wall)
-      const edge = Math.sqrt(Math.max(0, 1 - dx * dx));
-      // Meniscus: slightly higher near walls (concave)
-      const meniscusY = liquidTopFlat + (1 - edge) * 10;
+      // Concave meniscus: surface climbs the glass walls (aqueous)
+      const meniscusY = liquidTopFlat + hit.edge * meniscusAmp;
       if (y < meniscusY) continue;
 
       const i = (y * width + x) * 4;
-      const r0 = out[i];
-      const g0 = out[i + 1];
-      const b0 = out[i + 2];
-      const lum = (r0 + g0 + b0) / 3;
-
       const depth =
         (y - meniscusY) / Math.max(1, chamber.bottom - meniscusY);
 
-      // Optical path: darker/side walls, brighter center (more see-through)
-      let alpha = 0.28 + depth * 0.34 + (1 - edge) * 0.18;
-      // Keep strong glass speculars
-      if (lum > 210) alpha *= 0.18;
-      else if (lum > 165) alpha *= 0.4;
-      alpha = Math.min(0.72, Math.max(0.12, alpha));
+      // Dye volume: center more see-through (shows dark glass), walls denser.
+      const radial = 1 - hit.edge; // 0 center → 1 wall
+      const open = hit.edge * hit.edge;
+      let lr = Math.round(rgb.r * (0.28 + open * 0.62) + radial * 22);
+      let lg = Math.round(rgb.g * (0.16 + open * 0.35) + depth * 2);
+      let lb = Math.round(rgb.b * (0.28 + open * 0.48) + radial * 5 + 3);
 
-      out[i] = Math.min(255, Math.round(r0 * (1 - alpha) + rgb.r * alpha));
-      out[i + 1] = Math.min(255, Math.round(g0 * (1 - alpha) + rgb.g * alpha));
-      out[i + 2] = Math.min(255, Math.round(b0 * (1 - alpha) + rgb.b * alpha));
+      // Richer heel, softer near meniscus — keep surface ruby readable
+      const heel = 0.78 + depth * 0.32;
+      lr = Math.min(255, Math.round(lr * heel));
+      lg = Math.min(255, Math.round(lg * heel));
+      lb = Math.min(255, Math.round(lb * heel));
+
+      // Blend toward cleared dark glass so the volume reads translucent
+      const cr = cleared[i];
+      const cg = cleared[i + 1];
+      const cb = cleared[i + 2];
+      // Stronger near the free surface so the meniscus doesn't vanish in the center
+      const surfaceBoost = Math.max(0, 1 - Math.min(1, (y - meniscusY) / 28)) * 0.18;
+      let alpha = 0.5 + radial * 0.26 + depth * 0.16 + surfaceBoost;
+      alpha = Math.min(0.9, Math.max(0.36, alpha));
+
+      let r = Math.round(cr * (1 - alpha) + lr * alpha);
+      let g = Math.round(cg * (1 - alpha) + lg * alpha);
+      let b = Math.round(cb * (1 - alpha) + lb * alpha);
+
+      // Soft meniscus fade (top 3 px) so the surface isn't a hard cut
+      const fade = Math.max(0, Math.min(1, (y - meniscusY) / 3));
+      if (fade < 1) {
+        r = Math.round(cr * (1 - fade) + r * fade);
+        g = Math.round(cg * (1 - fade) + g * fade);
+        b = Math.round(cb * (1 - fade) + b * fade);
+      }
+
+      out[i] = r;
+      out[i + 1] = g;
+      out[i + 2] = b;
     }
   }
 
-  // Soft bright meniscus rim (1–2 px) — curved, not a flat strip
+  // Restore original glass speculars over liquid (wall highlight columns)
+  for (let y = chamber.top; y <= chamber.bottom; y += 1) {
+    for (let x = body.left; x <= body.right; x += 1) {
+      const hit = cylinderHit(x, y, chamber, 1.02);
+      if (!hit) continue;
+      const meniscusY = liquidTopFlat + hit.edge * meniscusAmp;
+      if (y < meniscusY) continue;
+
+      const i = (y * width + x) * 4;
+      const sr0 = source[i];
+      const sg0 = source[i + 1];
+      const sb0 = source[i + 2];
+      const lum = (sr0 + sg0 + sb0) / 3;
+      const sat = Math.max(sr0, sg0, sb0) - Math.min(sr0, sg0, sb0);
+      const nearWall = x < body.left + 58 || x > body.right - 58;
+      // Never reintroduce cake / powder as a "specular"
+      if (isCakePixel(sr0, sg0, sb0)) continue;
+      if (lum < 65) continue;
+      // Skip chalky mid-body leftovers
+      if (!nearWall && sat < 28 && lum > 100 && Math.abs(sr0 - sg0) < 24) {
+        continue;
+      }
+
+      let spec = 0;
+      if (lum > 200) spec = nearWall ? 0.85 : 0.45;
+      else if (lum > 150) spec = nearWall ? 0.62 : 0.28;
+      else if (lum > 110) spec = nearWall ? 0.38 : 0.14;
+      else if (lum > 65) spec = nearWall ? 0.18 : 0.06;
+
+      if (spec <= 0) continue;
+      out[i] = Math.min(255, Math.round(out[i] * (1 - spec) + sr0 * spec));
+      out[i + 1] = Math.min(
+        255,
+        Math.round(out[i + 1] * (1 - spec) + sg0 * spec)
+      );
+      out[i + 2] = Math.min(
+        255,
+        Math.round(out[i + 2] * (1 - spec) + sb0 * spec)
+      );
+    }
+  }
+
+  // Curved meniscus highlight
+  const cx = (chamber.left + chamber.right) / 2;
+  const rx = (chamber.right - chamber.left) / 2;
   for (let x = chamber.left; x <= chamber.right; x += 1) {
     const dx = (x - cx) / rx;
     if (dx * dx > 1) continue;
     const edge = Math.sqrt(Math.max(0, 1 - dx * dx));
-    const my = Math.round(liquidTopFlat + (1 - edge) * 10);
-    for (let dy = 0; dy <= 1; dy += 1) {
+    const my = Math.round(liquidTopFlat + edge * meniscusAmp);
+    for (let dy = -1; dy <= 2; dy += 1) {
       const y = my + dy;
       if (y < chamber.top || y > chamber.bottom) continue;
+      if (!cylinderHit(x, y, chamber, 1)) continue;
       const i = (y * width + x) * 4;
-      out[i] = Math.min(255, out[i] + 28);
-      out[i + 1] = Math.min(255, out[i + 1] + 8);
-      out[i + 2] = Math.min(255, out[i + 2] + 10);
+      const boost = dy < 0 ? 14 : dy === 0 ? 48 : dy === 1 ? 24 : 10;
+      out[i] = Math.min(255, out[i] + boost);
+      out[i + 1] = Math.min(255, out[i + 1] + Math.round(boost * 0.2));
+      out[i + 2] = Math.min(255, out[i + 2] + Math.round(boost * 0.26));
     }
   }
 }
@@ -194,17 +287,30 @@ export async function renderLiquidVial(options = {}) {
   const sourcePath = path.join(root, options.sourceRel || B12_LIQUID.sourceRel);
   const outRel = options.assetRel || B12_LIQUID.assetRel;
   const assetPath = path.join(root, outRel);
-  const publicPath = path.join(siteRoot, "public", "ud-labels", "vials", path.basename(outRel));
+  const publicPath = path.join(
+    siteRoot,
+    "public",
+    "ud-labels",
+    "vials",
+    path.basename(outRel)
+  );
 
   const { data, info } = await sharp(sourcePath)
     .ensureAlpha()
     .raw()
     .toBuffer({ resolveWithObject: true });
   const { width, height } = info;
+  const source = Buffer.from(data);
   const out = Buffer.from(data);
 
-  emptyChamber(out, width, height, CHAMBER);
-  paintLiquid(out, width, CHAMBER, { liquidColor, fillFraction });
+  emptyChamber(out, width, BODY);
+  emptyChamber(out, width, BODY);
+  // Speculars from the cleared plate only — never pull cake texture back in
+  const cleared = Buffer.from(out);
+  paintLiquid(out, cleared, source, width, CHAMBER, BODY, {
+    liquidColor,
+    fillFraction,
+  });
 
   const png = await sharp(out, { raw: { width, height, channels: 4 } })
     .png({ compressionLevel: 9 })
@@ -214,6 +320,15 @@ export async function renderLiquidVial(options = {}) {
   await fs.mkdir(path.dirname(publicPath), { recursive: true });
   await fs.writeFile(assetPath, png);
   await fs.writeFile(publicPath, png);
+
+  const altName = "UD_10mL_Red_Liquid_75pct_Black_Cap_Unlabeled.png";
+  if (path.basename(outRel) !== altName) {
+    await fs.writeFile(path.join(root, "assets", "vials", altName), png);
+    await fs.writeFile(
+      path.join(siteRoot, "public", "ud-labels", "vials", altName),
+      png
+    );
+  }
 
   return { assetPath, publicPath, width, height, fillFraction, liquidColor };
 }
@@ -247,7 +362,10 @@ async function main() {
   console.log(JSON.stringify(result, null, 2));
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
   main().catch((err) => {
     console.error(err);
     process.exit(1);
