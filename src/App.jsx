@@ -140,7 +140,6 @@ import UndisclosedNews from "./components/UndisclosedNews";
 import {
   approvedCatalogImage,
   UD_FEATURED_KIT_SRC,
-  UD_HERO_SCENE,
   UD_LABEL_BRAND,
 } from "./data/udLabelAssets";
 import { getSession, logout as logoutAccount } from "./utils/auth";
@@ -188,6 +187,13 @@ function VialPreview({
   showDownload = false,
   showLabel = true,
 }) {
+  const vialGlow =
+    product?.powderColor === "blue"
+      ? "vial-glow--blue"
+      : product?.powderColor === "liquid-red" || product?.contentsType === "LIQUID"
+        ? "vial-glow--sun"
+        : "vial-glow--sun";
+
   if (product?.print) {
     if (product.image) {
       return (
@@ -225,10 +231,10 @@ function VialPreview({
   if (approvedSrc) {
     return (
       <div
-        className={`skin-bottle-preview skin-bottle-preview--${size} skin-bottle-preview--photo vial-approved-photo`}
+        className={`skin-bottle-preview skin-bottle-preview--${size} skin-bottle-preview--photo vial-approved-photo ${vialGlow}`}
       >
         <img
-          src={`${approvedSrc}?v=mounted-label-v1`}
+          src={approvedSrc}
           alt=""
           className="vial-approved-img"
         />
@@ -238,7 +244,7 @@ function VialPreview({
   // No live canvas fallback — wait for build-time website PNG.
   return (
     <div
-      className={`skin-bottle-preview skin-bottle-preview--${size} skin-bottle-preview--photo vial-approved-photo vial-approved-photo--empty`}
+      className={`skin-bottle-preview skin-bottle-preview--${size} skin-bottle-preview--photo vial-approved-photo vial-approved-photo--empty ${vialGlow}`}
       aria-hidden="true"
     />
   );
@@ -305,6 +311,7 @@ export default function App() {
   const logoClicksRef = useRef([]);
   const lastBrandTapRef = useRef(0);
   const [channelTuning, setChannelTuning] = useState(false);
+  const [udGridLive, setUdGridLive] = useState(false);
   const channelTuneLockRef = useRef(false);
   const [skinProduct, setSkinProduct] = useState(null);
   const [view, setView] = useState(() => {
@@ -520,6 +527,16 @@ export default function App() {
     }
   }, [labVisible, view]);
 
+  // Steady electrified grid when Undisclosed is open (power-up animates on unlock).
+  useEffect(() => {
+    if (!labVisible) {
+      setUdGridLive(false);
+      return;
+    }
+    if (channelTuning) return;
+    setUdGridLive(true);
+  }, [labVisible, channelTuning]);
+
   useEffect(() => {
     if (opsUnlocked) return;
     if (view === VIEWS.vendor || view === VIEWS.admin) {
@@ -549,6 +566,7 @@ export default function App() {
   function finishChannelTune() {
     channelTuneLockRef.current = false;
     setChannelTuning(false);
+    setUdGridLive(true);
     setFlash("Undisclosed unlocked");
   }
 
@@ -562,27 +580,31 @@ export default function App() {
         : "/black-marble.webp";
     [
       warmMarble,
+      "/ud-electric-backdrop-sm.webp",
+      "/ud-electric-backdrop.webp",
       UD_LABEL_BRAND.whiteTransparent,
-      UD_LABEL_BRAND.mascotWhite,
-      UD_HERO_SCENE.emptyVial,
-      UD_HERO_SCENE.catalogLabel,
+      UD_LABEL_BRAND.mascotLabelingHero,
+      UD_LABEL_BRAND.mascotSwitchFlip,
       UD_FEATURED_KIT_SRC,
     ].forEach((href) => {
       const img = new Image();
       img.decoding = "async";
       img.src = href;
     });
+    setUdGridLive(false);
     setChannelTuning(true);
     // Never leave the unlock overlay blocking taps (Add to cart, etc.)
     window.setTimeout(() => {
       channelTuneLockRef.current = false;
       setChannelTuning(false);
+      setUdGridLive(true);
     }, TUNE_MS + 1200);
   }
 
   function lockLabMenu() {
     setLabUnlocked(false);
     setLabUnlockedState(false);
+    setUdGridLive(false);
     cleanPublicEntryUrl();
     // replaceState does not fire popstate. clear Undisclosed route or
     // labVisible stays true and the layout effect re-opens the lab.
@@ -1370,7 +1392,13 @@ export default function App() {
   }
 
   return (
-    <div className={`app-shell ${labVisible ? "app-shell--undisclosed" : "app-shell--skincare"}`}>
+    <div
+      className={`app-shell ${
+        labVisible ? "app-shell--undisclosed" : "app-shell--skincare"
+      }${labVisible && udGridLive ? " app-shell--ud-live" : ""}${
+        channelTuning ? " app-shell--ud-powering" : ""
+      }`}
+    >
       {!ageOk && (
         <AgeGate
           brand={labVisible ? "Undisclosed" : "WellPept"}
@@ -1924,34 +1952,14 @@ export default function App() {
 
             <section className="hero hero--undisclosed hero--undisclosed-compact">
               <div className="hero-media hero-media--undisclosed" aria-hidden="true">
-                <div className="hero-labeling-scene">
-                  <img
-                    src={UD_LABEL_BRAND.mascotWhite}
-                    alt=""
-                    className="hero-scene-mascot"
-                    width={160}
-                    height={160}
-                    decoding="async"
-                  />
-                  <div className="hero-scene-vial-wrap">
-                    <img
-                      src={UD_HERO_SCENE.emptyVial}
-                      alt=""
-                      className="hero-scene-vial"
-                      width={420}
-                      height={560}
-                      decoding="async"
-                    />
-                    <img
-                      src={UD_HERO_SCENE.catalogLabel}
-                      alt=""
-                      className="hero-scene-label"
-                      width={320}
-                      height={160}
-                      decoding="async"
-                    />
-                  </div>
-                </div>
+                <img
+                  src={`${UD_LABEL_BRAND.mascotLabelingHero}?v=professional-panorama-v17`}
+                  alt=""
+                  className="hero-sentinel-main"
+                  width={1920}
+                  height={1080}
+                  decoding="async"
+                />
               </div>
               <div className="container hero-content">
                 <div className="hero-brand-lockup rise">
@@ -1970,7 +1978,7 @@ export default function App() {
                   </div>
                 </div>
                 <p className="hero-tagline rise-delay">
-                  Full research catalog. Pick a category and order.
+                  A curated research peptide catalog from vetted, tested, and trusted partners in the U.S. and overseas.
                 </p>
                 <div className="hero-cta rise-delay">
                   <button
@@ -2507,7 +2515,9 @@ function ProductCard({ listing, preferredWarehouseId = "All", onOpen, onAdd }) {
   if (!product) return null;
 
   return (
-    <article className="product-card">
+    <article
+      className={`product-card${product.powderColor === "blue" ? " product-card--blue-vial" : ""}`}
+    >
       <button
         type="button"
         className="product-card-main"

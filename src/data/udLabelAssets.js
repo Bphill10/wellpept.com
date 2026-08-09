@@ -1,11 +1,11 @@
 /**
  * Undisclosed website vial assets.
  *
- * Product photos are STATIC 1024×1536 PNGs from the build-time mounted-label
- * generator only. Live canvas compositing is disconnected from catalog pages.
+ * Catalog photos: Excel-mapped Website.webp plates in public/ud-labels/catalog/.
+ * One native website renderer plus hand-approved compatibility fallbacks.
  */
 
-import websiteManifest from "./udWebsiteVialManifest.json";
+import catalogManifest from "./udCatalogVialManifest.json";
 
 export const UD_LABEL_BRAND = {
   latest: "/ud-labels/brand/UD_Brand_Mark_Latest_Original.png",
@@ -13,6 +13,10 @@ export const UD_LABEL_BRAND = {
   whiteTransparent: "/ud-labels/brand/UD_Brand_Mark_White_Transparent.png",
   mascot: "/ud-labels/brand/UD_Sentinel_Mascot_Original.png",
   mascotWhite: "/ud-labels/brand/UD_Sentinel_Mascot_White_Transparent.png",
+  /** Full-body color Sentinel applying a black label to a vial (hero). */
+  mascotLabelingHero: "/ud-labels/brand/UD_Sentinel_Labeling_Hero.png",
+  /** Sentinel flipping the power switch (enter / electrify beat). */
+  mascotSwitchFlip: "/ud-labels/brand/UD_Sentinel_Switch_Flip.png",
 };
 
 export const UD_STOCK_VIALS = {
@@ -54,10 +58,11 @@ function amountKey(value) {
 }
 
 /**
- * Build-time mounted-label website vial (1024×1536 static PNG).
+ * Resolve placed-label vial photo from Excel catalog mapping.
  */
-export function websiteVialImage(product = {}) {
-  const byKey = websiteManifest?.byKey || {};
+export function catalogVialImage(product = {}) {
+  const byKey = catalogManifest?.byKey || {};
+  const products = catalogManifest?.products || [];
   const name = normName(product.name || product.sku || product.labelName);
   if (!name) return "";
   const amount = amountKey(product.mg ?? product.amount ?? product.mass);
@@ -65,32 +70,58 @@ export function websiteVialImage(product = {}) {
   const vialMl = Number(product.vialMl) || 3;
   const head = name.split("(")[0].trim();
 
-  const aliases = [name, head].filter(Boolean);
+  const nameAliases = [name, head].filter(Boolean);
+  if (/^TA1\b|^THYMOSIN\s*ALPHA/.test(head)) nameAliases.push("TA-1");
+  if (/^NAD\b|^NAD\s*PLUS/.test(head)) nameAliases.push("NAD+", "NAD PLUS");
+  if (/^BPC157\b|^BPC\s*157\b/.test(head)) nameAliases.push("BPC-157", "BPC157");
+  if (/^TB500\b|^TB\s*500\b/.test(head)) nameAliases.push("TB-500", "TB500");
+  if (/^AHK\b/.test(head)) nameAliases.push("AHK-CU", "AHK CU");
+  if (/^GHK\b/.test(head) && !/\bBASIC\b/.test(head))
+    nameAliases.push("GHK-CU", "GHK CU");
+  if (/CJC/.test(head) && /IPA|IPAMORELIN/.test(head)) {
+    nameAliases.push("CJC/IPA", "CJC-1295 / IPAMORELIN", "CI");
+  }
   if (/^RETA\b|^RETATRUTIDE\b/.test(head)) {
-    aliases.push("RETA", "RETATRUTIDE");
+    nameAliases.push("RETA", "RETATRUTIDE");
   }
 
-  for (const n of [...new Set(aliases)]) {
-    const key = `${n}|${amount}|${unit}|${vialMl}`;
+  const candidates = [];
+  for (const n of [...new Set(nameAliases)]) {
+    candidates.push(
+      `${n}|${amount}|${unit}|${vialMl}`,
+      `${n}|${amount}|MG|${vialMl}`,
+      `${n}|${amount}|IU|${vialMl}`,
+      `${n}|${amount}`
+    );
+  }
+
+  for (const key of candidates) {
     if (byKey[key]) return byKey[key];
   }
+
+  const amtNum = Number(amount);
+  const soft = products
+    .filter((row) => {
+      const rn = normName(row.labelName);
+      return nameAliases.includes(rn) && Number(row.vialMl) === vialMl;
+    })
+    .sort(
+      (a, b) =>
+        Math.abs(Number(a.amount) - amtNum) -
+        Math.abs(Number(b.amount) - amtNum)
+    );
+  if (soft[0]?.image) return soft[0].image;
+
   return "";
 }
 
 /**
- * @deprecated Old Excel catalog website map removed. Use websiteVialImage.
- */
-export function catalogVialImage(product = {}) {
-  return websiteVialImage(product);
-}
-
-/**
- * Prefer build-time website vial; then hand-approved finals only.
- * Never falls back to live canvas compositing.
+ * Use the single catalog renderer output, then hand-approved finals as a
+ * last-resort compatibility fallback. Never mixes in proof/legacy renderers.
  */
 export function approvedCatalogImage(product = {}) {
-  const fromBuild = websiteVialImage(product);
-  if (fromBuild) return fromBuild;
+  const fromMap = catalogVialImage(product);
+  if (fromMap) return fromMap;
 
   const name = normName(product.name || product.sku);
   const head = name.split("(")[0].trim();
@@ -100,4 +131,8 @@ export function approvedCatalogImage(product = {}) {
     return UD_APPROVED_PRODUCT_IMAGES["TA-1"];
   if (/^NAD\b/.test(head)) return UD_APPROVED_PRODUCT_IMAGES["NAD+"];
   return "";
+}
+
+export function getCatalogManifest() {
+  return catalogManifest;
 }

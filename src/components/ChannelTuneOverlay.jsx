@@ -488,6 +488,18 @@ export default function ChannelTuneOverlay({ active, onReveal, onDone }) {
           <p className="rift-manifesto-sub">It&apos;s your human right.</p>
         </div>
 
+        <div className="rift-switch-beat" aria-hidden="true">
+          <img
+            src={`${UD_LABEL_BRAND.mascotSwitchFlip}?v=bulb-eyes-v1`}
+            alt=""
+            className="rift-switch-mascot"
+            width={720}
+            height={720}
+            decoding="async"
+          />
+          <p className="rift-switch-caption">POWER · GRID ONLINE</p>
+        </div>
+
         <div className="tv-tune-vignette" />
         <div className="tv-tune-cut" />
       </div>
