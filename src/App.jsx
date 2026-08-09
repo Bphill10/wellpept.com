@@ -134,6 +134,7 @@ import {
 import ChannelTuneOverlay, { TUNE_MS } from "./components/ChannelTuneOverlay";
 import PriceListDropzone from "./components/PriceListDropzone";
 import LiveChat, { openLiveChat, contactEmail } from "./components/LiveChat";
+import SentinelKnowledgeChat from "./components/SentinelKnowledgeChat";
 import AuthGate from "./components/AuthGate";
 import AgeGate, { hasAgeClearance } from "./components/AgeGate";
 import UndisclosedNews from "./components/UndisclosedNews";
@@ -225,23 +226,16 @@ function VialPreview({
       </div>
     );
   }
-  // Catalog + detail: static 1024×1536 build-time website vial only.
-  // Live GeneratedVial / rejected batch renderer outputs are disconnected.
   const approvedSrc = approvedCatalogImage(product);
   if (approvedSrc) {
     return (
       <div
         className={`skin-bottle-preview skin-bottle-preview--${size} skin-bottle-preview--photo vial-approved-photo ${vialGlow}`}
       >
-        <img
-          src={approvedSrc}
-          alt=""
-          className="vial-approved-img"
-        />
+        <img src={approvedSrc} alt="" className="vial-approved-img" />
       </div>
     );
   }
-  // No live canvas fallback — wait for build-time website PNG.
   return (
     <div
       className={`skin-bottle-preview skin-bottle-preview--${size} skin-bottle-preview--photo vial-approved-photo vial-approved-photo--empty ${vialGlow}`}
@@ -312,6 +306,7 @@ export default function App() {
   const lastBrandTapRef = useRef(0);
   const [channelTuning, setChannelTuning] = useState(false);
   const [udGridLive, setUdGridLive] = useState(false);
+  const [sentinelChatOpen, setSentinelChatOpen] = useState(false);
   const channelTuneLockRef = useRef(false);
   const [skinProduct, setSkinProduct] = useState(null);
   const [view, setView] = useState(() => {
@@ -531,6 +526,7 @@ export default function App() {
   useEffect(() => {
     if (!labVisible) {
       setUdGridLive(false);
+      setSentinelChatOpen(false);
       return;
     }
     if (channelTuning) return;
@@ -573,18 +569,8 @@ export default function App() {
   function startChannelTuneUnlock() {
     if (channelTuneLockRef.current || channelTuning || labVisible) return;
     channelTuneLockRef.current = true;
-    // Warm Undisclosed assets under the black cover so WellPept never flashes back
-    const warmMarble =
-      typeof window !== "undefined" && window.matchMedia("(max-width: 700px)").matches
-        ? "/black-marble-sm.webp"
-        : "/black-marble.webp";
     [
-      warmMarble,
-      "/ud-electric-backdrop-sm.webp",
-      "/ud-electric-backdrop.webp",
       UD_LABEL_BRAND.whiteTransparent,
-      UD_LABEL_BRAND.mascotLabelingHero,
-      UD_LABEL_BRAND.mascotSwitchFlip,
       UD_FEATURED_KIT_SRC,
     ].forEach((href) => {
       const img = new Image();
@@ -1951,16 +1937,7 @@ export default function App() {
             </div>
 
             <section className="hero hero--undisclosed hero--undisclosed-compact">
-              <div className="hero-media hero-media--undisclosed" aria-hidden="true">
-                <img
-                  src={`${UD_LABEL_BRAND.mascotLabelingHero}?v=professional-panorama-v17`}
-                  alt=""
-                  className="hero-sentinel-main"
-                  width={1920}
-                  height={1080}
-                  decoding="async"
-                />
-              </div>
+              <div className="hero-media hero-media--undisclosed" aria-hidden="true" />
               <div className="container hero-content">
                 <div className="hero-brand-lockup rise">
                   <img
@@ -2018,6 +1995,42 @@ export default function App() {
               </button>
                 </div>
               </div>
+              <button
+                type="button"
+                className="sentinel-hero-console rise-delay"
+                onClick={() => setSentinelChatOpen(true)}
+                aria-label="Ask Atlas, the Undisclosed Sentinel knowledge guide"
+              >
+                <span className="sentinel-hero-orbit" aria-hidden="true">
+                  <span className="sentinel-hero-figure">
+                    <img
+                      src={UD_LABEL_BRAND.mascotWhite}
+                      alt=""
+                      width={176}
+                      height={176}
+                    />
+                    <span className="sentinel-hero-torso">
+                      <i />
+                    </span>
+                  </span>
+                </span>
+                <span className="sentinel-hero-copy">
+                  <span className="sentinel-hero-status">
+                    <i aria-hidden="true" /> Sentinel knowledge desk online
+                  </span>
+                  <strong>Ask Atlas</strong>
+                  <small>
+                    Your Undisclosed Sentinel for research guides, COA links,
+                    catalog navigation, and calculator label help.
+                  </small>
+                  <span className="sentinel-hero-tools" aria-hidden="true">
+                    <b>Research</b>
+                    <b>COA</b>
+                    <b>Calculator</b>
+                  </span>
+                  <span className="sentinel-hero-action">Open knowledge chat →</span>
+                </span>
+              </button>
             </section>
 
             <section className="section featured-vendor-section" id="featured">
@@ -2027,14 +2040,14 @@ export default function App() {
                     <span className="featured-kicker">Featured kit</span>
                     <h2>KLOW</h2>
                     <p>
-                      Signature Undisclosed kit. 10 × 80 MG lyophilized vials
+                      Signature Undisclosed kit. 10 × 80 MG sealed research vials
                       with catalog wrap labels (no calculator dosage block).
                       Request first; we confirm supply within 24 hours, then
                       payment. Shipping by warehouse (A / B).
                     </p>
                     <ul className="featured-meta">
                       <li>80 MG blend · kit of 10 vials</li>
-                      <li>Catalog label · QR + Sentinel</li>
+                      <li>Catalog label · QR verified</li>
                       <li>Warehouse A: 7–10 days · B: 2–4 weeks</li>
                     </ul>
                   </div>
@@ -2466,6 +2479,30 @@ export default function App() {
           </p>
         </div>
       </footer>
+      <SentinelKnowledgeChat
+        open={labVisible && sentinelChatOpen}
+        onClose={() => setSentinelChatOpen(false)}
+        onBrowseCatalog={() => {
+          setSentinelChatOpen(false);
+          setView(VIEWS.shop);
+          window.setTimeout(() => {
+            document
+              .getElementById("partner-listings")
+              ?.scrollIntoView({ behavior: "smooth" });
+          }, 40);
+        }}
+        onOpenCalculator={() => {
+          setSentinelChatOpen(false);
+          setCalcInitial(null);
+          setView(VIEWS.calculator);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+        onHumanSupport={() => {
+          if (!openLiveChat()) {
+            window.location.href = `mailto:${contactEmail()}?subject=Undisclosed%20research%20question`;
+          }
+        }}
+      />
       <LiveChat />
     </div>
   );
@@ -2538,15 +2575,19 @@ function ProductCard({ listing, preferredWarehouseId = "All", onOpen, onAdd }) {
           </div>
           <h3>{listing.name}</h3>
           <p className="card-blurb">{listing.blurb || product.blurb}</p>
+          <div className="card-research">
+            <strong>Research focus</strong>
+            <span>{researchHelpFor(listing.name)}</span>
+          </div>
           <div className="meta">
             {formatStrengthLabel(product)} · {formatCustomerForm(product)}
           </div>
           <div className="meta vial-size-tag">
             {product.powderColor === "liquid-red" || product.contentsType === "LIQUID"
-              ? "Ruby liquid"
+              ? "Ruby liquid vial"
               : product.powderColor === "blue"
-                ? "Blue powder"
-                : "White powder"}
+                ? "Cobalt vial"
+                : "Clear vial"}
           </div>
           {Number(listing.reviews) > 0 && listing.rating != null && (
             <div className="rating">
@@ -2723,10 +2764,10 @@ function ProductDetail({
             <div className="meta">
               {formatStrengthLabel(product)} · {formatCustomerForm(product)}
               {product.powderColor === "liquid-red" || product.contentsType === "LIQUID"
-                ? " · ruby-red liquid"
+                ? " · ruby liquid vial"
                 : product.powderColor === "blue"
-                  ? " · blue lyophilized powder"
-                  : " · white lyophilized powder"}
+                  ? " · cobalt vial"
+                  : " · clear vial"}
               {product.purity ? ` · Purity ${product.purity}` : ""}
             </div>
             <div className="meta">US shipping via WellPept</div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Calculator, RotateCcw, Link2, Download } from "lucide-react";
 import LabelTemplate from "./LabelTemplate";
+import GeneratedVial from "./GeneratedVial";
 import {
   CATEGORIES,
   calculatorOptionsFromListings,
@@ -23,7 +24,6 @@ import {
 import { shortCapName, capStlSlug } from "../data/capNames";
 import {
   UD_FEATURED_KIT_SRC,
-  UD_STOCK_VIALS,
 } from "../data/udLabelAssets";
 
 const CUSTOM_ID = "custom";
@@ -44,6 +44,11 @@ function formatDoseText(dose, unit) {
   const n = Number(dose);
   if (unit === "IU") return `${formatNum(n, 2)} IU`;
   return `${formatNum(n, 2)} mg`;
+}
+
+function defaultHighDose(low) {
+  const n = Number(low);
+  return n > 0 ? formatNum(n * 2, 4) : "";
 }
 
 /** Full defaults from peptide name + available dosage strength. */
@@ -109,6 +114,11 @@ export default function PeptideCalculator({
   const [vialUnit, setVialUnit] = useState(boot.unit || "mg");
   const [vialMl, setVialMl] = useState(boot.vialMl || 3);
   const [dose, setDose] = useState(boot.dose != null ? String(boot.dose) : "");
+  const [doseHigh, setDoseHigh] = useState(
+    initial?.doseHigh != null && String(initial.doseHigh) !== ""
+      ? String(initial.doseHigh)
+      : defaultHighDose(boot.dose)
+  );
   const [doseUnit, setDoseUnit] = useState(boot.doseUnit || "mg");
   const [solution, setSolution] = useState(
     initial?.solution != null ? String(initial.solution) : boot.solution || "2"
@@ -151,7 +161,13 @@ export default function PeptideCalculator({
     const nextMl = BOTTLE_SIZES_ML.includes(ml) ? ml : 3;
     setVialMl(nextMl);
     setLabelTemplateId(udLabelTemplateFor(nextMl, labelTemplate.labelType).id);
-    setDose(seed?.dose != null ? String(seed.dose) : "0.25");
+    const nextDose = seed?.dose != null ? String(seed.dose) : "0.25";
+    setDose(nextDose);
+    setDoseHigh(
+      seed?.doseHigh != null && String(seed.doseHigh) !== ""
+        ? String(seed.doseHigh)
+        : defaultHighDose(nextDose)
+    );
     setDoseUnit(seed?.doseUnit === "IU" ? "IU" : "mg");
     setSolution(seed?.solution != null ? String(seed.solution) : "2");
     setShareMsg("");
@@ -168,6 +184,11 @@ export default function PeptideCalculator({
     setVialMl(d.vialMl);
     setLabelTemplateId(udLabelTemplateFor(d.vialMl, labelTemplate.labelType).id);
     setDose(String(d.dose));
+    setDoseHigh(
+      seed?.doseHigh != null && String(seed.doseHigh) !== ""
+        ? String(seed.doseHigh)
+        : defaultHighDose(d.dose)
+    );
     setDoseUnit(d.doseUnit);
     // BAC always follows peptide + dosage unless an explicit seed value is given
     if (seed?.solution != null && String(seed.solution) !== "") {
@@ -186,6 +207,7 @@ export default function PeptideCalculator({
       name: initial?.name || "",
       mass: initial?.mass ?? "",
       dose: initial?.dose ?? "",
+      doseHigh: initial?.doseHigh ?? "",
       solution: initial?.solution ?? "",
     });
     if (hydratedInitial === seedKey && peptideId) return;
@@ -201,10 +223,11 @@ export default function PeptideCalculator({
         mass,
         solution,
         dose,
+        doseHigh,
         doseUnit,
         unit: vialUnit,
       }),
-    [name, mass, solution, dose, doseUnit, vialUnit]
+    [name, mass, solution, dose, doseHigh, doseUnit, vialUnit]
   );
 
   const suggested = useMemo(
@@ -246,6 +269,24 @@ export default function PeptideCalculator({
       doseText: formatDoseText(doseMg, "mg"),
     };
   }, [mass, solution, dose, doseUnit, vialUnit, name]);
+
+  const doseLowNumber = Number(dose);
+  const doseHighNumber = Number(doseHigh);
+  const doseRangeValid =
+    doseLowNumber > 0 &&
+    doseHighNumber > 0 &&
+    doseHighNumber >= doseLowNumber;
+  const highDoseUnits =
+    result?.units && doseLowNumber > 0
+      ? Number(result.units) * (doseHighNumber / doseLowNumber)
+      : 0;
+  const liveDoseRange = formatDoseRangeLabel(
+    dose,
+    doseUnit,
+    result?.units ? Number(result.units) : 10,
+    doseHigh,
+    highDoseUnits || null
+  );
 
   function onPeptideChange(id) {
     if (id === CUSTOM_ID) {
@@ -483,15 +524,25 @@ export default function PeptideCalculator({
                   </button>
                 )}
 
-                <div className="form-row">
+                <div className="form-row form-row--3">
                   <label className="field">
-                    Research dose
+                    Range minimum
                     <input
                       type="number"
                       min="0"
                       step="0.01"
                       value={dose}
                       onChange={(e) => setDose(e.target.value)}
+                    />
+                  </label>
+                  <label className="field">
+                    Range maximum
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={doseHigh}
+                      onChange={(e) => setDoseHigh(e.target.value)}
                     />
                   </label>
                   <label className="field">
@@ -518,13 +569,19 @@ export default function PeptideCalculator({
                     </select>
                   </label>
                 </div>
+                {!doseRangeValid && (
+                  <div className="notice warn">
+                    Enter a maximum research dose equal to or greater than the
+                    minimum.
+                  </div>
+                )}
 
                 <div className="row-actions">
                   <button
                     type="button"
                     className="soft-btn"
                     onClick={shareCalc}
-                    disabled={!result}
+                    disabled={!result || !doseRangeValid}
                   >
                     <Link2 size={16} /> Share
                   </button>
@@ -633,16 +690,22 @@ export default function PeptideCalculator({
                 })}
               </div>
               <div className="calc-vial-stage">
-                {/* Live GeneratedVial compositor disconnected. Stock plate only. */}
-                <img
-                  src={
-                    Number(vialMl) >= 8
-                      ? UD_STOCK_VIALS.white10ml
-                      : UD_STOCK_VIALS.white3ml
-                  }
-                  alt=""
-                  className="vial-approved-img"
-                  style={{ width: "100%", height: "auto", aspectRatio: "2 / 3" }}
+                <GeneratedVial
+                  name={name || selectedPeptide?.name || "Peptide"}
+                  mass={mass}
+                  unit={vialUnit || "mg"}
+                  bacWater={solution ? `${formatNum(solution, 2)} mL` : ""}
+                  concentration={result?.concLabel || ""}
+                  doseRange={liveDoseRange}
+                  vialMl={Number(vialMl) || 3}
+                  form={selectedStrength?.form || ""}
+                  size="lg"
+                  catalogTemplate={false}
+                  labelType={labelTemplate.labelType}
+                  showLabel
+                  productId={selectedStrength?.defaultOfferId || ""}
+                  coaUrl={selectedStrength?.coaUrl || ""}
+                  className="calc-generated-vial"
                 />
               </div>
               <div className="calc-label-stage">
@@ -654,11 +717,7 @@ export default function PeptideCalculator({
                   unit={vialUnit || "mg"}
                   bacWater={solution ? `${formatNum(solution, 2)} mL` : ""}
                   concentration={result?.concLabel || ""}
-                  doseRange={formatDoseRangeLabel(
-                    dose,
-                    doseUnit,
-                    result?.units ? Math.round(Number(result.units)) || 10 : 10
-                  )}
+                  doseRange={liveDoseRange}
                   vialMl={Number(vialMl) || 3}
                   labelType={labelTemplate.labelType}
                   templateId={labelTemplateId}
@@ -800,6 +859,11 @@ export function parseCalculatorQuery(search = "") {
     params.get("doseUnit") || "mg",
     name
   );
+  const normalizedHigh = normalizeDoseUnit(
+    params.get("doseHigh") || "",
+    params.get("doseUnit") || "mg",
+    name
+  );
   return {
     name,
     mass: params.get("mass") || "",
@@ -808,6 +872,10 @@ export function parseCalculatorQuery(search = "") {
       Number.isFinite(normalized.dose) && params.get("dose")
         ? String(normalized.dose)
         : params.get("dose") || "",
+    doseHigh:
+      Number.isFinite(normalizedHigh.dose) && params.get("doseHigh")
+        ? String(normalizedHigh.dose)
+        : params.get("doseHigh") || "",
     doseUnit: normalized.doseUnit,
     unit: params.get("unit") || "",
     desiredUnits: params.get("units") || "10",

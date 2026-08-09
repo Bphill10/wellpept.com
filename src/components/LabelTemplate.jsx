@@ -4,6 +4,7 @@ import {
   drawLabelTemplate,
   downloadVialPng,
   loadUdMark,
+  loadSentinelMascot,
   labelSpecForVialMl,
   SITE_QR_URL,
   udLabelTemplateById,
@@ -38,6 +39,7 @@ export default function LabelTemplate({
   const canvasRef = useRef(null);
   const [png, setPng] = useState("");
   const [udMark, setUdMark] = useState(null);
+  const [mascot, setMascot] = useState(null);
 
   const ml = Number(vialMl) || 3;
   const spec = labelSpecForVialMl(ml);
@@ -64,8 +66,10 @@ export default function LabelTemplate({
 
   useEffect(() => {
     let alive = true;
-    loadUdMark().then((img) => {
-      if (alive) setUdMark(img);
+    Promise.all([loadUdMark(), loadSentinelMascot()]).then(([mark, sentinel]) => {
+      if (!alive) return;
+      setUdMark(mark);
+      setMascot(sentinel);
     });
     return () => {
       alive = false;
@@ -90,6 +94,7 @@ export default function LabelTemplate({
         formText,
         storageTemp,
         udMark,
+        mascot,
         qrPayload: resolvedQr,
         coaUrl: blank ? "" : resolvedQr,
         forceSiteQr: false,
@@ -113,6 +118,7 @@ export default function LabelTemplate({
     formText,
     storageTemp,
     udMark,
+    mascot,
     blank,
     resolvedQr,
   ]);

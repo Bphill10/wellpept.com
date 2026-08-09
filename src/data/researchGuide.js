@@ -82,37 +82,69 @@ export const GLP_CLASS_NOTES = {
 /** Extra “what it’s for” lines keyed by normalized compound names. */
 export const RESEARCH_HELP = {
   "BPC-157":
-    "Helps labs study tissue signaling, gut-barrier models, and recovery-pathway assays.",
+    "Investigated in preclinical tissue-signaling, angiogenesis, and gastrointestinal barrier models.",
   "TB-500":
-    "Used when the research question is actin remodeling, cell migration, or soft-tissue recovery biology.",
+    "Thymosin β-4 fragment studied in actin remodeling, cell migration, and tissue-repair models.",
   "TB-4 (full sequence)":
     "Chosen for full-sequence thymosin β-4 work beyond the TB-500 fragment.",
   "GHK-Cu":
-    "Supports skin, collagen, and gene-expression experiments — including cosmetic-biology assays.",
+    "Copper-binding tripeptide investigated in extracellular-matrix, collagen, wound, and gene-expression models.",
+  KLOW:
+    "Multi-compound blend intended for comparative inflammation, barrier-signaling, and tissue-repair research.",
+  GLOW:
+    "Multi-compound blend used in skin, extracellular-matrix, and tissue-repair research models.",
+  Tesamorelin:
+    "GHRH-receptor agonist analogue used to study pulsatile growth-hormone and downstream IGF-1 signaling.",
   Ipamorelin:
-    "Helps probe pulsatile GH release with a relatively selective ghrelin-receptor profile.",
+    "Ghrelin-receptor agonist investigated for relatively selective pulsatile growth-hormone signaling.",
+  "CJC-1295":
+    "GHRH analogue used to investigate growth-hormone release and downstream IGF-1 pathway activity.",
+  "CJC-1295 / Ipamorelin":
+    "Combination model pairing GHRH-receptor and ghrelin-receptor signaling in growth-hormone pathway research.",
   "GHRP-6":
     "Used in GH-secretagogue and appetite-axis research where a stronger ghrelin-mimetic signal is wanted.",
   HGH:
-    "For GH-receptor, growth, and metabolic pathway work that needs somatropin itself.",
+    "Somatropin used in growth-hormone receptor, IGF-1, growth, and metabolic signaling research.",
   Tirzepatide:
-    "Helps study dual GIP/GLP-1 incretin signaling in metabolic research models.",
+    "Dual GIP/GLP-1 receptor agonist investigated in incretin, glucose-regulation, and energy-balance models.",
   Semaglutide:
-    "Used for GLP-1 pathway, glycemic, and appetite-biology research designs.",
+    "Selective GLP-1 receptor agonist studied in incretin, glucose-regulation, and appetite-signaling models.",
   Retatrutide:
-    "For multi-receptor metabolic research spanning GLP-1, GIP, and glucagon axes.",
+    "Triple GLP-1/GIP/glucagon receptor agonist studied in metabolic and energy-expenditure models.",
+  Cagrilintide:
+    "Long-acting amylin analogue investigated in satiety, gastric-emptying, and energy-balance models.",
   "MOTS-c":
-    "Supports mitochondrial and metabolic-regulation experiments.",
+    "Mitochondrial-derived peptide investigated in cellular energy sensing, metabolism, and stress-response models.",
   "SS-31":
-    "Used in mitochondrial membrane and oxidative-stress research settings.",
+    "Mitochondria-targeting tetrapeptide studied in cardiolipin, membrane energetics, and oxidative-stress models.",
+  Epithalon:
+    "Synthetic tetrapeptide investigated in cellular-aging, circadian, and telomere-related preclinical models.",
+  Semax:
+    "ACTH-derived peptide analogue studied in neurotrophic signaling, cognition, and ischemia-related preclinical models.",
+  Selank:
+    "Tuftsin-derived peptide investigated in neuroimmune signaling, stress-response, and cognition models.",
+  Glutathione:
+    "Endogenous tripeptide central to redox buffering, oxidative-stress, and cellular detoxification research.",
+  "PT-141":
+    "Melanocortin receptor agonist investigated in central melanocortin and behavioral signaling models.",
+  "Thymosin Alpha-1":
+    "Thymic peptide investigated in innate/adaptive immune signaling and host-response models.",
+  KPV:
+    "α-MSH-derived tripeptide studied in inflammatory signaling, epithelial barrier, and microbiome-related models.",
+  "ARA-290":
+    "Non-erythropoietic EPO-derived peptide investigated in tissue-protective receptor and inflammatory models.",
+  "FOX04-DRI":
+    "Cell-penetrating research peptide used to study FOXO4–p53 interactions and senescent-cell biology.",
+  DSIP:
+    "Experimental neuropeptide investigated in sleep architecture, stress-response, and neuroendocrine models.",
   "Melanotan-2":
     "For melanocortin-receptor and pigmentation pathway research only.",
   HCG:
     "Helps reproductive-axis / LH-receptor laboratory designs.",
   "NAD+":
-    "Core coenzyme for redox, energy, and aging-pathway bench work.",
-  Glow:
-    "Multi-pathway recovery/skin blend when labs want BPC, TB, and copper-peptide signals together.",
+    "Core redox coenzyme investigated in cellular energy metabolism, DNA repair, and sirtuin-dependent signaling.",
+  "Vitamin B12":
+    "Cobalamin cofactor used in one-carbon metabolism, methylation, red-cell, and neurological pathway research.",
 };
 
 export function researchHelpFor(name) {
@@ -127,8 +159,29 @@ export function researchHelpFor(name) {
   if (/SEMA/.test(n) && !/SEMAX|SELANK/.test(n)) return RESEARCH_HELP.Semaglutide;
   if (/RETA/.test(n)) return RESEARCH_HELP.Retatrutide;
   if (/BPC/.test(n)) return RESEARCH_HELP["BPC-157"];
+  if (/TB-?500/.test(n)) return RESEARCH_HELP["TB-500"];
   if (/GHK/.test(n)) return RESEARCH_HELP["GHK-Cu"];
+  if (/KLOW/.test(n)) return RESEARCH_HELP.KLOW;
+  if (/\bGLOW\b/.test(n)) return RESEARCH_HELP.GLOW;
+  if (/TESA/.test(n)) return RESEARCH_HELP.Tesamorelin;
+  if (/CJC/.test(n) && /IPA/.test(n)) return RESEARCH_HELP["CJC-1295 / Ipamorelin"];
+  if (/CJC/.test(n)) return RESEARCH_HELP["CJC-1295"];
+  if (/IPAMORELIN|\bIPA\b/.test(n)) return RESEARCH_HELP.Ipamorelin;
+  if (/\bHGH\b|SOMATROPIN/.test(n)) return RESEARCH_HELP.HGH;
+  if (/\bNAD\b/.test(n)) return RESEARCH_HELP["NAD+"];
   if (/MOTS/.test(n)) return RESEARCH_HELP["MOTS-c"];
+  if (/EPITH|EPITAL/.test(n)) return RESEARCH_HELP.Epithalon;
+  if (/SEMAX/.test(n) && !/SELANK/.test(n)) return RESEARCH_HELP.Semax;
+  if (/SELANK/.test(n) && !/SEMAX/.test(n)) return RESEARCH_HELP.Selank;
+  if (/GLUTATHIONE|GLUTA/.test(n)) return RESEARCH_HELP.Glutathione;
   if (/SS-?31/.test(n)) return RESEARCH_HELP["SS-31"];
+  if (/PT-?141/.test(n)) return RESEARCH_HELP["PT-141"];
+  if (/THYMOSIN ALPHA|TA-?1/.test(n)) return RESEARCH_HELP["Thymosin Alpha-1"];
+  if (/\bKPV\b/.test(n)) return RESEARCH_HELP.KPV;
+  if (/CAGRI/.test(n)) return RESEARCH_HELP.Cagrilintide;
+  if (/ARA-?290|CIBINETIDE/.test(n)) return RESEARCH_HELP["ARA-290"];
+  if (/FOX[O0]-?4|FOX0?4/.test(n)) return RESEARCH_HELP["FOX04-DRI"];
+  if (/\bDSIP\b/.test(n)) return RESEARCH_HELP.DSIP;
+  if (/\bB12\b|COBALAMIN/.test(n)) return RESEARCH_HELP["Vitamin B12"];
   return "Review peer-reviewed literature for your specific assay before committing inventory.";
 }

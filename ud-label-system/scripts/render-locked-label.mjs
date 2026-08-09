@@ -220,9 +220,10 @@ export async function fillLockedLabelSvg(product = {}, defaults = {}) {
   const doseUnits = String(product.doseUnits ?? "");
   const qrEnabled = bool(product.qrEnabled, bool(defaults.QR_ENABLED, true));
   const qrValue = String(
-    product.qrUrlOverride ||
+    product.coaUrl ||
+      product.qrUrlOverride ||
       product.qrValue ||
-      `UD|${fullName}|${amount}${unit}|${String(product.labelType || "CATALOG").toUpperCase()}`
+      "https://www.wellpept.com"
   );
 
   svg = replaceTextField(svg, "COMPANY_NAME", company);
@@ -303,17 +304,29 @@ export async function placeLockedLabelOnVial({
   profileName,
   outputPath,
   alsoSaveFullPng = null,
+  basePathOverride = null,
+  transparentBackground = false,
 }) {
   const body = profile.bodyBoundsPx;
   const bodyW = body.right - body.left;
   const bodyH = body.bottom - body.top;
 
+  const topClearFrac = Number(profile.topClearFraction ?? 0.20);
   const labelFrac = Number(profile.labelFraction ?? 0.60);
-  const clearFrac = (1 - labelFrac) / 2;
+  const bottomClearFrac = Number(profile.bottomClearFraction ?? 0.20);
+  const fractionTotal = topClearFrac + labelFrac + bottomClearFrac;
+  if (Math.abs(fractionTotal - 1) > 0.0001) {
+    throw new Error(
+      `${profileName}: placement fractions must total 1.0; received ${fractionTotal}`
+    );
+  }
+
+  // Every vial size uses the same body-relative rule. A profile defines only
+  // the usable straight body; the label rectangle is always derived 20/60/20.
   const faceW = bodyW;
   const faceH = Math.max(1, Math.round(bodyH * labelFrac));
   const left = body.left;
-  const top = body.top + Math.round(bodyH * clearFrac);
+  const top = body.top + Math.round(bodyH * topClearFrac);
 
   // Trim anti-aliased empty rim so the black rail sits on the physical left edge.
   const trimmed = await sharp(labelPng)
@@ -367,14 +380,120 @@ export async function placeLockedLabelOnVial({
     .toBuffer();
 
   const vialRel = resolveLockedVialRel(profileName);
-  const basePath = path.join(mastersRoot, vialRel);
-  const full = await sharp(basePath)
+  const basePath = basePathOverride || path.join(mastersRoot, vialRel);
+  let full = await sharp(basePath)
     .composite([{ input: wrapped, left, top }])
     .png({ compressionLevel: 9 })
     .toBuffer();
 
+  if (transparentBackground) {
+    const source = await sharp(full)
+      .removeAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    const alpha = Buffer.alloc(source.info.width * source.info.height);
+    const capProfiles = {
+      "3ML_WHITE": [
+        { left: 0.23, right: 0.765, top: 0.118, bottom: 0.177, radius: 0.018 },
+        { left: 0.248, right: 0.741, top: 0.177, bottom: 0.254, radius: 0.012 },
+      ],
+      "3ML_BLUE": [
+        { left: 0.23, right: 0.765, top: 0.118, bottom: 0.177, radius: 0.018 },
+        { left: 0.248, right: 0.741, top: 0.177, bottom: 0.254, radius: 0.012 },
+      ],
+      "10ML_WHITE": [
+        { left: 0.278, right: 0.79, top: 0.083, bottom: 0.149, radius: 0.018 },
+        { left: 0.302, right: 0.767, top: 0.149, bottom: 0.21, radius: 0.012 },
+      ],
+      "10ML_B12_LIQUID": [
+        { left: 0.278, right: 0.79, top: 0.083, bottom: 0.149, radius: 0.018 },
+        { left: 0.302, right: 0.767, top: 0.149, bottom: 0.21, radius: 0.012 },
+      ],
+    };
+    const capSegments =
+      capProfiles[String(profileName).toUpperCase()] || capProfiles["3ML_WHITE"];
+    const inRoundedCap = (x, y) => {
+      return capSegments.some((segment) => {
+        const segmentLeft = segment.left * source.info.width;
+        const segmentRight = segment.right * source.info.width;
+        const segmentTop = segment.top * source.info.height;
+        const segmentBottom = segment.bottom * source.info.height;
+        const radius = segment.radius * source.info.width;
+        if (
+          x < segmentLeft ||
+          x > segmentRight ||
+          y < segmentTop ||
+          y > segmentBottom
+        ) {
+          return false;
+        }
+        const nx = Math.min(x - segmentLeft, segmentRight - x);
+        const ny = Math.min(y - segmentTop, segmentBottom - y);
+        if (nx >= radius || ny >= radius) return true;
+        const dx = radius - nx;
+        const dy = radius - ny;
+        return dx * dx + dy * dy <= radius * radius;
+      });
+    };
+
+    for (let y = 0; y < source.info.height; y += 1) {
+      for (let x = 0; x < source.info.width; x += 1) {
+        const pixel = y * source.info.width + x;
+        const offset = pixel * source.info.channels;
+        const r = source.data[offset];
+        const g = source.data[offset + 1];
+        const b = source.data[offset + 2];
+        const brightest = Math.max(r, g, b);
+        const darkest = Math.min(r, g, b);
+        const chroma = brightest - darkest;
+        let value = Math.max(0, Math.min(255, Math.round((brightest - 3) * 2.35 + chroma * 0.45)));
+
+        const insideLabel =
+          x >= left &&
+          x <= left + faceW &&
+          y >= top &&
+          y <= top + faceH;
+        if (insideLabel) value = 255;
+        else if (inRoundedCap(x, y) && brightest > 4) {
+          value = Math.max(value, Math.min(245, brightest * 22));
+        }
+
+        alpha[pixel] = value;
+      }
+    }
+
+    full = await sharp(source.data, {
+      raw: {
+        width: source.info.width,
+        height: source.info.height,
+        channels: source.info.channels,
+      },
+    })
+      .joinChannel(alpha, {
+        raw: {
+          width: source.info.width,
+          height: source.info.height,
+          channels: 1,
+        },
+      })
+      .png({ compressionLevel: 9 })
+      .toBuffer();
+  }
+
   await fs.mkdir(path.dirname(outputPath), { recursive: true });
-  await sharp(full).webp({ quality: 88, effort: 4 }).toFile(outputPath);
+  const webp = await sharp(full)
+    .webp({
+      quality: 96,
+      alphaQuality: 100,
+      effort: 6,
+      smartSubsample: true,
+      preset: "picture",
+    })
+    .toBuffer();
+  await fs.unlink(outputPath).catch((error) => {
+    if (error?.code !== "ENOENT") throw error;
+  });
+  await fs.writeFile(outputPath, webp);
   if (alsoSaveFullPng) {
     await fs.mkdir(path.dirname(alsoSaveFullPng), { recursive: true });
     await fs.writeFile(alsoSaveFullPng, full);

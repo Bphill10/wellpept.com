@@ -65,32 +65,30 @@ export const SKINCARE_PRODUCTS = [
 export const RENEW_ACCESSORIES = [
   {
     id: "wp-renew-10-pack",
-    name: "Renew 10-Pack Activation Kit",
-    line: "Fresh Mix",
+    name: "Renew Serum Travel 10-Pack",
+    line: "Travel Serum",
     kind: "kit",
     price: 499,
-    size: "10 × 30 mL",
-    sku: "WP-RENEW-10PK",
+    size: "10 × 1 mL",
+    sku: "WP-RENEW-1ML-10PK",
     image: "/skincare/wellpept-renew-10-pack.webp",
     imageContain: true,
-    alt: "WellPept Renew 10-pack activation kit with ten frosted serum bottles, powder caps and glass droppers",
+    alt: "WellPept Renew travel set with ten frosted 1 mL serum vials and ten glass droppers in a clean presentation tray",
     blurb:
-      "Ten complete fresh-mix serum units with sealed single-use activation caps and separate glass droppers.",
-    focus: "Activate fresh, ten-pack",
+      "Ten individually sealed 1 mL Renew serum vials with ten precision glass droppers for clean, travel-ready skincare routines.",
+    focus: "Single-use · travel-ready",
     legal: PEPTIDE_LEGAL,
     shipModes: ["economy", "fast"],
     ingredients: [
-      { name: "Frosted serum bottles", amount: "Ten 30 mL" },
-      { name: "Sealed single-use powder activation caps", amount: "Ten" },
-      { name: "Chrome glass droppers", amount: "Ten" },
-      { name: "Protective presentation packaging", amount: "Included" },
+      { name: "Frosted Renew serum vials", amount: "Ten 1 mL" },
+      { name: "Precision glass droppers", amount: "Ten" },
+      { name: "Clean presentation tray", amount: "Included" },
     ],
     steps: [
-      "Remove the safety lock.",
-      "Press the cap firmly to puncture the internal foil seal.",
-      "Shake until completely mixed.",
-      "Remove the activation cap.",
-      "Install the glass dropper.",
+      "Open one sealed 1 mL serum vial.",
+      "Install one clean glass dropper.",
+      "Apply to clean, intact skin as part of your cosmetic skincare routine.",
+      "Keep the remaining vials sealed until needed.",
     ],
   },
   {
@@ -282,7 +280,7 @@ export const SERUM_BASES = [
     form: "serum",
     volume: "30 mL",
     price: 30,
-    image: "/skincare/buffet-serum.webp",
+    image: "/skincare/WellPept-Renew-Single-Product-Hero.png",
     blurb:
       "Anti-aging face serum with HA and amino acids. Best all-rounder base for 1 to 4 dry actives.",
     bestFor: "Face serum, daily, 1 to 4 actives",
@@ -474,10 +472,16 @@ export function buildSerumProduct({
     form: base.form || "serum",
     price,
     size: `${base.volume}, ${uniquePep.length} active${uniquePep.length > 1 ? "s" : ""}`,
-    image: hasGhk && !isCream ? "/skincare/buffet-serum.webp" : base.image,
+    image:
+      hasGhk && !isCream
+        ? "/skincare/WellPept-Renew-Single-Product-Hero.png"
+        : base.image,
     gallery:
       hasGhk && !isCream
-        ? ["/skincare/buffet-serum.webp", "/skincare/buffet-serum-mixed.webp"]
+        ? [
+            "/skincare/WellPept-Renew-Single-Product-Hero.png",
+            "/skincare/buffet-serum-mixed.webp",
+          ]
         : isCream
           ? ["/skincare/peptide-cream.webp"]
           : [base.image],

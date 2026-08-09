@@ -13,10 +13,6 @@ export const UD_LABEL_BRAND = {
   whiteTransparent: "/ud-labels/brand/UD_Brand_Mark_White_Transparent.png",
   mascot: "/ud-labels/brand/UD_Sentinel_Mascot_Original.png",
   mascotWhite: "/ud-labels/brand/UD_Sentinel_Mascot_White_Transparent.png",
-  /** Full-body color Sentinel applying a black label to a vial (hero). */
-  mascotLabelingHero: "/ud-labels/brand/UD_Sentinel_Labeling_Hero.png",
-  /** Sentinel flipping the power switch (enter / electrify beat). */
-  mascotSwitchFlip: "/ud-labels/brand/UD_Sentinel_Switch_Flip.png",
 };
 
 export const UD_STOCK_VIALS = {

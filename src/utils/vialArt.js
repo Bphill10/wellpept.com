@@ -8,7 +8,7 @@ export const BRAND_IMAGE_SRC =
   "/ud-labels/approved/TA1_5mg_3mL_White_BlackCap_Website_Final.png";
 export const BRAND_IMAGE_FALLBACK_SRC =
   "/ud-labels/vials/UD_3mL_White_Peptide_Black_Cap_Unlabeled.png";
-/** Photoreal 3 mL plate — blank Undisclosed wrap, white powder. */
+/** Photoreal 3 mL plate — blank Undisclosed wrap, neutral lyophilized cake. */
 export const BRAND_VIAL_SRC =
   "/ud-labels/vials/UD_3mL_White_Peptide_Black_Cap_Unlabeled.png";
 /** Compact plate for catalog cards / phone grids. */
@@ -60,7 +60,7 @@ export const UD_BRAND_MARK_WHITE =
 export const UD_MARK_SRC = UD_BRAND_MARK_WHITE;
 /** UD Sentinel mascot. */
 export const UD_SENTINEL_MASCOT =
-  "/ud-labels/brand/UD_Sentinel_Mascot_Original.png";
+  "/ud-labels/brand/UD_Sentinel_Mascot_Black_Transparent.png";
 /** @deprecated use UD_MARK_SRC */
 export const WP_MARK_SRC = UD_MARK_SRC;
 /** @deprecated use UD_MARK_SRC */
@@ -210,6 +210,8 @@ let blankLabelCache = null;
 let blankLabelPromise = null;
 let udMarkCache = null;
 let udMarkPromise = null;
+let sentinelMascotCache = null;
+let sentinelMascotPromise = null;
 
 function loadImage(src) {
   if (typeof Image === "undefined") return Promise.resolve(null);
@@ -385,6 +387,17 @@ export function loadUdMark() {
     return img;
   });
   return udMarkPromise;
+}
+
+/** Prefetch the black transparent Sentinel used above calculator QR codes. */
+export function loadSentinelMascot() {
+  if (sentinelMascotCache) return Promise.resolve(sentinelMascotCache);
+  if (sentinelMascotPromise) return sentinelMascotPromise;
+  sentinelMascotPromise = loadImage(UD_SENTINEL_MASCOT).then((img) => {
+    sentinelMascotCache = img;
+    return img;
+  });
+  return sentinelMascotPromise;
 }
 
 /** @deprecated use loadUdMark — Undisclosed seals are UD, not W. */
@@ -1296,11 +1309,12 @@ export async function drawGeneratedVial(canvas, options = {}) {
         lg: { w: 360, h: 540 },
       }[size] || { w: 280, h: 420 };
 
-  const dprCap = catalogTemplate || size === "sm" ? 1.5 : 2;
-  const dpr =
-    typeof window !== "undefined"
-      ? Math.min(window.devicePixelRatio || 1.5, dprCap)
-      : 1.5;
+  const dprCap = catalogTemplate || size === "sm" ? 1.5 : 3;
+  const deviceDpr =
+    typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+  const dpr = catalogTemplate
+    ? Math.min(Math.max(deviceDpr, 1.5), dprCap)
+    : Math.min(Math.max(deviceDpr, 2), dprCap);
   canvas.width = Math.round(dims.w * dpr);
   canvas.height = Math.round(dims.h * dpr);
   canvas.style.width = `${dims.w}px`;
@@ -1334,7 +1348,7 @@ export async function drawGeneratedVial(canvas, options = {}) {
 
   if (photo && photo.width) {
     if (!catalogTemplate) {
-      await loadUdMark();
+      await Promise.all([loadUdMark(), loadSentinelMascot()]);
       drawUnlabeledPlateWithWrap(ctx, dims, photo, {
         name,
         mass,
@@ -1833,7 +1847,7 @@ function tintStudioCakeBlue(ctx, { bodyX, bodyW, cakeTop, cakeBottom }) {
   ctx.putImageData(img, x0, y0);
 }
 
-/** Recolor blue lyophilized cake → white powder on the shared blue vial plate. */
+/** Recolor blue lyophilized cake to neutral on the shared blue vial plate. */
 function tintStudioCakeWhite(ctx, { bodyX, bodyW, cakeTop, cakeBottom }) {
   const scale = ctx.getTransform?.().a || 1;
   const x0 = Math.max(0, Math.floor(bodyX * scale));
@@ -1936,7 +1950,11 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   const R = (snug ? drawW : bodyW) / 2;
   const lw = labelCanvas.width;
   const lh = labelCanvas.height;
-  const slices = snug ? 380 : 260;
+  // Keep every projected strip at least ~1 CSS pixel wide. Hundreds of
+  // sub-pixel strips soften small label type even when the source is sharp.
+  const slices = snug
+    ? Math.max(96, Math.min(180, Math.round(drawW * 0.9)))
+    : Math.max(96, Math.min(220, Math.round(bodyW)));
   // Front wrap across the glass face (height is sized separately to 70% of body)
   const visibleArc = Math.PI * (snug ? 1.08 : 0.9);
   // Bias yaw so black spine sits flush; +10° turns vial toward the right
@@ -1999,8 +2017,9 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
     ctx.fillRect(bodyX, sleeveTop, bodyW, sleeveH);
   }
 
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
+  // The label bitmap is already high-resolution. Nearest sampling here keeps
+  // type and QR modules crisp while the strip geometry supplies the curvature.
+  ctx.imageSmoothingEnabled = false;
 
   for (let i = 0; i < slices; i += 1) {
     const t0 = i / slices;
@@ -2044,6 +2063,9 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
       }
     }
   }
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   ctx.globalAlpha = 1;
 
   // Soft-round L/R white border — edges turn away into the cylinder
@@ -2701,53 +2723,49 @@ function drawLabelNameBlock(
   }
 }
 
-/** White hexagon with bold UD letters (Undisclosed print mark). */
-function drawLabelSpineMark(ctx, cx, cy, r) {
+/** White Undisclosed mark, optionally rotated with the vertical rail. */
+function drawLabelSpineMark(
+  ctx,
+  cx,
+  cy,
+  r,
+  markImage = udMarkCache,
+  rotation = 0
+) {
   ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rotation);
+  if (markImage?.width) {
+    ctx.drawImage(markImage, -r, -r, r * 2, r * 2);
+    ctx.restore();
+    return;
+  }
+
+  // Asset-loading fallback: preserve only the hex outline. Never redraw or
+  // substitute the retired letterform.
   ctx.beginPath();
   for (let i = 0; i < 6; i += 1) {
     const a = (Math.PI / 180) * (60 * i - 30);
-    const x = cx + r * Math.cos(a);
-    const y = cy + r * Math.sin(a);
+    const x = r * Math.cos(a);
+    const y = r * Math.sin(a);
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   }
   ctx.closePath();
-  ctx.fillStyle = "#ffffff";
-  ctx.fill();
-
-  const inner = r * 0.82;
-  ctx.beginPath();
-  for (let i = 0; i < 6; i += 1) {
-    const a = (Math.PI / 180) * (60 * i - 30);
-    const x = cx + inner * Math.cos(a);
-    const y = cy + inner * Math.sin(a);
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-  ctx.fillStyle = "#0a0a0a";
-  ctx.fill();
-
-  ctx.fillStyle = "#ffffff";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.font = `800 ${Math.max(11, r * 0.85)}px Outfit, "Arial Black", sans-serif`;
-  ctx.fillText("UD", cx, cy + r * 0.04);
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = Math.max(1.5, r * 0.16);
+  ctx.stroke();
   ctx.restore();
 }
 
-/**
- * Draw a wrap label at the vial’s physical size with a clean die-cut round.
- * QR always encodes https://www.wellpept.com.
- */
+/** Draw the borderless locked label at its physical print size. */
 export function drawBlankLabelFromImage(canvas, options = {}) {
   return drawPhysicalLabel(canvas, { ...options, blank: true });
 }
 
 export function drawPhysicalLabel(canvas, options = {}) {
   const { vialMl = 3, size = "md", blank = false } = options;
-  const { printW, printH, cssW, cornerR, spec, dpi } = physicalLabelCanvasSize(
+  const { printW, printH, cssW, spec, dpi } = physicalLabelCanvasSize(
     vialMl,
     size
   );
@@ -2771,20 +2789,9 @@ export function drawPhysicalLabel(canvas, options = {}) {
   // the high-res canvas is downscaled to the CSS preview size.
   ctx.imageSmoothingEnabled = false;
 
-  // Soft contact shadow under the sticker
-  ctx.save();
-  ctx.fillStyle = "rgba(0,0,0,0.07)";
-  roundRect(ctx, 2, 4, printW - 3, printH - 3, cornerR);
-  ctx.fill();
-  ctx.restore();
-
-  ctx.save();
-  roundRect(ctx, 0, 0, printW, printH, cornerR);
-  ctx.clip();
-
   paintLabelTemplate(
     ctx,
-    { w: printW, h: printH, cornerR },
+    { w: printW, h: printH, cornerR: 0 },
     {
       ...options,
       blank,
@@ -2795,16 +2802,6 @@ export function drawPhysicalLabel(canvas, options = {}) {
       coaUrl: blank ? "" : options.coaUrl || "",
     }
   );
-
-  ctx.restore();
-
-  // Crisp die-cut outline
-  ctx.save();
-  ctx.strokeStyle = "rgba(0,0,0,0.35)";
-  ctx.lineWidth = Math.max(2, printH * 0.004);
-  roundRect(ctx, 1, 1, printW - 2, printH - 2, cornerR);
-  ctx.stroke();
-  ctx.restore();
 
   return embedPngDpi(canvas.toDataURL("image/png"), dpi);
 }
@@ -2819,11 +2816,296 @@ export function drawLabelTemplate(canvas, options = {}) {
 }
 
 /**
- * Paint the Undisclosed clinical wrap — matches label-example / klow-blue refs:
- * black spine · — UNDISCLOSED — · name · mass · 3-col grid · QR · research disclaimer.
- * Pure B/W, no colored footer band.
+ * Paint the locked Undisclosed label master:
+ * square white stock, full-bleed black rail, black amount bar, Sentinel above
+ * the QR, and no outside printed border.
  */
 function paintLabelTemplate(ctx, dims, options = {}) {
+  const {
+    name = "Peptide",
+    mass = "",
+    unit = "mg",
+    bacWater = "",
+    concentration = "",
+    doseRange = "",
+    sku = "",
+    qrPayload = "",
+    coaUrl = "",
+    footerText = "",
+    blank = false,
+    forceSiteQr = false,
+    labelType = "CALCULATOR",
+    formText = "LYOPHILIZED POWDER",
+    storageTemp = "36–46°F",
+    mascot = sentinelMascotCache,
+    udMark = udMarkCache,
+    brandGapChars = 1,
+  } = options;
+
+  const w = dims.w;
+  const h = dims.h;
+  const ink = "#000000";
+  const paper = "#ffffff";
+  const isCatalog = String(labelType || "").toUpperCase() === "CATALOG";
+  const railW = Math.round(w * (h / w > 0.55 ? 0.1 : 0.092));
+  const rightW = Math.round(w * 0.235);
+  const midX = railW;
+  const rightX = w - rightW;
+  const midW = rightX - midX;
+  const midCx = midX + midW / 2;
+  const pad = midW * 0.055;
+  const contentW = midW - pad * 2;
+  const lineW = Math.max(2, h * 0.004);
+
+  // White stock, no outline and no rounded outside edge.
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = paper;
+  ctx.fillRect(0, 0, w, h);
+
+  // Full-bleed black physical-edge rail.
+  ctx.fillStyle = ink;
+  ctx.fillRect(0, 0, railW, h);
+
+  const company = "UNDISCLOSED";
+  const companyFont = Math.max(13, Math.min(h * 0.075, railW * 0.44));
+  const companyTrack = companyFont * 0.12;
+  const markR = Math.min(railW * 0.33, h * 0.083);
+  ctx.save();
+  ctx.font = `900 ${companyFont}px Outfit, "Arial Narrow", sans-serif`;
+  let companyW = 0;
+  for (const ch of company) companyW += ctx.measureText(ch).width + companyTrack;
+  companyW -= companyTrack;
+  const gapCount = Math.max(0, Math.min(4, Number(brandGapChars) || 0));
+  const brandGap = ctx.measureText(" ").width * gapCount;
+  const brandBlockH = companyW + brandGap + markR * 2;
+  const brandBlockTop = Math.max(0, (h - brandBlockH) / 2);
+  const companyCy = brandBlockTop + companyW / 2;
+  const markCy = brandBlockTop + companyW + brandGap + markR;
+  ctx.translate(railW * 0.53, companyCy);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillStyle = paper;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  let companyX = -companyW / 2;
+  for (const ch of company) {
+    const chW = ctx.measureText(ch).width;
+    ctx.fillText(ch, companyX + chW / 2, 0);
+    companyX += chW + companyTrack;
+  }
+  ctx.restore();
+
+  drawLabelSpineMark(
+    ctx,
+    railW * 0.53,
+    markCy,
+    markR,
+    udMark,
+    -Math.PI / 2
+  );
+
+  // Locked panel divider.
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = lineW;
+  ctx.beginPath();
+  ctx.moveTo(rightX, h * 0.045);
+  ctx.lineTo(rightX, h * 0.955);
+  ctx.stroke();
+
+  ctx.fillStyle = ink;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  const headerSize = Math.max(14, h * 0.058);
+  ctx.font = `900 ${headerSize}px Outfit, "Arial Narrow", sans-serif`;
+  ctx.fillText("— UNDISCLOSED —", midCx, h * 0.12);
+
+  if (!blank) {
+    const product = String(name || "PEPTIDE")
+      .replace(/\(.*?\)/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toUpperCase();
+    const nameFamily = 'Outfit, "Arial Narrow", "Arial Black", sans-serif';
+    const nameSize = fitCenteredText(
+      ctx,
+      product,
+      contentW * 0.95,
+      Math.max(24, h * 0.145),
+      nameFamily
+    );
+    ctx.font = `900 ${nameSize}px ${nameFamily}`;
+    ctx.fillText(product, midCx, h * 0.305);
+  }
+
+  // Same centered black amount bar for catalog and calculator masters.
+  const barX = midX + pad;
+  const barY = h * 0.435;
+  const barW = contentW;
+  const barH = h * 0.19;
+  ctx.fillStyle = ink;
+  roundRect(ctx, barX, barY, barW, barH, Math.max(3, h * 0.012));
+  ctx.fill();
+
+  const massNum =
+    !blank && mass !== "" && mass != null ? String(mass).trim() : "";
+  if (massNum) {
+    const massUnit = String(unit || "mg").toUpperCase();
+    const numSize = Math.max(22, h * 0.125);
+    const unitSize = Math.max(12, h * 0.058);
+    ctx.font = `900 ${numSize}px Outfit, "Arial Narrow", sans-serif`;
+    const numW = ctx.measureText(massNum).width;
+    ctx.font = `900 ${unitSize}px Outfit, "Arial Narrow", sans-serif`;
+    const unitLabel = ` ${massUnit}`;
+    const unitW = ctx.measureText(unitLabel).width;
+    const startX = midCx - (numW + unitW) / 2;
+    ctx.fillStyle = paper;
+    ctx.textAlign = "left";
+    ctx.font = `900 ${numSize}px Outfit, "Arial Narrow", sans-serif`;
+    ctx.fillText(massNum, startX, barY + barH / 2);
+    ctx.font = `900 ${unitSize}px Outfit, "Arial Narrow", sans-serif`;
+    ctx.fillText(unitLabel, startX + numW, barY + barH / 2 + unitSize * 0.08);
+  }
+
+  if (isCatalog) {
+    ctx.fillStyle = ink;
+    ctx.textAlign = "center";
+    ctx.font = `900 ${Math.max(11, h * 0.052)}px Outfit, "Arial Narrow", sans-serif`;
+    ctx.fillText(
+      String(formText || "LYOPHILIZED POWDER").toUpperCase(),
+      midCx,
+      h * 0.77
+    );
+    ctx.font = `800 ${Math.max(10, h * 0.045)}px Outfit, "Arial Narrow", sans-serif`;
+    ctx.fillText(
+      `STORE AT ${String(storageTemp || "36–46°F")}`.toUpperCase(),
+      midCx,
+      h * 0.89
+    );
+  } else {
+    const gridTop = h * 0.70;
+    const gridBottom = h * 0.91;
+    const colW = contentW / 3;
+    const cells = blank
+      ? [
+          { label: "DILUENT", value: "" },
+          { label: "CONCENTRATION", value: "" },
+          { label: "DOSE RANGE", value: "" },
+        ]
+      : [
+          { label: "DILUENT", value: formatBacForLabel(bacWater) },
+          { label: "CONCENTRATION", value: String(concentration || "—") },
+          { label: "DOSE RANGE", value: String(doseRange || "—") },
+        ];
+
+    cells.forEach((cell, i) => {
+      const cellX = midX + pad + colW * i;
+      const cellCx = cellX + colW / 2;
+      if (i > 0) {
+        ctx.strokeStyle = ink;
+        ctx.lineWidth = lineW;
+        ctx.beginPath();
+        ctx.moveTo(cellX, gridTop);
+        ctx.lineTo(cellX, gridBottom);
+        ctx.stroke();
+      }
+      ctx.fillStyle = ink;
+      ctx.textAlign = "center";
+      ctx.font = `900 ${Math.max(10, h * 0.041)}px Outfit, "Arial Narrow", sans-serif`;
+      ctx.fillText(cell.label, cellCx, h * 0.72);
+
+      const raw = String(cell.value ?? "");
+      if (!raw) return;
+      const split = raw.match(/^(.*?)\s*(\([^)]+\))\s*$/);
+      if (split) {
+        const first = split[1].trim();
+        const second = split[2].trim().replace(/^\(|\)$/g, "");
+        const firstSize = fitCenteredText(
+          ctx,
+          first,
+          colW * 0.88,
+          Math.max(14, h * 0.064),
+          'Outfit, "Arial Narrow", sans-serif'
+        );
+        ctx.font = `800 ${firstSize}px Outfit, "Arial Narrow", sans-serif`;
+        ctx.fillText(first, cellCx, h * 0.815);
+        const secondSize = fitCenteredText(
+          ctx,
+          second,
+          colW * 0.88,
+          Math.max(11, h * 0.048),
+          'Outfit, "Arial Narrow", sans-serif'
+        );
+        ctx.font = `700 ${secondSize}px Outfit, "Arial Narrow", sans-serif`;
+        ctx.fillText(second, cellCx, h * 0.885);
+      } else {
+        const valueSize = fitCenteredText(
+          ctx,
+          raw,
+          colW * 0.88,
+          Math.max(14, h * 0.065),
+          'Outfit, "Arial Narrow", sans-serif'
+        );
+        ctx.font = `800 ${valueSize}px Outfit, "Arial Narrow", sans-serif`;
+        ctx.fillText(raw, cellCx, h * 0.84);
+      }
+    });
+  }
+
+  // Sentinel sits behind and above the QR box, matching the locked master.
+  const rightCx = rightX + rightW / 2;
+  const mascotSize = Math.min(rightW * 0.54, h * 0.22);
+  const mascotY = h * 0.075;
+  const mascotImg = mascot || sentinelMascotCache;
+  if (mascotImg?.width) {
+    ctx.drawImage(
+      mascotImg,
+      rightCx - mascotSize / 2,
+      mascotY,
+      mascotSize,
+      mascotSize
+    );
+  }
+
+  const qrBox = Math.min(rightW * 0.76, h * 0.39);
+  const qrX = rightCx - qrBox / 2;
+  const qrY = mascotY + mascotSize * 0.72;
+  ctx.fillStyle = paper;
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = Math.max(2, h * 0.006);
+  roundRect(ctx, qrX, qrY, qrBox, qrBox, Math.max(4, qrBox * 0.08));
+  ctx.fill();
+  ctx.stroke();
+
+  const payload = forceSiteQr
+    ? SITE_QR_URL
+    : qrPayloadFromOptions({
+        qrPayload: blank ? SITE_QR_URL : qrPayload,
+        coaUrl: blank ? "" : coaUrl,
+      });
+  const qrInset = qrBox * 0.1;
+  drawQrCode(
+    ctx,
+    qrX + qrInset,
+    qrY + qrInset,
+    qrBox - qrInset * 2,
+    "site",
+    false,
+    payload
+  );
+
+  const discSize = Math.max(9, h * 0.042);
+  ctx.fillStyle = ink;
+  ctx.textAlign = "center";
+  ctx.font = `900 ${discSize}px Outfit, "Arial Narrow", sans-serif`;
+  ["RESEARCH USE", "NOT FOR HUMAN", "CONSUMPTION"].forEach((line, i) => {
+    ctx.fillText(line, rightCx, qrY + qrBox + discSize * (1.55 + i * 1.32));
+  });
+
+  void sku;
+  void footerText;
+}
+
+/** @deprecated Kept temporarily for visual regression comparison. */
+function paintLegacyLabelTemplate(ctx, dims, options = {}) {
   const {
     name = "Peptide",
     mass = "",

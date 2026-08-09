@@ -5,14 +5,18 @@
   "type": "module",
   "scripts": {
     "sync": "node scripts/sync-workbook.mjs",
+    "normalize-vials": "node scripts/normalize-vial-stocks.mjs",
     "label": "node scripts/generate-label.mjs",
     "examples": "node scripts/generate-approved-examples.mjs",
     "red-liquid-vial": "node scripts/render-vial-contents.mjs",
     "b12-liquid-vial": "node scripts/render-vial-contents.mjs",
     "validate": "node scripts/validate-package.mjs",
-    "website-vial": "node scripts/generate-website-vial.mjs",
-    "proof:reta": "node scripts/generate-website-vial.mjs",
-    "build": "npm run sync && npm run b12-liquid-vial && npm run examples && npm run validate"
+    "validate:images": "node scripts/validate-catalog-vials.mjs",
+    "verify": "npm run validate && npm run validate:images",
+    "website-vial": "node scripts/generate-catalog-vials.mjs",
+    "website-vials": "node scripts/generate-catalog-vials.mjs --all",
+    "proof:reta": "node scripts/generate-catalog-vials.mjs --id UD-0221",
+    "build": "npm run sync && npm run normalize-vials && npm run b12-liquid-vial && npm run examples && npm run validate"
   },
   "dependencies": {
     "qrcode": "1.5.4",

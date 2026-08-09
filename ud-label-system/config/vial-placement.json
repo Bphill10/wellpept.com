@@ -36,12 +36,6 @@
         "top": 536,
         "bottom": 1390
       },
-      "labelBoundsPx": {
-        "left": 205,
-        "right": 731,
-        "top": 707,
-        "bottom": 1219
-      },
       "material": "WHITE CAKE"
     },
     "3ML_BLUE": {
@@ -56,12 +50,6 @@
         "top": 536,
         "bottom": 1390
       },
-      "labelBoundsPx": {
-        "left": 205,
-        "right": 731,
-        "top": 707,
-        "bottom": 1219
-      },
       "material": "COBALT BLUE CAKE"
     },
     "10ML_WHITE": {
@@ -73,14 +61,8 @@
       "bodyBoundsPx": {
         "left": 258,
         "right": 770,
-        "top": 396,
-        "bottom": 1410
-      },
-      "labelBoundsPx": {
-        "left": 272,
-        "right": 756,
-        "top": 599,
-        "bottom": 1207
+        "top": 460,
+        "bottom": 1400
       },
       "material": "WHITE CAKE"
     },
@@ -93,14 +75,8 @@
       "bodyBoundsPx": {
         "left": 258,
         "right": 770,
-        "top": 396,
-        "bottom": 1410
-      },
-      "labelBoundsPx": {
-        "left": 272,
-        "right": 756,
-        "top": 599,
-        "bottom": 1207
+        "top": 460,
+        "bottom": 1400
       },
       "contentsType": "LIQUID",
       "liquidColor": "#A50018",

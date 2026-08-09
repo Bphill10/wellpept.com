@@ -81,11 +81,40 @@ if (!hghRows.length || hghRows.some((product) => product.unit !== "IU")) errors.
 checks.push({ check: "catalog", products: catalog.productCount, hghUsesIU: true, status: "pass" });
 
 for (const [name, profile] of Object.entries(placement.profiles)) {
-  const fractions = placement.globalRules.topClearFraction + placement.globalRules.labelFraction + placement.globalRules.bottomClearFraction;
+  const topFraction = Number(placement.globalRules.topClearFraction);
+  const labelFraction = Number(placement.globalRules.labelFraction);
+  const bottomFraction = Number(placement.globalRules.bottomClearFraction);
+  const fractions = topFraction + labelFraction + bottomFraction;
   if (Math.abs(fractions - 1) > 0.0001) errors.push(`${name}: vertical fractions do not equal 100%`);
+  if (
+    Math.abs(topFraction - 0.2) > 0.0001 ||
+    Math.abs(labelFraction - 0.6) > 0.0001 ||
+    Math.abs(bottomFraction - 0.2) > 0.0001
+  ) {
+    errors.push(`${name}: placement must remain exactly 20/60/20`);
+  }
+  if (profile.labelBoundsPx) {
+    errors.push(`${name}: labelBoundsPx is not allowed; derive placement from bodyBoundsPx`);
+  }
+  const body = profile.bodyBoundsPx;
+  if (
+    !body ||
+    !(body.right > body.left) ||
+    !(body.bottom > body.top)
+  ) {
+    errors.push(`${name}: invalid straight-body bounds`);
+  }
   if (profile.vialMl === 3 && (profile.labelWidthMm !== 40 || profile.labelHeightMm !== 20)) errors.push(`${name}: 3 mL must use 40x20`);
   if (profile.vialMl === 10 && (profile.labelWidthMm !== 50 || profile.labelHeightMm !== 30)) errors.push(`${name}: 10 mL must use 50x30`);
-  checks.push({ check: "placement", profile: name, coverage: "20/60/20", status: "pass" });
+  const bodyHeight = body ? body.bottom - body.top : 0;
+  checks.push({
+    check: "placement",
+    profile: name,
+    coverage: "20/60/20",
+    derivedLabelTop: body ? body.top + Math.round(bodyHeight * topFraction) : null,
+    derivedLabelHeight: Math.round(bodyHeight * labelFraction),
+    status: "pass",
+  });
 }
 
 const assetPaths = [

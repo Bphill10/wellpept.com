@@ -40,11 +40,18 @@ All fields in `config/label-system.json` are editable. This includes company/hea
 
 Use `IU` for HGH, HCG, HMG, EPO, and other IU products. Do not force every product to MG.
 
+## QR targets
+
+- If a peptide/strength has a COA URL, its label QR must open that COA.
+- QR priority is: COA URL, explicit QR URL override, then `https://www.wellpept.com`.
+- Keep `COA URL` in the workbook when available; vendor COAs imported by the catalog sync follow the same priority.
+
 ## Vial placement
 
 - Use only the stock black-cap vial images in `assets/vials/`.
 - Labels sit below the neck and cover 60% of the straight body.
 - Leave 20% exposed glass above and 20% below.
+- Derive label placement from each vial profile's straight `bodyBoundsPx`: top = body top + 20%, height = 60% of body height, bottom clearance = 20%. Never add or use a separate hard-coded `labelBoundsPx`; this rule applies to 3 mL, 10 mL, and every future size.
 - Preserve the round black flip top, brushed-silver crimp, vial geometry, powder amount, powder texture, and pure black background.
 - KLOW, GLOW, GHK-Cu, and AHK-Cu use the cobalt-blue cake unless the workbook overrides the visual.
 - Both 3 mL stock images must remain identical except for peptide cake color.

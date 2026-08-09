@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import XLSX from "xlsx";
+import { ERP_SUBMISSIONS } from "../../src/data/erpPeptide.js";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, "..");
@@ -37,6 +38,41 @@ function slug(value) {
     .replace(/^_|_$/g, "");
 }
 
+function compoundKey(value) {
+  return text(value)
+    .replace(/\([^)]*\)/g, " ")
+    .toUpperCase()
+    .replace(/\+/g, " PLUS ")
+    .replace(/[^A-Z0-9]+/g, "");
+}
+
+function submissionUnit(submission) {
+  if (text(submission.unit)) return text(submission.unit).toUpperCase();
+  const form = text(submission.form).toUpperCase();
+  if (/\bIU\b/.test(form)) return "IU";
+  return "MG";
+}
+
+const vendorCoas = ERP_SUBMISSIONS.filter((submission) =>
+  text(submission.coaUrl)
+);
+
+function findVendorCoa({ labelName, fullProductName, amount, unit }) {
+  const names = [labelName, fullProductName].map(compoundKey).filter(Boolean);
+  const match = vendorCoas.find((submission) => {
+    const candidate = compoundKey(submission.name);
+    const nameMatches = names.some(
+      (name) => name === candidate || name.startsWith(candidate) || candidate.startsWith(name)
+    );
+    return (
+      nameMatches &&
+      Number(submission.mg) === Number(amount) &&
+      submissionUnit(submission) === unit
+    );
+  });
+  return text(match?.coaUrl);
+}
+
 const defaults = Object.fromEntries(rows("Text Defaults").map((row) => [text(row.Field), row["Default Value"]]));
 const placement = JSON.parse(await fs.readFile(path.join(root, "config/vial-placement.json"), "utf8"));
 const productRows = rows("Product Catalog");
@@ -48,8 +84,20 @@ const products = productRows.map((row) => {
   const labelName = text(row["Label Name"]);
   const amount = number(row.Amount, row.Amount);
   const unit = (text(row.Unit) || "MG").toUpperCase();
+  const coaUrl =
+    text(row["COA URL"]) ||
+    findVendorCoa({
+      labelName,
+      fullProductName: row["Full Product Name"],
+      amount,
+      unit,
+    });
   const qrOverride = text(row["QR URL Override"]);
-  const qrValue = qrOverride || text(row["QR Value"]) || `UD|${labelName}|${amount}${unit}|${labelType}`;
+  const qrValue =
+    coaUrl ||
+    qrOverride ||
+    text(row["QR Value"]) ||
+    `UD|${labelName}|${amount}${unit}|${labelType}`;
   const materialColor = (text(row["Material Color"]) || "WHITE").toUpperCase();
   const profile = vialMl >= 10 ? "10ML_WHITE" : materialColor === "COBALT BLUE" ? "3ML_BLUE" : "3ML_WHITE";
   const outputSeed = `${labelName}_${amount}${unit}`;
@@ -74,6 +122,7 @@ const products = productRows.map((row) => {
     concentration: text(row.Concentration),
     doseRange: text(row["Dose Range"]),
     doseUnits: text(row["Dose Units"]),
+    coaUrl,
     qrUrlOverride: qrOverride,
     qrValue,
     qrEnabled: bool(row["QR Enabled"], bool(defaults.QR_ENABLED, true)),

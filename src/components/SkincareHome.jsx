@@ -265,8 +265,8 @@ export default function SkincareHome({
                 aria-label={`View ${FLAGSHIP_SERUM.name}`}
               >
                 <img
-                  src="/skincare/buffet-serum.webp"
-                  alt={FLAGSHIP_SERUM.name}
+                  src="/skincare/core-peptide-bottle-family.webp"
+                  alt="WellPept classic serum bottles for GHK-Cu, Matrixyl 3000, Syn-Ake, and SNAP-8"
                   className="flagship-mix-img"
                   loading="eager"
                   fetchPriority="high"

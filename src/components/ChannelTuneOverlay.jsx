@@ -1,9 +1,41 @@
 import { useEffect, useRef } from "react";
 import { UD_LABEL_BRAND } from "../data/udLabelAssets";
 
-const TUNE_MS = 8200;
-const REVEAL_MS = 4500; // Undisclosed mounts under solid cover before fade
+const TUNE_MS = 5200;
+const REVEAL_MS = 1480;
 const REDUCED_MS = 160;
+
+const GLASS_SHARDS = [
+  { clip: "polygon(0 0, 24% 0, 19% 24%, 0 31%)", x: -18, y: 118, r: -24, d: 0 },
+  { clip: "polygon(24% 0, 48% 0, 50% 22%, 19% 24%)", x: -7, y: 126, r: 16, d: 70 },
+  { clip: "polygon(48% 0, 73% 0, 68% 28%, 50% 22%)", x: 8, y: 116, r: -13, d: 30 },
+  { clip: "polygon(73% 0, 100% 0, 100% 30%, 68% 28%)", x: 19, y: 128, r: 26, d: 100 },
+  { clip: "polygon(0 31%, 19% 24%, 31% 47%, 0 55%)", x: -22, y: 124, r: 19, d: 90 },
+  { clip: "polygon(19% 24%, 50% 22%, 49% 48%, 31% 47%)", x: -8, y: 136, r: -29, d: 10 },
+  { clip: "polygon(50% 22%, 68% 28%, 72% 51%, 49% 48%)", x: 10, y: 122, r: 24, d: 120 },
+  { clip: "polygon(68% 28%, 100% 30%, 100% 55%, 72% 51%)", x: 23, y: 132, r: -18, d: 45 },
+  { clip: "polygon(0 55%, 31% 47%, 24% 76%, 0 73%)", x: -20, y: 126, r: -16, d: 130 },
+  { clip: "polygon(31% 47%, 49% 48%, 52% 74%, 24% 76%)", x: -6, y: 142, r: 28, d: 55 },
+  { clip: "polygon(49% 48%, 72% 51%, 78% 77%, 52% 74%)", x: 7, y: 132, r: -25, d: 145 },
+  { clip: "polygon(72% 51%, 100% 55%, 100% 77%, 78% 77%)", x: 20, y: 124, r: 17, d: 25 },
+  { clip: "polygon(0 73%, 24% 76%, 28% 100%, 0 100%)", x: -17, y: 120, r: 22, d: 75 },
+  { clip: "polygon(24% 76%, 52% 74%, 49% 100%, 28% 100%)", x: -5, y: 130, r: -20, d: 155 },
+  { clip: "polygon(52% 74%, 78% 77%, 73% 100%, 49% 100%)", x: 9, y: 138, r: 15, d: 40 },
+  { clip: "polygon(78% 77%, 100% 77%, 100% 100%, 73% 100%)", x: 18, y: 122, r: -27, d: 115 },
+];
+
+const GLASS_SPLINTERS = Array.from({ length: 34 }, (_, index) => {
+  const angle = (index / 34) * Math.PI * 2 + (index % 3) * 0.17;
+  const distance = 26 + (index % 8) * 7;
+  return {
+    x: Math.cos(angle) * distance,
+    y: Math.sin(angle) * distance + 82 + (index % 5) * 5,
+    r: -150 + ((index * 83) % 300),
+    d: 20 + ((index * 47) % 420),
+    w: 3 + (index % 4) * 1.7,
+    h: 0.7 + (index % 3) * 0.55,
+  };
+});
 
 export { TUNE_MS };
 
@@ -216,9 +248,212 @@ function startRiftAudio() {
   };
 }
 
+function startGlassAudio() {
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx) return () => {};
+
+  const ctx = new AudioCtx();
+  const now = ctx.currentTime;
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(0.0001, now);
+  master.gain.exponentialRampToValueAtTime(0.78, now + 0.012);
+  master.gain.setValueAtTime(0.78, now + 0.32);
+  master.gain.exponentialRampToValueAtTime(0.0001, now + 4.45);
+  master.connect(ctx.destination);
+
+  const nodes = [];
+  const noise = makeNoiseBuffer(ctx, 1.2);
+  [
+    { offset: 0, frequency: 950, gain: 0.72, duration: 0.42 },
+    { offset: 0.075, frequency: 2600, gain: 0.48, duration: 0.31 },
+    { offset: 0.24, frequency: 3900, gain: 0.28, duration: 0.23 },
+  ].forEach(({ offset, frequency, gain, duration }) => {
+    const source = ctx.createBufferSource();
+    const filter = ctx.createBiquadFilter();
+    const level = ctx.createGain();
+    source.buffer = noise;
+    filter.type = "bandpass";
+    filter.frequency.setValueAtTime(frequency, now + offset);
+    filter.Q.value = frequency > 2000 ? 1.5 : 0.7;
+    level.gain.setValueAtTime(0.0001, now + offset);
+    level.gain.exponentialRampToValueAtTime(gain, now + offset + 0.008);
+    level.gain.exponentialRampToValueAtTime(
+      0.0001,
+      now + offset + duration
+    );
+    source.connect(filter);
+    filter.connect(level);
+    level.connect(master);
+    source.start(now + offset);
+    source.stop(now + offset + duration + 0.03);
+    nodes.push(source);
+  });
+
+  const impact = ctx.createOscillator();
+  const impactGain = ctx.createGain();
+  impact.type = "sine";
+  impact.frequency.setValueAtTime(72, now);
+  impact.frequency.exponentialRampToValueAtTime(24, now + 0.24);
+  impactGain.gain.setValueAtTime(0.0001, now);
+  impactGain.gain.exponentialRampToValueAtTime(0.55, now + 0.008);
+  impactGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+  impact.connect(impactGain);
+  impactGain.connect(master);
+  impact.start(now);
+  impact.stop(now + 0.35);
+  nodes.push(impact);
+
+  [0.12, 0.18, 0.28, 0.43, 0.62, 0.86, 1.14, 1.48, 1.82].forEach(
+    (offset, index) => {
+      const chime = ctx.createOscillator();
+      const level = ctx.createGain();
+      chime.type = index % 3 === 0 ? "triangle" : "sine";
+      chime.frequency.setValueAtTime(
+        1850 + ((index * 733) % 3900),
+        now + offset
+      );
+      chime.frequency.exponentialRampToValueAtTime(
+        760 + index * 90,
+        now + offset + 0.18
+      );
+      level.gain.setValueAtTime(0.0001, now + offset);
+      level.gain.exponentialRampToValueAtTime(
+        0.09 + (index % 3) * 0.025,
+        now + offset + 0.004
+      );
+      level.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.24);
+      chime.connect(level);
+      level.connect(master);
+      chime.start(now + offset);
+      chime.stop(now + offset + 0.26);
+      nodes.push(chime);
+    }
+  );
+
+  whoosh(ctx, master, now + 1.12, 1.5, 0.24);
+  if (ctx.state === "suspended") ctx.resume().catch(() => {});
+
+  return () => {
+    nodes.forEach((node) => {
+      try {
+        node.stop();
+      } catch {
+        /* ignore */
+      }
+    });
+    ctx.close().catch(() => {});
+  };
+}
+
+function GlassShatter({ rootRef, finishOnce }) {
+  return (
+    <div
+      ref={rootRef}
+      className="glass-transition"
+      role="presentation"
+      aria-hidden="true"
+      style={{ "--glass-transition-dur": `${TUNE_MS}ms` }}
+      onAnimationEnd={(event) => {
+        if (
+          event.target === event.currentTarget &&
+          event.animationName === "glass-transition-hold"
+        ) {
+          finishOnce();
+        }
+      }}
+    >
+      <div className="glass-impact-core" />
+      <div className="glass-shockwave" />
+      <div className="glass-transition-flash" />
+      <svg
+        className="glass-cracks"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+      >
+        <g className="glass-crack-lines">
+          <path d="M50 43 L34 26 L23 17 L11 0" />
+          <path d="M50 43 L52 24 L61 12 L64 0" />
+          <path d="M50 43 L71 31 L85 29 L100 20" />
+          <path d="M50 43 L70 49 L84 61 L100 64" />
+          <path d="M50 43 L61 64 L58 81 L66 100" />
+          <path d="M50 43 L43 65 L31 81 L28 100" />
+          <path d="M50 43 L30 48 L15 60 L0 58" />
+          <path d="M50 43 L35 36 L17 38 L0 31" />
+          <path d="M34 26 L42 18 L39 8" />
+          <path d="M71 31 L77 17 L91 9" />
+          <path d="M70 49 L77 42 L94 43" />
+          <path d="M43 65 L49 76 L45 89" />
+          <path d="M30 48 L20 43 L12 48" />
+          <path d="M23 17 L18 24 L7 20" />
+          <path d="M52 24 L45 16 L49 4" />
+          <path d="M61 12 L72 8 L78 0" />
+          <path d="M85 29 L82 38 L96 35" />
+          <path d="M84 61 L91 73 L100 77" />
+          <path d="M61 64 L70 70 L73 87" />
+          <path d="M58 81 L52 90 L54 100" />
+          <path d="M31 81 L19 87 L13 100" />
+          <path d="M15 60 L9 70 L0 72" />
+          <path d="M17 38 L11 47 L0 45" />
+        </g>
+        <g className="glass-impact-rings">
+          <circle cx="50" cy="43" r="3.5" />
+          <circle cx="50" cy="43" r="8" />
+        </g>
+      </svg>
+
+      <div className="glass-shard-field">
+        {GLASS_SHARDS.map((shard, index) => (
+          <i
+            key={shard.clip}
+            className="glass-piece"
+            style={{
+              "--piece-clip": shard.clip,
+              "--piece-x": `${shard.x}vw`,
+              "--piece-y": `${shard.y}vh`,
+              "--piece-r": `${shard.r}deg`,
+              "--piece-rx": `${index % 2 ? 48 + index * 3 : -42 - index * 2}deg`,
+              "--piece-ry": `${index % 3 ? -34 - index * 2 : 46 + index * 2}deg`,
+              "--piece-scale": `${0.9 + (index % 4) * 0.055}`,
+              "--piece-delay": `${shard.d}ms`,
+              "--piece-z": index % 2 ? `${70 + index * 5}px` : `${-55 - index * 4}px`,
+            }}
+          />
+        ))}
+      </div>
+      <div className="glass-splinter-field">
+        {GLASS_SPLINTERS.map((piece, index) => (
+          <i
+            key={`${piece.x}-${piece.y}-${index}`}
+            style={{
+              "--splinter-x": `${piece.x}vw`,
+              "--splinter-y": `${piece.y}vh`,
+              "--splinter-r": `${piece.r}deg`,
+              "--splinter-delay": `${piece.d}ms`,
+              "--splinter-w": `${piece.w}vmin`,
+              "--splinter-h": `${piece.h}vmin`,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="glass-world-reveal">
+        <img
+          src={UD_LABEL_BRAND.whiteTransparent}
+          alt=""
+          width={96}
+          height={96}
+        />
+        <span>UNDISCLOSED</span>
+        <small>RESEARCH CATALOG</small>
+      </div>
+      <div className="glass-transition-vignette" />
+    </div>
+  );
+}
+
 /**
  * WellPept → Undisclosed unlock:
- * live-page glitch → hard blackout → marble rift → Undisclosed.
+ * phone glass fractures, then falls away to expose Undisclosed underneath.
  */
 export default function ChannelTuneOverlay({ active, onReveal, onDone }) {
   const onDoneRef = useRef(onDone);
@@ -258,7 +493,7 @@ export default function ChannelTuneOverlay({ active, onReveal, onDone }) {
     let stopAudio = () => {};
     if (!reduced) {
       try {
-        stopAudio = startRiftAudio();
+        stopAudio = startGlassAudio();
       } catch {
         stopAudio = () => {};
       }
@@ -266,9 +501,7 @@ export default function ChannelTuneOverlay({ active, onReveal, onDone }) {
 
     try {
       if (!reduced && navigator.vibrate) {
-        navigator.vibrate([
-          35, 25, 70, 35, 25, 90, 40, 30, 110, 40, 50, 180, 60, 40, 220,
-        ]);
+        navigator.vibrate([55, 18, 110, 24, 180, 34, 280]);
       }
     } catch {
       /* ignore */
@@ -314,6 +547,10 @@ export default function ChannelTuneOverlay({ active, onReveal, onDone }) {
 
   if (!active) return null;
 
+  return <GlassShatter rootRef={rootRef} finishOnce={finishOnce} />;
+
+  /* Legacy rift markup retained below temporarily for reference. */
+  /* c8 ignore start */
   return (
     <div
       ref={rootRef}
@@ -488,21 +725,10 @@ export default function ChannelTuneOverlay({ active, onReveal, onDone }) {
           <p className="rift-manifesto-sub">It&apos;s your human right.</p>
         </div>
 
-        <div className="rift-switch-beat" aria-hidden="true">
-          <img
-            src={`${UD_LABEL_BRAND.mascotSwitchFlip}?v=bulb-eyes-v1`}
-            alt=""
-            className="rift-switch-mascot"
-            width={720}
-            height={720}
-            decoding="async"
-          />
-          <p className="rift-switch-caption">POWER · GRID ONLINE</p>
-        </div>
-
         <div className="tv-tune-vignette" />
         <div className="tv-tune-cut" />
       </div>
     </div>
   );
+  /* c8 ignore stop */
 }

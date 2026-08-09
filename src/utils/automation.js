@@ -191,16 +191,32 @@ export function defaultsFromCatalogSelection({
   };
 }
 
-/** Label-style dose range: "2.5 - 5 mg (10 - 20 u)" */
-export function formatDoseRangeLabel(dose, doseUnit, units = 10) {
+/** Label-style dose range: "2.5 - 5 mg (10 - 20 u)". */
+export function formatDoseRangeLabel(
+  dose,
+  doseUnit,
+  units = 10,
+  highDose = null,
+  highUnits = null
+) {
   const low = Number(dose);
   if (!(low > 0)) return "—";
-  const high = low * 2;
-  const uHigh = Number(units) * 2;
+  const requestedHigh = Number(highDose);
+  if (
+    highDose != null &&
+    String(highDose).trim() !== "" &&
+    (!(requestedHigh > 0) || requestedHigh < low)
+  ) {
+    return "—";
+  }
+  const high = requestedHigh > 0 ? requestedHigh : low * 2;
+  const requestedHighUnits = Number(highUnits);
+  const uHigh =
+    requestedHighUnits > 0 ? requestedHighUnits : Number(units) * (high / low);
   const fmt = (n) => parseFloat(Number(n).toFixed(2)).toString();
   const unit = doseUnit === "IU" ? "IU" : "mg";
   // Same " - " spacing on both lines so dashes can stack-align on the label
-  return `${fmt(low)} - ${fmt(high)} ${unit} (${units} - ${uHigh} u)`;
+  return `${fmt(low)} - ${fmt(high)} ${unit} (${fmt(units)} - ${fmt(uHigh)} u)`;
 }
 
 export function buildCalculatorShareUrl({
@@ -210,6 +226,7 @@ export function buildCalculatorShareUrl({
   mass = "",
   solution = "",
   dose = "",
+  doseHigh = "",
   doseUnit = "mg",
   unit = "",
 } = {}) {
@@ -223,6 +240,10 @@ export function buildCalculatorShareUrl({
     dose: String(normalized.dose ?? ""),
     doseUnit: normalized.doseUnit,
   });
+  const normalizedHigh = normalizeDoseUnit(doseHigh, doseUnit, name);
+  if (Number(normalizedHigh.dose) > 0) {
+    params.set("doseHigh", String(normalizedHigh.dose));
+  }
   if (resolvedUnit) params.set("unit", resolvedUnit);
   return `${origin}${pathname}?${params.toString()}`;
 }

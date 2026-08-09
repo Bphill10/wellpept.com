@@ -794,7 +794,7 @@ export function formatCustomerForm(product) {
   if (/raw/i.test(form)) return "Raw material";
   if (/liquid/i.test(form)) return "Liquid vial";
   if (/tablet/i.test(form)) return "Tablet";
-  return "Lyophilized vial";
+  return "Research vial";
 }
 
 function sortOffers(a, b) {

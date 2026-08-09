@@ -1,0 +1,23 @@
+node_modules
+dist
+.cursor
+.private
+payload
+ud-label-system
+tmp-*
+APPLY_THIS_UPDATE.md
+CURSOR_PROMPT.txt
+glp1-forum-dosages.csv
+peptide-abbrev-input.tsv
+peptide-kb-open.csv
+peptide-master-export.json
+peptide-master-list.csv
+peptide-master-list.xlsx
+scripts/build-peptide-canvas.mjs
+scripts/compress-vial.mjs
+scripts/export-peptide-csv.mjs
+scripts/export-peptide-master.mjs
+scripts/export-peptide-xlsx.mjs
+scripts/fill-peptide-abbrevs.mjs
+scripts/peptide-abbrev-input.tsv
+public/3ml white Peptide
