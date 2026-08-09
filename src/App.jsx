@@ -305,6 +305,8 @@ export default function App() {
   const logoClicksRef = useRef([]);
   const lastBrandTapRef = useRef(0);
   const [channelTuning, setChannelTuning] = useState(false);
+  /** Viewport % where the 5th brand tap hit — shatter radiates from here. */
+  const [channelTuneImpact, setChannelTuneImpact] = useState(null);
   const [udGridLive, setUdGridLive] = useState(false);
   const [sentinelChatOpen, setSentinelChatOpen] = useState(false);
   const channelTuneLockRef = useRef(false);
@@ -562,11 +564,12 @@ export default function App() {
   function finishChannelTune() {
     channelTuneLockRef.current = false;
     setChannelTuning(false);
+    setChannelTuneImpact(null);
     setUdGridLive(true);
     setFlash("Undisclosed unlocked");
   }
 
-  function startChannelTuneUnlock() {
+  function startChannelTuneUnlock(impact = null) {
     if (channelTuneLockRef.current || channelTuning || labVisible) return;
     channelTuneLockRef.current = true;
     [
@@ -577,12 +580,14 @@ export default function App() {
       img.decoding = "async";
       img.src = href;
     });
+    setChannelTuneImpact(impact);
     setUdGridLive(false);
     setChannelTuning(true);
     // Never leave the unlock overlay blocking taps (Add to cart, etc.)
     window.setTimeout(() => {
       channelTuneLockRef.current = false;
       setChannelTuning(false);
+      setChannelTuneImpact(null);
       setUdGridLive(true);
     }, TUNE_MS + 1200);
   }
@@ -622,7 +627,16 @@ export default function App() {
       if (next.length >= 5) {
         logoClicksRef.current = [];
         setLogoClicks([]);
-        startChannelTuneUnlock();
+        const vw = typeof window !== "undefined" ? window.innerWidth || 1 : 1;
+        const vh = typeof window !== "undefined" ? window.innerHeight || 1 : 1;
+        const cx =
+          Number.isFinite(e?.clientX) ? e.clientX : vw * 0.5;
+        const cy =
+          Number.isFinite(e?.clientY) ? e.clientY : vh * 0.12;
+        startChannelTuneUnlock({
+          xPct: Math.min(96, Math.max(4, (cx / vw) * 100)),
+          yPct: Math.min(96, Math.max(4, (cy / vh) * 100)),
+        });
         return;
       }
       // Stay on skincare without thrashing navigation on every tap.
@@ -1711,6 +1725,7 @@ export default function App() {
       {channelTuning && (
         <ChannelTuneOverlay
           active
+          impact={channelTuneImpact}
           onReveal={revealDuringChannelTune}
           onDone={finishChannelTune}
         />

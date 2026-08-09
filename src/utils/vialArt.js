@@ -14,11 +14,11 @@ export const BRAND_VIAL_SRC =
 /** Compact plate for catalog cards / phone grids. */
 export const BRAND_VIAL_CARD_SRC =
   "/ud-labels/vials/UD_3mL_White_Peptide_Black_Cap_Unlabeled.png";
-/** Unlabeled white-powder 3 mL plate (no wrap) — hero / compositing base. */
+/** Calculator-only unlabeled glass plate with a low, flat lyophilized layer. */
 export const UNLABELED_VIAL_SRC =
-  "/ud-labels/vials/UD_3mL_White_Peptide_Black_Cap_Unlabeled.png";
+  "/references/vial-unlabeled-white.png";
 export const UNLABELED_VIAL_CARD_SRC =
-  "/ud-labels/vials/UD_3mL_White_Peptide_Black_Cap_Unlabeled.png";
+  "/references/vial-unlabeled-white.png";
 /** Featured KLOW 10-vial clear kit case photo. */
 export const KLOW_CASE_KIT_SRC = "/references/klow-case-kit.png";
 export const KLOW_CASE_KIT_SM_SRC = "/references/klow-case-kit.png";
@@ -1988,23 +1988,18 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   // QR (opposite) side a lighter pull-back. Side inset rounds L/R white border.
   // Viewer-left (spine) tilts ~2% — top pulls in so the edge wraps away.
   // Bottom-left pulled back toward glass another 2%.
+  // Keep the bottom edge flat (no triangular flap under the wrap).
   const botInsetL = snug ? Math.max(1.2, drawW * 0.048) : 0;
   const botInsetR = snug ? Math.max(0.8, drawW * 0.014) : 0;
   const leftTilt = snug ? Math.max(1, drawW * 0.02) : 0;
-  // Bottom-left was riding high — drop it 2% of band height so the hem sits even
-  const botDropL = snug ? Math.max(1, sleeveH * 0.02) : 0;
-  // Bottom 25% of left edge pulled toward glass (~4%)
   const botLeftPush = snug ? Math.max(1, drawW * 0.04) : 0;
-  const yLeftBreak = sleeveTop + sleeveH * 0.75;
-  const xLeftBreak = xMin + leftTilt + (botInsetL - leftTilt) * 0.75;
   const xLeftBot = xMin + botInsetL + botLeftPush;
   ctx.beginPath();
   if (snug) {
     ctx.moveTo(xMin + leftTilt, sleeveTop);
     ctx.lineTo(xMax, sleeveTop);
     ctx.lineTo(xMax - botInsetR, sleeveTop + sleeveH);
-    ctx.lineTo(xLeftBot, sleeveTop + sleeveH + botDropL);
-    ctx.lineTo(xLeftBreak, yLeftBreak);
+    ctx.lineTo(xLeftBot, sleeveTop + sleeveH);
     ctx.closePath();
   } else {
     ctx.rect(bodyX, sleeveTop, bodyW, sleeveH);
@@ -2051,7 +2046,7 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
       destX,
       sleeveTop,
       destW,
-      sleeveH + (snug ? botDropL : 0)
+      sleeveH
     );
 
     // Catalog path keeps a light geometric rim; snug uses photo shade after.
@@ -2085,10 +2080,8 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
     ctx.beginPath();
     ctx.moveTo(xMin + leftTilt, sleeveTop);
     ctx.lineTo(xMin + leftTilt + edge * 1.35, sleeveTop);
-    ctx.lineTo(xLeftBreak + edge * 1.35, yLeftBreak);
-    ctx.lineTo(xLeftBot + edge * 1.35, sleeveTop + sleeveH + botDropL);
-    ctx.lineTo(xLeftBot, sleeveTop + sleeveH + botDropL);
-    ctx.lineTo(xLeftBreak, yLeftBreak);
+    ctx.lineTo(xLeftBot + edge * 1.35, sleeveTop + sleeveH);
+    ctx.lineTo(xLeftBot, sleeveTop + sleeveH);
     ctx.closePath();
     ctx.fill();
 
@@ -2105,10 +2098,8 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
     ctx.beginPath();
     ctx.moveTo(xMin + leftTilt, sleeveTop);
     ctx.lineTo(xMin + leftTilt + trim, sleeveTop);
-    ctx.lineTo(xLeftBreak + trim, yLeftBreak);
-    ctx.lineTo(xLeftBot + trim, sleeveTop + sleeveH + botDropL);
-    ctx.lineTo(xLeftBot, sleeveTop + sleeveH + botDropL);
-    ctx.lineTo(xLeftBreak, yLeftBreak);
+    ctx.lineTo(xLeftBot + trim, sleeveTop + sleeveH);
+    ctx.lineTo(xLeftBot, sleeveTop + sleeveH);
     ctx.closePath();
     ctx.fill();
   }
@@ -2143,7 +2134,7 @@ function drawCatalogWrapOnVial(ctx, labelCanvas, geom) {
   ctx.strokeStyle = snug ? "rgba(0,0,0,0.1)" : "rgba(0,0,0,0.2)";
   ctx.lineWidth = 0.7;
   ctx.beginPath();
-  ctx.moveTo(xLeftBot + 2, sleeveTop + sleeveH + botDropL - 0.4);
+  ctx.moveTo(xLeftBot + 2, sleeveTop + sleeveH - 0.4);
   ctx.lineTo(xMax - botInsetR - 2, sleeveTop + sleeveH - 0.4);
   ctx.stroke();
 

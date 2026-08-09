@@ -10912,6 +10912,8 @@ label.field select,
 /* Five-tap unlock: the phone glass fractures and falls away. */
 .glass-transition {
   --glass-transition-dur: 4.8s;
+  --glass-ox: 50%;
+  --glass-oy: 43%;
   position: fixed;
   inset: 0;
   z-index: 220;
@@ -10951,8 +10953,8 @@ label.field select,
   z-index: 28;
   pointer-events: none;
   background:
-    radial-gradient(circle at 50% 43%, transparent 0 4%, rgba(255, 255, 255, 0.38) 4.3%, transparent 5.2%),
-    conic-gradient(from 18deg at 50% 43%, transparent 0 7%, rgba(212, 245, 255, 0.16) 8%, transparent 10% 21%, rgba(255, 255, 255, 0.1) 22%, transparent 24% 100%);
+    radial-gradient(circle at var(--glass-ox) var(--glass-oy), transparent 0 4%, rgba(255, 255, 255, 0.38) 4.3%, transparent 5.2%),
+    conic-gradient(from 18deg at var(--glass-ox) var(--glass-oy), transparent 0 7%, rgba(212, 245, 255, 0.16) 8%, transparent 10% 21%, rgba(255, 255, 255, 0.1) 22%, transparent 24% 100%);
   mix-blend-mode: screen;
   opacity: 0;
   animation: glass-refraction-burst 1.15s ease-out 0.04s both;
@@ -10960,8 +10962,8 @@ label.field select,
 
 .glass-impact-core {
   position: absolute;
-  left: 50%;
-  top: 43%;
+  left: var(--glass-ox);
+  top: var(--glass-oy);
   z-index: 34;
   width: 2.8vmin;
   aspect-ratio: 1;
@@ -10979,8 +10981,8 @@ label.field select,
 
 .glass-shockwave {
   position: absolute;
-  left: 50%;
-  top: 43%;
+  left: var(--glass-ox);
+  top: var(--glass-oy);
   z-index: 33;
   width: 8vmin;
   aspect-ratio: 1;
@@ -10996,8 +10998,8 @@ label.field select,
 
 .glass-transition-flash {
   position: absolute;
-  left: 50%;
-  top: 43%;
+  left: var(--glass-ox);
+  top: var(--glass-oy);
   z-index: 32;
   width: 2px;
   height: 2px;
@@ -11018,6 +11020,7 @@ label.field select,
   width: 100%;
   height: 100%;
   overflow: visible;
+  transform-origin: var(--glass-ox) var(--glass-oy);
   filter:
     drop-shadow(0 1px 0 rgba(0, 0, 0, 1))
     drop-shadow(0 -1px 0 rgba(255, 255, 255, 0.85))
@@ -11028,7 +11031,8 @@ label.field select,
 }
 
 .glass-crack-lines path,
-.glass-impact-rings circle {
+.glass-impact-rings circle,
+.glass-impact-fractures path {
   fill: none;
   stroke: rgba(240, 252, 255, 0.92);
   stroke-width: 0.42;
@@ -11051,8 +11055,25 @@ label.field select,
   animation-delay: 150ms;
 }
 
+.glass-impact-fractures path {
+  stroke: rgba(255, 255, 255, 0.98);
+  stroke-width: 0.62;
+  stroke-dasharray: 18;
+  stroke-dashoffset: 18;
+  animation: glass-impact-fracture-draw 150ms cubic-bezier(0.05, 0.8, 0.12, 1)
+    18ms forwards;
+}
+
+.glass-impact-fractures path:nth-child(2n) {
+  animation-delay: 38ms;
+}
+
+.glass-impact-fractures path:nth-child(3n) {
+  animation-delay: 62ms;
+}
+
 .glass-impact-rings {
-  transform-origin: 50% 43%;
+  transform-origin: 50px 43px;
   opacity: 0;
   animation: glass-impact-rings 0.72s ease-out 0.08s forwards;
 }
@@ -11084,7 +11105,7 @@ label.field select,
     0 14px 32px rgba(0, 0, 0, 0.58);
   backdrop-filter: blur(1.2px) brightness(0.72) saturate(0.62);
   -webkit-backdrop-filter: blur(1.2px) brightness(0.72) saturate(0.62);
-  transform-origin: 50% 43%;
+  transform-origin: var(--glass-ox) var(--glass-oy);
   transform-style: preserve-3d;
   backface-visibility: visible;
   will-change: transform, opacity;
@@ -11110,8 +11131,8 @@ label.field select,
 
 .glass-splinter-field i {
   position: absolute;
-  left: 50%;
-  top: 43%;
+  left: var(--glass-ox);
+  top: var(--glass-oy);
   width: var(--splinter-w);
   height: var(--splinter-h);
   clip-path: polygon(0 45%, 86% 0, 100% 52%, 79% 100%);
@@ -11162,7 +11183,7 @@ label.field select,
   inset: 0;
   z-index: 10;
   background:
-    radial-gradient(circle at 50% 43%, rgba(95, 202, 232, 0.24), transparent 31%),
+    radial-gradient(circle at var(--glass-ox) var(--glass-oy), rgba(95, 202, 232, 0.24), transparent 31%),
     radial-gradient(ellipse at center, transparent 34%, rgba(0, 0, 0, 0.72) 100%);
   opacity: 0;
   pointer-events: none;
@@ -11214,6 +11235,20 @@ label.field select,
 
 @keyframes glass-crack-draw {
   to { stroke-dashoffset: 0; }
+}
+
+@keyframes glass-impact-fracture-draw {
+  0% {
+    opacity: 0;
+    stroke-dashoffset: 18;
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
 }
 
 @keyframes glass-impact-rings {

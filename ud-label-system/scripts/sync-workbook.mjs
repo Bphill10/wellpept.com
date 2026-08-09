@@ -46,6 +46,15 @@ function compoundKey(value) {
     .replace(/[^A-Z0-9]+/g, "");
 }
 
+function isB12Row(row, labelName) {
+  const name = `${labelName} ${text(row["Full Product Name"])}`;
+  return (
+    /^B12$/i.test(labelName) ||
+    /\bVITAMIN\s*B\s*12\b/i.test(name) ||
+    (/\bMETHYLCOBALAMIN\b/i.test(name) && /\bB12\b/i.test(name))
+  );
+}
+
 function submissionUnit(submission) {
   if (text(submission.unit)) return text(submission.unit).toUpperCase();
   const form = text(submission.form).toUpperCase();
@@ -99,7 +108,17 @@ const products = productRows.map((row) => {
     text(row["QR Value"]) ||
     `UD|${labelName}|${amount}${unit}|${labelType}`;
   const materialColor = (text(row["Material Color"]) || "WHITE").toUpperCase();
-  const profile = vialMl >= 10 ? "10ML_WHITE" : materialColor === "COBALT BLUE" ? "3ML_BLUE" : "3ML_WHITE";
+  const isB12Liquid =
+    vialMl >= 10 &&
+    isB12Row(row, labelName) &&
+    (materialColor === "RED" || /\bLIQUID\b/i.test(text(row["Form Text"])));
+  const profile = isB12Liquid
+    ? "10ML_B12_LIQUID"
+    : vialMl >= 10
+      ? "10ML_WHITE"
+      : materialColor === "COBALT BLUE"
+        ? "3ML_BLUE"
+        : "3ML_WHITE";
   const outputSeed = `${labelName}_${amount}${unit}`;
   return {
     enabled: bool(row.Enabled, true),

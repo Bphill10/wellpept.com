@@ -303,34 +303,63 @@ function startGlassAudio() {
   impact.stop(now + 0.35);
   nodes.push(impact);
 
-  [0.12, 0.18, 0.28, 0.43, 0.62, 0.86, 1.14, 1.48, 1.82].forEach(
-    (offset, index) => {
-      const chime = ctx.createOscillator();
-      const level = ctx.createGain();
-      chime.type = index % 3 === 0 ? "triangle" : "sine";
-      chime.frequency.setValueAtTime(
-        1850 + ((index * 733) % 3900),
-        now + offset
-      );
-      chime.frequency.exponentialRampToValueAtTime(
-        760 + index * 90,
-        now + offset + 0.18
-      );
-      level.gain.setValueAtTime(0.0001, now + offset);
-      level.gain.exponentialRampToValueAtTime(
-        0.09 + (index % 3) * 0.025,
-        now + offset + 0.004
-      );
-      level.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.24);
-      chime.connect(level);
+  // Irregular ice fractures: short filtered-noise impulses only. Avoid pitched
+  // oscillators here—they read as bird chirps on phone speakers.
+  [
+    [0.018, 5200, 0.2, 0.085, -0.55],
+    [0.052, 3100, 0.24, 0.12, 0.45],
+    [0.11, 6900, 0.13, 0.055, 0.2],
+    [0.19, 4300, 0.18, 0.075, -0.3],
+    [0.31, 7600, 0.1, 0.045, 0.65],
+    [0.47, 2600, 0.16, 0.095, -0.7],
+    [0.68, 6100, 0.12, 0.06, 0.35],
+    [0.94, 3500, 0.13, 0.08, -0.15],
+    [1.27, 7200, 0.085, 0.045, 0.72],
+    [1.61, 2900, 0.1, 0.07, -0.45],
+  ].forEach(([offset, frequency, gain, duration, pan]) => {
+    const source = ctx.createBufferSource();
+    const highpass = ctx.createBiquadFilter();
+    const peak = ctx.createBiquadFilter();
+    const level = ctx.createGain();
+    const panner =
+      typeof ctx.createStereoPanner === "function"
+        ? ctx.createStereoPanner()
+        : null;
+    source.buffer = noise;
+    source.playbackRate.value = 0.82 + (frequency % 1100) / 2100;
+    highpass.type = "highpass";
+    highpass.frequency.value = Math.max(900, frequency * 0.42);
+    highpass.Q.value = 0.62;
+    peak.type = "peaking";
+    peak.frequency.value = frequency;
+    peak.Q.value = 2.8;
+    peak.gain.value = 7;
+    level.gain.setValueAtTime(0.0001, now + offset);
+    level.gain.exponentialRampToValueAtTime(gain, now + offset + 0.0015);
+    level.gain.exponentialRampToValueAtTime(
+      Math.max(0.018, gain * 0.18),
+      now + offset + duration * 0.28
+    );
+    level.gain.exponentialRampToValueAtTime(
+      0.0001,
+      now + offset + duration
+    );
+    source.connect(highpass);
+    highpass.connect(peak);
+    peak.connect(level);
+    if (panner) {
+      panner.pan.value = pan;
+      level.connect(panner);
+      panner.connect(master);
+    } else {
       level.connect(master);
-      chime.start(now + offset);
-      chime.stop(now + offset + 0.26);
-      nodes.push(chime);
     }
-  );
+    source.start(now + offset);
+    source.stop(now + offset + duration + 0.02);
+    nodes.push(source);
+  });
 
-  whoosh(ctx, master, now + 1.12, 1.5, 0.24);
+  whoosh(ctx, master, now + 1.18, 1.35, 0.16);
   if (ctx.state === "suspended") ctx.resume().catch(() => {});
 
   return () => {
@@ -345,14 +374,24 @@ function startGlassAudio() {
   };
 }
 
-function GlassShatter({ rootRef, finishOnce }) {
+function GlassShatter({ rootRef, finishOnce, impact }) {
+  const ox = Number.isFinite(impact?.xPct) ? impact.xPct : 50;
+  const oy = Number.isFinite(impact?.yPct) ? impact.yPct : 43;
+  // Crack art is authored around viewBox (50, 43); shift so it blooms at the tap.
+  const crackShiftX = ox - 50;
+  const crackShiftY = oy - 43;
+
   return (
     <div
       ref={rootRef}
       className="glass-transition"
       role="presentation"
       aria-hidden="true"
-      style={{ "--glass-transition-dur": `${TUNE_MS}ms` }}
+      style={{
+        "--glass-transition-dur": `${TUNE_MS}ms`,
+        "--glass-ox": `${ox}%`,
+        "--glass-oy": `${oy}%`,
+      }}
       onAnimationEnd={(event) => {
         if (
           event.target === event.currentTarget &&
@@ -370,34 +409,46 @@ function GlassShatter({ rootRef, finishOnce }) {
         viewBox="0 0 100 100"
         preserveAspectRatio="none"
       >
-        <g className="glass-crack-lines">
-          <path d="M50 43 L34 26 L23 17 L11 0" />
-          <path d="M50 43 L52 24 L61 12 L64 0" />
-          <path d="M50 43 L71 31 L85 29 L100 20" />
-          <path d="M50 43 L70 49 L84 61 L100 64" />
-          <path d="M50 43 L61 64 L58 81 L66 100" />
-          <path d="M50 43 L43 65 L31 81 L28 100" />
-          <path d="M50 43 L30 48 L15 60 L0 58" />
-          <path d="M50 43 L35 36 L17 38 L0 31" />
-          <path d="M34 26 L42 18 L39 8" />
-          <path d="M71 31 L77 17 L91 9" />
-          <path d="M70 49 L77 42 L94 43" />
-          <path d="M43 65 L49 76 L45 89" />
-          <path d="M30 48 L20 43 L12 48" />
-          <path d="M23 17 L18 24 L7 20" />
-          <path d="M52 24 L45 16 L49 4" />
-          <path d="M61 12 L72 8 L78 0" />
-          <path d="M85 29 L82 38 L96 35" />
-          <path d="M84 61 L91 73 L100 77" />
-          <path d="M61 64 L70 70 L73 87" />
-          <path d="M58 81 L52 90 L54 100" />
-          <path d="M31 81 L19 87 L13 100" />
-          <path d="M15 60 L9 70 L0 72" />
-          <path d="M17 38 L11 47 L0 45" />
-        </g>
-        <g className="glass-impact-rings">
-          <circle cx="50" cy="43" r="3.5" />
-          <circle cx="50" cy="43" r="8" />
+        <g transform={`translate(${crackShiftX} ${crackShiftY})`}>
+          <g className="glass-crack-lines">
+            <path d="M50 43 L34 26 L23 17 L11 0" />
+            <path d="M50 43 L52 24 L61 12 L64 0" />
+            <path d="M50 43 L71 31 L85 29 L100 20" />
+            <path d="M50 43 L70 49 L84 61 L100 64" />
+            <path d="M50 43 L61 64 L58 81 L66 100" />
+            <path d="M50 43 L43 65 L31 81 L28 100" />
+            <path d="M50 43 L30 48 L15 60 L0 58" />
+            <path d="M50 43 L35 36 L17 38 L0 31" />
+            <path d="M34 26 L42 18 L39 8" />
+            <path d="M71 31 L77 17 L91 9" />
+            <path d="M70 49 L77 42 L94 43" />
+            <path d="M43 65 L49 76 L45 89" />
+            <path d="M30 48 L20 43 L12 48" />
+            <path d="M23 17 L18 24 L7 20" />
+            <path d="M52 24 L45 16 L49 4" />
+            <path d="M61 12 L72 8 L78 0" />
+            <path d="M85 29 L82 38 L96 35" />
+            <path d="M84 61 L91 73 L100 77" />
+            <path d="M61 64 L70 70 L73 87" />
+            <path d="M58 81 L52 90 L54 100" />
+            <path d="M31 81 L19 87 L13 100" />
+            <path d="M15 60 L9 70 L0 72" />
+            <path d="M17 38 L11 47 L0 45" />
+          </g>
+          <g className="glass-impact-rings">
+            <circle cx="50" cy="43" r="3.5" />
+            <circle cx="50" cy="43" r="8" />
+          </g>
+          <g className="glass-impact-fractures">
+            <path d="M50 43 l-2.2 -5.4 l-1.1 2.1 l-3.8 -4.7" />
+            <path d="M50 43 l3.1 -5.1 l1.2 2.4 l4.8 -3.2" />
+            <path d="M50 43 l5.6 -1.1 l-1.7 2.2 l5.8 1.8" />
+            <path d="M50 43 l4.3 4.2 l-2.5 0.2 l3.2 5.4" />
+            <path d="M50 43 l0.2 5.7 l-1.9 -1.4 l-1.1 6.1" />
+            <path d="M50 43 l-4.8 3.3 l0.4 -2.4 l-6 1.2" />
+            <path d="M50 43 l-5.8 -0.8 l2 -1.7 l-5.3 -3" />
+            <path d="M50 43 l-3.7 -4.1 l2.4 0.1 l-2.1 -5.5" />
+          </g>
         </g>
       </svg>
 
@@ -453,9 +504,9 @@ function GlassShatter({ rootRef, finishOnce }) {
 
 /**
  * WellPept → Undisclosed unlock:
- * phone glass fractures, then falls away to expose Undisclosed underneath.
+ * phone glass fractures from the 5th brand tap, then falls away.
  */
-export default function ChannelTuneOverlay({ active, onReveal, onDone }) {
+export default function ChannelTuneOverlay({ active, impact, onReveal, onDone }) {
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
   const onRevealRef = useRef(onReveal);
@@ -547,7 +598,9 @@ export default function ChannelTuneOverlay({ active, onReveal, onDone }) {
 
   if (!active) return null;
 
-  return <GlassShatter rootRef={rootRef} finishOnce={finishOnce} />;
+  return (
+    <GlassShatter rootRef={rootRef} finishOnce={finishOnce} impact={impact} />
+  );
 
   /* Legacy rift markup retained below temporarily for reference. */
   /* c8 ignore start */
