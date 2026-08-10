@@ -12,6 +12,13 @@ Cloud Agents should treat this repo as a Vite React site plus the Undisclosed la
 - Do not put long-running servers in `install`; they belong in `terminals` / `start`
 - After merging environment config changes, prefer starting agents from an enabled Build so deps are already present
 
+### Running / testing the site
+
+- No `lint` or `test` scripts exist. The root checks are `npm run build` (Vite) and, for label/catalog work, `ud-label-system`'s `npm run build`.
+- Dev server: `npm run dev` serves on `http://127.0.0.1:5173` (host/port are pinned in `vite.config.js`). `/api/*` routes run via the Vite `paymentsLocalApiPlugin`, mirroring the Vercel serverless functions.
+- The site works without any secrets (Stripe/Chargebee/Resend/Crisp): payment + email endpoints return `enabled:false` and the UI degrades gracefully.
+- The whole site is gated by an age gate + account gate. To get past it in dev without email configured: create an account, then on the "Confirm your email" screen click **Copy confirmation link** and open that `?confirm_email=...` URL (a `mailto:` app-chooser prompt may pop up first — cancel it). Accounts/sessions live in browser `localStorage` (`wellpept_*` keys); clear them to restart the flow.
+
 ### Verify before finishing label/catalog work
 
 ```bash
