@@ -2,7 +2,8 @@
 
 **Owner:** Benjamin  
 **Repo:** `C:\Users\bphil\Documents\wellpept.com`  
-**Last good published commit:** `b94c2bf` (`Improve catalog presentation and label consistency`) on `main` → https://www.wellpept.com/  
+**Last good published commit:** `31fad72` (`Publish tap-origin glass unlock, ruby B12 vials, and calculator wrap fixes.`) on `main` → https://www.wellpept.com/  
+**Current review (Cloud Builds):** follow `CLAUDE_CODE_BUILD_REVIEW.md` / PR https://github.com/Bphill10/wellpept.com/pull/1  
 **Cursor agent transcript (context):** `4af422d7-8d47-4ce4-84b0-d4ff9c16d008`  
 **After you finish:** leave a short `CURSOR_RETURN.md` with what you changed, what still needs Cursor, and any commands run. Do not force-push. Do not commit unless Benjamin asks.
 
