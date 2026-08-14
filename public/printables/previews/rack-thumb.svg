@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 200" width="720" height="400">
+  <defs>
+    <linearGradient id="board" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2b2f36"/>
+      <stop offset="100%" stop-color="#14161a"/>
+    </linearGradient>
+    <linearGradient id="rglass" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#c5d2de" stop-opacity="0.35"/>
+      <stop offset="45%" stop-color="#f4f7fa" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#b9c7d4" stop-opacity="0.35"/>
+    </linearGradient>
+    <linearGradient id="plate" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3a3f47"/>
+      <stop offset="100%" stop-color="#20242a"/>
+    </linearGradient>
+  </defs>
+  <rect width="360" height="200" fill="#1a1c20"/>
+
+  <!-- backboard with embossed wordmark -->
+  <g transform="translate(30,22)">
+    <rect x="0" y="0" width="300" height="96" rx="5" fill="url(#board)" stroke="#454b54" stroke-width="1.5"/>
+    <text x="150" y="52" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+          font-size="21" font-weight="700" letter-spacing="0.18em" fill="#0c0e11">UNDISCLOSED</text>
+    <text x="150" y="50.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+          font-size="21" font-weight="700" letter-spacing="0.18em" fill="#8a939e" opacity="0.5">UNDISCLOSED</text>
+  </g>
+
+  <!-- floor plate -->
+  <rect x="26" y="150" width="308" height="20" rx="4" fill="url(#plate)" stroke="#454b54" stroke-width="1.2"/>
+
+  <!-- six vials seated in collars -->
+  <g>
+    <!-- caps: brand-ish rotating colors -->
+    <g transform="translate(40,0)">
+      <ellipse cx="0" cy="160" rx="17" ry="6" fill="#0e1218" stroke="#5b6570" stroke-width="1"/>
+      <rect x="-11" y="86" width="22" height="74" rx="6" fill="url(#rglass)" stroke="#9eb0c0" stroke-width="1.2"/>
+      <rect x="-9" y="120" width="18" height="34" rx="2" fill="#c8d8e6" opacity="0.4"/>
+      <rect x="-11" y="78" width="22" height="12" rx="3" fill="#1e4a8c"/>
+    </g>
+    <g transform="translate(88,0)">
+      <ellipse cx="0" cy="160" rx="17" ry="6" fill="#0e1218" stroke="#5b6570" stroke-width="1"/>
+      <rect x="-11" y="86" width="22" height="74" rx="6" fill="url(#rglass)" stroke="#9eb0c0" stroke-width="1.2"/>
+      <rect x="-9" y="120" width="18" height="34" rx="2" fill="#c8d8e6" opacity="0.4"/>
+      <rect x="-11" y="78" width="22" height="12" rx="3" fill="#9b1c1c"/>
+    </g>
+    <g transform="translate(136,0)">
+      <ellipse cx="0" cy="160" rx="17" ry="6" fill="#0e1218" stroke="#5b6570" stroke-width="1"/>
+      <rect x="-11" y="86" width="22" height="74" rx="6" fill="url(#rglass)" stroke="#9eb0c0" stroke-width="1.2"/>
+      <rect x="-9" y="120" width="18" height="34" rx="2" fill="#c8d8e6" opacity="0.4"/>
+      <rect x="-11" y="78" width="22" height="12" rx="3" fill="#1a1a1a"/>
+    </g>
+    <g transform="translate(184,0)">
+      <ellipse cx="0" cy="160" rx="17" ry="6" fill="#0e1218" stroke="#5b6570" stroke-width="1"/>
+      <rect x="-11" y="86" width="22" height="74" rx="6" fill="url(#rglass)" stroke="#9eb0c0" stroke-width="1.2"/>
+      <rect x="-9" y="120" width="18" height="34" rx="2" fill="#c8d8e6" opacity="0.4"/>
+      <rect x="-11" y="78" width="22" height="12" rx="3" fill="#f2f2f0"/>
+    </g>
+    <g transform="translate(232,0)">
+      <ellipse cx="0" cy="160" rx="17" ry="6" fill="#0e1218" stroke="#5b6570" stroke-width="1"/>
+      <rect x="-11" y="86" width="22" height="74" rx="6" fill="url(#rglass)" stroke="#9eb0c0" stroke-width="1.2"/>
+      <rect x="-9" y="120" width="18" height="34" rx="2" fill="#c8d8e6" opacity="0.4"/>
+      <rect x="-11" y="78" width="22" height="12" rx="3" fill="#1e4a8c"/>
+    </g>
+    <g transform="translate(280,0)">
+      <ellipse cx="0" cy="160" rx="17" ry="6" fill="#0e1218" stroke="#5b6570" stroke-width="1"/>
+      <rect x="-11" y="86" width="22" height="74" rx="6" fill="url(#rglass)" stroke="#9eb0c0" stroke-width="1.2"/>
+      <rect x="-9" y="120" width="18" height="34" rx="2" fill="#c8d8e6" opacity="0.4"/>
+      <rect x="-11" y="78" width="22" height="12" rx="3" fill="#9b1c1c"/>
+    </g>
+  </g>
+</svg>

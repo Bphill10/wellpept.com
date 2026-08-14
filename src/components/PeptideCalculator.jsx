@@ -840,6 +840,54 @@ export default function PeptideCalculator({
             </p>
           </div>
 
+          <div className="calc-print-panel">
+            <div className="calc-card-head">
+              <h2>3D print the branded vial rack · free</h2>
+            </div>
+            <p className="meta">
+              Free STL · desktop display holder for ~3 mL vials with an embossed
+              UNDISCLOSED backboard. Vials drop into 17.4 mm collars — labels
+              stay readable above the rim. Print flat in PETG / PLA, no supports.
+            </p>
+            <div className="calc-print-preview">
+              <img
+                src="/printables/previews/rack-thumb.svg"
+                alt="Undisclosed branded 6-vial display rack with embossed backboard"
+                width={800}
+                height={444}
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div className="calc-print-actions">
+              <a
+                className="primary-btn"
+                href="/printables/undisclosed-vial-rack.stl"
+                download="undisclosed-vial-rack.stl"
+              >
+                <Download size={16} /> Download 6-vial rack STL
+              </a>
+              <a
+                className="soft-btn"
+                href="/printables/undisclosed-vial-rack-10.stl"
+                download="undisclosed-vial-rack-10.stl"
+              >
+                10-vial riser
+              </a>
+              <a
+                className="soft-btn"
+                href="/printables/undisclosed-vial-rack-mini.stl"
+                download="undisclosed-vial-rack-mini.stl"
+              >
+                Mini (3)
+              </a>
+            </div>
+            <p className="meta" style={{ marginTop: "0.65rem" }}>
+              ~158 × 41 × 37 mm (6-vial) · PETG / PLA · 3 walls · 15–25% infill ·
+              no supports. Scale ±1–2% if vials are tight in the collars.
+            </p>
+          </div>
+
           <div className="notice warn" style={{ marginTop: "1.25rem" }}>
             Research-use calculations only. Verify independently. Not medical
             advice. Not for human use.
