@@ -170,10 +170,23 @@ function applyAutoFit(svg, field, text, defaults = {}) {
   });
 }
 
+function applyHeavierSecondaryText(svg) {
+  // Slightly heavier legal lines only. Do not change product-name size or weight.
+  return svg.replace(
+    /<(text)([^>]*data-field="LEGAL_LINE_[123]"[^>]*)>/g,
+    (full, tag, attrs) => {
+      if (/\bstroke=/.test(attrs)) return full;
+      return `<${tag}${attrs} stroke="#000" stroke-width="1.15" paint-order="stroke fill">`;
+    }
+  );
+}
+
 /**
  * Fill locked SVG template — text + QR only. Geometry untouched.
+ * @param {object} [options]
+ * @param {boolean} [options.heavierSecondaryText]
  */
-export async function fillLockedLabelSvg(product = {}, defaults = {}) {
+export async function fillLockedLabelSvg(product = {}, defaults = {}, options = {}) {
   const rel = resolveLockedLabelRel(product);
   if (!rel) throw new Error("No locked label master for product");
   const svgPath = path.join(mastersRoot, rel);
@@ -278,6 +291,10 @@ export async function fillLockedLabelSvg(product = {}, defaults = {}) {
     svg = svg.replace(slot, qrGroup);
   } else if (!qrEnabled) {
     svg = svg.replace(/<g id="qr-slot"[^>]*>[\s\S]*?<\/g>/, "");
+  }
+
+  if (options.heavierSecondaryText) {
+    svg = applyHeavierSecondaryText(svg);
   }
 
   return { svg, masterRel: rel, svgPath };

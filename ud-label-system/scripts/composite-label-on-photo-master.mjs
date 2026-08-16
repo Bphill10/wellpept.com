@@ -1,10 +1,9 @@
 /**
  * Composite locked SVG label artwork onto a locked photographic vial master.
  *
- * The photograph is never redrawn. The full placement rectangle is
- * recolored as one label-stock surface (luminance/texture preserved),
- * then black artwork is printed on top. This does not replace
- * placeLockedLabelOnVial().
+ * The photograph — including the blank white label paper — is never
+ * recolored, tinted, brightened, or replaced. Only printed ink is added.
+ * This does not replace placeLockedLabelOnVial().
  */
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -17,15 +16,18 @@ const systemRoot = path.resolve(scriptDir, "..");
 
 const DEFAULT_RASTER_MIN_WIDTH = 3600;
 const DEFAULT_INSET = 0;
-const DEFAULT_THETA = 0.1;
-const DEFAULT_STOCK = "#D4D8DE";
-const DEFAULT_STOCK_REF_LUM = 214;
+const DEFAULT_THETA = 0.05;
+const DEFAULT_INK = "#0A0A0A";
+const DEFAULT_SUPERSAMPLE = 8;
+
+/** Configurable printed-ink color. Paper color is never derived from this. */
+export const LABEL_INK_COLOR = DEFAULT_INK;
 
 function lum(r, g, b) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-export function parseCssColor(value, fallback = DEFAULT_STOCK) {
+export function parseCssColor(value, fallback = DEFAULT_INK) {
   const raw = String(value || fallback).trim();
   const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(raw);
   if (hex) {
@@ -88,25 +90,52 @@ export function resolvePlacementRect(placement, placementKey) {
 export async function renderLockedLabelPngHiRes(
   product = {},
   defaults = {},
-  minWidth = DEFAULT_RASTER_MIN_WIDTH
+  minWidthOrOptions = DEFAULT_RASTER_MIN_WIDTH
 ) {
-  const { svg, masterRel } = await fillLockedLabelSvg(product, defaults);
+  const options =
+    typeof minWidthOrOptions === "number"
+      ? { minWidth: minWidthOrOptions }
+      : { minWidth: DEFAULT_RASTER_MIN_WIDTH, ...minWidthOrOptions };
+  const { svg, masterRel } = await fillLockedLabelSvg(product, defaults, {
+    heavierSecondaryText: Boolean(options.heavierSecondaryText),
+  });
   const widthMatch = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg);
   const vbW = Number(widthMatch?.[1] || 1200);
   const vbH = Number(widthMatch?.[2] || 600);
-  const outW = Math.max(minWidth, Math.round(vbW));
+  const outW = Math.max(options.minWidth || DEFAULT_RASTER_MIN_WIDTH, Math.round(vbW));
   const outH = Math.round((outW * vbH) / vbW);
-  const density = Math.max(600, Math.round((outW / vbW) * 96 * 4));
+  const density = Math.max(72, Math.round((outW / vbW) * 72));
   const png = await sharp(Buffer.from(svg), { density })
     .resize(outW, outH, { fit: "fill", kernel: "lanczos3" })
     .png({ compressionLevel: 6 })
     .toBuffer();
-  return { png, width: outW, height: outH, masterRel, aspect: outW / outH };
+  return { png, width: outW, height: outH, masterRel, aspect: outW / outH, svg };
+}
+
+/**
+ * Rasterize the locked SVG once to a supersampled face-aspect buffer.
+ * One vector raster + one aspect-correct Lanczos. No extra downsamples.
+ */
+export async function renderLockedLabelArtwork(product = {}, defaults = {}, options = {}) {
+  const width = Math.max(1, Math.round(options.width));
+  const height = Math.max(1, Math.round(options.height));
+  const { svg, masterRel } = await fillLockedLabelSvg(product, defaults, {
+    heavierSecondaryText: Boolean(options.heavierSecondaryText),
+  });
+  const widthMatch = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg);
+  const vbW = Number(widthMatch?.[1] || 1200);
+  const density = Math.max(72, Math.round((width / vbW) * 72));
+  const png = await sharp(Buffer.from(svg), { density })
+    .resize(width, height, { fit: "fill", kernel: "lanczos3" })
+    .ensureAlpha()
+    .png({ compressionLevel: 6 })
+    .toBuffer();
+  return { png, width, height, masterRel, svg };
 }
 
 /**
  * Knock out the flat white page background. Printed white (amount-bar
- * text, QR quiet zone) stays because it is not connected to the edges.
+ * text) stays because it is not connected to the edges.
  */
 export async function knockoutLabelPageBackground(pngBuffer) {
   const { data, info } = await sharp(pngBuffer)
@@ -201,13 +230,39 @@ function sampleBilinear(src, width, height, u, v) {
 }
 
 /**
+ * 1px anti-aliased coverage inside the placement rectangle.
+ * 1 at the interior, 0 at the outer edge. No halo color is introduced.
+ */
+function rectClipCoverage(x, y, w, h) {
+  const dx = Math.min(x + 0.5, w - x - 0.5);
+  const dy = Math.min(y + 0.5, h - y - 0.5);
+  return Math.max(0, Math.min(1, Math.min(dx, dy)));
+}
+
+/**
+ * Near the rect edge, refuse ink on non-paper (glass / powder / marble).
+ * Interior pixels are not gated so shaded paper and the black rail stay intact.
+ */
+function edgePaperGate(r, g, b, x, y, w, h) {
+  const border = Math.min(x + 0.5, y + 0.5, w - x - 0.5, h - y - 0.5);
+  if (border >= 2) return 1;
+  const paperLum = lum(r, g, b);
+  const chroma = Math.max(r, g, b) - Math.min(r, g, b);
+  if (paperLum >= 88 && chroma <= 85) return 1;
+  if (paperLum >= 70 && chroma <= 40) return 1;
+  return Math.max(0, (paperLum - 40) / 48);
+}
+
+/**
  * @param {object} options
  * @param {string} options.masterPhotoPath
  * @param {Buffer} options.labelArtwork
- * @param {object} options.placementProfile  master entry from vial-photo-placement.json
+ * @param {object} options.placementProfile
  * @param {string} options.outputPath
- * @param {number} [options.edgeInsetPx]
+ * @param {string} [options.labelInkColor]
  * @param {number} [options.cylinderMaxThetaRad]
+ * @param {boolean} [options.optimizeText]
+ * @param {{width:number,height:number}|Array<{width:number,height:number,path:string}>} [options.websiteOutput]
  */
 export async function compositeLabelOnPhotoMaster({
   masterPhotoPath,
@@ -216,8 +271,9 @@ export async function compositeLabelOnPhotoMaster({
   outputPath,
   edgeInsetPx = DEFAULT_INSET,
   cylinderMaxThetaRad = DEFAULT_THETA,
-  labelStockColor = DEFAULT_STOCK,
-  labelStockReferenceLum = DEFAULT_STOCK_REF_LUM,
+  labelInkColor = LABEL_INK_COLOR,
+  optimizeText = false,
+  websiteOutput = null,
   alsoSavePng = null,
 }) {
   if (!placementProfile) throw new Error("placementProfile is required");
@@ -227,12 +283,11 @@ export async function compositeLabelOnPhotoMaster({
   const faceW = Math.max(1, placementProfile.labelWidth - inset * 2);
   const faceH = Math.max(1, placementProfile.labelHeight - inset * 2);
   const maxTheta = Number(cylinderMaxThetaRad);
-  const stock = parseCssColor(labelStockColor);
-  const refLum = Number(labelStockReferenceLum) || DEFAULT_STOCK_REF_LUM;
+  const ink = parseCssColor(labelInkColor, LABEL_INK_COLOR);
+  const inkContrast = optimizeText ? 0.82 : 1;
 
   const knocked = await knockoutLabelPageBackground(labelArtwork);
-  const face = await sharp(knocked)
-    .resize(faceW, faceH, { fit: "fill", kernel: "lanczos3" })
+  const art = await sharp(knocked)
     .ensureAlpha()
     .raw()
     .toBuffer({ resolveWithObject: true });
@@ -243,32 +298,19 @@ export async function compositeLabelOnPhotoMaster({
     .toBuffer({ resolveWithObject: true });
 
   const { width: mw, height: mh } = master.info;
-  const src = face.data;
+  const src = art.data;
+  const artW = art.info.width;
+  const artH = art.info.height;
   const dest = master.data;
   const sinMax = Math.sin(maxTheta) || 1;
 
   for (let y = 0; y < faceH; y += 1) {
-    for (let x = 0; x < faceW; x += 1) {
-      const dx = left + x;
-      const dy = top + y;
-      if (dx < 0 || dy < 0 || dx >= mw || dy >= mh) continue;
-      const di = (dy * mw + dx) * 4;
-      const paperLum = lum(dest[di], dest[di + 1], dest[di + 2]);
-      const shade = Math.min(1.18, Math.max(0.52, paperLum / refLum));
-      dest[di] = Math.max(0, Math.min(255, Math.round(stock.r * shade)));
-      dest[di + 1] = Math.max(0, Math.min(255, Math.round(stock.g * shade)));
-      dest[di + 2] = Math.max(0, Math.min(255, Math.round(stock.b * shade)));
-    }
-  }
-
-  for (let y = 0; y < faceH; y += 1) {
     const v = faceH === 1 ? 0 : y / (faceH - 1);
+    const clipY = rectClipCoverage(0, y, faceW, faceH);
+    if (clipY <= 0) continue;
     for (let x = 0; x < faceW; x += 1) {
-      const nx = faceW === 1 ? 0 : (x / (faceW - 1)) * 2 - 1;
-      const theta = nx * maxTheta;
-      const u = (Math.sin(theta) / sinMax + 1) / 2;
-      const [ar, ag, ab, aa] = sampleBilinear(src, faceW, faceH, u, v);
-      if (aa < 10) continue;
+      const clip = rectClipCoverage(x, y, faceW, faceH);
+      if (clip <= 0.001) continue;
 
       const dx = left + x;
       const dy = top + y;
@@ -277,25 +319,34 @@ export async function compositeLabelOnPhotoMaster({
       const pr = dest[di];
       const pg = dest[di + 1];
       const pb = dest[di + 2];
-      const paperLum = lum(pr, pg, pb);
-      const shade = Math.min(1.12, Math.max(0.58, paperLum / refLum));
+      const paper = edgePaperGate(pr, pg, pb, x, y, faceW, faceH);
+      if (paper <= 0.001) continue;
+
+      const nx = faceW === 1 ? 0 : (x / (faceW - 1)) * 2 - 1;
+      const theta = nx * maxTheta;
+      const u = maxTheta === 0 ? (faceW === 1 ? 0 : x / (faceW - 1)) : (Math.sin(theta) / sinMax + 1) / 2;
+      const [ar, ag, ab, aa] = sampleBilinear(src, artW, artH, u, v);
+      if (aa < 10) continue;
+
+      const cover = Math.min(1, (aa / 255) * clip * paper);
       const artLum = lum(ar, ag, ab);
-      const cover = Math.min(1, aa / 255);
-      const srcX = Math.round(u * (faceW - 1));
-      const srcY = Math.round(v * (faceH - 1));
+      const srcX = Math.round(u * (artW - 1));
+      const srcY = Math.round(v * (artH - 1));
 
       if (artLum >= 200) {
-        if (!isLightOnDark(src, faceW, faceH, srcX, srcY)) continue;
-        dest[di] = Math.max(0, Math.min(255, Math.round(248 * shade * cover + pr * (1 - cover))));
-        dest[di + 1] = Math.max(0, Math.min(255, Math.round(248 * shade * cover + pg * (1 - cover))));
-        dest[di + 2] = Math.max(0, Math.min(255, Math.round(248 * shade * cover + pb * (1 - cover))));
+        if (!isLightOnDark(src, artW, artH, srcX, srcY)) continue;
+        dest[di] = Math.round(pr * (1 - cover) + 250 * cover);
+        dest[di + 1] = Math.round(pg * (1 - cover) + 250 * cover);
+        dest[di + 2] = Math.round(pb * (1 - cover) + 250 * cover);
         continue;
       }
 
-      const ink = (1 - artLum / 255) * cover;
-      dest[di] = Math.max(0, Math.min(255, Math.round(pr * (1 - ink) + ar * shade * ink)));
-      dest[di + 1] = Math.max(0, Math.min(255, Math.round(pg * (1 - ink) + ag * shade * ink)));
-      dest[di + 2] = Math.max(0, Math.min(255, Math.round(pb * (1 - ink) + ab * shade * ink)));
+      let inkAmt = Math.min(1, (1 - artLum / 255) * cover);
+      if (inkContrast !== 1) inkAmt = Math.min(1, inkAmt ** inkContrast);
+      if (inkAmt <= 0.002) continue;
+      dest[di] = Math.max(0, Math.min(255, Math.round(pr * (1 - inkAmt) + ink.r * inkAmt)));
+      dest[di + 1] = Math.max(0, Math.min(255, Math.round(pg * (1 - inkAmt) + ink.g * inkAmt)));
+      dest[di + 2] = Math.max(0, Math.min(255, Math.round(pb * (1 - inkAmt) + ink.b * inkAmt)));
     }
   }
 
@@ -326,6 +377,24 @@ export async function compositeLabelOnPhotoMaster({
     await fs.writeFile(alsoSavePng, composed);
   }
 
+  const websiteTargets = Array.isArray(websiteOutput)
+    ? websiteOutput
+    : websiteOutput
+      ? [websiteOutput]
+      : [];
+  for (const target of websiteTargets) {
+    if (!target?.path || !target.width || !target.height) continue;
+    await fs.mkdir(path.dirname(target.path), { recursive: true });
+    await sharp(composed)
+      .resize(target.width, target.height, {
+        fit: "contain",
+        background: "#0a0a0a",
+        kernel: "lanczos3",
+      })
+      .png({ compressionLevel: 9 })
+      .toFile(target.path);
+  }
+
   return {
     outputPath,
     masterPhotoPath,
@@ -335,6 +404,8 @@ export async function compositeLabelOnPhotoMaster({
     faceH,
     canvasWidth: mw,
     canvasHeight: mh,
+    labelInkColor,
+    optimizeText,
   };
 }
 
@@ -343,3 +414,5 @@ export function masterPath(masterKey, placement) {
   if (!entry) throw new Error(`Unknown photo master: ${masterKey}`);
   return path.join(systemRoot, entry.file);
 }
+
+export { DEFAULT_SUPERSAMPLE };

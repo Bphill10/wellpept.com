@@ -17,6 +17,7 @@
     "website-vials": "node scripts/generate-catalog-vials.mjs --all",
     "proof:reta": "node scripts/generate-catalog-vials.mjs --id UD-0221",
     "test:vial-v2": "node scripts/generate-vial-system-v2-test.mjs",
+    "test:vial-v2-ink-compare": "node scripts/generate-vial-system-v2-ink-compare.mjs",
     "build": "npm run sync && npm run normalize-vials && npm run b12-liquid-vial && npm run examples && npm run validate"
   },
   "dependencies": {

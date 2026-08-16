@@ -11,7 +11,7 @@ import sharp from "sharp";
 import {
   compositeLabelOnPhotoMaster,
   masterPath,
-  renderLockedLabelPngHiRes,
+  renderLockedLabelArtwork,
   resolveLabelPlacementKey,
   resolvePhotoMasterKey,
   resolvePlacementRect,
@@ -84,11 +84,12 @@ async function renderProduct(product, defaults, placement, outputDir, extra = {}
   const masterKey = extra.masterKey || resolvePhotoMasterKey(product, placement);
   const placementKey = extra.placementKey || resolveLabelPlacementKey(product, placement);
   const profile = resolvePlacementRect(placement, placementKey);
-  const label = await renderLockedLabelPngHiRes(
-    product,
-    defaults,
-    placement.compositor?.labelRasterMinWidth || 3600
-  );
+  const ss = Number(placement.compositor?.labelArtworkSupersample) || 8;
+  const label = await renderLockedLabelArtwork(product, defaults, {
+    width: profile.labelWidth * ss,
+    height: profile.labelHeight * ss,
+    heavierSecondaryText: Boolean(extra.optimizeText),
+  });
   const stem = extra.stem || fileStem(product);
   const pngPath = path.join(outputDir, `${stem}.png`);
   await compositeLabelOnPhotoMaster({
@@ -97,9 +98,12 @@ async function renderProduct(product, defaults, placement, outputDir, extra = {}
     placementProfile: profile,
     outputPath: pngPath,
     edgeInsetPx: placement.compositor?.edgeInsetPx,
-    cylinderMaxThetaRad: placement.compositor?.cylinderMaxThetaRad,
-    labelStockColor: placement.compositor?.labelStockColor,
-    labelStockReferenceLum: placement.compositor?.labelStockReferenceLum,
+    cylinderMaxThetaRad:
+      extra.optimizeText && placement.compositor?.optimizedCylinderMaxThetaRad != null
+        ? placement.compositor.optimizedCylinderMaxThetaRad
+        : placement.compositor?.cylinderMaxThetaRad,
+    labelInkColor: placement.compositor?.labelInkColor,
+    optimizeText: Boolean(extra.optimizeText),
   });
   return {
     catalogId: product.catalogId,

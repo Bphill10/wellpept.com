@@ -9,18 +9,22 @@
   },
   "compositor": {
     "edgeInsetPx": 0,
-    "cylinderMaxThetaRad": 0.1,
+    "cylinderMaxThetaRad": 0.05,
+    "optimizedCylinderMaxThetaRad": 0.03,
     "labelRasterMinWidth": 3600,
-    "labelStockColor": "#D4D8DE",
-    "labelStockReferenceLum": 214,
-    "blend": "recolor-photographed-paper-then-print-ink",
+    "labelArtworkSupersample": 8,
+    "labelInkColor": "#0A0A0A",
+    "blend": "print-ink-only-on-photographed-paper",
     "never": [
-      "opaque white rectangle over the photographed wrap",
+      "recolor, tint, or brighten the photographed label paper",
+      "opaque rectangle over the photographed wrap",
+      "label-background fill or stock-color plate",
       "20/60/20 reconstruction",
       "JavaScript cake tinting",
       "recolor, regenerate, or reshape vial photography",
       "independently measure cobalt or red wraps",
-      "reduce locked SVG product-name font sizes"
+      "reduce locked SVG product-name font sizes",
+      "blur printed artwork"
     ]
   },
   "placements": {
