@@ -31,10 +31,10 @@ find_blender() {
 install_blender() {
   mkdir -p "$CACHE"
   if [[ ! -x "$CACHE/blender-${VERSION}-linux-x64/blender" ]]; then
-    echo "Downloading Blender ${VERSION}…"
+    echo "Downloading Blender ${VERSION}…" >&2
     downloaded=0
     for url in "${URLS[@]}"; do
-      echo "Trying $url"
+      echo "Trying $url" >&2
       if curl -L --fail --retry 3 --retry-delay 4 -o "$CACHE/$TARBALL" "$url"; then
         downloaded=1
         break
