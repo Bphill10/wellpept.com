@@ -1,0 +1,258 @@
+{
+  "ok": true,
+  "note": "Diagnostic only. No design or pipeline changes.",
+  "files": {
+    "photoMaster": {
+      "path": "ud-label-system/review/v2-front-diag-ta1/1_photo_master_untouched.png",
+      "bytes": 1668929,
+      "width": 1122,
+      "height": 1402,
+      "format": "png",
+      "space": "srgb",
+      "channels": 3,
+      "density": 72,
+      "hasAlpha": false,
+      "compressionLevel": null
+    },
+    "labelArtwork": {
+      "path": "ud-label-system/review/v2-front-diag-ta1/2_label_artwork_full.png",
+      "bytes": 754722,
+      "width": 5792,
+      "height": 6592,
+      "format": "png",
+      "space": "srgb",
+      "channels": 4,
+      "density": 791,
+      "hasAlpha": true,
+      "compressionLevel": null
+    },
+    "compositeFull": {
+      "path": "ud-label-system/review/v2-front-diag-ta1/3_composite_full_before_website.png",
+      "bytes": 2433038,
+      "width": 1122,
+      "height": 1402,
+      "format": "png",
+      "space": "srgb",
+      "channels": 4,
+      "hasAlpha": true,
+      "compressionLevel": null
+    },
+    "once400": {
+      "path": "ud-label-system/review/v2-front-diag-ta1/4_composite_once_400x600.png",
+      "bytes": 314741,
+      "width": 400,
+      "height": 600,
+      "format": "png",
+      "space": "srgb",
+      "channels": 4,
+      "hasAlpha": true,
+      "compressionLevel": null
+    },
+    "once200": {
+      "path": "ud-label-system/review/v2-front-diag-ta1/5_composite_once_200x300.png",
+      "bytes": 82725,
+      "width": 200,
+      "height": 300,
+      "format": "png",
+      "space": "srgb",
+      "channels": 4,
+      "hasAlpha": true,
+      "compressionLevel": null
+    },
+    "currentBlurry": {
+      "path": "ud-label-system/review/v2-front-diag-ta1/6_current_blurry_test_200.png",
+      "bytes": 83592,
+      "width": 200,
+      "height": 300,
+      "format": "png",
+      "space": "srgb",
+      "channels": 4,
+      "hasAlpha": true,
+      "compressionLevel": null
+    }
+  },
+  "productionCatalogWebp": {
+    "path": "public/ud-labels/catalog/UD_0277_TA_1_5MG_3mL_Website.webp",
+    "bytes": 273086,
+    "width": 1024,
+    "height": 1536,
+    "format": "webp",
+    "space": "srgb",
+    "channels": 4,
+    "hasAlpha": true,
+    "compressionLevel": null
+  },
+  "currentPipeline": {
+    "window": {
+      "u0": 0,
+      "u1": 0.765,
+      "v0": 0,
+      "v1": 1
+    },
+    "sharpnessSupersample": 16,
+    "artworkTarget": "5792×6592",
+    "face": "362×412",
+    "canvas": "1122×1402",
+    "sampleFilter": "bicubic",
+    "cylinderMaxThetaRad": 0.012,
+    "centerLinearFrac": 0.76,
+    "inkHardness": 0.12,
+    "inkSharpenAmount": 0
+  },
+  "steps": [
+    {
+      "step": 1,
+      "name": "fillLockedLabelSvg",
+      "file": "ud-label-system/scripts/render-locked-label.mjs",
+      "action": "Replace text/QR in locked 40×20 mm SVG. Vector. No raster.",
+      "size": "viewBox 1200×600, width=40mm height=20mm"
+    },
+    {
+      "step": 2,
+      "name": "applyWebsiteCardTypography",
+      "file": "ud-label-system/scripts/website-card-typography.mjs",
+      "action": "In-memory font-size/y only. Vector. No raster. Not used by original Current B.",
+      "size": "still 1200×600 user units"
+    },
+    {
+      "step": 3,
+      "name": "cropLockedLabelSvgToWindow",
+      "file": "ud-label-system/scripts/composite-label-on-photo-master.mjs",
+      "action": "Runtime viewBox crop to B window. Sets width/height to 918×600 user units.",
+      "size": "viewBox 918×600"
+    },
+    {
+      "step": 4,
+      "name": "librsvg via sharp({ density })",
+      "file": "renderLockedLabelArtworkWindow",
+      "action": "First rasterization of the SVG.",
+      "requestedDensity": 791.04,
+      "measuredNative": {
+        "requestedDensity": 791.04,
+        "metadataWidth": 10086,
+        "metadataHeight": 6592,
+        "rawWidth": 10086,
+        "rawHeight": 6592
+      },
+      "targetAfterResize": "5792×6592",
+      "flag": {
+        "label": "SVG native raster → artwork buffer",
+        "from": "10086×6592",
+        "to": "5792×6592",
+        "scaleX": 0.5743,
+        "scaleY": 1,
+        "kind": "downsample",
+        "reduceThenWouldEnlargeLater": true,
+        "enlargeAfterSmallRaster": false
+      }
+    },
+    {
+      "step": 5,
+      "name": "sharp.resize fit:fill lanczos3",
+      "file": "renderLockedLabelArtworkWindow",
+      "action": "Force artwork to face aspect at ss=16 (362×16 by 412×16).",
+      "from": "10086×6592",
+      "to": "5792×6592"
+    },
+    {
+      "step": 6,
+      "name": "knockoutLabelPageBackground",
+      "file": "composite-label-on-photo-master.mjs",
+      "action": "Flood-fill page white to alpha. Same pixel size. No resize."
+    },
+    {
+      "step": 7,
+      "name": "compositeLabelOnPhotoMaster bicubic sample",
+      "file": "composite-label-on-photo-master.mjs",
+      "action": "Sample artwork onto the 362×412 placement on the 1122×1402 photo. Ink is written at photo resolution, not artwork resolution.",
+      "artwork": "5792×6592",
+      "face": "362×412",
+      "canvas": "1122×1402",
+      "flag": {
+        "label": "artwork → face pixels",
+        "from": "5792×6592",
+        "to": "362×412",
+        "scaleX": 0.0625,
+        "scaleY": 0.0625,
+        "kind": "downsample",
+        "reduceThenWouldEnlargeLater": true,
+        "enlargeAfterSmallRaster": false
+      }
+    },
+    {
+      "step": 8,
+      "name": "website card resize",
+      "file": "generate-vial-system-v2-front-scale-ta1.mjs card200()",
+      "action": "One Lanczos contain 1122×1402 → 200×300.",
+      "flag": {
+        "label": "full composite → 200×300",
+        "from": "1122×1402",
+        "to": "200×300",
+        "scaleX": 0.1783,
+        "scaleY": 0.214,
+        "kind": "downsample",
+        "reduceThenWouldEnlargeLater": true,
+        "enlargeAfterSmallRaster": false
+      }
+    }
+  ],
+  "originalCurrentBPath": {
+    "name": "Original Current B (B_front_focused.png) — different raster path",
+    "function": "renderLockedLabelArtwork",
+    "svgWidthAttr": "40mm",
+    "density": 173.76000000000002,
+    "measuredNative": {
+      "requestedDensity": 173.76000000000002,
+      "metadataWidth": 274,
+      "metadataHeight": 137,
+      "rawWidth": 274,
+      "rawHeight": 137
+    },
+    "defaultDensity72": {
+      "requestedDensity": 72,
+      "metadataWidth": 113,
+      "metadataHeight": 57,
+      "rawWidth": 113,
+      "rawHeight": 57
+    },
+    "thenResizeTo": "2896×3296",
+    "flag": {
+      "label": "original B: 40mm SVG raster → ss=8 face buffer",
+      "from": "274×137",
+      "to": "2896×3296",
+      "scaleX": 10.5693,
+      "scaleY": 24.0584,
+      "kind": "upsample",
+      "reduceThenWouldEnlargeLater": false,
+      "enlargeAfterSmallRaster": true
+    },
+    "default72Flag": {
+      "label": "production renderLockedLabelPng: default density 72 → 1800×900",
+      "from": "113×57",
+      "to": "1800×900",
+      "scaleX": 15.9292,
+      "scaleY": 15.7895,
+      "kind": "upsample",
+      "reduceThenWouldEnlargeLater": false,
+      "enlargeAfterSmallRaster": true
+    },
+    "producedArtwork": "2896×3296"
+  },
+  "textPixelBudgetAfterComposite": {
+    "headerOnFace": 25.68,
+    "nameOnFace": 88.99,
+    "doseOnFace": 62.66,
+    "formOnFace": 16.34,
+    "headerAt200": 4.58,
+    "nameAt200": 15.86,
+    "doseAt200": 11.17,
+    "formAt200": 2.91,
+    "headerAt400": 9.16,
+    "nameAt400": 31.73
+  },
+  "reduceThenEnlargeFlags": [
+    "ORIGINAL CURRENT B: librsvg emits a small 40mm raster, then sharp.resize enlarges it to the ss=8 face buffer.",
+    "PRODUCTION renderLockedLabelPng: default density 72 rasters 40mm small, then enlarges to 1800×900."
+  ],
+  "identicalOnce200VsBlurry": false
+}
