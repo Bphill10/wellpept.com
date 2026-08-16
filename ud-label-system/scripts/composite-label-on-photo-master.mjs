@@ -544,7 +544,9 @@ export async function compositeLabelOnPhotoMaster({
   const top = Math.round((placementProfile.labelTop + inset) * scale);
   const faceW = Math.max(1, Math.round((placementProfile.labelWidth - inset * 2) * scale));
   const faceH = Math.max(1, Math.round((placementProfile.labelHeight - inset * 2) * scale));
-  const contain = String(fitMode).toLowerCase() === "contain";
+  const mode = String(fitMode).toLowerCase();
+  const contain = mode === "contain";
+  const widthFit = mode === "width";
   const maxTheta = Number(cylinderMaxThetaRad);
   const linearFrac = Math.max(0, Math.min(1, Number(centerLinearFrac) || 0));
   const ink = parseCssColor(labelInkColor, LABEL_INK_COLOR);
@@ -593,11 +595,11 @@ export async function compositeLabelOnPhotoMaster({
   let destH = faceH;
   let destLeft = left;
   let destTop = top;
-  if (contain && artW > 0 && artH > 0) {
-    const uniform = Math.min(faceW / artW, faceH / artH);
+  if ((contain || widthFit) && artW > 0 && artH > 0) {
+    const uniform = widthFit ? faceW / artW : Math.min(faceW / artW, faceH / artH);
     destW = Math.max(1, Math.round(artW * uniform));
     destH = Math.max(1, Math.round(artH * uniform));
-    destLeft = left + Math.round((faceW - destW) / 2);
+    destLeft = widthFit ? left : left + Math.round((faceW - destW) / 2);
     destTop = top + Math.round((faceH - destH) / 2);
   }
   const srcPerDstX = artW / destW;
@@ -628,7 +630,7 @@ export async function compositeLabelOnPhotoMaster({
       const paper = edgePaperGate(pr, pg, pb, x, y, destW, destH);
       if (paper <= 0.001) continue;
 
-      const uFace = mapFaceU(destW === 1 ? 0 : x / (destW - 1), contain ? 0 : maxTheta, linearFrac);
+      const uFace = mapFaceU(destW === 1 ? 0 : x / (destW - 1), contain || widthFit ? 0 : maxTheta, linearFrac);
       const u = win.u0 + uFace * (win.u1 - win.u0);
       const vArt = win.v0 + v * (win.v1 - win.v0);
       const [ar, ag, ab, aa] = samplePixel(u, vArt);
@@ -752,7 +754,7 @@ export async function compositeLabelOnPhotoMaster({
     destTop,
     destW,
     destH,
-    fitMode: contain ? "contain" : "fill",
+    fitMode: widthFit ? "width" : contain ? "contain" : "fill",
     scaleX: destW / artW,
     scaleY: destH / artH,
     canvasWidth: mw,
