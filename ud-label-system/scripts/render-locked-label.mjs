@@ -218,6 +218,15 @@ export async function fillLockedLabelSvg(product = {}, defaults = {}) {
   const concentration = String(product.concentration ?? "");
   const doseRange = String(product.doseRange ?? "");
   const doseUnits = String(product.doseUnits ?? "");
+  const diluentHeader = String(
+    product.diluentHeader ?? defaults.DILUENT_HEADER ?? "DILUENT"
+  );
+  const concentrationHeader = String(
+    product.concentrationHeader ?? defaults.CONCENTRATION_HEADER ?? "CONCENTRATION"
+  );
+  const doseRangeHeader = String(
+    product.doseRangeHeader ?? defaults.DOSE_RANGE_HEADER ?? "DOSE RANGE"
+  );
   const qrEnabled = bool(product.qrEnabled, bool(defaults.QR_ENABLED, true));
   const qrValue = String(
     product.coaUrl ||
@@ -237,6 +246,9 @@ export async function fillLockedLabelSvg(product = {}, defaults = {}) {
   svg = replaceTextField(svg, "LEGAL_LINE_1", legal1);
   svg = replaceTextField(svg, "LEGAL_LINE_2", legal2);
   svg = replaceTextField(svg, "LEGAL_LINE_3", legal3);
+  svg = replaceTextField(svg, "DILUENT_HEADER", diluentHeader);
+  svg = replaceTextField(svg, "CONCENTRATION_HEADER", concentrationHeader);
+  svg = replaceTextField(svg, "DOSE_RANGE_HEADER", doseRangeHeader);
   svg = replaceTextField(svg, "DILUENT", diluent);
   svg = replaceTextField(svg, "CONCENTRATION", concentration);
   svg = replaceTextField(svg, "DOSE_RANGE", doseRange);

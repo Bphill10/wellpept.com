@@ -1,0 +1,200 @@
+{
+  "status": "TEST_ONLY_AWAITING_VISUAL_APPROVAL",
+  "productionUntouched": {
+    "catalog": "public/ud-labels/catalog/",
+    "manifest": "public/ud-labels/catalog-manifest.json",
+    "calculator": "src/utils/vialArt.js drawGeneratedVial"
+  },
+  "catalogTest": [
+    {
+      "catalogId": "UD-0277",
+      "labelName": "TA-1",
+      "amount": 5,
+      "unit": "MG",
+      "vialMl": 3,
+      "labelType": "CATALOG",
+      "masterKey": "3ml-white",
+      "output": "public/ud-labels/catalog-v2-test/UD_0277_TA_1_5MG_3mL_v2.png",
+      "labelMaster": "labels/01_3mL_Catalog_40x20_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x1800"
+    },
+    {
+      "catalogId": "UD-0221",
+      "labelName": "RETATRUTIDE",
+      "amount": 10,
+      "unit": "MG",
+      "vialMl": 3,
+      "labelType": "CATALOG",
+      "masterKey": "3ml-white",
+      "output": "public/ud-labels/catalog-v2-test/UD_0221_RETATRUTIDE_10MG_3mL_v2.png",
+      "labelMaster": "labels/01_3mL_Catalog_40x20_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x1800"
+    },
+    {
+      "catalogId": "UD-0161",
+      "labelName": "KLOW",
+      "amount": 80,
+      "unit": "MG",
+      "vialMl": 3,
+      "labelType": "CATALOG",
+      "masterKey": "3ml-cobalt",
+      "output": "public/ud-labels/catalog-v2-test/UD_0161_KLOW_80MG_3mL_v2.png",
+      "labelMaster": "labels/01_3mL_Catalog_40x20_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x1800"
+    },
+    {
+      "catalogId": "UD-0122",
+      "labelName": "GLOW",
+      "amount": 70,
+      "unit": "MG",
+      "vialMl": 3,
+      "labelType": "CATALOG",
+      "masterKey": "3ml-cobalt",
+      "output": "public/ud-labels/catalog-v2-test/UD_0122_GLOW_70MG_3mL_v2.png",
+      "labelMaster": "labels/01_3mL_Catalog_40x20_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x1800"
+    },
+    {
+      "catalogId": "UD-0204",
+      "labelName": "NAD+",
+      "amount": 1000,
+      "unit": "MG",
+      "vialMl": 10,
+      "labelType": "CATALOG",
+      "masterKey": "10ml-white",
+      "output": "public/ud-labels/catalog-v2-test/UD_0204_NAD_1000MG_10mL_v2.png",
+      "labelMaster": "labels/03_10mL_Catalog_50x30_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x2160"
+    },
+    {
+      "catalogId": "UD-0037",
+      "labelName": "B12",
+      "amount": 10,
+      "unit": "MG",
+      "vialMl": 10,
+      "labelType": "CATALOG",
+      "masterKey": "10ml-red",
+      "output": "public/ud-labels/catalog-v2-test/UD_0037_B12_10MG_10mL_v2.png",
+      "labelMaster": "labels/03_10mL_Catalog_50x30_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x2160"
+    },
+    {
+      "catalogId": "UD-5ML-DEMO",
+      "labelName": "5 mL DEMO",
+      "amount": 10,
+      "unit": "MG",
+      "vialMl": 5,
+      "labelType": "CATALOG",
+      "masterKey": "5ml-white",
+      "output": "public/ud-labels/catalog-v2-test/UD_5ML_DEMO_5_ML_DEMO_10MG_5mL_v2.png",
+      "labelMaster": "labels/01_3mL_Catalog_40x20_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x1800"
+    }
+  ],
+  "calculatorTest": [
+    {
+      "catalogId": "UD-0277",
+      "labelName": "TA-1",
+      "amount": 5,
+      "unit": "MG",
+      "vialMl": 3,
+      "labelType": "CALCULATOR",
+      "masterKey": "3ml-white",
+      "output": "public/ud-labels/calculator-v2-test/calculator-TA1-5mg-3ml-white.png",
+      "labelMaster": "labels/02_3mL_Calculator_40x20_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x1800"
+    },
+    {
+      "catalogId": "UD-0161",
+      "labelName": "KLOW",
+      "amount": 80,
+      "unit": "MG",
+      "vialMl": 3,
+      "labelType": "CALCULATOR",
+      "masterKey": "3ml-cobalt",
+      "output": "public/ud-labels/calculator-v2-test/calculator-KLOW-80mg-3ml-cobalt.png",
+      "labelMaster": "labels/02_3mL_Calculator_40x20_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x1800"
+    },
+    {
+      "catalogId": "UD-0204",
+      "labelName": "NAD+",
+      "amount": 1000,
+      "unit": "MG",
+      "vialMl": 10,
+      "labelType": "CALCULATOR",
+      "masterKey": "10ml-white",
+      "output": "public/ud-labels/calculator-v2-test/calculator-NAD-1000mg-10ml-white.png",
+      "labelMaster": "labels/04_10mL_Calculator_50x30_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x2160"
+    },
+    {
+      "catalogId": "UD-0037",
+      "labelName": "B12",
+      "amount": 10,
+      "unit": "MG",
+      "vialMl": 10,
+      "labelType": "CALCULATOR",
+      "masterKey": "10ml-red",
+      "output": "public/ud-labels/calculator-v2-test/calculator-B12-10mg-10ml-red.png",
+      "labelMaster": "labels/04_10mL_Calculator_50x30_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x2160"
+    }
+  ],
+  "review": {
+    "comparison": "ud-label-system/review/vial-system-v2-comparison.png",
+    "masters": "ud-label-system/review/vial-system-v2-masters.png"
+  },
+  "pairGeometry": {
+    "3ml": {
+      "matching": true,
+      "vertical": "compatible",
+      "notes": "White and cobalt share the same vertical wrap band (top 606–607, height 408–412, bottoms 1013–1018). Width differs by image-gen: cobalt wrap is 30 px wider (392 vs 362) and shifts 13 px left / 17 px right. Each master keeps its own measured face. Artwork is not distorted to hide the width delta.",
+      "white": {
+        "labelLeft": 377,
+        "labelTop": 607,
+        "labelWidth": 362,
+        "labelHeight": 412
+      },
+      "cobalt": {
+        "labelLeft": 364,
+        "labelTop": 606,
+        "labelWidth": 392,
+        "labelHeight": 408
+      },
+      "deltaCobaltMinusWhite": {
+        "left": -13,
+        "top": -1,
+        "width": 30,
+        "height": -4,
+        "right": 17,
+        "bottom": -5
+      }
+    },
+    "10ml": {
+      "matching": false,
+      "vertical": "compatible-top-only",
+      "notes": "White and red share a compatible top edge (624 vs 620). The red photograph’s wrap is 52 px wider and 50 px taller (411×460 vs 359×410) and extends 46 px lower. This is an image-gen difference, not a shared physical die. Each master uses its own measured face. Artwork is not stretched to force one box.",
+      "white": {
+        "labelLeft": 381,
+        "labelTop": 624,
+        "labelWidth": 359,
+        "labelHeight": 410
+      },
+      "red": {
+        "labelLeft": 356,
+        "labelTop": 620,
+        "labelWidth": 411,
+        "labelHeight": 460
+      },
+      "deltaRedMinusWhite": {
+        "left": -25,
+        "top": -4,
+        "width": 52,
+        "height": 50,
+        "right": 27,
+        "bottom": 46
+      }
+    }
+  }
+}

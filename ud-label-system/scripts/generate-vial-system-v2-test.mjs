@@ -262,8 +262,8 @@ async function main() {
       ...product,
       labelType: "CALCULATOR",
       diluent: product.diluent || (Number(product.vialMl) >= 8 ? "5 mL" : "2 mL"),
-      concentration: product.concentration || "",
-      doseRange: product.doseRange || "",
+      concentration: product.concentration || "—",
+      doseRange: product.doseRange || "—",
       doseUnits: product.doseUnits || "",
     };
     calculatorResults.push(
