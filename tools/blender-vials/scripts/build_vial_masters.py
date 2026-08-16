@@ -165,9 +165,11 @@ def derived(spec):
     chamber_h = body_top - spec["floor"]
     cake_h = chamber_h * spec["cake_fill"]
     liquid_h = chamber_h * spec["liquid_fill"]
-    z_crimp0 = z_bead - 0.20
-    z_crimp1 = z_bead + spec["crimp_h"]
-    z_cap0 = z_crimp1 - 0.12
+    # Thin visible aluminum band, then a single flat flip-off. Body/label math
+    # is unchanged; only the closure stack is tightened.
+    z_crimp0 = z_bead - 0.12
+    z_crimp1 = z_bead + min(spec["crimp_h"] * 0.42, 2.25)
+    z_cap0 = z_crimp1 - 0.06
     z_cap1 = z_cap0 + spec["cap_h"]
     return {
         "labelable_body_bottom_z": body_bottom,
@@ -203,6 +205,17 @@ def smooth_steps(a, b, count):
     return out
 
 
+def shoulder_curve(a, b, count):
+    """Rounded pharmaceutical shoulder: stay wide, then flow into the neck."""
+    out = []
+    for i in range(count):
+        t = i / (count - 1)
+        s = t * t * t * (t * (t * 6.0 - 15.0) + 10.0)
+        r_t = s ** 1.65
+        out.append((a[0] + (b[0] - a[0]) * r_t, a[1] + (b[1] - a[1]) * s))
+    return out
+
+
 def _purge(collection):
     for item in list(collection):
         collection.remove(item)
@@ -231,12 +244,12 @@ def reset_scene():
         pass
     scene.cycles.use_adaptive_sampling = True
     scene.cycles.adaptive_threshold = 0.03
-    scene.cycles.max_bounces = 12
-    scene.cycles.transparent_max_bounces = 12
-    scene.cycles.transmission_bounces = 12
-    scene.cycles.diffuse_bounces = 3
-    scene.cycles.glossy_bounces = 6
-    scene.cycles.volume_bounces = 2
+    scene.cycles.max_bounces = 16
+    scene.cycles.transparent_max_bounces = 16
+    scene.cycles.transmission_bounces = 16
+    scene.cycles.diffuse_bounces = 4
+    scene.cycles.glossy_bounces = 8
+    scene.cycles.volume_bounces = 4
     scene.cycles.caustics_reflective = False
     scene.cycles.caustics_refractive = False
     if hasattr(scene.cycles, "blur_glossy"):
@@ -260,8 +273,8 @@ def reset_scene():
     scene.world = world
     world.use_nodes = True
     bg = world.node_tree.nodes["Background"]
-    bg.inputs["Color"].default_value = (0.018, 0.018, 0.020, 1)
-    bg.inputs["Strength"].default_value = 0.22
+    bg.inputs["Color"].default_value = (0.12, 0.12, 0.125, 1)
+    bg.inputs["Strength"].default_value = 0.35
     return scene
 
 
@@ -350,108 +363,112 @@ def assign(obj, mat):
 def build_materials():
     mats = {}
 
-    glass = bpy.data.materials.new("MAT_GLASS_BOROSILICATE")
-    glass.use_nodes = True
-    nodes = glass.node_tree.nodes
-    links = glass.node_tree.links
-    nodes.clear()
-    out = nodes.new("ShaderNodeOutputMaterial")
-    glass_bsdf = nodes.new("ShaderNodeBsdfGlass")
-    glass_bsdf.inputs["Color"].default_value = (0.96, 0.98, 0.99, 1)
-    glass_bsdf.inputs["Roughness"].default_value = 0.008
-    glass_bsdf.inputs["IOR"].default_value = 1.47
-    links.new(glass_bsdf.outputs["BSDF"], out.inputs["Surface"])
+    glass, nodes, links, bsdf, out = new_material("MAT_GLASS_BOROSILICATE")
+    set_input(bsdf, ["Base Color"], (0.99, 0.995, 1.0, 1))
+    set_input(bsdf, ["Roughness"], 0.0)
+    set_input(bsdf, ["Metallic"], 0.0)
+    set_input(bsdf, ["IOR"], 1.47)
+    set_input(bsdf, ["Transmission Weight", "Transmission"], 1.0)
+    set_input(bsdf, ["Specular IOR Level", "Specular"], 0.5)
+    set_input(bsdf, ["Coat Weight"], 0.0)
+    vol = nodes.new("ShaderNodeVolumeAbsorption")
+    vol.inputs["Color"].default_value = (0.97, 0.98, 0.99, 1)
+    vol.inputs["Density"].default_value = 0.08
+    links.new(vol.outputs["Volume"], out.inputs["Volume"])
     mats["glass"] = glass
 
     stopper, _n, _l, bsdf, _o = new_material("MAT_STOPPER_GRAY")
-    set_input(bsdf, ["Base Color"], (0.22, 0.22, 0.23, 1))
-    set_input(bsdf, ["Roughness"], 0.62)
+    set_input(bsdf, ["Base Color"], (0.16, 0.16, 0.17, 1))
+    set_input(bsdf, ["Roughness"], 0.78)
     set_input(bsdf, ["Metallic"], 0.0)
-    set_input(bsdf, ["Specular IOR Level", "Specular"], 0.18)
+    set_input(bsdf, ["Specular IOR Level", "Specular"], 0.08)
+    set_input(bsdf, ["Coat Weight"], 0.0)
+    set_input(bsdf, ["Emission Strength"], 0.0)
     mats["stopper"] = stopper
 
     crimp, nodes, links, bsdf, _o = new_material("MAT_CRIMP_SILVER")
-    set_input(bsdf, ["Base Color"], (0.42, 0.43, 0.45, 1))
+    set_input(bsdf, ["Base Color"], (0.36, 0.37, 0.39, 1))
     set_input(bsdf, ["Metallic"], 1.0)
-    set_input(bsdf, ["Roughness"], 0.42)
-    set_input(bsdf, ["Anisotropic Weight", "Anisotropic"], 0.28)
+    set_input(bsdf, ["Roughness"], 0.48)
+    set_input(bsdf, ["Anisotropic Weight", "Anisotropic"], 0.55)
     set_input(bsdf, ["Anisotropic Rotation"], 0.25)
+    set_input(bsdf, ["Specular IOR Level", "Specular"], 0.35)
+    set_input(bsdf, ["Coat Weight"], 0.0)
     tex = nodes.new("ShaderNodeTexNoise")
-    tex.inputs["Scale"].default_value = 180
-    tex.inputs["Detail"].default_value = 5
+    tex.inputs["Scale"].default_value = 220
+    tex.inputs["Detail"].default_value = 6
     bump = nodes.new("ShaderNodeBump")
-    bump.inputs["Strength"].default_value = 0.04
+    bump.inputs["Strength"].default_value = 0.06
     links.new(tex.outputs["Fac"], bump.inputs["Height"])
     links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
     mats["crimp"] = crimp
 
-    cap = bpy.data.materials.new("MAT_CAP_BLACK")
-    cap.use_nodes = True
-    nodes = cap.node_tree.nodes
-    links = cap.node_tree.links
-    nodes.clear()
-    out = nodes.new("ShaderNodeOutputMaterial")
-    diff = nodes.new("ShaderNodeBsdfDiffuse")
-    diff.inputs["Color"].default_value = (0.012, 0.012, 0.013, 1)
-    if "Roughness" in diff.inputs:
-        diff.inputs["Roughness"].default_value = 0.70
-    links.new(diff.outputs["BSDF"], out.inputs["Surface"])
+    cap, _n, _l, bsdf, _o = new_material("MAT_CAP_BLACK")
+    set_input(bsdf, ["Base Color"], (0.004, 0.004, 0.005, 1))
+    set_input(bsdf, ["Roughness"], 0.88)
+    set_input(bsdf, ["Metallic"], 0.0)
+    set_input(bsdf, ["Specular IOR Level", "Specular"], 0.03)
+    set_input(bsdf, ["Coat Weight"], 0.0)
+    set_input(bsdf, ["Emission Strength"], 0.0)
+    set_input(bsdf, ["Sheen Weight"], 0.0)
     mats["cap"] = cap
 
     label, nodes, links, bsdf, _o = new_material("MAT_LABEL_WHITE")
-    set_input(bsdf, ["Base Color"], (0.93, 0.93, 0.92, 1))
-    set_input(bsdf, ["Roughness"], 0.58)
+    set_input(bsdf, ["Base Color"], (0.91, 0.91, 0.90, 1))
+    set_input(bsdf, ["Roughness"], 0.62)
     set_input(bsdf, ["Metallic"], 0.0)
-    set_input(bsdf, ["Specular IOR Level", "Specular"], 0.12)
+    set_input(bsdf, ["Specular IOR Level", "Specular"], 0.08)
     noise = nodes.new("ShaderNodeTexNoise")
     noise.inputs["Scale"].default_value = 240
     noise.inputs["Detail"].default_value = 8
     bump = nodes.new("ShaderNodeBump")
-    bump.inputs["Strength"].default_value = 0.03
+    bump.inputs["Strength"].default_value = 0.025
     bump.inputs["Distance"].default_value = mm(0.04)
     links.new(noise.outputs["Fac"], bump.inputs["Height"])
     links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
     mats["label"] = label
 
-    def cake_mat(name, color):
+    def cake_mat(name, color, emit_strength):
         mat, nodes, links, bsdf, out = new_material(name)
         set_input(bsdf, ["Base Color"], color)
-        set_input(bsdf, ["Roughness"], 0.72)
-        set_input(bsdf, ["Specular IOR Level", "Specular"], 0.08)
-        set_input(bsdf, ["Subsurface Weight", "Subsurface"], 0.22)
-        set_input(bsdf, ["Subsurface Radius"], (0.25, 0.16, 0.10))
-        set_input(bsdf, ["Subsurface Scale"], 0.04)
+        set_input(bsdf, ["Roughness"], 0.78)
+        set_input(bsdf, ["Specular IOR Level", "Specular"], 0.04)
+        set_input(bsdf, ["Subsurface Weight", "Subsurface"], 0.35)
+        set_input(bsdf, ["Subsurface Radius"], (0.35, 0.22, 0.14))
+        set_input(bsdf, ["Subsurface Scale"], 0.06)
+        set_input(bsdf, ["Metallic"], 0.0)
         noise = nodes.new("ShaderNodeTexNoise")
-        noise.inputs["Scale"].default_value = 95
-        noise.inputs["Detail"].default_value = 10
-        noise.inputs["Roughness"].default_value = 0.45
+        noise.inputs["Scale"].default_value = 120
+        noise.inputs["Detail"].default_value = 12
+        noise.inputs["Roughness"].default_value = 0.35
         bump = nodes.new("ShaderNodeBump")
-        bump.inputs["Strength"].default_value = 0.18
-        bump.inputs["Distance"].default_value = mm(0.05)
+        bump.inputs["Strength"].default_value = 0.12
+        bump.inputs["Distance"].default_value = mm(0.035)
         links.new(noise.outputs["Fac"], bump.inputs["Height"])
         links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
         emit = nodes.new("ShaderNodeEmission")
         emit.inputs["Color"].default_value = color
-        emit.inputs["Strength"].default_value = 0.32
+        emit.inputs["Strength"].default_value = emit_strength
         mix = nodes.new("ShaderNodeMixShader")
-        mix.inputs["Fac"].default_value = 0.20
+        mix.inputs["Fac"].default_value = 0.28
         links.new(bsdf.outputs["BSDF"], mix.inputs[1])
         links.new(emit.outputs["Emission"], mix.inputs[2])
         links.new(mix.outputs["Shader"], out.inputs["Surface"])
         return mat
 
-    mats["cake_white"] = cake_mat("MAT_CAKE_WHITE", (0.92, 0.90, 0.87, 1))
-    mats["cake_cobalt"] = cake_mat("MAT_CAKE_COBALT", (0.02, 0.10, 0.46, 1))
+    mats["cake_white"] = cake_mat("MAT_CAKE_WHITE", (0.96, 0.95, 0.93, 1), 0.55)
+    mats["cake_cobalt"] = cake_mat("MAT_CAKE_COBALT", (0.03, 0.14, 0.58, 1), 0.45)
 
     liquid, nodes, links, bsdf, out = new_material("MAT_LIQUID_RED")
-    set_input(bsdf, ["Base Color"], (0.647, 0.0, 0.094, 1))
-    set_input(bsdf, ["Roughness"], 0.02)
+    set_input(bsdf, ["Base Color"], (0.28, 0.01, 0.04, 1))
+    set_input(bsdf, ["Roughness"], 0.0)
     set_input(bsdf, ["Transmission Weight", "Transmission"], 1.0)
     set_input(bsdf, ["IOR"], 1.333)
     set_input(bsdf, ["Metallic"], 0.0)
+    set_input(bsdf, ["Specular IOR Level", "Specular"], 0.35)
     vol = nodes.new("ShaderNodeVolumeAbsorption")
-    vol.inputs["Color"].default_value = (0.647, 0.0, 0.094, 1)
-    vol.inputs["Density"].default_value = 3.2
+    vol.inputs["Color"].default_value = (0.22, 0.01, 0.035, 1)
+    vol.inputs["Density"].default_value = 1.15
     links.new(vol.outputs["Volume"], out.inputs["Volume"])
     mats["liquid"] = liquid
     return mats
@@ -480,7 +497,7 @@ def glass_profile(spec, d):
         (r_out, body_bottom),
         (r_out, body_top),
     ]
-    outer += smooth_steps((r_out, body_top), (neck_r, z_neck), 14)[1:]
+    outer += shoulder_curve((r_out, body_top), (neck_r, z_neck), 22)[1:]
     outer += [
         (neck_r, z_bead),
         (bead_r, z_bead + bead_h * 0.38),
@@ -489,7 +506,7 @@ def glass_profile(spec, d):
         (neck_inner, z_top),
         (neck_inner, z_bead),
     ]
-    inner = list(reversed(smooth_steps((r_in, body_top + 0.12), (neck_inner, z_neck), 8)))[1:]
+    inner = list(reversed(shoulder_curve((r_in, body_top + 0.12), (neck_inner, z_neck), 16)))[1:]
     inner += [
         (r_in, body_top),
         (r_in, floor),
@@ -567,8 +584,8 @@ def create_label_wrap(name, spec, d):
 
 
 def cap_profile(spec, d):
-    r = spec["cap_r"]
-    chamfer = spec["cap_chamfer"]
+    r = spec["bead_r"] + 0.22
+    chamfer = 0.10
     z0 = d["z_cap0"]
     z1 = d["z_cap1"]
     core = 0.02
@@ -582,20 +599,19 @@ def cap_profile(spec, d):
 
 
 def crimp_profile(spec, d):
-    skirt_r = spec["neck_r"] + spec["crimp_overhang"]
-    top_r = spec["cap_r"] * 0.93
+    """Thin formed aluminum band around the bead — not a solid stacked disc."""
+    outer_r = spec["bead_r"] + 0.10
+    inner_r = spec["neck_r"] - 0.08
     z0 = d["z_crimp0"]
     z1 = d["z_crimp1"]
-    z_bead = d["z_bead"]
-    core = 0.02
+    wall = 0.18
     return [
-        (core, z0 + 0.8),
-        (skirt_r * 0.72, z0 + 0.15),
-        (skirt_r, z0),
-        (skirt_r, z_bead + spec["crimp_h"] * 0.38),
-        (top_r, z_bead + spec["crimp_h"] * 0.55),
-        (top_r, z1),
-        (core, z1),
+        (inner_r, z0 + 0.20),
+        (outer_r - wall, z0),
+        (outer_r, z0),
+        (outer_r, z1),
+        (outer_r - wall, z1),
+        (inner_r, z1 - 0.12),
     ]
 
 
@@ -691,6 +707,14 @@ def instance_master(parts, capacity, contents, location, collection, mats):
     return inst
 
 
+def hide_from_camera_and_transmission(obj):
+    obj.visible_camera = False
+    obj.visible_transmission = False
+    obj.visible_glossy = True
+    obj.visible_diffuse = True
+    obj.visible_shadow = True
+
+
 def add_area(name, loc, energy, rot, size, collection):
     light = bpy.data.lights.new(name, type="AREA")
     light.shape = "RECTANGLE"
@@ -702,8 +726,27 @@ def add_area(name, loc, energy, rot, size, collection):
     collection.objects.link(obj)
     obj.location = loc
     obj.rotation_euler = rot
-    obj.visible_camera = False
-    obj.visible_shadow = True
+    hide_from_camera_and_transmission(obj)
+    return obj
+
+
+def add_reflection_card(name, loc, size_xy, rot, collection):
+    mesh = bpy.data.meshes.new(name)
+    w, h = size_xy
+    verts = [(-w / 2, 0, -h / 2), (w / 2, 0, -h / 2), (w / 2, 0, h / 2), (-w / 2, 0, h / 2)]
+    mesh.from_pydata(verts, [], [(0, 1, 2, 3)])
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    collection.objects.link(obj)
+    obj.location = loc
+    obj.rotation_euler = rot
+    mat, _n, _l, bsdf, _o = new_material(f"{name}Mat")
+    set_input(bsdf, ["Base Color"], (0.82, 0.82, 0.83, 1))
+    set_input(bsdf, ["Roughness"], 0.55)
+    set_input(bsdf, ["Metallic"], 0.0)
+    set_input(bsdf, ["Specular IOR Level", "Specular"], 0.04)
+    assign(obj, mat)
+    hide_from_camera_and_transmission(obj)
     return obj
 
 
@@ -718,42 +761,56 @@ def setup_lights(center, radius, height):
     cx, cy, cz = center
     add_area(
         "RimLeft",
-        loc=(cx - radius - mm(14), cy + mm(18), cz + height * 0.48),
-        energy=110,
-        rot=(math.radians(78), 0, math.radians(-32)),
-        size=(mm(8), height * 1.15),
+        loc=(cx - radius - mm(18), cy + mm(22), cz + height * 0.42),
+        energy=38,
+        rot=(math.radians(82), 0, math.radians(-18)),
+        size=(mm(3.2), height * 0.95),
         collection=coll,
     )
     add_area(
         "RimRight",
-        loc=(cx + radius + mm(15), cy + mm(16), cz + height * 0.46),
-        energy=95,
-        rot=(math.radians(78), 0, math.radians(32)),
-        size=(mm(8), height * 1.10),
+        loc=(cx + radius + mm(18), cy + mm(20), cz + height * 0.40),
+        energy=32,
+        rot=(math.radians(82), 0, math.radians(18)),
+        size=(mm(3.0), height * 0.90),
         collection=coll,
     )
     add_area(
         "CapKey",
-        loc=(cx, cy + mm(28), cz + height + mm(18)),
-        energy=5,
-        rot=(math.radians(48), 0, 0),
-        size=(radius * 2.4, mm(22)),
+        loc=(cx + mm(6), cy - mm(24), cz + height + mm(10)),
+        energy=2.2,
+        rot=(math.radians(55), 0, math.radians(8)),
+        size=(radius * 1.1, mm(10)),
         collection=coll,
     )
     add_area(
         "SoftFill",
-        loc=(cx + mm(8), cy - mm(55), cz + height * 0.55),
-        energy=7,
-        rot=(math.radians(78), 0, math.radians(8)),
-        size=(radius * 3.2, height * 0.9),
+        loc=(cx, cy - mm(70), cz + height * 0.45),
+        energy=9,
+        rot=(math.radians(82), 0, 0),
+        size=(radius * 2.6, height * 0.7),
         collection=coll,
     )
     add_area(
         "CakeKiss",
-        loc=(cx + radius * 0.8, cy + mm(20), cz + mm(8)),
-        energy=20,
-        rot=(math.radians(62), 0, math.radians(-20)),
-        size=(mm(18), mm(16)),
+        loc=(cx + radius * 0.4, cy - mm(28), cz + mm(6)),
+        energy=14,
+        rot=(math.radians(70), 0, math.radians(-8)),
+        size=(mm(22), mm(14)),
+        collection=coll,
+    )
+    add_reflection_card(
+        "CardLeft",
+        loc=(cx - radius - mm(22), cy + mm(8), cz + height * 0.40),
+        size_xy=(mm(6), height * 0.85),
+        rot=(math.radians(90), 0, math.radians(-12)),
+        collection=coll,
+    )
+    add_reflection_card(
+        "CardRight",
+        loc=(cx + radius + mm(22), cy + mm(8), cz + height * 0.40),
+        size_xy=(mm(5.5), height * 0.80),
+        rot=(math.radians(90), 0, math.radians(12)),
         collection=coll,
     )
     return coll
