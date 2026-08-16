@@ -134,6 +134,28 @@ export async function renderLockedLabelArtwork(product = {}, defaults = {}, opti
 }
 
 /**
+ * Rasterize the locked SVG at native aspect for the master-photo composite.
+ * Density is chosen so the vector raster is already the output size.
+ */
+export async function renderLockedLabelArtworkNative(product = {}, defaults = {}, options = {}) {
+  const { svg, masterRel } = await fillLockedLabelSvg(product, defaults, {
+    heavierSecondaryText: Boolean(options.heavierSecondaryText),
+  });
+  const widthMatch = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg);
+  const vbW = Number(widthMatch?.[1] || 1200);
+  const vbH = Number(widthMatch?.[2] || 600);
+  const outW = Math.max(1, Math.round(options.minWidth || 7200));
+  const outH = Math.max(1, Math.round((outW * vbH) / vbW));
+  const density = Math.max(72, (outW / vbW) * 72);
+  const png = await sharp(Buffer.from(svg), { density })
+    .resize(outW, outH, { fit: "fill", kernel: "lanczos3" })
+    .ensureAlpha()
+    .png({ compressionLevel: 6 })
+    .toBuffer();
+  return { png, width: outW, height: outH, masterRel, svg, viewBoxWidth: vbW, viewBoxHeight: vbH };
+}
+
+/**
  * Knock out the flat white page background. Printed white (amount-bar
  * text) stays because it is not connected to the edges.
  */
@@ -253,6 +275,47 @@ function edgePaperGate(r, g, b, x, y, w, h) {
   return Math.max(0, (paperLum - 40) / 48);
 }
 
+function smoothstep(t) {
+  const x = Math.max(0, Math.min(1, t));
+  return x * x * (3 - 2 * x);
+}
+
+/**
+ * Uniform-aspect mapping: height fills the face. Center ~70% of the
+ * visible face samples the artwork at the same X/Y scale so letters
+ * are not squeezed. Remaining side content is compressed into the
+ * outer edges instead of stretching the whole wrap.
+ */
+export function mapFaceToArtworkU(x, faceW, faceH, artAspect, centerFrac = 0.7) {
+  const centerW = Math.max(1, faceW * centerFrac);
+  const displayedArtW = faceH * artAspect;
+  const centerUWidth = Math.min(1, centerW / Math.max(1, displayedArtW));
+  const u0 = 0.5 - centerUWidth / 2;
+  const u1 = 0.5 + centerUWidth / 2;
+  const leftEnd = (faceW - centerW) / 2;
+  const rightStart = leftEnd + centerW;
+  if (x >= leftEnd && x <= rightStart) {
+    const t = (x - leftEnd) / centerW;
+    return u0 + t * (u1 - u0);
+  }
+  if (x < leftEnd) {
+    const t = leftEnd <= 0 ? 1 : x / leftEnd;
+    return u0 * smoothstep(t);
+  }
+  const span = Math.max(1, faceW - rightStart);
+  const t = (x - rightStart) / span;
+  return u1 + (1 - u1) * smoothstep(t);
+}
+
+function applyEdgeOnlyCylinder(u, x, faceW, maxTheta, centerFrac = 0.7) {
+  if (!maxTheta) return u;
+  const nx = faceW === 1 ? 0 : (x / (faceW - 1)) * 2 - 1;
+  const edge = Math.max(0, (Math.abs(nx) - centerFrac) / Math.max(0.001, 1 - centerFrac));
+  if (edge <= 0) return u;
+  const wobble = nx * maxTheta * edge * edge * 0.35;
+  return Math.max(0, Math.min(1, u + wobble));
+}
+
 /**
  * @param {object} options
  * @param {string} options.masterPhotoPath
@@ -273,6 +336,9 @@ export async function compositeLabelOnPhotoMaster({
   cylinderMaxThetaRad = DEFAULT_THETA,
   labelInkColor = LABEL_INK_COLOR,
   optimizeText = false,
+  typographyFix = false,
+  centerReadabilityFrac = 0.7,
+  inkSharpen = null,
   websiteOutput = null,
   alsoSavePng = null,
 }) {
@@ -284,7 +350,8 @@ export async function compositeLabelOnPhotoMaster({
   const faceH = Math.max(1, placementProfile.labelHeight - inset * 2);
   const maxTheta = Number(cylinderMaxThetaRad);
   const ink = parseCssColor(labelInkColor, LABEL_INK_COLOR);
-  const inkContrast = optimizeText ? 0.82 : 1;
+  const inkContrast = optimizeText && !typographyFix ? 0.82 : 1;
+  const centerFrac = Math.max(0.5, Math.min(0.9, Number(centerReadabilityFrac) || 0.7));
 
   const knocked = await knockoutLabelPageBackground(labelArtwork);
   const art = await sharp(knocked)
@@ -302,7 +369,9 @@ export async function compositeLabelOnPhotoMaster({
   const artW = art.info.width;
   const artH = art.info.height;
   const dest = master.data;
+  const artAspect = artW / artH;
   const sinMax = Math.sin(maxTheta) || 1;
+  const inkLayer = typographyFix ? Buffer.alloc(mw * mh * 4) : null;
 
   for (let y = 0; y < faceH; y += 1) {
     const v = faceH === 1 ? 0 : y / (faceH - 1);
@@ -322,9 +391,15 @@ export async function compositeLabelOnPhotoMaster({
       const paper = edgePaperGate(pr, pg, pb, x, y, faceW, faceH);
       if (paper <= 0.001) continue;
 
-      const nx = faceW === 1 ? 0 : (x / (faceW - 1)) * 2 - 1;
-      const theta = nx * maxTheta;
-      const u = maxTheta === 0 ? (faceW === 1 ? 0 : x / (faceW - 1)) : (Math.sin(theta) / sinMax + 1) / 2;
+      let u;
+      if (typographyFix) {
+        u = mapFaceToArtworkU(x, faceW, faceH, artAspect, centerFrac);
+        u = applyEdgeOnlyCylinder(u, x, faceW, maxTheta, centerFrac);
+      } else {
+        const nx = faceW === 1 ? 0 : (x / (faceW - 1)) * 2 - 1;
+        const theta = nx * maxTheta;
+        u = maxTheta === 0 ? (faceW === 1 ? 0 : x / (faceW - 1)) : (Math.sin(theta) / sinMax + 1) / 2;
+      }
       const [ar, ag, ab, aa] = sampleBilinear(src, artW, artH, u, v);
       if (aa < 10) continue;
 
@@ -335,18 +410,57 @@ export async function compositeLabelOnPhotoMaster({
 
       if (artLum >= 200) {
         if (!isLightOnDark(src, artW, artH, srcX, srcY)) continue;
-        dest[di] = Math.round(pr * (1 - cover) + 250 * cover);
-        dest[di + 1] = Math.round(pg * (1 - cover) + 250 * cover);
-        dest[di + 2] = Math.round(pb * (1 - cover) + 250 * cover);
+        if (inkLayer) {
+          inkLayer[di] = 250;
+          inkLayer[di + 1] = 250;
+          inkLayer[di + 2] = 250;
+          inkLayer[di + 3] = Math.round(cover * 255);
+        } else {
+          dest[di] = Math.round(pr * (1 - cover) + 250 * cover);
+          dest[di + 1] = Math.round(pg * (1 - cover) + 250 * cover);
+          dest[di + 2] = Math.round(pb * (1 - cover) + 250 * cover);
+        }
         continue;
       }
 
       let inkAmt = Math.min(1, (1 - artLum / 255) * cover);
       if (inkContrast !== 1) inkAmt = Math.min(1, inkAmt ** inkContrast);
       if (inkAmt <= 0.002) continue;
-      dest[di] = Math.max(0, Math.min(255, Math.round(pr * (1 - inkAmt) + ink.r * inkAmt)));
-      dest[di + 1] = Math.max(0, Math.min(255, Math.round(pg * (1 - inkAmt) + ink.g * inkAmt)));
-      dest[di + 2] = Math.max(0, Math.min(255, Math.round(pb * (1 - inkAmt) + ink.b * inkAmt)));
+      if (inkLayer) {
+        inkLayer[di] = ink.r;
+        inkLayer[di + 1] = ink.g;
+        inkLayer[di + 2] = ink.b;
+        inkLayer[di + 3] = Math.round(inkAmt * 255);
+      } else {
+        dest[di] = Math.max(0, Math.min(255, Math.round(pr * (1 - inkAmt) + ink.r * inkAmt)));
+        dest[di + 1] = Math.max(0, Math.min(255, Math.round(pg * (1 - inkAmt) + ink.g * inkAmt)));
+        dest[di + 2] = Math.max(0, Math.min(255, Math.round(pb * (1 - inkAmt) + ink.b * inkAmt)));
+      }
+    }
+  }
+
+  if (inkLayer) {
+    let inkBuf = inkLayer;
+    if (inkSharpen?.sigma) {
+      inkBuf = await sharp(inkLayer, {
+        raw: { width: mw, height: mh, channels: 4 },
+      })
+        .sharpen({
+          sigma: Number(inkSharpen.sigma) || 0.48,
+          m1: Number(inkSharpen.m1) || 0.16,
+          m2: Number(inkSharpen.m2) || 0.1,
+          x1: 2,
+          y2: 10,
+        })
+        .raw()
+        .toBuffer();
+    }
+    for (let i = 0; i < dest.length; i += 4) {
+      const a = inkBuf[i + 3] / 255;
+      if (a <= 0.002) continue;
+      dest[i] = Math.round(dest[i] * (1 - a) + inkBuf[i] * a);
+      dest[i + 1] = Math.round(dest[i + 1] * (1 - a) + inkBuf[i + 1] * a);
+      dest[i + 2] = Math.round(dest[i + 2] * (1 - a) + inkBuf[i + 2] * a);
     }
   }
 
@@ -406,6 +520,7 @@ export async function compositeLabelOnPhotoMaster({
     canvasHeight: mh,
     labelInkColor,
     optimizeText,
+    typographyFix,
   };
 }
 
