@@ -533,6 +533,7 @@ export async function compositeLabelOnPhotoMaster({
   inkSharpenAmount = 0,
   inkHardness = 0,
   masterScale = 1,
+  fitMode = "fill",
   websiteOutput = null,
   alsoSavePng = null,
 }) {
@@ -543,6 +544,7 @@ export async function compositeLabelOnPhotoMaster({
   const top = Math.round((placementProfile.labelTop + inset) * scale);
   const faceW = Math.max(1, Math.round((placementProfile.labelWidth - inset * 2) * scale));
   const faceH = Math.max(1, Math.round((placementProfile.labelHeight - inset * 2) * scale));
+  const contain = String(fitMode).toLowerCase() === "contain";
   const maxTheta = Number(cylinderMaxThetaRad);
   const linearFrac = Math.max(0, Math.min(1, Number(centerLinearFrac) || 0));
   const ink = parseCssColor(labelInkColor, LABEL_INK_COLOR);
@@ -587,35 +589,46 @@ export async function compositeLabelOnPhotoMaster({
   const artH = art.info.height;
   if (sharpenAmt > 0) sharpenArtworkInkLayer(src, artW, artH, sharpenAmt);
   const dest = master.data;
-  const srcPerDstX = artW / faceW;
-  const srcPerDstY = artH / faceH;
+  let destW = faceW;
+  let destH = faceH;
+  let destLeft = left;
+  let destTop = top;
+  if (contain && artW > 0 && artH > 0) {
+    const uniform = Math.min(faceW / artW, faceH / artH);
+    destW = Math.max(1, Math.round(artW * uniform));
+    destH = Math.max(1, Math.round(artH * uniform));
+    destLeft = left + Math.round((faceW - destW) / 2);
+    destTop = top + Math.round((faceH - destH) / 2);
+  }
+  const srcPerDstX = artW / destW;
+  const srcPerDstY = artH / destH;
   const samplePixel = (u, v) => {
     if (sampleFilter === "area") return sampleArea(src, artW, artH, u, v, srcPerDstX, srcPerDstY);
     if (sampleFilter === "bicubic") return sampleCatmullRom(src, artW, artH, u, v);
     return sampleBilinear(src, artW, artH, u, v);
   };
-  const inkCover = useInkBuffer ? new Float32Array(faceW * faceH) : null;
-  const whiteCover = useInkBuffer ? new Float32Array(faceW * faceH) : null;
+  const inkCover = useInkBuffer ? new Float32Array(destW * destH) : null;
+  const whiteCover = useInkBuffer ? new Float32Array(destW * destH) : null;
 
-  for (let y = 0; y < faceH; y += 1) {
-    const v = faceH === 1 ? 0 : y / (faceH - 1);
-    const clipY = rectClipCoverage(0, y, faceW, faceH);
+  for (let y = 0; y < destH; y += 1) {
+    const v = destH === 1 ? 0 : y / (destH - 1);
+    const clipY = rectClipCoverage(0, y, destW, destH);
     if (clipY <= 0) continue;
-    for (let x = 0; x < faceW; x += 1) {
-      const clip = rectClipCoverage(x, y, faceW, faceH);
+    for (let x = 0; x < destW; x += 1) {
+      const clip = rectClipCoverage(x, y, destW, destH);
       if (clip <= 0.001) continue;
 
-      const dx = left + x;
-      const dy = top + y;
+      const dx = destLeft + x;
+      const dy = destTop + y;
       if (dx < 0 || dy < 0 || dx >= mw || dy >= mh) continue;
       const di = (dy * mw + dx) * 4;
       const pr = dest[di];
       const pg = dest[di + 1];
       const pb = dest[di + 2];
-      const paper = edgePaperGate(pr, pg, pb, x, y, faceW, faceH);
+      const paper = edgePaperGate(pr, pg, pb, x, y, destW, destH);
       if (paper <= 0.001) continue;
 
-      const uFace = mapFaceU(faceW === 1 ? 0 : x / (faceW - 1), maxTheta, linearFrac);
+      const uFace = mapFaceU(destW === 1 ? 0 : x / (destW - 1), contain ? 0 : maxTheta, linearFrac);
       const u = win.u0 + uFace * (win.u1 - win.u0);
       const vArt = win.v0 + v * (win.v1 - win.v0);
       const [ar, ag, ab, aa] = samplePixel(u, vArt);
@@ -629,7 +642,7 @@ export async function compositeLabelOnPhotoMaster({
       if (artLum >= 200) {
         if (!isLightOnDark(src, artW, artH, srcX, srcY)) continue;
         if (useInkBuffer) {
-          whiteCover[y * faceW + x] = cover;
+          whiteCover[y * destW + x] = cover;
           continue;
         }
         dest[di] = Math.round(pr * (1 - cover) + 250 * cover);
@@ -642,7 +655,7 @@ export async function compositeLabelOnPhotoMaster({
       if (inkContrast !== 1) inkAmt = Math.min(1, inkAmt ** inkContrast);
       if (inkAmt <= 0.002) continue;
       if (useInkBuffer) {
-        inkCover[y * faceW + x] = inkAmt;
+        inkCover[y * destW + x] = inkAmt;
         continue;
       }
       dest[di] = Math.max(0, Math.min(255, Math.round(pr * (1 - inkAmt) + ink.r * inkAmt)));
@@ -652,15 +665,15 @@ export async function compositeLabelOnPhotoMaster({
   }
 
   if (useInkBuffer) {
-    sharpenInkCoverage(inkCover, faceW, faceH, sharpenAmt);
-    for (let y = 0; y < faceH; y += 1) {
-      for (let x = 0; x < faceW; x += 1) {
-        const fi = y * faceW + x;
+    sharpenInkCoverage(inkCover, destW, destH, sharpenAmt);
+    for (let y = 0; y < destH; y += 1) {
+      for (let x = 0; x < destW; x += 1) {
+        const fi = y * destW + x;
         const white = whiteCover[fi];
         const inkAmt = inkCover[fi];
         if (white <= 0.002 && inkAmt <= 0.002) continue;
-        const dx = left + x;
-        const dy = top + y;
+        const dx = destLeft + x;
+        const dy = destTop + y;
         if (dx < 0 || dy < 0 || dx >= mw || dy >= mh) continue;
         const di = (dy * mw + dx) * 4;
         let pr = dest[di];
@@ -735,6 +748,13 @@ export async function compositeLabelOnPhotoMaster({
     top,
     faceW,
     faceH,
+    destLeft,
+    destTop,
+    destW,
+    destH,
+    fitMode: contain ? "contain" : "fill",
+    scaleX: destW / artW,
+    scaleY: destH / artH,
     canvasWidth: mw,
     canvasHeight: mh,
     labelInkColor,
