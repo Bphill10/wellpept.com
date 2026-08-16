@@ -37,9 +37,9 @@ const FRONT_B = { u0: 0, u1: 918 / 1200, v0: 16 / 600, v1: 544 / 600 };
 const IMPROVED = {
   cylinderMaxThetaRad: 0.012,
   centerLinearFrac: 0.76,
-  sampleFilter: "area",
+  sampleFilter: "bicubic",
   optimizeText: false,
-  inkHardness: 0.14,
+  inkHardness: 0.12,
 };
 
 async function renderImproved(product, defaults, placement, stem, inkSharpenAmount) {
@@ -110,7 +110,7 @@ async function main() {
     catalog.defaults || {},
     placement,
     "3_vector_ink_sharpen",
-    0.4
+    0.32
   );
 
   const a200 = await card(CURRENT_B, 200, 300);
@@ -136,7 +136,7 @@ async function main() {
       return `<text x="${x}" y="38" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#111">${title}</text>`;
     })
     .join("\n");
-  const footer = `<text x="${width / 2}" y="${height - 16}" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#444">TA-1 B Front-focused 200×300 — same window; vector raster + one Lanczos. #3 also saved at 400×600.</text>`;
+  const footer = `<text x="${width / 2}" y="${height - 16}" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#444">TA-1 B Front-focused 200×300 — vector window raster + one Lanczos. #3 also at 400×600.</text>`;
   const svg = Buffer.from(
     `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
       <rect width="${width}" height="${height}" fill="#f4f4f4"/>

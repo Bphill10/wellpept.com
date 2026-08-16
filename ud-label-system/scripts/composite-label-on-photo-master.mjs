@@ -434,6 +434,37 @@ export function mapFaceU(u, maxTheta, centerLinearFrac = 0) {
  * Light unsharp on ink coverage only. Near-zero paper stays untouched
  * so the filter cannot draw a halo ring around glyphs.
  */
+function sharpenArtworkInkLayer(src, width, height, amount) {
+  const strength = Number(amount);
+  if (!src || !strength) return src;
+  const ink = new Float32Array(width * height);
+  const white = new Float32Array(width * height);
+  for (let i = 0; i < width * height; i += 1) {
+    const o = i * 4;
+    const a = src[o + 3] / 255;
+    if (a < 0.04) continue;
+    const L = lum(src[o], src[o + 1], src[o + 2]);
+    if (L >= 200) white[i] = a;
+    else ink[i] = a * (1 - L / 255);
+  }
+  sharpenInkCoverage(ink, width, height, strength);
+  sharpenInkCoverage(white, width, height, strength * 0.65);
+  for (let i = 0; i < width * height; i += 1) {
+    const o = i * 4;
+    if (white[i] > 0.002) {
+      src[o + 3] = Math.round(Math.min(1, white[i]) * 255);
+      continue;
+    }
+    if (ink[i] <= 0.002) continue;
+    const amt = Math.min(1, ink[i]);
+    src[o] = 10;
+    src[o + 1] = 10;
+    src[o + 2] = 10;
+    src[o + 3] = Math.round(amt * 255);
+  }
+  return src;
+}
+
 export function sharpenInkCoverage(cover, width, height, amount) {
   const strength = Number(amount);
   if (!cover || !strength) return cover;
@@ -521,7 +552,7 @@ export async function compositeLabelOnPhotoMaster({
         v1: artworkWindow?.v1 == null ? 1 : Number(artworkWindow.v1),
       };
   const sharpenAmt = Number(inkSharpenAmount) || 0;
-  const useInkBuffer = sharpenAmt > 0;
+  const useInkBuffer = false;
 
   const knocked = await knockoutLabelPageBackground(labelArtwork);
   const art = await sharp(knocked)
@@ -549,6 +580,7 @@ export async function compositeLabelOnPhotoMaster({
   const src = art.data;
   const artW = art.info.width;
   const artH = art.info.height;
+  if (sharpenAmt > 0) sharpenArtworkInkLayer(src, artW, artH, sharpenAmt);
   const dest = master.data;
   const srcPerDstX = artW / faceW;
   const srcPerDstY = artH / faceH;
