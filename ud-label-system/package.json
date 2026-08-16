@@ -21,6 +21,7 @@
     "test:vial-v2-type-compare": "node scripts/generate-vial-system-v2-type-compare.mjs",
     "test:vial-v2-sharp-ta1": "node scripts/generate-vial-system-v2-sharp-compare.mjs",
     "test:vial-v2-front-ta1": "node scripts/generate-vial-system-v2-front-ta1.mjs",
+    "test:vial-v2-front-sharp-ta1": "node scripts/generate-vial-system-v2-front-sharp-ta1.mjs",
     "build": "npm run sync && npm run normalize-vials && npm run b12-liquid-vial && npm run examples && npm run validate"
   },
   "dependencies": {
