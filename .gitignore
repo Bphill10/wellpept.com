@@ -11,4 +11,6 @@ ud-label-system/node_modules/
 ud-label-system/output/
 ud-label-system/blender/output/
 ud-label-system/blender/__pycache__/
+tools/blender-vials/output/
+tools/blender-vials/__pycache__/
 

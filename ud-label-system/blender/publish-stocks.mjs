@@ -11,7 +11,7 @@ import sharp from "sharp";
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const systemRoot = path.resolve(scriptDir, "..");
 const repoRoot = path.resolve(systemRoot, "..");
-const outputDir = path.join(scriptDir, "output");
+const outputDir = path.join(repoRoot, "tools/blender-vials/output");
 const placementPath = path.join(systemRoot, "config/vial-placement.json");
 
 const PLATES = [
@@ -149,7 +149,7 @@ for (const plate of PLATES) {
   });
 }
 
-placement.generatedBy = "ud-label-system/blender";
+placement.generatedBy = "tools/blender-vials";
 await fs.writeFile(placementPath, `${JSON.stringify(placement, null, 2)}\n`);
 const published = {
   version: 1,
