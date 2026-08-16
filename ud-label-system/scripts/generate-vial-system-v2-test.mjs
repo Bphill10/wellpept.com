@@ -98,6 +98,8 @@ async function renderProduct(product, defaults, placement, outputDir, extra = {}
     outputPath: pngPath,
     edgeInsetPx: placement.compositor?.edgeInsetPx,
     cylinderMaxThetaRad: placement.compositor?.cylinderMaxThetaRad,
+    labelStockColor: placement.compositor?.labelStockColor,
+    labelStockReferenceLum: placement.compositor?.labelStockReferenceLum,
   });
   return {
     catalogId: product.catalogId,

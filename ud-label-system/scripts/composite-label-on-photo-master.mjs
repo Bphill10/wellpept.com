@@ -1,9 +1,10 @@
 /**
  * Composite locked SVG label artwork onto a locked photographic vial master.
  *
- * The photograph is never redrawn. Artwork is mapped into the existing
- * blank-white wrap and blended so photographed paper lighting remains.
- * This is a NEW path — it does not replace placeLockedLabelOnVial().
+ * The photograph is never redrawn. The full placement rectangle is
+ * recolored as one label-stock surface (luminance/texture preserved),
+ * then black artwork is printed on top. This does not replace
+ * placeLockedLabelOnVial().
  */
 import fs from "node:fs/promises";
 import path from "node:path";
