@@ -11,17 +11,10 @@
     "edgeInsetPx": 0,
     "cylinderMaxThetaRad": 0.05,
     "optimizedCylinderMaxThetaRad": 0.03,
-    "typographyCylinderMaxThetaRad": 0.016,
-    "centerReadabilityFrac": 0.7,
     "labelRasterMinWidth": 3600,
     "labelArtworkSupersample": 8,
-    "typographyRasterMinWidth": 7200,
+    "sharpnessSupersample": 16,
     "labelInkColor": "#0A0A0A",
-    "inkSharpen": {
-      "sigma": 0.48,
-      "m1": 0.16,
-      "m2": 0.1
-    },
     "blend": "print-ink-only-on-photographed-paper",
     "never": [
       "recolor, tint, or brighten the photographed label paper",
