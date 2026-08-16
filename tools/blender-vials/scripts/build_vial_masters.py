@@ -759,7 +759,7 @@ def setup_lights(center, radius, height):
     return coll
 
 
-def setup_camera(scene, look, distance, lens=135.0):
+def setup_camera(scene, look, distance, lens=135.0, sensor_fit="AUTO"):
     if "CAMERA_PRODUCT_LOCKED" in bpy.data.objects:
         cam = bpy.data.objects["CAMERA_PRODUCT_LOCKED"]
     else:
@@ -769,6 +769,7 @@ def setup_camera(scene, look, distance, lens=135.0):
     cam.data.type = "PERSP"
     cam.data.lens = lens
     cam.data.sensor_width = 36
+    cam.data.sensor_fit = sensor_fit
     cam.data.clip_start = 0.01
     cam.data.clip_end = 4.0
     cam.location = (look[0], look[1] - distance, look[2])
