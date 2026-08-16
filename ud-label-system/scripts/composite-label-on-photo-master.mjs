@@ -10,6 +10,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 import { fillLockedLabelSvg } from "./render-locked-label.mjs";
+import { applyWebsiteCardTypography } from "./website-card-typography.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const systemRoot = path.resolve(scriptDir, "..");
@@ -191,9 +192,13 @@ export function cropLockedLabelSvgToWindow(svg, artworkWindow = null) {
  * No small-bitmap enlarge, and no full-wrap raster that is later cropped.
  */
 export async function renderLockedLabelArtworkWindow(product = {}, defaults = {}, options = {}) {
-  const { svg, masterRel } = await fillLockedLabelSvg(product, defaults, {
+  const filled = await fillLockedLabelSvg(product, defaults, {
     heavierSecondaryText: Boolean(options.heavierSecondaryText),
   });
+  const svg = options.websiteCardTypography
+    ? applyWebsiteCardTypography(filled.svg, options.websiteCardTypography)
+    : filled.svg;
+  const masterRel = filled.masterRel;
   const cropped = cropLockedLabelSvgToWindow(svg, options.artworkWindow);
   const outW = Math.max(1, Math.round(options.width));
   const outH = Math.max(
