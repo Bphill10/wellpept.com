@@ -330,6 +330,7 @@ export async function compositeLabelOnPhotoMaster({
   labelInkColor = LABEL_INK_COLOR,
   optimizeText = false,
   sampleFilter = "bilinear",
+  artworkWindow = null,
   websiteOutput = null,
   alsoSavePng = null,
 }) {
@@ -343,6 +344,12 @@ export async function compositeLabelOnPhotoMaster({
   const ink = parseCssColor(labelInkColor, LABEL_INK_COLOR);
   const inkContrast = optimizeText ? 0.82 : 1;
   const sample = sampleFilter === "bicubic" ? sampleCatmullRom : sampleBilinear;
+  const win = {
+    u0: Number(artworkWindow?.u0) || 0,
+    u1: artworkWindow?.u1 == null ? 1 : Number(artworkWindow.u1),
+    v0: Number(artworkWindow?.v0) || 0,
+    v1: artworkWindow?.v1 == null ? 1 : Number(artworkWindow.v1),
+  };
 
   const knocked = await knockoutLabelPageBackground(labelArtwork);
   const art = await sharp(knocked)
@@ -382,14 +389,16 @@ export async function compositeLabelOnPhotoMaster({
 
       const nx = faceW === 1 ? 0 : (x / (faceW - 1)) * 2 - 1;
       const theta = nx * maxTheta;
-      const u = maxTheta === 0 ? (faceW === 1 ? 0 : x / (faceW - 1)) : (Math.sin(theta) / sinMax + 1) / 2;
-      const [ar, ag, ab, aa] = sample(src, artW, artH, u, v);
+      const uFace = maxTheta === 0 ? (faceW === 1 ? 0 : x / (faceW - 1)) : (Math.sin(theta) / sinMax + 1) / 2;
+      const u = win.u0 + uFace * (win.u1 - win.u0);
+      const vArt = win.v0 + v * (win.v1 - win.v0);
+      const [ar, ag, ab, aa] = sample(src, artW, artH, u, vArt);
       if (aa < 10) continue;
 
       const cover = Math.min(1, (aa / 255) * clip * paper);
       const artLum = lum(ar, ag, ab);
       const srcX = Math.round(u * (artW - 1));
-      const srcY = Math.round(v * (artH - 1));
+      const srcY = Math.round(vArt * (artH - 1));
 
       if (artLum >= 200) {
         if (!isLightOnDark(src, artW, artH, srcX, srcY)) continue;
