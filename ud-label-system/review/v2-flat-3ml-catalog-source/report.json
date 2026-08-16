@@ -1,0 +1,28 @@
+{
+  "master": "locked-masters/labels/01_3mL_Catalog_40x20_EDIT_CONTENT_ONLY.svg",
+  "svgAttributes": {
+    "width": "40mm",
+    "height": "20mm",
+    "viewBox": "0 0 1200 600",
+    "viewBoxX": 0,
+    "viewBoxY": 0,
+    "viewBoxWidth": 1200,
+    "viewBoxHeight": 600,
+    "aspect": 2
+  },
+  "png": {
+    "path": "ud-label-system/review/v2-flat-3ml-catalog-source/TA1_3mL_catalog_40x20_flat_native.png",
+    "width": 1200,
+    "height": 600,
+    "aspect": 2,
+    "format": "png"
+  },
+  "fill": {
+    "catalogId": "UD-0277",
+    "labelName": "TA-1",
+    "amount": 5,
+    "unit": "MG",
+    "typographyModified": false,
+    "heavierSecondaryText": false
+  }
+}
