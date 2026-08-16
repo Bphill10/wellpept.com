@@ -516,6 +516,7 @@ export function sharpenInkCoverage(cover, width, height, amount) {
  * @param {number} [options.inkHardness]
  * @param {number} [options.masterScale]
  * @param {number|null} [options.wrapCenterU] Artwork U (0–1) to place at face center. Height-fit only.
+ * @param {number} [options.wrapOffsetPx] Extra horizontal wrap shift in dest pixels. Positive moves artwork right.
  * @param {{width:number,height:number}|Array<{width:number,height:number,path:string}>} [options.websiteOutput]
  */
 export async function compositeLabelOnPhotoMaster({
@@ -536,6 +537,7 @@ export async function compositeLabelOnPhotoMaster({
   masterScale = 1,
   fitMode = "fill",
   wrapCenterU = null,
+  wrapOffsetPx = 0,
   websiteOutput = null,
   alsoSavePng = null,
 }) {
@@ -606,6 +608,7 @@ export async function compositeLabelOnPhotoMaster({
     if (wrapCenterU != null && Number.isFinite(Number(wrapCenterU))) {
       destLeft = Math.round(left + faceW / 2 - Number(wrapCenterU) * destW);
     }
+    destLeft += Math.round(Number(wrapOffsetPx) || 0);
   } else if ((contain || widthFit) && artW > 0 && artH > 0) {
     const uniform = widthFit ? faceW / artW : Math.min(faceW / artW, faceH / artH);
     destW = Math.max(1, Math.round(artW * uniform));
@@ -789,6 +792,7 @@ export async function compositeLabelOnPhotoMaster({
     sampleFilter,
     artworkAlreadyWindowed,
     wrapCenterU: wrapCenterU == null ? null : Number(wrapCenterU),
+    wrapOffsetPx: Math.round(Number(wrapOffsetPx) || 0),
     centerLinearFrac: linearFrac,
     inkSharpenAmount: sharpenAmt,
     inkHardness: hardness,

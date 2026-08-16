@@ -28,6 +28,7 @@
     "test:vial-v2-front-hybrid-ta1": "node scripts/generate-vial-system-v2-front-hybrid-ta1.mjs",
     "test:vial-v2-front-height-ta1": "node scripts/generate-vial-system-v2-front-height-ta1.mjs",
     "test:vial-v2-front-rotate-ta1": "node scripts/generate-vial-system-v2-front-rotate-ta1.mjs",
+    "test:vial-v2-front-rail-sliver-ta1": "node scripts/generate-vial-system-v2-front-rail-sliver-ta1.mjs",
     "build": "npm run sync && npm run normalize-vials && npm run b12-liquid-vial && npm run examples && npm run validate"
   },
   "dependencies": {
