@@ -515,6 +515,7 @@ export function sharpenInkCoverage(cover, width, height, amount) {
  * @param {number} [options.inkSharpenAmount]
  * @param {number} [options.inkHardness]
  * @param {number} [options.masterScale]
+ * @param {number|null} [options.wrapCenterU] Artwork U (0–1) to place at face center. Height-fit only.
  * @param {{width:number,height:number}|Array<{width:number,height:number,path:string}>} [options.websiteOutput]
  */
 export async function compositeLabelOnPhotoMaster({

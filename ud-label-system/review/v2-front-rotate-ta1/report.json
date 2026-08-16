@@ -1,0 +1,62 @@
+{
+  "mapping": "height-only native SVG aspect; wrap rotated so name/dose face the camera",
+  "svgViewBox": {
+    "width": 1200,
+    "height": 600,
+    "aspect": 2
+  },
+  "wrapCenterSvgX": 514,
+  "wrapCenterU": 0.42833333333333334,
+  "face": {
+    "left": 377,
+    "top": 607,
+    "width": 362,
+    "height": 412
+  },
+  "dest": {
+    "width": 824,
+    "height": 412,
+    "left": 205,
+    "top": 607
+  },
+  "scaleX": 0.6866666666666666,
+  "scaleY": 0.6866666666666666,
+  "artwork": {
+    "width": 13184,
+    "height": 6592,
+    "aspect": 2
+  },
+  "visibleSvgUnits": {
+    "u0": 0.2087378640776699,
+    "u1": 0.6480582524271845,
+    "x0": 250.48543689320388,
+    "x1": 777.6699029126214,
+    "width": 527.1844660194175
+  },
+  "result": {
+    "outputPath": "/workspace/ud-label-system/review/v2-front-rotate-ta1/TA1_native_height_rotated.png",
+    "masterPhotoPath": "/workspace/ud-label-system/locked-masters/vial-photos/3ml-white.png",
+    "left": 377,
+    "top": 607,
+    "faceW": 362,
+    "faceH": 412,
+    "destLeft": 205,
+    "destTop": 607,
+    "destW": 824,
+    "destH": 412,
+    "fitMode": "height",
+    "scaleX": 0.0625,
+    "scaleY": 0.0625,
+    "canvasWidth": 1122,
+    "canvasHeight": 1402,
+    "labelInkColor": "#0A0A0A",
+    "optimizeText": false,
+    "sampleFilter": "bicubic",
+    "artworkAlreadyWindowed": true,
+    "wrapCenterU": 0.42833333333333334,
+    "centerLinearFrac": 0,
+    "inkSharpenAmount": 0,
+    "inkHardness": 0,
+    "masterScale": 1
+  }
+}
