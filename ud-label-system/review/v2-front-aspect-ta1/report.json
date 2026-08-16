@@ -1,0 +1,66 @@
+{
+  "sourceArtwork": {
+    "width": 7200,
+    "height": 3600,
+    "aspect": 2,
+    "svgViewBox": "1200×600"
+  },
+  "sourceFrontWindow": {
+    "svg": {
+      "x": 0,
+      "y": 0,
+      "width": 918,
+      "height": 600,
+      "aspect": 1.53
+    },
+    "raster": {
+      "width": 5792,
+      "height": 3792,
+      "aspect": 1.5274261603375527
+    }
+  },
+  "destinationLabelFace": {
+    "left": 377,
+    "top": 607,
+    "width": 362,
+    "height": 412,
+    "aspect": 0.8786407766990292
+  },
+  "B_currentStretch": {
+    "dest": {
+      "width": 362,
+      "height": 412
+    },
+    "scaleX": 0.39433551198257083,
+    "scaleY": 0.6866666666666666,
+    "independentXY": true,
+    "cylinderMaxThetaRad": 0.03
+  },
+  "C_frontWindowContain": {
+    "dest": {
+      "left": 377,
+      "top": 695,
+      "width": 362,
+      "height": 237
+    },
+    "scaleX": 0.39433551198257083,
+    "scaleY": 0.395,
+    "uniform": 0.39433551198257083,
+    "independentXY": false,
+    "cylinderMaxThetaRad": 0
+  },
+  "nativeCrops": {
+    "B": {
+      "left": 517,
+      "top": 671,
+      "width": 280,
+      "height": 140
+    },
+    "C": {
+      "left": 517,
+      "top": 732,
+      "width": 280,
+      "height": 140
+    }
+  }
+}
