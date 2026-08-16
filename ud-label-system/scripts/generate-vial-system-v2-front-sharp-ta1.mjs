@@ -30,14 +30,16 @@ const REVIEW_DIR = path.join(systemRoot, "review");
 const CURRENT_B = path.join(REVIEW_DIR, "v2-front-ta1/B_front_focused.png");
 const OUT_DIR = path.join(REVIEW_DIR, "v2-front-sharp-ta1");
 
-// Approved B Front-focused window. 3 mL catalog SVG is 1200×600.
-const FRONT_B = { u0: 0, u1: 918 / 1200, v0: 0, v1: 1 };
+// Approved B Front-focused content. Horizontal crop is unchanged (QR off-camera).
+// A slight vertical tighten enlarges TA-1 / 5 MG without changing fonts.
+const FRONT_B = { u0: 0, u1: 918 / 1200, v0: 16 / 600, v1: 544 / 600 };
 
 const IMPROVED = {
   cylinderMaxThetaRad: 0.012,
   centerLinearFrac: 0.76,
-  sampleFilter: "bicubic",
+  sampleFilter: "area",
   optimizeText: false,
+  inkHardness: 0.14,
 };
 
 async function renderImproved(product, defaults, placement, stem, inkSharpenAmount) {
@@ -47,6 +49,7 @@ async function renderImproved(product, defaults, placement, stem, inkSharpenAmou
   const ss = Number(placement.compositor?.sharpnessSupersample) || 16;
   const label = await renderLockedLabelArtworkWindow(product, defaults, {
     width: profile.labelWidth * ss,
+    height: profile.labelHeight * ss,
     artworkWindow: FRONT_B,
     heavierSecondaryText: true,
   });
@@ -64,6 +67,7 @@ async function renderImproved(product, defaults, placement, stem, inkSharpenAmou
     artworkAlreadyWindowed: true,
     centerLinearFrac: IMPROVED.centerLinearFrac,
     inkSharpenAmount,
+    inkHardness: IMPROVED.inkHardness,
   });
   return { pngPath, result, artwork: { width: label.width, height: label.height } };
 }
@@ -106,7 +110,7 @@ async function main() {
     catalog.defaults || {},
     placement,
     "3_vector_ink_sharpen",
-    0.24
+    0.4
   );
 
   const a200 = await card(CURRENT_B, 200, 300);

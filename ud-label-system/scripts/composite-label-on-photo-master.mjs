@@ -325,6 +325,40 @@ function sampleCatmullRom(src, width, height, u, v) {
   return out;
 }
 
+function sampleArea(src, width, height, u, v, srcPerDstX, srcPerDstY) {
+  const cx = u * (width - 1);
+  const cy = v * (height - 1);
+  const halfX = Math.max(0.5, srcPerDstX / 2);
+  const halfY = Math.max(0.5, srcPerDstY / 2);
+  const x0 = Math.max(0, Math.floor(cx - halfX));
+  const x1 = Math.min(width - 1, Math.ceil(cx + halfX));
+  const y0 = Math.max(0, Math.floor(cy - halfY));
+  const y1 = Math.min(height - 1, Math.ceil(cy + halfY));
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  let a = 0;
+  let n = 0;
+  for (let y = y0; y <= y1; y += 1) {
+    for (let x = x0; x <= x1; x += 1) {
+      const i = (y * width + x) * 4;
+      r += src[i];
+      g += src[i + 1];
+      b += src[i + 2];
+      a += src[i + 3];
+      n += 1;
+    }
+  }
+  if (!n) return [0, 0, 0, 0];
+  return [r / n, g / n, b / n, a / n];
+}
+
+function hardenCoverage(amount, hardness) {
+  if (!hardness) return amount;
+  const t = Math.max(0, Math.min(1, (amount - hardness) / (1 - hardness)));
+  return t * t * (3 - 2 * t);
+}
+
 function sampleBilinear(src, width, height, u, v) {
   const x = Math.max(0, Math.min(width - 1.001, u * (width - 1)));
   const y = Math.max(0, Math.min(height - 1.001, v * (height - 1)));
@@ -443,6 +477,7 @@ export function sharpenInkCoverage(cover, width, height, amount) {
  * @param {boolean} [options.artworkAlreadyWindowed]
  * @param {number} [options.centerLinearFrac]
  * @param {number} [options.inkSharpenAmount]
+ * @param {number} [options.inkHardness]
  * @param {number} [options.masterScale]
  * @param {{width:number,height:number}|Array<{width:number,height:number,path:string}>} [options.websiteOutput]
  */
@@ -460,6 +495,7 @@ export async function compositeLabelOnPhotoMaster({
   artworkAlreadyWindowed = false,
   centerLinearFrac = 0,
   inkSharpenAmount = 0,
+  inkHardness = 0,
   masterScale = 1,
   websiteOutput = null,
   alsoSavePng = null,
@@ -475,7 +511,7 @@ export async function compositeLabelOnPhotoMaster({
   const linearFrac = Math.max(0, Math.min(1, Number(centerLinearFrac) || 0));
   const ink = parseCssColor(labelInkColor, LABEL_INK_COLOR);
   const inkContrast = optimizeText ? 0.82 : 1;
-  const sample = sampleFilter === "bicubic" ? sampleCatmullRom : sampleBilinear;
+  const hardness = Math.max(0, Math.min(0.45, Number(inkHardness) || 0));
   const win = artworkAlreadyWindowed
     ? { u0: 0, u1: 1, v0: 0, v1: 1 }
     : {
@@ -514,6 +550,13 @@ export async function compositeLabelOnPhotoMaster({
   const artW = art.info.width;
   const artH = art.info.height;
   const dest = master.data;
+  const srcPerDstX = artW / faceW;
+  const srcPerDstY = artH / faceH;
+  const samplePixel = (u, v) => {
+    if (sampleFilter === "area") return sampleArea(src, artW, artH, u, v, srcPerDstX, srcPerDstY);
+    if (sampleFilter === "bicubic") return sampleCatmullRom(src, artW, artH, u, v);
+    return sampleBilinear(src, artW, artH, u, v);
+  };
   const inkCover = useInkBuffer ? new Float32Array(faceW * faceH) : null;
   const whiteCover = useInkBuffer ? new Float32Array(faceW * faceH) : null;
 
@@ -538,10 +581,10 @@ export async function compositeLabelOnPhotoMaster({
       const uFace = mapFaceU(faceW === 1 ? 0 : x / (faceW - 1), maxTheta, linearFrac);
       const u = win.u0 + uFace * (win.u1 - win.u0);
       const vArt = win.v0 + v * (win.v1 - win.v0);
-      const [ar, ag, ab, aa] = sample(src, artW, artH, u, vArt);
+      const [ar, ag, ab, aa] = samplePixel(u, vArt);
       if (aa < 10) continue;
 
-      const cover = Math.min(1, (aa / 255) * clip * paper);
+      const cover = hardenCoverage(Math.min(1, (aa / 255) * clip * paper), hardness);
       const artLum = lum(ar, ag, ab);
       const srcX = Math.round(u * (artW - 1));
       const srcY = Math.round(vArt * (artH - 1));
@@ -663,6 +706,7 @@ export async function compositeLabelOnPhotoMaster({
     artworkAlreadyWindowed,
     centerLinearFrac: linearFrac,
     inkSharpenAmount: sharpenAmt,
+    inkHardness: hardness,
     masterScale: scale,
   };
 }
