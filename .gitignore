@@ -16,4 +16,5 @@ tools/blender-vials/renders/*
 !tools/blender-vials/renders/.gitkeep
 tools/blender-vials/__pycache__/
 tools/blender-vials/scripts/__pycache__/
+tools/blender-vials/masters/*.blend1
 
