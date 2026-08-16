@@ -5,8 +5,9 @@ Build three locked pharmaceutical vial masters in Blender 5.2 / Cycles.
 Capacities: 3 mL, 5 mL, 10 mL. Contents are variants of those masters.
 30 mL is not built in this pass.
 
-All millimeter dimensions live in VIAL_SPECS. Derived label math is computed
-from those specs only. Do not invoke this file with system Python.
+All millimeter dimensions live in VIAL_SPECS. Derived label and chamber
+math is computed from those specs only. Do not invoke this file with
+system Python.
 """
 
 from __future__ import annotations
@@ -33,30 +34,34 @@ MM = 0.001
 # ---------------------------------------------------------------------------
 # Master specifications (millimeters). Edit here; everything else derives.
 # Typical Type I serum-vial proportions, not a uniform scale of one mesh.
+# 3 mL = 13 mm finish, compact. 5 mL = 20 mm finish, intermediate.
+# 10 mL = 20 mm finish, broader and taller.
 # ---------------------------------------------------------------------------
 VIAL_SPECS = {
     "3ml": {
         "capacity_ml": 3,
-        "r_outer": 8.30,          # 16.6 mm OD
-        "wall": 1.00,
-        "heel": 1.50,
-        "body_bottom_z": 2.30,    # start of full-diameter straight wall
-        "body_top_z": 24.50,      # end of straight wall / start of shoulder
-        "shoulder_h": 4.20,
-        "neck_r": 5.45,
-        "neck_h": 5.60,
-        "bead_r": 6.55,           # 13 mm finish
-        "bead_h": 1.35,
-        "lip_h": 1.00,
-        "floor": 2.10,            # inner cavity floor (heavy bottom)
+        "r_outer": 8.35,          # 16.7 mm OD
+        "wall": 1.05,
+        "heel": 1.90,
+        "body_bottom_z": 2.70,    # start of full-diameter straight wall
+        "body_top_z": 24.80,      # end of straight wall / start of shoulder
+        "shoulder_h": 6.50,
+        "neck_r": 5.20,
+        "neck_h": 5.10,
+        "bead_r": 6.50,           # 13 mm finish
+        "bead_h": 1.40,
+        "lip_h": 0.85,
+        "floor": 3.00,            # inner cavity floor (heavy bottom)
+        "inner_dish": 0.22,
+        "inner_fillet": 1.35,
         "cake_fill": 0.20,
         "liquid_fill": 0.75,
-        "cap_r": 6.75,
-        "cap_h": 2.05,
-        "cap_chamfer": 0.16,
-        "crimp_h": 4.70,
-        "crimp_overhang": 0.35,
-        "stopper_inset": 3.20,
+        "cap_r": 6.85,
+        "cap_h": 2.35,
+        "cap_chamfer": 0.18,
+        "crimp_h": 2.55,
+        "crimp_overhang": 0.18,
+        "stopper_inset": 3.40,
         "label_frac": 0.80,       # 10 / 80 / 10
         "label_clearance": 0.07,
         "label_thickness": 0.05,
@@ -64,26 +69,28 @@ VIAL_SPECS = {
     },
     "5ml": {
         "capacity_ml": 5,
-        "r_outer": 11.00,         # 22.0 mm OD
-        "wall": 1.10,
-        "heel": 1.70,
-        "body_bottom_z": 2.70,
-        "body_top_z": 29.60,
-        "shoulder_h": 4.80,
-        "neck_r": 8.15,
-        "neck_h": 6.10,
-        "bead_r": 9.85,           # 20 mm finish
-        "bead_h": 1.50,
-        "lip_h": 1.10,
-        "floor": 2.40,
+        "r_outer": 11.05,         # 22.1 mm OD
+        "wall": 1.15,
+        "heel": 2.15,
+        "body_bottom_z": 3.15,
+        "body_top_z": 32.60,
+        "shoulder_h": 7.40,
+        "neck_r": 8.05,
+        "neck_h": 5.70,
+        "bead_r": 9.95,           # 20 mm finish
+        "bead_h": 1.55,
+        "lip_h": 0.95,
+        "floor": 3.45,
+        "inner_dish": 0.26,
+        "inner_fillet": 1.55,
         "cake_fill": 0.20,
         "liquid_fill": 0.75,
-        "cap_r": 10.15,
-        "cap_h": 2.20,
-        "cap_chamfer": 0.18,
-        "crimp_h": 5.40,
-        "crimp_overhang": 0.40,
-        "stopper_inset": 3.60,
+        "cap_r": 10.25,
+        "cap_h": 2.50,
+        "cap_chamfer": 0.20,
+        "crimp_h": 2.75,
+        "crimp_overhang": 0.20,
+        "stopper_inset": 3.80,
         "label_frac": 0.80,       # 10 / 80 / 10
         "label_clearance": 0.07,
         "label_thickness": 0.05,
@@ -91,26 +98,28 @@ VIAL_SPECS = {
     },
     "10ml": {
         "capacity_ml": 10,
-        "r_outer": 12.05,         # 24.1 mm OD
+        "r_outer": 12.15,         # 24.3 mm OD
         "wall": 1.20,
-        "heel": 1.90,
-        "body_bottom_z": 3.10,
-        "body_top_z": 40.20,
-        "shoulder_h": 5.40,
-        "neck_r": 8.35,
-        "neck_h": 6.50,
+        "heel": 2.45,
+        "body_bottom_z": 3.55,
+        "body_top_z": 43.20,
+        "shoulder_h": 8.20,
+        "neck_r": 8.15,
+        "neck_h": 5.90,
         "bead_r": 10.05,          # 20 mm finish
-        "bead_h": 1.55,
-        "lip_h": 1.15,
-        "floor": 2.70,
+        "bead_h": 1.60,
+        "lip_h": 1.00,
+        "floor": 3.90,
+        "inner_dish": 0.30,
+        "inner_fillet": 1.75,
         "cake_fill": 0.20,
         "liquid_fill": 0.75,
-        "cap_r": 10.25,
-        "cap_h": 2.25,
-        "cap_chamfer": 0.18,
-        "crimp_h": 5.60,
-        "crimp_overhang": 0.40,
-        "stopper_inset": 3.80,
+        "cap_r": 10.35,
+        "cap_h": 2.55,
+        "cap_chamfer": 0.20,
+        "crimp_h": 2.85,
+        "crimp_overhang": 0.22,
+        "stopper_inset": 4.00,
         "label_frac": 0.70,       # 15 / 70 / 15
         "label_clearance": 0.07,
         "label_thickness": 0.05,
@@ -148,6 +157,12 @@ def mm(value):
     return value * MM
 
 
+def shoulder_radius(r0, r1, t):
+    """Cosine ease: vertical tangent at both ends, no conical mid-slope."""
+    s = 0.5 * (1.0 - math.cos(math.pi * t))
+    return r0 + (r1 - r0) * s
+
+
 def derived(spec):
     """All computed measurements in millimeters, from VIAL_SPECS only."""
     body_bottom = spec["body_bottom_z"]
@@ -162,15 +177,29 @@ def derived(spec):
     z_lip = z_bead + spec["bead_h"]
     z_top = z_lip + spec["lip_h"]
     r_inner = spec["r_outer"] - spec["wall"]
-    chamber_h = body_top - spec["floor"]
-    cake_h = chamber_h * spec["cake_fill"]
-    liquid_h = chamber_h * spec["liquid_fill"]
-    # Thin visible aluminum band, then a single flat flip-off. Body/label math
-    # is unchanged; only the closure stack is tightened.
-    z_crimp0 = z_bead - 0.12
-    z_crimp1 = z_bead + min(spec["crimp_h"] * 0.42, 2.25)
-    z_cap0 = z_crimp1 - 0.06
+    neck_inner = spec["neck_r"] - spec["wall"] * 0.90
+
+    # Actual internal glass chamber: inner floor -> inner neck entrance.
+    # Contents are placed from this chamber only. Label math is independent.
+    internal_bottom_z = spec["floor"]
+    internal_top_z = z_neck
+    internal_chamber_height = internal_top_z - internal_bottom_z
+    cake_h = internal_chamber_height * spec["cake_fill"]
+    liquid_h = internal_chamber_height * spec["liquid_fill"]
+    fill_75_z = internal_bottom_z + liquid_h
+
+    z_crimp0 = z_bead - 0.18
+    z_crimp1 = z_crimp0 + spec["crimp_h"]
+    z_cap0 = z_crimp1 - 0.08
     z_cap1 = z_cap0 + spec["cap_h"]
+
+    if fill_75_z > label_top + 0.05:
+        liquid_vs_label = "ABOVE LABEL"
+    elif fill_75_z < label_bottom - 0.05:
+        liquid_vs_label = "BELOW LABEL"
+    else:
+        liquid_vs_label = "BEHIND LABEL"
+
     return {
         "labelable_body_bottom_z": body_bottom,
         "labelable_body_top_z": body_top,
@@ -188,32 +217,37 @@ def derived(spec):
         "z_crimp0": z_crimp0,
         "z_crimp1": z_crimp1,
         "r_inner": r_inner,
-        "chamber_h": chamber_h,
+        "neck_inner": neck_inner,
+        "internal_bottom_z": internal_bottom_z,
+        "internal_top_z": internal_top_z,
+        "internal_chamber_height": internal_chamber_height,
+        "fill_75_z": fill_75_z,
+        "liquid_vs_label": liquid_vs_label,
         "cake_h": cake_h,
         "liquid_h": liquid_h,
+        "chamber_h": internal_chamber_height,
         "total_glass_h": z_top,
         "total_assembly_h": z_cap1,
     }
 
 
-def smooth_steps(a, b, count):
+def shoulder_curve(r0, z0, r1, z1, count):
+    """Smooth pharmaceutical shoulder: vertical wall -> rounded fillet -> neck."""
     out = []
     for i in range(count):
         t = i / (count - 1)
-        s = t * t * (3.0 - 2.0 * t)
-        out.append((a[0] + (b[0] - a[0]) * s, a[1] + (b[1] - a[1]) * s))
+        out.append((shoulder_radius(r0, r1, t), z0 + (z1 - z0) * t))
     return out
 
 
-def shoulder_curve(a, b, count):
-    """Rounded pharmaceutical shoulder: stay wide, then flow into the neck."""
-    out = []
-    for i in range(count):
-        t = i / (count - 1)
-        s = t * t * t * (t * (t * 6.0 - 15.0) + 10.0)
-        r_t = s ** 1.65
-        out.append((a[0] + (b[0] - a[0]) * r_t, a[1] + (b[1] - a[1]) * s))
-    return out
+def inner_radius_at_z(spec, d, z):
+    """Inner chamber radius at height z, including the shoulder taper."""
+    if z <= spec["body_top_z"]:
+        return d["r_inner"]
+    if z >= d["z_neck"]:
+        return d["neck_inner"]
+    t = (z - spec["body_top_z"]) / spec["shoulder_h"]
+    return shoulder_radius(d["r_inner"], d["neck_inner"], t)
 
 
 def _purge(collection):
@@ -265,7 +299,7 @@ def reset_scene():
     scene.display_settings.display_device = "sRGB"
     scene.view_settings.view_transform = "Filmic"
     scene.view_settings.look = "None"
-    scene.view_settings.exposure = 0.0
+    scene.view_settings.exposure = 0.20
     scene.view_settings.gamma = 1.0
     scene.unit_settings.system = "METRIC"
     scene.unit_settings.scale_length = 1.0
@@ -273,8 +307,9 @@ def reset_scene():
     scene.world = world
     world.use_nodes = True
     bg = world.node_tree.nodes["Background"]
-    bg.inputs["Color"].default_value = (0.12, 0.12, 0.125, 1)
-    bg.inputs["Strength"].default_value = 0.35
+    # Film is transparent; world still lights refraction/reflections.
+    bg.inputs["Color"].default_value = (0.62, 0.63, 0.65, 1)
+    bg.inputs["Strength"].default_value = 0.55
     return scene
 
 
@@ -290,6 +325,18 @@ def link_exclusive(obj, collection):
     for coll in list(obj.users_collection):
         coll.objects.unlink(obj)
     collection.objects.link(obj)
+
+
+def shade_smooth(obj):
+    for poly in obj.data.polygons:
+        poly.use_smooth = True
+    bpy.context.view_layer.objects.active = obj
+    obj.select_set(True)
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.mesh.normals_make_consistent(inside=False)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    obj.select_set(False)
 
 
 def create_lathe(name, profile_mm, segments=128):
@@ -317,15 +364,7 @@ def create_lathe(name, profile_mm, segments=128):
     mesh.update()
     obj = bpy.data.objects.new(name, mesh)
     bpy.context.scene.collection.objects.link(obj)
-    for poly in obj.data.polygons:
-        poly.use_smooth = True
-    bpy.context.view_layer.objects.active = obj
-    obj.select_set(True)
-    bpy.ops.object.mode_set(mode="EDIT")
-    bpy.ops.mesh.select_all(action="SELECT")
-    bpy.ops.mesh.normals_make_consistent(inside=False)
-    bpy.ops.object.mode_set(mode="OBJECT")
-    obj.select_set(False)
+    shade_smooth(obj)
     return obj
 
 
@@ -373,41 +412,42 @@ def build_materials():
     set_input(bsdf, ["Coat Weight"], 0.0)
     vol = nodes.new("ShaderNodeVolumeAbsorption")
     vol.inputs["Color"].default_value = (0.97, 0.98, 0.99, 1)
-    vol.inputs["Density"].default_value = 0.08
+    # Density is 1/m. Thick bottoms are ~0.004 m; keep a whisper of presence.
+    vol.inputs["Density"].default_value = 1.8
     links.new(vol.outputs["Volume"], out.inputs["Volume"])
     mats["glass"] = glass
 
     stopper, _n, _l, bsdf, _o = new_material("MAT_STOPPER_GRAY")
-    set_input(bsdf, ["Base Color"], (0.16, 0.16, 0.17, 1))
-    set_input(bsdf, ["Roughness"], 0.78)
+    set_input(bsdf, ["Base Color"], (0.28, 0.28, 0.29, 1))
+    set_input(bsdf, ["Roughness"], 0.82)
     set_input(bsdf, ["Metallic"], 0.0)
-    set_input(bsdf, ["Specular IOR Level", "Specular"], 0.08)
+    set_input(bsdf, ["Specular IOR Level", "Specular"], 0.06)
     set_input(bsdf, ["Coat Weight"], 0.0)
     set_input(bsdf, ["Emission Strength"], 0.0)
     mats["stopper"] = stopper
 
     crimp, nodes, links, bsdf, _o = new_material("MAT_CRIMP_SILVER")
-    set_input(bsdf, ["Base Color"], (0.36, 0.37, 0.39, 1))
+    set_input(bsdf, ["Base Color"], (0.52, 0.53, 0.55, 1))
     set_input(bsdf, ["Metallic"], 1.0)
-    set_input(bsdf, ["Roughness"], 0.48)
-    set_input(bsdf, ["Anisotropic Weight", "Anisotropic"], 0.55)
+    set_input(bsdf, ["Roughness"], 0.38)
+    set_input(bsdf, ["Anisotropic Weight", "Anisotropic"], 0.62)
     set_input(bsdf, ["Anisotropic Rotation"], 0.25)
-    set_input(bsdf, ["Specular IOR Level", "Specular"], 0.35)
+    set_input(bsdf, ["Specular IOR Level", "Specular"], 0.45)
     set_input(bsdf, ["Coat Weight"], 0.0)
     tex = nodes.new("ShaderNodeTexNoise")
-    tex.inputs["Scale"].default_value = 220
+    tex.inputs["Scale"].default_value = 260
     tex.inputs["Detail"].default_value = 6
     bump = nodes.new("ShaderNodeBump")
-    bump.inputs["Strength"].default_value = 0.06
+    bump.inputs["Strength"].default_value = 0.05
     links.new(tex.outputs["Fac"], bump.inputs["Height"])
     links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
     mats["crimp"] = crimp
 
     cap, _n, _l, bsdf, _o = new_material("MAT_CAP_BLACK")
-    set_input(bsdf, ["Base Color"], (0.004, 0.004, 0.005, 1))
-    set_input(bsdf, ["Roughness"], 0.88)
+    set_input(bsdf, ["Base Color"], (0.012, 0.012, 0.013, 1))
+    set_input(bsdf, ["Roughness"], 0.92)
     set_input(bsdf, ["Metallic"], 0.0)
-    set_input(bsdf, ["Specular IOR Level", "Specular"], 0.03)
+    set_input(bsdf, ["Specular IOR Level", "Specular"], 0.02)
     set_input(bsdf, ["Coat Weight"], 0.0)
     set_input(bsdf, ["Emission Strength"], 0.0)
     set_input(bsdf, ["Sheen Weight"], 0.0)
@@ -428,50 +468,75 @@ def build_materials():
     links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
     mats["label"] = label
 
-    def cake_mat(name, color, emit_strength):
+    def cake_mat(name, color):
         mat, nodes, links, bsdf, out = new_material(name)
         set_input(bsdf, ["Base Color"], color)
-        set_input(bsdf, ["Roughness"], 0.78)
-        set_input(bsdf, ["Specular IOR Level", "Specular"], 0.04)
-        set_input(bsdf, ["Subsurface Weight", "Subsurface"], 0.35)
-        set_input(bsdf, ["Subsurface Radius"], (0.35, 0.22, 0.14))
-        set_input(bsdf, ["Subsurface Scale"], 0.06)
+        set_input(bsdf, ["Roughness"], 0.86)
+        set_input(bsdf, ["Specular IOR Level", "Specular"], 0.03)
+        set_input(bsdf, ["Subsurface Weight", "Subsurface"], 0.22)
+        set_input(bsdf, ["Subsurface Radius"], (0.40, 0.28, 0.18))
+        set_input(bsdf, ["Subsurface Scale"], 0.0022)
         set_input(bsdf, ["Metallic"], 0.0)
+        set_input(bsdf, ["Emission Strength"], 0.0)
         noise = nodes.new("ShaderNodeTexNoise")
-        noise.inputs["Scale"].default_value = 120
-        noise.inputs["Detail"].default_value = 12
-        noise.inputs["Roughness"].default_value = 0.35
+        noise.inputs["Scale"].default_value = 420
+        noise.inputs["Detail"].default_value = 14
+        noise.inputs["Roughness"].default_value = 0.55
         bump = nodes.new("ShaderNodeBump")
-        bump.inputs["Strength"].default_value = 0.12
-        bump.inputs["Distance"].default_value = mm(0.035)
+        bump.inputs["Strength"].default_value = 0.18
+        bump.inputs["Distance"].default_value = mm(0.028)
         links.new(noise.outputs["Fac"], bump.inputs["Height"])
         links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
-        emit = nodes.new("ShaderNodeEmission")
-        emit.inputs["Color"].default_value = color
-        emit.inputs["Strength"].default_value = emit_strength
-        mix = nodes.new("ShaderNodeMixShader")
-        mix.inputs["Fac"].default_value = 0.28
-        links.new(bsdf.outputs["BSDF"], mix.inputs[1])
-        links.new(emit.outputs["Emission"], mix.inputs[2])
-        links.new(mix.outputs["Shader"], out.inputs["Surface"])
         return mat
 
-    mats["cake_white"] = cake_mat("MAT_CAKE_WHITE", (0.96, 0.95, 0.93, 1), 0.55)
-    mats["cake_cobalt"] = cake_mat("MAT_CAKE_COBALT", (0.03, 0.14, 0.58, 1), 0.45)
+    mats["cake_white"] = cake_mat("MAT_CAKE_WHITE", (0.94, 0.93, 0.90, 1))
+    mats["cake_cobalt"] = cake_mat("MAT_CAKE_COBALT", (0.035, 0.145, 0.52, 1))
 
     liquid, nodes, links, bsdf, out = new_material("MAT_LIQUID_RED")
-    set_input(bsdf, ["Base Color"], (0.28, 0.01, 0.04, 1))
+    set_input(bsdf, ["Base Color"], (0.42, 0.02, 0.05, 1))
     set_input(bsdf, ["Roughness"], 0.0)
     set_input(bsdf, ["Transmission Weight", "Transmission"], 1.0)
     set_input(bsdf, ["IOR"], 1.333)
     set_input(bsdf, ["Metallic"], 0.0)
-    set_input(bsdf, ["Specular IOR Level", "Specular"], 0.35)
+    set_input(bsdf, ["Specular IOR Level", "Specular"], 0.28)
+    set_input(bsdf, ["Emission Strength"], 0.0)
     vol = nodes.new("ShaderNodeVolumeAbsorption")
-    vol.inputs["Color"].default_value = (0.22, 0.01, 0.035, 1)
-    vol.inputs["Density"].default_value = 1.15
+    vol.inputs["Color"].default_value = (0.48, 0.018, 0.045, 1)
+    # Density is 1/m. A 24 mm path needs ~100-180 to read as deep ruby.
+    vol.inputs["Density"].default_value = 145.0
     links.new(vol.outputs["Volume"], out.inputs["Volume"])
     mats["liquid"] = liquid
     return mats
+
+
+def heel_arc(r_out, heel, count=10):
+    """Rounded exterior heel from the flat bottom into the straight wall."""
+    pts = []
+    for i in range(count):
+        t = i / (count - 1)
+        ang = t * (math.pi * 0.5)
+        pts.append((r_out - heel + heel * math.sin(ang), heel - heel * math.cos(ang)))
+    return pts
+
+
+def inner_floor_profile(spec, d):
+    """Inner cavity floor: fillet from the wall, slight concave dish, axis."""
+    r_in = d["r_inner"]
+    floor = spec["floor"]
+    fillet = spec["inner_fillet"]
+    dish = spec["inner_dish"]
+    pts = []
+    for i in range(8):
+        t = i / 7
+        ang = t * (math.pi * 0.5)
+        pts.append((r_in - fillet + fillet * math.cos(ang), floor + fillet - fillet * math.sin(ang)))
+    # Concave dish: walls at `floor`, center slightly lower.
+    pts += [
+        (r_in * 0.62, floor - dish * 0.35),
+        (r_in * 0.28, floor - dish * 0.85),
+        (0.0, floor - dish),
+    ]
+    return pts
 
 
 def glass_profile(spec, d):
@@ -481,66 +546,136 @@ def glass_profile(spec, d):
     body_top = spec["body_top_z"]
     body_bottom = spec["body_bottom_z"]
     neck_r = spec["neck_r"]
-    neck_inner = neck_r - spec["wall"] * 0.90
+    neck_inner = d["neck_inner"]
     bead_r = spec["bead_r"]
     bead_h = spec["bead_h"]
-    floor = spec["floor"]
     z_neck = d["z_neck"]
     z_bead = d["z_bead"]
     z_lip = d["z_lip"]
     z_top = d["z_top"]
 
     outer = [
-        (0.0, 0.16),
-        (r_out * 0.40, 0.05),
-        (r_out - heel * 0.75, 0.0),
-        (r_out, body_bottom),
-        (r_out, body_top),
+        (0.0, 0.18),
+        (r_out * 0.38, 0.04),
+        (r_out - heel, 0.0),
     ]
-    outer += shoulder_curve((r_out, body_top), (neck_r, z_neck), 22)[1:]
+    outer += heel_arc(r_out, heel, 12)[1:]
+    if body_bottom > heel + 0.05:
+        outer.append((r_out, body_bottom))
+    outer.append((r_out, body_top))
+    outer += shoulder_curve(r_out, body_top, neck_r, z_neck, 28)[1:]
     outer += [
         (neck_r, z_bead),
-        (bead_r, z_bead + bead_h * 0.38),
+        (bead_r, z_bead + bead_h * 0.40),
         (bead_r, z_lip),
-        (neck_r + 0.12, z_top),
+        (neck_r + 0.10, z_top),
         (neck_inner, z_top),
         (neck_inner, z_bead),
     ]
-    inner = list(reversed(shoulder_curve((r_in, body_top + 0.12), (neck_inner, z_neck), 16)))[1:]
-    inner += [
-        (r_in, body_top),
-        (r_in, floor),
-        (r_in * 0.52, floor * 0.90),
-        (0.0, floor * 0.86),
-    ]
+    inner = list(reversed(shoulder_curve(r_in, body_top, neck_inner, z_neck, 20)))[1:]
+    inner += [(r_in, body_top)]
+    inner += inner_floor_profile(spec, d)
     return outer + inner, neck_inner
 
 
-def cake_profile(spec, d):
-    r = d["r_inner"] - 0.05
-    z0 = spec["floor"] + 0.04
+def cake_irregularity(angle, radius_frac):
+    """Mostly level top with slight natural freeze-dry variation. Not a cone."""
+    return (
+        0.10 * math.sin(3.0 * angle)
+        + 0.07 * math.sin(7.0 * angle + 0.6)
+        + 0.05 * math.cos(5.0 * angle + 1.1)
+        + 0.04 * math.sin(11.0 * angle + radius_frac * 2.2)
+    ) * (0.35 + 0.65 * radius_frac)
+
+
+def create_cake(name, spec, d, segments=96):
+    """Cohesive cylindrical cake to the inner wall, fine irregular top."""
+    r_max = d["r_inner"] - 0.07
+    z0 = d["internal_bottom_z"]
     z1 = z0 + d["cake_h"]
-    core = 0.03
-    profile = [(core, z0), (r, z0), (r, z1)]
-    for i in range(1, 8):
-        t = i / 7
-        rr = r * (1.0 - t)
-        dip = 0.10 * (1.0 - (max(rr, core) / r) ** 2)
-        profile.append((max(rr, core), z1 - dip))
-    return profile
+    dish = spec["inner_dish"]
+    side_rings = 6
+    top_rings = 6
+    bot_rings = 5
+    verts = []
+    rings = 1 + bot_rings + side_rings + top_rings + 1
+    for i in range(segments):
+        angle = (i / segments) * math.tau
+        cosine = math.cos(angle)
+        sine = math.sin(angle)
+        side_r = r_max * (
+            1.0
+            + 0.007 * math.sin(13.0 * angle)
+            + 0.005 * math.cos(9.0 * angle + 0.4)
+        )
+        # Bottom center, then dish out to the wall.
+        verts.append((0.0, 0.0, mm(z0 - dish)))
+        for j in range(bot_rings):
+            t = (j + 1) / bot_rings
+            rr = side_r * t
+            zz = z0 - dish * (1.0 - t * t)
+            verts.append((mm(rr) * cosine, mm(rr) * sine, mm(zz)))
+        for j in range(side_rings):
+            t = (j + 1) / side_rings
+            zz = z0 + (z1 - z0) * t
+            verts.append((mm(side_r) * cosine, mm(side_r) * sine, mm(zz)))
+        for j in range(top_rings):
+            t = (j + 1) / top_rings
+            rr = side_r * (1.0 - t)
+            irr = cake_irregularity(angle, 1.0 - t)
+            verts.append((mm(max(rr, 0.02)) * cosine, mm(max(rr, 0.02)) * sine, mm(z1 + irr)))
+        verts.append((0.0, 0.0, mm(z1 + cake_irregularity(angle, 0.0) * 0.4)))
+    faces = []
+    for i in range(segments):
+        nxt = (i + 1) % segments
+        for j in range(rings - 1):
+            a = i * rings + j
+            b = nxt * rings + j
+            c = nxt * rings + j + 1
+            d_i = i * rings + j + 1
+            faces.append((a, d_i, c, b))
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(verts, [], faces)
+    mesh.validate()
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    bpy.context.scene.collection.objects.link(obj)
+    shade_smooth(obj)
+    tex = bpy.data.textures.new(f"{name}_Pore", "CLOUDS")
+    tex.noise_scale = 0.0009
+    tex.noise_depth = 2
+    disp = obj.modifiers.new("CakePore", "DISPLACE")
+    disp.texture = tex
+    disp.strength = mm(0.055)
+    disp.mid_level = 0.5
+    return obj
 
 
 def liquid_profile(spec, d):
-    r = d["r_inner"] - 0.05
-    z0 = spec["floor"] + 0.04
-    z1 = spec["floor"] + d["liquid_h"]
-    core = 0.03
-    meniscus = 0.45
-    profile = [(core, z0), (r, z0), (r, z1)]
+    """Closed liquid volume conforming to the inner chamber, 75% fill + meniscus."""
+    z0 = d["internal_bottom_z"]
+    z1 = d["fill_75_z"]
+    dish = spec["inner_dish"]
+    r_wall = d["r_inner"] - 0.04
+    core = 0.02
+    meniscus = 0.28
+    profile = [(core, z0 - dish)]
+    for i in range(1, 6):
+        t = i / 5
+        profile.append((r_wall * t, z0 - dish * (1.0 - t * t)))
+    # Climb the inner wall, following the shoulder if the fill reaches it.
+    climb = 16
+    z_start = z0 + 0.02
+    for i in range(climb + 1):
+        t = i / climb
+        z = z_start + (z1 - z_start) * t
+        profile.append((inner_radius_at_z(spec, d, z) - 0.04, z))
+    # Subtle concave meniscus at the true 75% surface.
+    r_top = inner_radius_at_z(spec, d, z1) - 0.04
     for i in range(1, 10):
         t = i / 9
-        rr = r * (1.0 - t)
-        dip = meniscus * (1.0 - (max(rr, core) / r) ** 2)
+        rr = r_top * (1.0 - t)
+        dip = meniscus * (1.0 - (max(rr, core) / r_top) ** 2)
         profile.append((max(rr, core), z1 - dip))
     return profile
 
@@ -584,8 +719,8 @@ def create_label_wrap(name, spec, d):
 
 
 def cap_profile(spec, d):
-    r = spec["bead_r"] + 0.22
-    chamfer = 0.10
+    r = spec["cap_r"]
+    chamfer = spec["cap_chamfer"]
     z0 = d["z_cap0"]
     z1 = d["z_cap1"]
     core = 0.02
@@ -599,25 +734,25 @@ def cap_profile(spec, d):
 
 
 def crimp_profile(spec, d):
-    """Thin formed aluminum band around the bead — not a solid stacked disc."""
-    outer_r = spec["bead_r"] + 0.10
-    inner_r = spec["neck_r"] - 0.08
+    """Formed aluminum band around the bead — visible satin silver ring."""
+    outer_r = spec["bead_r"] + spec["crimp_overhang"]
+    inner_r = spec["neck_r"] - 0.06
     z0 = d["z_crimp0"]
     z1 = d["z_crimp1"]
-    wall = 0.18
+    wall = 0.20
     return [
-        (inner_r, z0 + 0.20),
+        (inner_r, z0 + 0.22),
         (outer_r - wall, z0),
         (outer_r, z0),
         (outer_r, z1),
         (outer_r - wall, z1),
-        (inner_r, z1 - 0.12),
+        (inner_r, z1 - 0.14),
     ]
 
 
 def stopper_profile(spec, d, neck_inner):
     r = neck_inner * 0.97
-    z1 = d["z_bead"] + 0.35
+    z1 = d["z_bead"] + 0.40
     z0 = d["z_bead"] - spec["stopper_inset"]
     core = 0.02
     return [(core, z0), (r, z0), (r, z1), (core, z1)]
@@ -645,7 +780,7 @@ def build_master(capacity, spec, mats):
     label = create_label_wrap(f"{prefix}_LABEL", spec, d)
     assign(label, mats["label"])
 
-    cake = create_lathe(f"{prefix}_CONTENT", cake_profile(spec, d), 96)
+    cake = create_cake(f"{prefix}_CONTENT", spec, d, 96)
     assign(cake, mats["cake_white"])
     cake["ud_role"] = "cake"
 
@@ -707,30 +842,31 @@ def instance_master(parts, capacity, contents, location, collection, mats):
     return inst
 
 
-def hide_from_camera_and_transmission(obj):
+def hide_from_camera(obj, *, transmission=True, glossy=True, diffuse=True, shadow=True):
     obj.visible_camera = False
-    obj.visible_transmission = False
-    obj.visible_glossy = True
-    obj.visible_diffuse = True
-    obj.visible_shadow = True
+    obj.visible_transmission = transmission
+    obj.visible_glossy = glossy
+    obj.visible_diffuse = diffuse
+    obj.visible_shadow = shadow
 
 
-def add_area(name, loc, energy, rot, size, collection):
+def add_area(name, loc, energy, rot, size, collection, color=(1.0, 1.0, 1.0)):
     light = bpy.data.lights.new(name, type="AREA")
     light.shape = "RECTANGLE"
     light.size = size[0]
     light.size_y = size[1]
     light.energy = energy
-    light.color = (1.0, 1.0, 1.0)
+    light.color = color
     obj = bpy.data.objects.new(name, light)
     collection.objects.link(obj)
     obj.location = loc
     obj.rotation_euler = rot
-    hide_from_camera_and_transmission(obj)
+    # Lights must not appear as glowing rectangles inside the glass.
+    hide_from_camera(obj, transmission=False, glossy=True, diffuse=True, shadow=True)
     return obj
 
 
-def add_reflection_card(name, loc, size_xy, rot, collection):
+def add_reflection_card(name, loc, size_xy, rot, collection, color=(0.86, 0.86, 0.88)):
     mesh = bpy.data.meshes.new(name)
     w, h = size_xy
     verts = [(-w / 2, 0, -h / 2), (w / 2, 0, -h / 2), (w / 2, 0, h / 2), (-w / 2, 0, h / 2)]
@@ -741,12 +877,35 @@ def add_reflection_card(name, loc, size_xy, rot, collection):
     obj.location = loc
     obj.rotation_euler = rot
     mat, _n, _l, bsdf, _o = new_material(f"{name}Mat")
-    set_input(bsdf, ["Base Color"], (0.82, 0.82, 0.83, 1))
-    set_input(bsdf, ["Roughness"], 0.55)
+    set_input(bsdf, ["Base Color"], (*color, 1))
+    set_input(bsdf, ["Roughness"], 0.48)
     set_input(bsdf, ["Metallic"], 0.0)
     set_input(bsdf, ["Specular IOR Level", "Specular"], 0.04)
     assign(obj, mat)
-    hide_from_camera_and_transmission(obj)
+    # Invisible to camera; still refracted/reflected so transparent glass reads.
+    hide_from_camera(obj, transmission=True, glossy=True, diffuse=True, shadow=False)
+    return obj
+
+
+def add_floor_card(name, loc, radius, collection):
+    mesh = bpy.data.meshes.new(name)
+    segs = 32
+    verts = [(0.0, 0.0, 0.0)]
+    for i in range(segs):
+        ang = (i / segs) * math.tau
+        verts.append((radius * math.cos(ang), radius * math.sin(ang), 0.0))
+    faces = [(0, i, i + 1 if i + 1 <= segs else 1) for i in range(1, segs + 1)]
+    mesh.from_pydata(verts, [], faces)
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    collection.objects.link(obj)
+    obj.location = loc
+    mat, _n, _l, bsdf, _o = new_material(f"{name}Mat")
+    set_input(bsdf, ["Base Color"], (0.74, 0.74, 0.76, 1))
+    set_input(bsdf, ["Roughness"], 0.42)
+    set_input(bsdf, ["Metallic"], 0.0)
+    assign(obj, mat)
+    hide_from_camera(obj, transmission=True, glossy=True, diffuse=True, shadow=False)
     return obj
 
 
@@ -755,64 +914,103 @@ def clear_collection(coll):
         bpy.data.objects.remove(obj, do_unlink=True)
 
 
-def setup_lights(center, radius, height):
+def apply_light_linking(light_obj, receiver_coll):
+    if receiver_coll is None or not hasattr(light_obj, "light_linking"):
+        return
+    try:
+        light_obj.light_linking.receiver_collection = receiver_coll
+    except Exception:
+        pass
+
+
+def setup_lights(center, radius, height, exclude_caps=None):
     coll = ensure_collection("LIGHTING_LOCKED")
     clear_collection(coll)
     cx, cy, cz = center
-    add_area(
+    body_h = height * 0.72
+    body_z = cz + height * 0.38
+
+    receivers = None
+    if exclude_caps:
+        receivers = ensure_collection("LIGHT_RECEIVERS_NO_CAP")
+        clear_collection(receivers)
+        for obj in exclude_caps:
+            if obj is not None and "CAP" not in obj.name:
+                try:
+                    receivers.objects.link(obj)
+                except RuntimeError:
+                    pass
+
+    rim_l = add_area(
         "RimLeft",
-        loc=(cx - radius - mm(18), cy + mm(22), cz + height * 0.42),
-        energy=38,
-        rot=(math.radians(82), 0, math.radians(-18)),
-        size=(mm(3.2), height * 0.95),
+        loc=(cx - radius - mm(20), cy + mm(18), body_z),
+        energy=22,
+        rot=(math.radians(82), 0, math.radians(-16)),
+        size=(mm(3.4), body_h),
         collection=coll,
     )
-    add_area(
+    rim_r = add_area(
         "RimRight",
-        loc=(cx + radius + mm(18), cy + mm(20), cz + height * 0.40),
-        energy=32,
-        rot=(math.radians(82), 0, math.radians(18)),
-        size=(mm(3.0), height * 0.90),
+        loc=(cx + radius + mm(20), cy + mm(16), body_z),
+        energy=18,
+        rot=(math.radians(82), 0, math.radians(16)),
+        size=(mm(3.2), body_h * 0.95),
         collection=coll,
     )
     add_area(
         "CapKey",
-        loc=(cx + mm(6), cy - mm(24), cz + height + mm(10)),
-        energy=2.2,
-        rot=(math.radians(55), 0, math.radians(8)),
-        size=(radius * 1.1, mm(10)),
+        loc=(cx + mm(4), cy - mm(28), cz + height + mm(8)),
+        energy=1.4,
+        rot=(math.radians(58), 0, math.radians(6)),
+        size=(radius * 0.9, mm(8)),
         collection=coll,
     )
     add_area(
         "SoftFill",
-        loc=(cx, cy - mm(70), cz + height * 0.45),
-        energy=9,
+        loc=(cx, cy - mm(75), cz + height * 0.42),
+        energy=11,
         rot=(math.radians(82), 0, 0),
-        size=(radius * 2.6, height * 0.7),
+        size=(radius * 2.8, height * 0.65),
         collection=coll,
     )
     add_area(
         "CakeKiss",
-        loc=(cx + radius * 0.4, cy - mm(28), cz + mm(6)),
-        energy=14,
-        rot=(math.radians(70), 0, math.radians(-8)),
-        size=(mm(22), mm(14)),
+        loc=(cx + radius * 0.35, cy - mm(30), cz + mm(8)),
+        energy=16,
+        rot=(math.radians(68), 0, math.radians(-8)),
+        size=(mm(24), mm(16)),
         collection=coll,
     )
     add_reflection_card(
         "CardLeft",
-        loc=(cx - radius - mm(22), cy + mm(8), cz + height * 0.40),
-        size_xy=(mm(6), height * 0.85),
-        rot=(math.radians(90), 0, math.radians(-12)),
+        loc=(cx - radius - mm(24), cy + mm(6), cz + height * 0.38),
+        size_xy=(mm(8), height * 0.78),
+        rot=(math.radians(90), 0, math.radians(-10)),
         collection=coll,
     )
     add_reflection_card(
         "CardRight",
-        loc=(cx + radius + mm(22), cy + mm(8), cz + height * 0.40),
-        size_xy=(mm(5.5), height * 0.80),
-        rot=(math.radians(90), 0, math.radians(12)),
+        loc=(cx + radius + mm(24), cy + mm(6), cz + height * 0.38),
+        size_xy=(mm(7), height * 0.74),
+        rot=(math.radians(90), 0, math.radians(10)),
         collection=coll,
     )
+    add_reflection_card(
+        "CardBack",
+        loc=(cx, cy + mm(36), cz + height * 0.40),
+        size_xy=(radius * 3.2, height * 0.85),
+        rot=(math.radians(90), 0, math.radians(180)),
+        collection=coll,
+        color=(0.80, 0.80, 0.82),
+    )
+    add_floor_card(
+        "CardFloor",
+        loc=(cx, cy, cz - mm(1.2)),
+        radius=radius * 2.4,
+        collection=coll,
+    )
+    apply_light_linking(rim_l, receivers)
+    apply_light_linking(rim_r, receivers)
     return coll
 
 
@@ -856,7 +1054,6 @@ def frame_subject(scene, look, width_mm, height_mm, resolution, padding=1.28):
     aspect = resolution[0] / resolution[1]
     frame_h = height_mm * padding
     frame_w = width_mm * padding
-    # AUTO sensor fit maps sensor_width to the longer frame axis.
     if aspect >= 1.0:
         dist_w = (frame_w * lens) / sensor
         dist_h = (frame_h * lens * aspect) / sensor
@@ -901,6 +1098,56 @@ def render_still(scene, path):
     print(f"Wrote {path}")
 
 
+def write_checker_composite(src_path, dst_path, cell=18):
+    """Composite a transparent comparison over a light-gray checker. Diagnostic only."""
+    src_path = Path(src_path)
+    dst_path = Path(dst_path)
+    try:
+        from PIL import Image
+    except ImportError:
+        Image = None
+
+    if Image is not None:
+        im = Image.open(src_path).convert("RGBA")
+        w, h = im.size
+        checker = Image.new("RGBA", (w, h))
+        light = (199, 199, 201, 255)
+        dark = (178, 178, 181, 255)
+        pix = checker.load()
+        for y in range(h):
+            for x in range(w):
+                pix[x, y] = light if ((x // cell) + (y // cell)) % 2 == 0 else dark
+        out = Image.alpha_composite(checker, im)
+        out.save(dst_path)
+        print(f"Wrote {dst_path}")
+        return
+
+    try:
+        import numpy as np
+    except ImportError:
+        np = None
+
+    img = bpy.data.images.load(str(src_path), check_existing=False)
+    w, h = img.size
+    if np is None:
+        raise RuntimeError("Need Pillow or numpy to write the checker comparison")
+    px = np.array(img.pixels[:], dtype=np.float32).reshape(h, w, 4)
+    yy, xx = np.indices((h, w))
+    flag = ((xx // cell) + (yy // cell)) % 2
+    light = np.array([0.78, 0.78, 0.79], dtype=np.float32)
+    dark = np.array([0.70, 0.70, 0.71], dtype=np.float32)
+    bg = np.where(flag[..., None] == 0, light, dark)
+    a = px[..., 3:4]
+    rgb = px[..., :3] * a + bg * (1.0 - a)
+    rgba = np.concatenate([rgb, np.ones((h, w, 1), dtype=np.float32)], axis=2)
+    dest = bpy.data.images.new("preview_comparison_checker", w, h, alpha=True)
+    dest.pixels.foreach_set(rgba.ravel())
+    dest.filepath_raw = str(dst_path)
+    dest.file_format = "PNG"
+    dest.save()
+    print(f"Wrote {dst_path}")
+
+
 def measurement_report(masters):
     report = {"vial_specs_mm": VIAL_SPECS, "derived_mm": {}}
     for key, parts in masters.items():
@@ -914,15 +1161,41 @@ def measurement_report(masters):
             "label_top_z": d["label_top_z"],
             "expose_above_frac": d["expose_frac"],
             "expose_below_frac": d["expose_frac"],
+            "internal_bottom_z": d["internal_bottom_z"],
+            "internal_top_z": d["internal_top_z"],
+            "internal_chamber_height": d["internal_chamber_height"],
+            "fill_75_z": d["fill_75_z"],
+            "liquid_vs_label": d["liquid_vs_label"],
             "cake_h": d["cake_h"],
             "liquid_h": d["liquid_h"],
-            "chamber_h": d["chamber_h"],
             "total_glass_h": d["total_glass_h"],
             "total_assembly_h": d["total_assembly_h"],
             "r_outer": parts["spec"]["r_outer"],
             "r_inner": d["r_inner"],
         }
     return report
+
+
+def print_review_block(report):
+    print("\n======== ITERATION 3 REVIEW BLOCK ========")
+    for key in ("3ml", "5ml", "10ml"):
+        print(f"\nVIAL_SPECS[{key!r}] =")
+        print(json.dumps(report["vial_specs_mm"][key], indent=2))
+    d10 = report["derived_mm"]["10ml"]
+    print("\n10 mL chamber / label Z (mm):")
+    print(json.dumps(
+        {
+            "internal_bottom_z": d10["internal_bottom_z"],
+            "internal_top_z": d10["internal_top_z"],
+            "internal_chamber_height": d10["internal_chamber_height"],
+            "75_percent_fill_z": d10["fill_75_z"],
+            "label_bottom_z": d10["label_bottom_z"],
+            "label_top_z": d10["label_top_z"],
+            "liquid_vs_label": d10["liquid_vs_label"],
+        },
+        indent=2,
+    ))
+    print("==========================================\n")
 
 
 def main():
@@ -939,6 +1212,7 @@ def main():
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report["derived_mm"], indent=2))
+    print_review_block(report)
 
     if not args.skip_render:
         configure_render(scene, PREVIEW_SIZE, args.samples)
@@ -965,11 +1239,11 @@ def main():
                 center=(0.0, 0.0, 0.0),
                 radius=mm(parts["spec"]["r_outer"]),
                 height=mm(d["total_assembly_h"]),
+                exclude_caps=list(parts["collection"].objects),
             )
             bpy.context.view_layer.update()
             render_still(scene, RENDERS_DIR / variant["file"])
 
-        # Comparison: linked instances, true relative scale, shared baseline z=0.
         cmp = ensure_collection("COMPARISON_PREVIEW")
         clear_collection(cmp)
         cursor = 0.0
@@ -983,7 +1257,6 @@ def main():
             placed.append({**variant, "x": cursor})
         group_width = placed[-1]["x"] + VIAL_SPECS[placed[-1]["capacity"]]["r_outer"]
         offset = group_width / 2.0
-        tallest = max(masters[v["capacity"]]["derived"]["total_assembly_h"] for v in placed)
         for item in placed:
             x = mm(item["x"] - offset)
             instance_master(
@@ -1012,6 +1285,7 @@ def main():
             center=(look[0], 0.0, 0.0),
             radius=width_m * 0.38,
             height=height_m,
+            exclude_caps=list(cmp.objects),
         )
         print(
             json.dumps(
@@ -1023,9 +1297,10 @@ def main():
         )
         configure_render(scene, COMPARISON_SIZE, args.samples)
         bpy.context.view_layer.update()
-        render_still(scene, RENDERS_DIR / "preview-comparison.png")
+        comparison_path = RENDERS_DIR / "preview-comparison.png"
+        render_still(scene, comparison_path)
+        write_checker_composite(comparison_path, RENDERS_DIR / "preview-comparison-checker.png")
 
-        # Restore masters visible for the saved .blend
         hide_masters(masters, False)
         for parts in masters.values():
             set_master_contents(parts, "white_cake", mats)
