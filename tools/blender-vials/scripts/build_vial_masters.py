@@ -239,7 +239,10 @@ def reset_scene():
     scene.cycles.volume_bounces = 2
     scene.cycles.caustics_reflective = False
     scene.cycles.caustics_refractive = False
-    scene.cycles.filter_glossy = 0.6
+    if hasattr(scene.cycles, "blur_glossy"):
+        scene.cycles.blur_glossy = 0.6
+    elif hasattr(scene.cycles, "filter_glossy"):
+        scene.cycles.filter_glossy = 0.6
     scene.render.image_settings.file_format = "PNG"
     scene.render.image_settings.color_mode = "RGBA"
     scene.render.image_settings.color_depth = "8"
