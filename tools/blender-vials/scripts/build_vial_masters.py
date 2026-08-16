@@ -399,6 +399,14 @@ def assign(obj, mat):
         obj.data.materials.append(mat)
 
 
+def assign_object(obj, mat):
+    """Per-object material so linked-mesh variants can differ (white vs cobalt)."""
+    if not obj.material_slots:
+        obj.data.materials.append(mat)
+    obj.material_slots[0].link = "OBJECT"
+    obj.material_slots[0].material = mat
+
+
 def build_materials():
     mats = {}
 
@@ -833,7 +841,7 @@ def instance_master(parts, capacity, contents, location, collection, mats):
         if key == "cap":
             inst[key].visible_glossy = False
     cake = linked_instance(parts["cake"], f"{parts['cake'].name}_{contents}", collection, loc)
-    assign(cake, mats["cake_cobalt"] if contents == "cobalt_cake" else mats["cake_white"])
+    assign_object(cake, mats["cake_cobalt"] if contents == "cobalt_cake" else mats["cake_white"])
     cake.hide_render = contents == "red_liquid"
     cake.hide_viewport = contents == "red_liquid"
     inst["cake"] = cake
@@ -886,8 +894,9 @@ def add_reflection_card(name, loc, size_xy, rot, collection, color=(0.86, 0.86, 
     set_input(bsdf, ["Metallic"], 0.0)
     set_input(bsdf, ["Specular IOR Level", "Specular"], 0.04)
     assign(obj, mat)
-    # Invisible to camera; still refracted/reflected so transparent glass reads.
-    hide_from_camera(obj, transmission=True, glossy=True, diffuse=True, shadow=False)
+    # Invisible to camera; refracted/reflected by glass and metal only.
+    # No diffuse bounce onto the matte-black cap.
+    hide_from_camera(obj, transmission=True, glossy=True, diffuse=False, shadow=False)
     return obj
 
 
@@ -909,7 +918,7 @@ def add_floor_card(name, loc, radius, collection):
     set_input(bsdf, ["Roughness"], 0.42)
     set_input(bsdf, ["Metallic"], 0.0)
     assign(obj, mat)
-    hide_from_camera(obj, transmission=True, glossy=True, diffuse=True, shadow=False)
+    hide_from_camera(obj, transmission=True, glossy=True, diffuse=False, shadow=False)
     return obj
 
 
@@ -932,23 +941,26 @@ def apply_light_linking(light_obj, receiver_coll):
         pass
 
 
-def setup_lights(center, radius, height, exclude_caps=None):
+def setup_lights(center, radius, height, scene_objects=None):
     coll = ensure_collection("LIGHTING_LOCKED")
     clear_collection(coll)
     cx, cy, cz = center
     body_h = height * 0.72
     body_z = cz + height * 0.38
 
-    receivers = None
-    if exclude_caps:
-        receivers = ensure_collection("LIGHT_RECEIVERS_NO_CAP")
-        unlink_all(receivers)
-        for obj in exclude_caps:
-            if obj is not None and "CAP" not in obj.name:
-                try:
-                    receivers.objects.link(obj)
-                except RuntimeError:
-                    pass
+    body_recv = ensure_collection("LIGHT_RECEIVERS_BODY")
+    cap_recv = ensure_collection("LIGHT_RECEIVERS_CAP")
+    unlink_all(body_recv)
+    unlink_all(cap_recv)
+    if scene_objects:
+        for obj in scene_objects:
+            if obj is None:
+                continue
+            target = cap_recv if "CAP" in obj.name else body_recv
+            try:
+                target.objects.link(obj)
+            except RuntimeError:
+                pass
 
     rim_l = add_area(
         "RimLeft",
@@ -966,15 +978,15 @@ def setup_lights(center, radius, height, exclude_caps=None):
         size=(mm(3.2), body_h * 0.95),
         collection=coll,
     )
-    add_area(
+    cap_key = add_area(
         "CapKey",
         loc=(cx + radius + mm(14), cy - mm(18), cz + height + mm(6)),
-        energy=1.1,
+        energy=0.7,
         rot=(math.radians(62), 0, math.radians(28)),
         size=(radius * 0.8, mm(7)),
         collection=coll,
     )
-    add_area(
+    soft = add_area(
         "SoftFill",
         loc=(cx - radius * 0.2, cy - mm(48), cz + height * 0.55),
         energy=8,
@@ -982,7 +994,7 @@ def setup_lights(center, radius, height, exclude_caps=None):
         size=(radius * 2.2, height * 0.45),
         collection=coll,
     )
-    add_area(
+    cake = add_area(
         "CakeKiss",
         loc=(cx + radius * 0.35, cy - mm(30), cz + mm(8)),
         energy=16,
@@ -990,25 +1002,26 @@ def setup_lights(center, radius, height, exclude_caps=None):
         size=(mm(24), mm(16)),
         collection=coll,
     )
+    # Cards are already vertical in XZ; rotate around Z only so they face the vial.
     add_reflection_card(
         "CardLeft",
         loc=(cx - radius - mm(24), cy + mm(6), cz + height * 0.38),
         size_xy=(mm(8), height * 0.78),
-        rot=(math.radians(90), 0, math.radians(-10)),
+        rot=(0, 0, math.radians(-100)),
         collection=coll,
     )
     add_reflection_card(
         "CardRight",
         loc=(cx + radius + mm(24), cy + mm(6), cz + height * 0.38),
         size_xy=(mm(7), height * 0.74),
-        rot=(math.radians(90), 0, math.radians(10)),
+        rot=(0, 0, math.radians(100)),
         collection=coll,
     )
     add_reflection_card(
         "CardBack",
         loc=(cx, cy + mm(36), cz + height * 0.40),
         size_xy=(radius * 3.2, height * 0.85),
-        rot=(math.radians(90), 0, math.radians(180)),
+        rot=(0, 0, math.radians(180)),
         collection=coll,
         color=(0.80, 0.80, 0.82),
     )
@@ -1018,8 +1031,9 @@ def setup_lights(center, radius, height, exclude_caps=None):
         radius=radius * 2.4,
         collection=coll,
     )
-    apply_light_linking(rim_l, receivers)
-    apply_light_linking(rim_r, receivers)
+    for light_obj in (rim_l, rim_r, soft, cake):
+        apply_light_linking(light_obj, body_recv)
+    apply_light_linking(cap_key, cap_recv)
     return coll
 
 
@@ -1090,7 +1104,7 @@ def hide_masters(masters, hide):
 
 
 def set_master_contents(parts, contents, mats):
-    assign(parts["cake"], mats["cake_cobalt"] if contents == "cobalt_cake" else mats["cake_white"])
+    assign_object(parts["cake"], mats["cake_cobalt"] if contents == "cobalt_cake" else mats["cake_white"])
     show_cake = contents != "red_liquid"
     parts["cake"].hide_render = not show_cake
     parts["cake"].hide_viewport = not show_cake
@@ -1248,7 +1262,7 @@ def main():
                 center=(0.0, 0.0, 0.0),
                 radius=mm(parts["spec"]["r_outer"]),
                 height=mm(d["total_assembly_h"]),
-                exclude_caps=list(parts["collection"].objects),
+                scene_objects=list(parts["collection"].objects),
             )
             bpy.context.view_layer.update()
             render_still(scene, RENDERS_DIR / variant["file"])
@@ -1294,7 +1308,7 @@ def main():
             center=(look[0], 0.0, 0.0),
             radius=width_m * 0.38,
             height=height_m,
-            exclude_caps=list(cmp.objects),
+            scene_objects=list(cmp.objects),
         )
         print(
             json.dumps(
