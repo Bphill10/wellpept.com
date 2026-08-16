@@ -119,7 +119,7 @@ Use these to judge cap shape, crimp color, label height, label placement, trim, 
 
 Deterministic placement proofs created by the included script are in `examples/vial-mockups/`. The three unlabeled stock vials are in `assets/vials/`; the two 3 mL files share identical vial geometry and differ only in peptide-cake color.
 
-Unlabeled stocks are authored in `tools/blender-vials/` (`references/`, `renders/`, `scripts/`). Preview or rebuild plates with `npm run vial-studio`, then `npm run publish-vial-stocks` to refresh locked masters, production assets, and `bodyBoundsPx`. Follow `tools/blender-vials/SKILL.md`.
+Unlabeled stocks are authored in `tools/blender-vials/` (`references/`, `renders/`, `masters/`, `scripts/`). Preview or rebuild plates with `npm run vial-studio`, promote approved 1024×1536 frames into `masters/`, then `npm run publish-vial-stocks` to refresh locked masters, production assets, and `bodyBoundsPx`. Follow `tools/blender-vials/SKILL.md`.
 
 The four current KLOW label layouts can be reviewed together at `examples/generated/ALL_4_KLOW_LABELS_CURSOR_READY.png`.
 

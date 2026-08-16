@@ -2,14 +2,16 @@
 """
 Undisclosed unlabeled vial studio — Blender / Cycles.
 
-Renders the four locked stock plates from one shared scene:
+Renders unlabeled stock plates from shared scenes:
   01  3 mL white lyophilized cake
   02  3 mL cobalt-blue cake   (same 3 mL mesh, cake color only)
   03  10 mL white cake
   04  10 mL B12 ruby liquid at 75% fill
+  05  5 mL white cake         (studio only until a 5ML profile exists)
 
 Canvas is 1024 x 1536, pure black studio, black flip-off + brushed-silver crimp.
-Run via blender/render.sh — do not invoke this file with system Python.
+Run via tools/blender-vials/scripts/render.sh — do not invoke this file
+with system Python.
 """
 
 from __future__ import annotations
@@ -40,24 +42,35 @@ VARIANTS = {
         "profile": "3ml",
         "contents": "white_cake",
         "placement": "3ML_WHITE",
+        "reference": "image-gen-3ml White.png",
     },
     "02": {
         "file": "02_3mL_Cobalt_Blue_Powder_LOCKED.png",
         "profile": "3ml",
         "contents": "cobalt_cake",
         "placement": "3ML_BLUE",
+        "reference": "image-gen-3ml Blue.png",
     },
     "03": {
         "file": "03_10mL_White_Powder_LOCKED.png",
         "profile": "10ml",
         "contents": "white_cake",
         "placement": "10ML_WHITE",
+        "reference": "image-gen-10ml White.png",
     },
     "04": {
         "file": "04_10mL_B12_Ruby_Red_Liquid_75pct_LOCKED.png",
         "profile": "10ml",
         "contents": "ruby_liquid",
         "placement": "10ML_B12_LIQUID",
+        "reference": "image-gen-10ml Red.png",
+    },
+    "05": {
+        "file": "05_5mL_White_Powder_LOCKED.png",
+        "profile": "5ml",
+        "contents": "white_cake",
+        "placement": None,
+        "reference": "image-gen-5ml White.png",
     },
 }
 
@@ -84,6 +97,27 @@ PROFILES = {
         "ortho": 56.8 * MM,
         "cam_y": -0.12,
         "body_height_mm": 35,
+    },
+    "5ml": {
+        "r_outer": 11.55 * MM,
+        "wall": 1.18 * MM,
+        "heel": 1.22 * MM,
+        "body_top": 40.2 * MM,
+        "shoulder": 5.0 * MM,
+        "neck_r": 8.1 * MM,
+        "neck_h": 6.8 * MM,
+        "bead_r": 8.9 * MM,
+        "bead_h": 1.4 * MM,
+        "lip_h": 1.1 * MM,
+        "floor": 2.85 * MM,
+        "cake_h": 7.1 * MM,
+        "cap_r": 9.4 * MM,
+        "cap_h": 2.22 * MM,
+        "crimp_h": 5.7 * MM,
+        "look_z": 25.8 * MM,
+        "ortho": 66.0 * MM,
+        "cam_y": -0.14,
+        "body_height_mm": 42,
     },
     "10ml": {
         "r_outer": 13.05 * MM,
@@ -123,8 +157,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Render Undisclosed vial stocks")
     parser.add_argument(
         "--variants",
-        default="01,02,03,04",
-        help="Comma-separated variant ids (01 02 03 04)",
+        default="01,02,03,04,05",
+        help="Comma-separated variant ids (01 02 03 04 05)",
     )
     parser.add_argument("--out", default=str(DEFAULT_OUT))
     parser.add_argument("--preview", action="store_true", help="512x768, 24 samples")
@@ -647,6 +681,7 @@ def build_variant(scene, variant_id, preview, samples, out_dir, clay=False):
         "placement": spec["placement"],
         "profile": spec["profile"],
         "contents": spec["contents"],
+        "reference": spec.get("reference"),
         "resolution": [w, h],
         "samples": scene.cycles.samples,
         "bodyBoundsPx": bounds,
@@ -662,7 +697,7 @@ def main():
     ids = [item.strip() for item in args.variants.split(",") if item.strip()]
     for item in ids:
         if item not in VARIANTS:
-            raise SystemExit(f"Unknown variant {item}. Use 01,02,03,04.")
+            raise SystemExit(f"Unknown variant {item}. Use 01,02,03,04,05.")
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
     results = [

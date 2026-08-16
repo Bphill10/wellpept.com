@@ -1,6 +1,7 @@
 /**
- * Copy Blender vial-studio plates into locked masters and production assets,
- * then write measured straight-body bounds into config/vial-placement.json.
+ * Copy approved plates from tools/blender-vials/masters/ into locked masters
+ * and production assets, then write measured straight-body bounds into
+ * config/vial-placement.json.
  */
 import crypto from "node:crypto";
 import { createRequire } from "node:module";
@@ -12,7 +13,7 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const toolRoot = path.resolve(scriptDir, "..");
 const repoRoot = path.resolve(toolRoot, "../..");
 const systemRoot = path.join(repoRoot, "ud-label-system");
-const outputDir = path.join(toolRoot, "renders");
+const outputDir = path.join(toolRoot, "masters");
 const placementPath = path.join(systemRoot, "config/vial-placement.json");
 const sharp = createRequire(path.join(systemRoot, "package.json"))("sharp");
 
@@ -123,7 +124,13 @@ const report = [];
 
 for (const plate of PLATES) {
   const source = path.join(outputDir, plate.file);
-  await fs.access(source);
+  try {
+    await fs.access(source);
+  } catch {
+    throw new Error(
+      `Missing approved master ${source}. Copy a 1024×1536 plate from renders/ into masters/ after approval.`
+    );
+  }
   const bounds = await measureStraightBody(source);
   const lockedPath = path.join(systemRoot, plate.locked);
   const hash = await copyPng(source, lockedPath);

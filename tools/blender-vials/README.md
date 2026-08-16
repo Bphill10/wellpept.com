@@ -1,8 +1,9 @@
 # tools/blender-vials
 
 ```
-references/   locked look to match
-renders/      Cycles output
+references/   image-gen look targets
+renders/      Cycles working output
+masters/      approved 1024×1536 plates
 scripts/      render.sh, render_vial_studio.py, publish-stocks.mjs
 ```
 
@@ -13,4 +14,4 @@ bash tools/blender-vials/scripts/render.sh --preview
 bash tools/blender-vials/scripts/render.sh
 ```
 
-Publish is a separate step and does not run during `npm run build`.
+Publish reads `masters/` and does not run during `npm run build`.

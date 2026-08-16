@@ -7,5 +7,5 @@ description: Use the Undisclosed Blender vial studio. Trigger on blender, belnde
 
 Follow `tools/blender-vials/SKILL.md`.
 
-Layout: `references/`, `renders/`, `scripts/`.
+Layout: `references/`, `renders/`, `masters/`, `scripts/`.
 Do not invent a second renderer inside `ud-label-system`.
