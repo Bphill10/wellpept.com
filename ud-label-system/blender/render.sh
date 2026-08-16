@@ -6,7 +6,11 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 CACHE="${BLENDER_CACHE:-$HOME/.local/share/undisclosed-blender}"
 VERSION="4.2.23"
 TARBALL="blender-${VERSION}-linux-x64.tar.xz"
-URL="https://download.blender.org/release/Blender4.2/${TARBALL}"
+URLS=(
+  "https://download.blender.org/release/Blender4.2/${TARBALL}"
+  "https://ftp.nluug.nl/pub/graphics/blender/release/Blender4.2/${TARBALL}"
+  "https://ftp.halifax.rwth-aachen.de/blender/release/Blender4.2/${TARBALL}"
+)
 BIN="${BLENDER_BIN:-}"
 
 find_blender() {
@@ -29,7 +33,18 @@ install_blender() {
   mkdir -p "$CACHE"
   if [[ ! -x "$CACHE/blender-${VERSION}-linux-x64/blender" ]]; then
     echo "Downloading Blender ${VERSION}…"
-    curl -L --fail --retry 4 --retry-delay 4 -o "$CACHE/$TARBALL" "$URL"
+    downloaded=0
+    for url in "${URLS[@]}"; do
+      echo "Trying $url"
+      if curl -L --fail --retry 3 --retry-delay 4 -o "$CACHE/$TARBALL" "$url"; then
+        downloaded=1
+        break
+      fi
+    done
+    if [[ "$downloaded" -ne 1 ]]; then
+      echo "Could not download Blender ${VERSION}" >&2
+      exit 1
+    fi
     tar -xJf "$CACHE/$TARBALL" -C "$CACHE"
   fi
   echo "$CACHE/blender-${VERSION}-linux-x64/blender"

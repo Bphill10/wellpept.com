@@ -10,4 +10,5 @@ dist/
 ud-label-system/node_modules/
 ud-label-system/output/
 ud-label-system/blender/output/
+ud-label-system/blender/__pycache__/
 

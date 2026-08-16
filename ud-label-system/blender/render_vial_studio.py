@@ -21,7 +21,6 @@ import os
 import sys
 from pathlib import Path
 
-import bmesh
 import bpy
 from bpy_extras.object_utils import world_to_camera_view
 from mathutils import Vector
@@ -31,6 +30,8 @@ SCRIPT_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 DEFAULT_OUT = SCRIPT_DIR / "output"
 
 CANVAS = (1024, 1536)
+# Cycles treats 1 BU as 1 meter. Profiles below are authored in millimeters.
+MM = 0.001
 
 VARIANTS = {
     "01": {
@@ -63,45 +64,45 @@ VARIANTS = {
 # chunkier than lab tubular vials so the wrap face stays wide enough).
 PROFILES = {
     "3ml": {
-        "r_outer": 10.25,
-        "wall": 1.12,
-        "heel": 1.15,
-        "body_top": 33.4,
-        "shoulder": 4.6,
-        "neck_r": 6.55,
-        "neck_h": 6.4,
-        "bead_r": 7.35,
-        "bead_h": 1.35,
-        "lip_h": 1.05,
-        "floor": 2.7,
-        "cake_h": 6.4,
-        "cap_r": 7.85,
-        "cap_h": 2.15,
-        "crimp_h": 5.4,
-        "look_z": 22.2,
-        "ortho": 56.8,
-        "cam_y": -78.0,
+        "r_outer": 10.25 * MM,
+        "wall": 1.12 * MM,
+        "heel": 1.15 * MM,
+        "body_top": 33.4 * MM,
+        "shoulder": 4.6 * MM,
+        "neck_r": 6.55 * MM,
+        "neck_h": 6.4 * MM,
+        "bead_r": 7.35 * MM,
+        "bead_h": 1.35 * MM,
+        "lip_h": 1.05 * MM,
+        "floor": 2.7 * MM,
+        "cake_h": 6.4 * MM,
+        "cap_r": 7.85 * MM,
+        "cap_h": 2.15 * MM,
+        "crimp_h": 5.4 * MM,
+        "look_z": 22.2 * MM,
+        "ortho": 56.8 * MM,
+        "cam_y": -0.12,
         "body_height_mm": 35,
     },
     "10ml": {
-        "r_outer": 13.05,
-        "wall": 1.28,
-        "heel": 1.35,
-        "body_top": 49.6,
-        "shoulder": 5.6,
-        "neck_r": 10.05,
-        "neck_h": 7.4,
-        "bead_r": 10.85,
-        "bead_h": 1.5,
-        "lip_h": 1.15,
-        "floor": 3.1,
-        "cake_h": 8.2,
-        "cap_r": 11.35,
-        "cap_h": 2.35,
-        "crimp_h": 6.2,
-        "look_z": 30.4,
-        "ortho": 78.4,
-        "cam_y": -104.0,
+        "r_outer": 13.05 * MM,
+        "wall": 1.28 * MM,
+        "heel": 1.35 * MM,
+        "body_top": 49.6 * MM,
+        "shoulder": 5.6 * MM,
+        "neck_r": 10.05 * MM,
+        "neck_h": 7.4 * MM,
+        "bead_r": 10.85 * MM,
+        "bead_h": 1.5 * MM,
+        "lip_h": 1.15 * MM,
+        "floor": 3.1 * MM,
+        "cake_h": 8.2 * MM,
+        "cap_r": 11.35 * MM,
+        "cap_h": 2.35 * MM,
+        "crimp_h": 6.2 * MM,
+        "look_z": 30.4 * MM,
+        "ortho": 78.4 * MM,
+        "cam_y": -0.16,
         "body_height_mm": 52,
     },
 }
@@ -127,6 +128,7 @@ def parse_args():
     parser.add_argument("--out", default=str(DEFAULT_OUT))
     parser.add_argument("--preview", action="store_true", help="512x768, 24 samples")
     parser.add_argument("--samples", type=int, default=0)
+    parser.add_argument("--clay", action="store_true", help="Gray diffuse, no glass")
     return parser.parse_args(argv_after_double_dash())
 
 
@@ -169,15 +171,17 @@ def reset_scene():
     scene.render.dither_intensity = 1.0
     scene.display_settings.display_device = "sRGB"
     scene.view_settings.view_transform = "Filmic"
-    scene.view_settings.look = "Medium High Contrast"
-    scene.view_settings.exposure = 0.15
+    scene.view_settings.look = "None"
+    scene.view_settings.exposure = 0.05
     scene.view_settings.gamma = 1.0
+    scene.unit_settings.system = "METRIC"
+    scene.unit_settings.scale_length = 1.0
     world = bpy.data.worlds.new("StudioBlack")
     scene.world = world
     world.use_nodes = True
     bg = world.node_tree.nodes["Background"]
-    bg.inputs["Color"].default_value = (0, 0, 0, 1)
-    bg.inputs["Strength"].default_value = 0.0
+    bg.inputs["Color"].default_value = (0.004, 0.004, 0.004, 1)
+    bg.inputs["Strength"].default_value = 0.15
     return scene
 
 
@@ -209,23 +213,23 @@ def vial_profile(p):
     z_top = z_lip + lip_h
 
     outer = [
-        (0.0, 0.18),
-        (r_out * 0.42, 0.06),
+        (0.0, 0.18 * MM),
+        (r_out * 0.42, 0.06 * MM),
         (r_out - heel * 0.85, 0.0),
         (r_out, heel),
         (r_out, body_top),
     ]
-    outer += smooth_steps((r_out, body_top), (neck_r, z_neck), 7)[1:]
+    outer += smooth_steps((r_out, body_top), (neck_r, z_neck), 12)[1:]
     outer += [
         (neck_r, z_bead),
         (bead_r, z_bead + bead_h * 0.35),
         (bead_r, z_lip),
-        (neck_r + 0.15, z_top),
+        (neck_r + 0.15 * MM, z_top),
         (neck_inner, z_top),
         (neck_inner, z_bead),
     ]
     inner = list(
-        reversed(smooth_steps((r_in, body_top + 0.15), (neck_inner, z_neck), 7))
+        reversed(smooth_steps((r_in, body_top + 0.15 * MM), (neck_inner, z_neck), 7))
     )[1:]
     inner += [
         (r_in, body_top),
@@ -246,66 +250,55 @@ def vial_profile(p):
 
 
 def create_lathe(name, profile, segments=96):
+    """Build a closed surface of revolution from (radius, z) rings."""
+    rings = len(profile)
+    verts = []
+    for i in range(segments):
+        angle = (i / segments) * math.tau
+        cosine = math.cos(angle)
+        sine = math.sin(angle)
+        for radius, z in profile:
+            verts.append((radius * cosine, radius * sine, z))
+    faces = []
+    for i in range(segments):
+        nxt = (i + 1) % segments
+        for j in range(rings):
+            jn = (j + 1) % rings
+            a = i * rings + j
+            b = nxt * rings + j
+            c = nxt * rings + jn
+            d = i * rings + jn
+            faces.append((a, d, c, b))
     mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(verts, [], faces)
+    mesh.validate()
+    mesh.update()
     obj = bpy.data.objects.new(name, mesh)
     bpy.context.collection.objects.link(obj)
-    bm = bmesh.new()
-    verts = [bm.verts.new((r, 0.0, z)) for r, z in profile]
-    for i in range(len(verts) - 1):
-        bm.edges.new((verts[i], verts[i + 1]))
-    bm.edges.new((verts[-1], verts[0]))
-    bmesh.ops.spin(
-        bm,
-        geom=bm.verts[:] + bm.edges[:],
-        angle=math.tau,
-        steps=segments,
-        axis=(0.0, 0.0, 1.0),
-        cent=(0.0, 0.0, 0.0),
-    )
-    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-4)
-    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    bm.to_mesh(mesh)
-    bm.free()
     for poly in obj.data.polygons:
         poly.use_smooth = True
+    bpy.context.view_layer.objects.active = obj
+    obj.select_set(True)
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.mesh.normals_make_consistent(inside=False)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    obj.select_set(False)
     return obj
 
 
 def create_disk_volume(name, radius, z0, z1, segments=64, meniscus=0.0):
-    mesh = bpy.data.meshes.new(name)
-    obj = bpy.data.objects.new(name, mesh)
-    bpy.context.collection.objects.link(obj)
-    bm = bmesh.new()
-    profile = [
-        (0.0, z0),
-        (radius, z0),
-        (radius, z1),
-    ]
+    core = 0.02 * MM
+    profile = [(core, z0), (radius, z0), (radius, z1)]
     if meniscus:
-        for i in range(1, 9):
-            t = i / 8
+        for i in range(1, 10):
+            t = i / 9
             r = radius * (1.0 - t)
-            dip = meniscus * (1.0 - (r / radius) ** 2)
-            profile.append((r, z1 - dip))
+            dip = meniscus * (1.0 - (max(r, core) / radius) ** 2)
+            profile.append((max(r, core), z1 - dip))
     else:
-        profile.append((0.0, z1))
-    verts = [bm.verts.new((r, 0.0, z)) for r, z in profile]
-    for i in range(len(verts) - 1):
-        bm.edges.new((verts[i], verts[i + 1]))
-    bm.edges.new((verts[-1], verts[0]))
-    bmesh.ops.spin(
-        bm,
-        geom=bm.verts[:] + bm.edges[:],
-        angle=math.tau,
-        steps=segments,
-        axis=(0.0, 0.0, 1.0),
-        cent=(0.0, 0.0, 0.0),
-    )
-    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-4)
-    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    bm.to_mesh(mesh)
-    bm.free()
-    return obj
+        profile.append((core, z1))
+    return create_lathe(name, profile, segments=segments)
 
 
 def create_cap_assembly(p, dims):
@@ -314,46 +307,30 @@ def create_cap_assembly(p, dims):
     cap_r = p["cap_r"]
     cap_h = p["cap_h"]
     neck_r = p["neck_r"]
-
-    bpy.ops.mesh.primitive_cylinder_add(
-        radius=cap_r,
-        depth=cap_h,
-        vertices=64,
-        location=(0.0, 0.0, z_bead + crimp_h - cap_h * 0.35),
+    z_flip0 = z_bead + crimp_h * 0.55
+    z_flip1 = z_flip0 + cap_h
+    flip = create_disk_volume("FlipCap", cap_r, z_flip0, z_flip1, segments=64)
+    crimp_top = create_disk_volume(
+        "CrimpTop",
+        cap_r * 0.92,
+        z_bead + crimp_h * 0.28,
+        z_flip0 + 0.15 * MM,
+        segments=64,
     )
-    flip = bpy.context.active_object
-    flip.name = "FlipCap"
-    bpy.ops.object.shade_smooth()
-
-    bpy.ops.mesh.primitive_cylinder_add(
-        radius=cap_r * 0.98,
-        depth=crimp_h * 0.55,
-        vertices=64,
-        location=(0.0, 0.0, z_bead + crimp_h * 0.62),
+    crimp_skirt = create_disk_volume(
+        "CrimpSkirt",
+        neck_r + 0.45 * MM,
+        z_bead - 0.15 * MM,
+        z_bead + crimp_h * 0.42,
+        segments=64,
     )
-    crimp_top = bpy.context.active_object
-    crimp_top.name = "CrimpTop"
-    bpy.ops.object.shade_smooth()
-
-    bpy.ops.mesh.primitive_cylinder_add(
-        radius=neck_r + 0.55,
-        depth=crimp_h * 0.85,
-        vertices=64,
-        location=(0.0, 0.0, z_bead + crimp_h * 0.28),
+    stopper = create_disk_volume(
+        "Stopper",
+        dims["neck_inner"] * 0.96,
+        z_bead - 3.4 * MM,
+        z_bead + 0.4 * MM,
+        segments=48,
     )
-    crimp_skirt = bpy.context.active_object
-    crimp_skirt.name = "CrimpSkirt"
-    bpy.ops.object.shade_smooth()
-
-    bpy.ops.mesh.primitive_cylinder_add(
-        radius=dims["neck_inner"] * 0.96,
-        depth=3.2,
-        vertices=48,
-        location=(0.0, 0.0, z_bead - 0.4),
-    )
-    stopper = bpy.context.active_object
-    stopper.name = "Stopper"
-    bpy.ops.object.shade_smooth()
     return flip, crimp_top, crimp_skirt, stopper
 
 
@@ -379,15 +356,17 @@ def assign(obj, mat):
 
 
 def glass_material():
-    mat, nodes, links, bsdf, _out = new_material("VialGlass")
-    bsdf.inputs["Base Color"].default_value = (1, 1, 1, 1)
-    bsdf.inputs["Roughness"].default_value = 0.016
-    bsdf.inputs["IOR"].default_value = 1.52
-    bsdf.inputs["Transmission Weight"].default_value = 1.0
-    bsdf.inputs["Metallic"].default_value = 0.0
-    bsdf.inputs["Specular IOR Level"].default_value = 0.55
-    bsdf.inputs["Coat Weight"].default_value = 0.15
-    bsdf.inputs["Coat Roughness"].default_value = 0.03
+    mat = bpy.data.materials.new("VialGlass")
+    mat.use_nodes = True
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+    nodes.clear()
+    out = nodes.new("ShaderNodeOutputMaterial")
+    glass = nodes.new("ShaderNodeBsdfGlass")
+    glass.inputs["Color"].default_value = (1, 1, 1, 1)
+    glass.inputs["Roughness"].default_value = 0.012
+    glass.inputs["IOR"].default_value = 1.5
+    links.new(glass.outputs["BSDF"], out.inputs["Surface"])
     return mat
 
 
@@ -430,8 +409,8 @@ def stopper_material():
 def cake_material(color):
     mat, nodes, links, bsdf, _out = new_material("PeptideCake")
     bsdf.inputs["Base Color"].default_value = color
-    bsdf.inputs["Roughness"].default_value = 0.72
-    bsdf.inputs["Specular IOR Level"].default_value = 0.12
+    bsdf.inputs["Roughness"].default_value = 0.62
+    bsdf.inputs["Specular IOR Level"].default_value = 0.18
     if "Subsurface Weight" in bsdf.inputs:
         bsdf.inputs["Subsurface Weight"].default_value = 0.28
         bsdf.inputs["Subsurface Radius"].default_value = (0.4, 0.2, 0.12)
@@ -453,9 +432,18 @@ def cake_material(color):
     links.new(noise.outputs["Fac"], mix.inputs["B"])
     bump = nodes.new("ShaderNodeBump")
     bump.inputs["Strength"].default_value = 0.55
-    bump.inputs["Distance"].default_value = 0.12
+    bump.inputs["Distance"].default_value = 0.12 * MM
     links.new(mix.outputs["Result"], bump.inputs["Height"])
     links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
+    emit = nodes.new("ShaderNodeEmission")
+    emit.inputs["Color"].default_value = color
+    emit.inputs["Strength"].default_value = 0.4
+    mix_sh = nodes.new("ShaderNodeMixShader")
+    mix_sh.inputs["Fac"].default_value = 0.2
+    out = next(node for node in nodes if node.type == "OUTPUT_MATERIAL")
+    links.new(bsdf.outputs["BSDF"], mix_sh.inputs[1])
+    links.new(emit.outputs["Emission"], mix_sh.inputs[2])
+    links.new(mix_sh.outputs["Shader"], out.inputs["Surface"])
     return mat
 
 
@@ -470,6 +458,14 @@ def liquid_material():
     vol.inputs["Color"].default_value = RUBY
     vol.inputs["Density"].default_value = 3.6
     links.new(vol.outputs["Volume"], out.inputs["Volume"])
+    return mat
+
+
+def clay_material(color=(0.55, 0.55, 0.55, 1)):
+    mat, _nodes, _links, bsdf, _out = new_material("Clay")
+    bsdf.inputs["Base Color"].default_value = color
+    bsdf.inputs["Roughness"].default_value = 0.65
+    bsdf.inputs["Metallic"].default_value = 0.0
     return mat
 
 
@@ -494,6 +490,10 @@ def add_area(name, loc, scale, energy, rot, size=(8, 40)):
     obj.location = loc
     obj.rotation_euler = rot
     obj.scale = scale
+    obj.visible_camera = False
+    obj.visible_shadow = True
+    if hasattr(obj, "visible_glossy"):
+        obj.visible_glossy = True
     return obj
 
 
@@ -501,43 +501,35 @@ def setup_lights(p):
     z = p["look_z"]
     add_area(
         "RimLeft",
-        loc=(-22.0, 10.0, z + 4),
+        loc=(-0.055, 0.018, z + 0.006),
         scale=(1, 1, 1),
-        energy=1100,
-        rot=(math.radians(78), 0, math.radians(-18)),
-        size=(6.5, 52),
+        energy=220,
+        rot=(math.radians(78), 0, math.radians(-28)),
+        size=(0.008, 0.1),
     )
     add_area(
         "RimRight",
-        loc=(24.0, 9.0, z + 2),
+        loc=(0.058, 0.016, z + 0.002),
         scale=(1, 1, 1),
-        energy=980,
-        rot=(math.radians(78), 0, math.radians(20)),
-        size=(6.5, 48),
+        energy=200,
+        rot=(math.radians(78), 0, math.radians(30)),
+        size=(0.008, 0.095),
     )
     add_area(
         "CapKey",
-        loc=(4.0, -16.0, z + 28),
+        loc=(0.0, 0.03, z + 0.07),
         scale=(1, 1, 1),
-        energy=220,
-        rot=(math.radians(55), 0, math.radians(10)),
-        size=(14, 10),
-    )
-    add_area(
-        "FillFront",
-        loc=(0.0, p["cam_y"] * 0.35, z),
-        scale=(1, 1, 1),
-        energy=55,
-        rot=(math.radians(90), 0, 0),
-        size=(28, 36),
+        energy=18,
+        rot=(math.radians(40), 0, 0),
+        size=(0.04, 0.03),
     )
     add_area(
         "CakeKiss",
-        loc=(6.0, -12.0, 8.0),
+        loc=(0.04, 0.05, 0.012),
         scale=(1, 1, 1),
-        energy=90,
-        rot=(math.radians(72), 0, math.radians(18)),
-        size=(10, 8),
+        energy=14,
+        rot=(math.radians(65), 0, math.radians(-25)),
+        size=(0.02, 0.02),
     )
 
 
@@ -545,8 +537,8 @@ def setup_camera(scene, p, preview):
     cam_data = bpy.data.cameras.new("StudioCam")
     cam_data.type = "ORTHO"
     cam_data.ortho_scale = p["ortho"]
-    cam_data.clip_start = 0.1
-    cam_data.clip_end = 400
+    cam_data.clip_start = 0.01
+    cam_data.clip_end = 2.0
     cam = bpy.data.objects.new("StudioCam", cam_data)
     bpy.context.collection.objects.link(cam)
     cam.location = (0.0, p["cam_y"], p["look_z"])
@@ -556,7 +548,7 @@ def setup_camera(scene, p, preview):
 
 
 def setup_floor():
-    bpy.ops.mesh.primitive_plane_add(size=180, location=(0, 0, -0.02))
+    bpy.ops.mesh.primitive_plane_add(size=0.4, location=(0, 0, -0.0003))
     floor = bpy.context.active_object
     floor.name = "StudioFloor"
     assign(floor, floor_material())
@@ -586,7 +578,7 @@ def body_bounds(scene, cam, p, dims, resolution):
     }
 
 
-def build_variant(scene, variant_id, preview, samples, out_dir):
+def build_variant(scene, variant_id, preview, samples, out_dir, clay=False):
     spec = VARIANTS[variant_id]
     p = PROFILES[spec["profile"]]
     reset = reset_scene()
@@ -604,40 +596,41 @@ def build_variant(scene, variant_id, preview, samples, out_dir):
 
     profile, dims = vial_profile(p)
     glass = create_lathe("VialGlass", profile, segments=96)
-    assign(glass, glass_material())
+    assign(glass, clay_material((0.62, 0.64, 0.66, 1)) if clay else glass_material())
 
     flip, crimp_top, crimp_skirt, stopper = create_cap_assembly(p, dims)
-    assign(flip, plastic_material())
-    assign(crimp_top, crimp_material())
-    assign(crimp_skirt, crimp_material())
-    assign(stopper, stopper_material())
+    assign(flip, clay_material((0.04, 0.04, 0.045, 1)) if clay else plastic_material())
+    assign(crimp_top, clay_material((0.55, 0.56, 0.58, 1)) if clay else crimp_material())
+    assign(crimp_skirt, clay_material((0.55, 0.56, 0.58, 1)) if clay else crimp_material())
+    assign(stopper, clay_material((0.12, 0.12, 0.13, 1)) if clay else stopper_material())
 
-    r_cake = dims["r_inner"] - 0.08
+    r_cake = dims["r_inner"] - 0.08 * MM
     if spec["contents"] == "ruby_liquid":
         chamber_h = dims["z_body_top"] - dims["z_floor"]
         fill = dims["z_floor"] + chamber_h * 0.75
         liquid = create_disk_volume(
             "RubyLiquid",
             r_cake,
-            dims["z_floor"] + 0.05,
+            dims["z_floor"] + 0.05 * MM,
             fill,
-            meniscus=0.55,
+            meniscus=0.55 * MM,
         )
-        assign(liquid, liquid_material())
+        assign(liquid, clay_material(RUBY) if clay else liquid_material())
     else:
         color = COBALT_CAKE if spec["contents"] == "cobalt_cake" else WHITE_CAKE
         cake = create_disk_volume(
             "PeptideCake",
             r_cake,
-            dims["z_floor"] + 0.04,
+            dims["z_floor"] + 0.04 * MM,
             dims["z_floor"] + p["cake_h"],
-            meniscus=0.12,
+            meniscus=0.12 * MM,
         )
-        assign(cake, cake_material(color))
+        assign(cake, clay_material(color) if clay else cake_material(color))
 
-    setup_floor()
+    # No studio floor — a visible plane reads as a white slab through glass.
     setup_lights(p)
     cam = setup_camera(scene, p, preview)
+    bpy.context.view_layer.update()
 
     bounds = body_bounds(scene, cam, p, dims, (w, h))
     out_path = Path(out_dir) / spec["file"]
@@ -671,7 +664,10 @@ def main():
             raise SystemExit(f"Unknown variant {item}. Use 01,02,03,04.")
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
-    results = [build_variant(bpy.context.scene, item, args.preview, args.samples, out_dir) for item in ids]
+    results = [
+        build_variant(bpy.context.scene, item, args.preview, args.samples, out_dir, clay=args.clay)
+        for item in ids
+    ]
     sidecar = out_dir / ("bounds.preview.json" if args.preview else "bounds.json")
     sidecar.write_text(json.dumps({"variants": results}, indent=2) + "\n", encoding="utf-8")
     print(f"Wrote {sidecar}")
