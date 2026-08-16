@@ -57,8 +57,8 @@ VIAL_SPECS = {
         "cake_fill": 0.20,
         "liquid_fill": 0.75,
         "cap_r": 6.85,
-        "cap_h": 2.35,
-        "cap_chamfer": 0.18,
+        "cap_h": 3.60,
+        "cap_chamfer": 0.22,
         "crimp_h": 2.55,
         "crimp_overhang": 0.18,
         "stopper_inset": 3.40,
@@ -86,8 +86,8 @@ VIAL_SPECS = {
         "cake_fill": 0.20,
         "liquid_fill": 0.75,
         "cap_r": 10.25,
-        "cap_h": 2.50,
-        "cap_chamfer": 0.20,
+        "cap_h": 3.85,
+        "cap_chamfer": 0.24,
         "crimp_h": 2.75,
         "crimp_overhang": 0.20,
         "stopper_inset": 3.80,
@@ -115,8 +115,8 @@ VIAL_SPECS = {
         "cake_fill": 0.20,
         "liquid_fill": 0.75,
         "cap_r": 10.35,
-        "cap_h": 2.55,
-        "cap_chamfer": 0.20,
+        "cap_h": 3.90,
+        "cap_chamfer": 0.24,
         "crimp_h": 2.85,
         "crimp_overhang": 0.22,
         "stopper_inset": 4.00,
@@ -443,14 +443,15 @@ def build_materials():
     links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
     mats["crimp"] = crimp
 
-    cap, _n, _l, bsdf, _o = new_material("MAT_CAP_BLACK")
-    set_input(bsdf, ["Base Color"], (0.012, 0.012, 0.013, 1))
-    set_input(bsdf, ["Roughness"], 0.92)
-    set_input(bsdf, ["Metallic"], 0.0)
-    set_input(bsdf, ["Specular IOR Level", "Specular"], 0.02)
-    set_input(bsdf, ["Coat Weight"], 0.0)
-    set_input(bsdf, ["Emission Strength"], 0.0)
-    set_input(bsdf, ["Sheen Weight"], 0.0)
+    cap, nodes, links, bsdf, out = new_material("MAT_CAP_BLACK")
+    # Diffuse only: flip-off plastic must stay black under studio cards.
+    nodes.remove(bsdf)
+    diff = nodes.new("ShaderNodeBsdfDiffuse")
+    diff.location = (0, 0)
+    diff.inputs["Color"].default_value = (0.016, 0.016, 0.017, 1)
+    if "Roughness" in diff.inputs:
+        diff.inputs["Roughness"].default_value = 0.85
+    links.new(diff.outputs["BSDF"], out.inputs["Surface"])
     mats["cap"] = cap
 
     label, nodes, links, bsdf, _o = new_material("MAT_LABEL_WHITE")
@@ -776,6 +777,7 @@ def build_master(capacity, spec, mats):
 
     cap = create_lathe(f"{prefix}_CAP", cap_profile(spec, d), 96)
     assign(cap, mats["cap"])
+    cap.visible_glossy = False
 
     label = create_label_wrap(f"{prefix}_LABEL", spec, d)
     assign(label, mats["label"])
@@ -828,6 +830,8 @@ def instance_master(parts, capacity, contents, location, collection, mats):
         inst[key] = linked_instance(src, f"{src.name}_{contents}", collection, loc)
         inst[key].hide_render = False
         inst[key].hide_viewport = False
+        if key == "cap":
+            inst[key].visible_glossy = False
     cake = linked_instance(parts["cake"], f"{parts['cake'].name}_{contents}", collection, loc)
     assign(cake, mats["cake_cobalt"] if contents == "cobalt_cake" else mats["cake_white"])
     cake.hide_render = contents == "red_liquid"
@@ -914,6 +918,11 @@ def clear_collection(coll):
         bpy.data.objects.remove(obj, do_unlink=True)
 
 
+def unlink_all(coll):
+    for obj in list(coll.objects):
+        coll.objects.unlink(obj)
+
+
 def apply_light_linking(light_obj, receiver_coll):
     if receiver_coll is None or not hasattr(light_obj, "light_linking"):
         return
@@ -933,7 +942,7 @@ def setup_lights(center, radius, height, exclude_caps=None):
     receivers = None
     if exclude_caps:
         receivers = ensure_collection("LIGHT_RECEIVERS_NO_CAP")
-        clear_collection(receivers)
+        unlink_all(receivers)
         for obj in exclude_caps:
             if obj is not None and "CAP" not in obj.name:
                 try:
@@ -959,18 +968,18 @@ def setup_lights(center, radius, height, exclude_caps=None):
     )
     add_area(
         "CapKey",
-        loc=(cx + mm(4), cy - mm(28), cz + height + mm(8)),
-        energy=1.4,
-        rot=(math.radians(58), 0, math.radians(6)),
-        size=(radius * 0.9, mm(8)),
+        loc=(cx + radius + mm(14), cy - mm(18), cz + height + mm(6)),
+        energy=1.1,
+        rot=(math.radians(62), 0, math.radians(28)),
+        size=(radius * 0.8, mm(7)),
         collection=coll,
     )
     add_area(
         "SoftFill",
-        loc=(cx, cy - mm(75), cz + height * 0.42),
-        energy=11,
-        rot=(math.radians(82), 0, 0),
-        size=(radius * 2.8, height * 0.65),
+        loc=(cx - radius * 0.2, cy - mm(48), cz + height * 0.55),
+        energy=8,
+        rot=(math.radians(78), 0, math.radians(-12)),
+        size=(radius * 2.2, height * 0.45),
         collection=coll,
     )
     add_area(
@@ -1315,4 +1324,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        import traceback
+        traceback.print_exc()
+        raise
