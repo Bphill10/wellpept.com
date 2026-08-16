@@ -252,7 +252,7 @@ def reset_scene():
     scene.display_settings.display_device = "sRGB"
     scene.view_settings.view_transform = "Filmic"
     scene.view_settings.look = "None"
-    scene.view_settings.exposure = 0.15
+    scene.view_settings.exposure = 0.0
     scene.view_settings.gamma = 1.0
     scene.unit_settings.system = "METRIC"
     scene.unit_settings.scale_length = 1.0
@@ -371,10 +371,10 @@ def build_materials():
     mats["stopper"] = stopper
 
     crimp, nodes, links, bsdf, _o = new_material("MAT_CRIMP_SILVER")
-    set_input(bsdf, ["Base Color"], (0.58, 0.59, 0.61, 1))
+    set_input(bsdf, ["Base Color"], (0.42, 0.43, 0.45, 1))
     set_input(bsdf, ["Metallic"], 1.0)
-    set_input(bsdf, ["Roughness"], 0.34)
-    set_input(bsdf, ["Anisotropic Weight", "Anisotropic"], 0.42)
+    set_input(bsdf, ["Roughness"], 0.42)
+    set_input(bsdf, ["Anisotropic Weight", "Anisotropic"], 0.28)
     set_input(bsdf, ["Anisotropic Rotation"], 0.25)
     tex = nodes.new("ShaderNodeTexNoise")
     tex.inputs["Scale"].default_value = 180
@@ -386,10 +386,12 @@ def build_materials():
     mats["crimp"] = crimp
 
     cap, _n, _l, bsdf, _o = new_material("MAT_CAP_BLACK")
-    set_input(bsdf, ["Base Color"], (0.012, 0.012, 0.013, 1))
-    set_input(bsdf, ["Roughness"], 0.48)
-    set_input(bsdf, ["Metallic"], 0.0)
-    set_input(bsdf, ["Specular IOR Level", "Specular"], 0.22)
+    bsdf.inputs["Base Color"].default_value = (0.008, 0.008, 0.009, 1)
+    bsdf.inputs["Roughness"].default_value = 0.62
+    bsdf.inputs["Metallic"].default_value = 0.0
+    bsdf.inputs["Specular IOR Level"].default_value = 0.08
+    bsdf.inputs["Emission Strength"].default_value = 0.0
+    bsdf.inputs["Coat Weight"].default_value = 0.0
     mats["cap"] = cap
 
     label, nodes, links, bsdf, _o = new_material("MAT_LABEL_WHITE")
@@ -426,9 +428,9 @@ def build_materials():
         links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
         emit = nodes.new("ShaderNodeEmission")
         emit.inputs["Color"].default_value = color
-        emit.inputs["Strength"].default_value = 0.18
+        emit.inputs["Strength"].default_value = 0.32
         mix = nodes.new("ShaderNodeMixShader")
-        mix.inputs["Fac"].default_value = 0.12
+        mix.inputs["Fac"].default_value = 0.20
         links.new(bsdf.outputs["BSDF"], mix.inputs[1])
         links.new(emit.outputs["Emission"], mix.inputs[2])
         links.new(mix.outputs["Shader"], out.inputs["Surface"])
@@ -522,18 +524,42 @@ def liquid_profile(spec, d):
     return profile
 
 
-def label_profile(spec, d):
-    r0 = spec["r_outer"] + spec["label_clearance"]
-    r1 = r0 + spec["label_thickness"]
-    z0 = d["label_bottom_z"]
-    z1 = d["label_top_z"]
-    core = 0.02
-    return [
-        (r0, z0),
-        (r1, z0),
-        (r1, z1),
-        (r0, z1),
-    ]
+def create_label_wrap(name, spec, d):
+    """Single-wall cylindrical wrap with a solidify thickness. No inner tube."""
+    radius = mm(spec["r_outer"] + spec["label_clearance"])
+    z0 = mm(d["label_bottom_z"])
+    z1 = mm(d["label_top_z"])
+    segments = spec["segments"]
+    verts = []
+    for i in range(segments):
+        angle = (i / segments) * math.tau
+        x = radius * math.cos(angle)
+        y = radius * math.sin(angle)
+        verts.append((x, y, z0))
+        verts.append((x, y, z1))
+    faces = []
+    for i in range(segments):
+        a = i * 2
+        b = a + 1
+        c = ((i + 1) % segments) * 2 + 1
+        d_i = ((i + 1) % segments) * 2
+        faces.append((a, d_i, c, b))
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(verts, [], faces)
+    mesh.validate()
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    bpy.context.scene.collection.objects.link(obj)
+    for poly in obj.data.polygons:
+        poly.use_smooth = True
+    solid = obj.modifiers.new("LabelThickness", "SOLIDIFY")
+    solid.thickness = mm(spec["label_thickness"])
+    solid.offset = 1.0
+    bpy.context.view_layer.objects.active = obj
+    obj.select_set(True)
+    bpy.ops.object.modifier_apply(modifier="LabelThickness")
+    obj.select_set(False)
+    return obj
 
 
 def cap_profile(spec, d):
@@ -596,7 +622,7 @@ def build_master(capacity, spec, mats):
     cap = create_lathe(f"{prefix}_CAP", cap_profile(spec, d), 96)
     assign(cap, mats["cap"])
 
-    label = create_lathe(f"{prefix}_LABEL", label_profile(spec, d), segs)
+    label = create_label_wrap(f"{prefix}_LABEL", spec, d)
     assign(label, mats["label"])
 
     cake = create_lathe(f"{prefix}_CONTENT", cake_profile(spec, d), 96)
@@ -689,7 +715,7 @@ def setup_lights(center, radius, height):
     add_area(
         "RimLeft",
         loc=(cx - radius - mm(14), cy + mm(18), cz + height * 0.48),
-        energy=260,
+        energy=110,
         rot=(math.radians(78), 0, math.radians(-32)),
         size=(mm(8), height * 1.15),
         collection=coll,
@@ -697,7 +723,7 @@ def setup_lights(center, radius, height):
     add_area(
         "RimRight",
         loc=(cx + radius + mm(15), cy + mm(16), cz + height * 0.46),
-        energy=230,
+        energy=95,
         rot=(math.radians(78), 0, math.radians(32)),
         size=(mm(8), height * 1.10),
         collection=coll,
@@ -705,7 +731,7 @@ def setup_lights(center, radius, height):
     add_area(
         "CapKey",
         loc=(cx, cy + mm(28), cz + height + mm(18)),
-        energy=22,
+        energy=5,
         rot=(math.radians(48), 0, 0),
         size=(radius * 2.4, mm(22)),
         collection=coll,
@@ -713,7 +739,7 @@ def setup_lights(center, radius, height):
     add_area(
         "SoftFill",
         loc=(cx + mm(8), cy - mm(55), cz + height * 0.55),
-        energy=16,
+        energy=7,
         rot=(math.radians(78), 0, math.radians(8)),
         size=(radius * 3.2, height * 0.9),
         collection=coll,
@@ -721,7 +747,7 @@ def setup_lights(center, radius, height):
     add_area(
         "CakeKiss",
         loc=(cx + radius * 0.8, cy + mm(20), cz + mm(8)),
-        energy=10,
+        energy=20,
         rot=(math.radians(62), 0, math.radians(-20)),
         size=(mm(18), mm(16)),
         collection=coll,
@@ -747,6 +773,20 @@ def setup_camera(scene, look, distance, lens=135.0):
     return cam
 
 
+def world_bounds(objects):
+    xs, zs = [], []
+    for obj in objects:
+        if obj.hide_render:
+            continue
+        for corner in obj.bound_box:
+            world = obj.matrix_world @ Vector(corner)
+            xs.append(world.x)
+            zs.append(world.z)
+    if not xs:
+        return 0.0, 0.0, 0.0, 0.0
+    return min(xs), max(xs), min(zs), max(zs)
+
+
 def frame_subject(scene, look, width_mm, height_mm, resolution, padding=1.28):
     """Place a 135 mm camera so the subject fits the frame at true scale."""
     sensor = 36.0
@@ -754,7 +794,6 @@ def frame_subject(scene, look, width_mm, height_mm, resolution, padding=1.28):
     aspect = resolution[0] / resolution[1]
     frame_h = height_mm * padding
     frame_w = width_mm * padding
-    # Choose the larger required distance so both axes fit.
     dist_h = (frame_h * lens) / sensor
     dist_w = (frame_w * lens) / (sensor * aspect)
     distance = mm(max(dist_h, dist_w))
@@ -888,16 +927,32 @@ def main():
                 mats,
             )
         hide_masters(masters, True)
-        look = (0.0, 0.0, mm(tallest * 0.48))
+        bpy.context.view_layer.update()
+        min_x, max_x, min_z, max_z = world_bounds(cmp.objects)
+        width_m = max(max_x - min_x, mm(20))
+        height_m = max(max_z - min_z, mm(20))
+        look = ((min_x + max_x) * 0.5, 0.0, (min_z + max_z) * 0.50)
         frame_subject(
             scene,
             look,
-            width_mm=group_width + 16.0,
-            height_mm=tallest,
+            width_mm=width_m / MM,
+            height_mm=height_m / MM,
             resolution=COMPARISON_SIZE,
-            padding=1.22,
+            padding=1.55,
         )
-        setup_lights(center=(0.0, 0.0, 0.0), radius=mm(group_width * 0.42), height=mm(tallest))
+        setup_lights(
+            center=(look[0], 0.0, 0.0),
+            radius=width_m * 0.38,
+            height=height_m,
+        )
+        print(
+            json.dumps(
+                {
+                    "comparison_bounds_m": [min_x, max_x, min_z, max_z],
+                    "comparison_look": list(look),
+                }
+            )
+        )
         configure_render(scene, COMPARISON_SIZE, args.samples)
         bpy.context.view_layer.update()
         render_still(scene, RENDERS_DIR / "preview-comparison.png")
