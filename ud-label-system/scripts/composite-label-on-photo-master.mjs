@@ -534,6 +534,7 @@ export async function compositeLabelOnPhotoMaster({
   inkHardness = 0,
   masterScale = 1,
   fitMode = "fill",
+  wrapCenterU = null,
   websiteOutput = null,
   alsoSavePng = null,
 }) {
@@ -601,6 +602,9 @@ export async function compositeLabelOnPhotoMaster({
     destW = Math.max(1, Math.round((faceH * artW) / artH));
     destLeft = left;
     destTop = top;
+    if (wrapCenterU != null && Number.isFinite(Number(wrapCenterU))) {
+      destLeft = Math.round(left + faceW / 2 - Number(wrapCenterU) * destW);
+    }
   } else if ((contain || widthFit) && artW > 0 && artH > 0) {
     const uniform = widthFit ? faceW / artW : Math.min(faceW / artW, faceH / artH);
     destW = Math.max(1, Math.round(artW * uniform));
@@ -783,6 +787,7 @@ export async function compositeLabelOnPhotoMaster({
     optimizeText,
     sampleFilter,
     artworkAlreadyWindowed,
+    wrapCenterU: wrapCenterU == null ? null : Number(wrapCenterU),
     centerLinearFrac: linearFrac,
     inkSharpenAmount: sharpenAmt,
     inkHardness: hardness,
