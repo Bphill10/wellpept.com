@@ -8,10 +8,12 @@
     "background": "photographed marble studio — do not replace"
   },
   "compositor": {
-    "edgeInsetPx": 3,
+    "edgeInsetPx": 0,
     "cylinderMaxThetaRad": 0.1,
     "labelRasterMinWidth": 3600,
-    "blend": "luminance-preserving-ink",
+    "labelStockColor": "#D4D8DE",
+    "labelStockReferenceLum": 214,
+    "blend": "recolor-photographed-paper-then-print-ink",
     "never": [
       "opaque white rectangle over the photographed wrap",
       "20/60/20 reconstruction",

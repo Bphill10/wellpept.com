@@ -15,11 +15,36 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const systemRoot = path.resolve(scriptDir, "..");
 
 const DEFAULT_RASTER_MIN_WIDTH = 3600;
-const DEFAULT_INSET = 3;
+const DEFAULT_INSET = 0;
 const DEFAULT_THETA = 0.1;
+const DEFAULT_STOCK = "#D4D8DE";
+const DEFAULT_STOCK_REF_LUM = 214;
 
 function lum(r, g, b) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+export function parseCssColor(value, fallback = DEFAULT_STOCK) {
+  const raw = String(value || fallback).trim();
+  const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(raw);
+  if (hex) {
+    let h = hex[1];
+    if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+    return {
+      r: parseInt(h.slice(0, 2), 16),
+      g: parseInt(h.slice(2, 4), 16),
+      b: parseInt(h.slice(4, 6), 16),
+    };
+  }
+  const rgb = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i.exec(raw);
+  if (rgb) {
+    return {
+      r: Number(rgb[1]),
+      g: Number(rgb[2]),
+      b: Number(rgb[3]),
+    };
+  }
+  return parseCssColor(fallback);
 }
 
 export function resolvePhotoMasterKey(product = {}, placement) {
@@ -95,7 +120,7 @@ export async function knockoutLabelPageBackground(pngBuffer) {
     const r = data[offset];
     const g = data[offset + 1];
     const b = data[offset + 2];
-    return r >= 246 && g >= 246 && b >= 246;
+    return lum(r, g, b) >= 236 && Math.max(r, g, b) - Math.min(r, g, b) <= 18;
   };
 
   const push = (x, y) => {
@@ -132,6 +157,24 @@ export async function knockoutLabelPageBackground(pngBuffer) {
   })
     .png()
     .toBuffer();
+}
+
+function isLightOnDark(src, width, height, x, y) {
+  let dark = 0;
+  let total = 0;
+  for (let dy = -5; dy <= 5; dy += 1) {
+    for (let dx = -5; dx <= 5; dx += 1) {
+      if (dx === 0 && dy === 0) continue;
+      const sx = x + dx;
+      const sy = y + dy;
+      if (sx < 0 || sy < 0 || sx >= width || sy >= height) continue;
+      const i = (sy * width + sx) * 4;
+      if (src[i + 3] < 20) continue;
+      total += 1;
+      if (lum(src[i], src[i + 1], src[i + 2]) < 165) dark += 1;
+    }
+  }
+  return total > 8 && dark / total >= 0.55;
 }
 
 function sampleBilinear(src, width, height, u, v) {
@@ -172,15 +215,19 @@ export async function compositeLabelOnPhotoMaster({
   outputPath,
   edgeInsetPx = DEFAULT_INSET,
   cylinderMaxThetaRad = DEFAULT_THETA,
+  labelStockColor = DEFAULT_STOCK,
+  labelStockReferenceLum = DEFAULT_STOCK_REF_LUM,
   alsoSavePng = null,
 }) {
   if (!placementProfile) throw new Error("placementProfile is required");
-  const inset = Number(edgeInsetPx);
+  const inset = Number(edgeInsetPx) || 0;
   const left = placementProfile.labelLeft + inset;
   const top = placementProfile.labelTop + inset;
   const faceW = Math.max(1, placementProfile.labelWidth - inset * 2);
   const faceH = Math.max(1, placementProfile.labelHeight - inset * 2);
   const maxTheta = Number(cylinderMaxThetaRad);
+  const stock = parseCssColor(labelStockColor);
+  const refLum = Number(labelStockReferenceLum) || DEFAULT_STOCK_REF_LUM;
 
   const knocked = await knockoutLabelPageBackground(labelArtwork);
   const face = await sharp(knocked)
@@ -200,6 +247,20 @@ export async function compositeLabelOnPhotoMaster({
   const sinMax = Math.sin(maxTheta) || 1;
 
   for (let y = 0; y < faceH; y += 1) {
+    for (let x = 0; x < faceW; x += 1) {
+      const dx = left + x;
+      const dy = top + y;
+      if (dx < 0 || dy < 0 || dx >= mw || dy >= mh) continue;
+      const di = (dy * mw + dx) * 4;
+      const paperLum = lum(dest[di], dest[di + 1], dest[di + 2]);
+      const shade = Math.min(1.18, Math.max(0.52, paperLum / refLum));
+      dest[di] = Math.max(0, Math.min(255, Math.round(stock.r * shade)));
+      dest[di + 1] = Math.max(0, Math.min(255, Math.round(stock.g * shade)));
+      dest[di + 2] = Math.max(0, Math.min(255, Math.round(stock.b * shade)));
+    }
+  }
+
+  for (let y = 0; y < faceH; y += 1) {
     const v = faceH === 1 ? 0 : y / (faceH - 1);
     for (let x = 0; x < faceW; x += 1) {
       const nx = faceW === 1 ? 0 : (x / (faceW - 1)) * 2 - 1;
@@ -215,35 +276,25 @@ export async function compositeLabelOnPhotoMaster({
       const pr = dest[di];
       const pg = dest[di + 1];
       const pb = dest[di + 2];
-
       const paperLum = lum(pr, pg, pb);
-      const shade = Math.min(1.12, Math.max(0.58, paperLum / 210));
+      const shade = Math.min(1.12, Math.max(0.58, paperLum / refLum));
       const artLum = lum(ar, ag, ab);
       const cover = Math.min(1, aa / 255);
+      const srcX = Math.round(u * (faceW - 1));
+      const srcY = Math.round(v * (faceH - 1));
 
-      let outR;
-      let outG;
-      let outB;
-      if (artLum < 208) {
-        outR = pr * (ar / 255);
-        outG = pg * (ag / 255);
-        outB = pb * (ab / 255);
-        const ink = (1 - artLum / 255) * cover;
-        outR = outR * (0.55 + 0.45 * shade) * ink + pr * (1 - ink);
-        outG = outG * (0.55 + 0.45 * shade) * ink + pg * (1 - ink);
-        outB = outB * (0.55 + 0.45 * shade) * ink + pb * (1 - ink);
-      } else {
-        outR = ar * shade;
-        outG = ag * shade;
-        outB = ab * shade;
-        outR = outR * cover + pr * (1 - cover);
-        outG = outG * cover + pg * (1 - cover);
-        outB = outB * cover + pb * (1 - cover);
+      if (artLum >= 200) {
+        if (!isLightOnDark(src, faceW, faceH, srcX, srcY)) continue;
+        dest[di] = Math.max(0, Math.min(255, Math.round(248 * shade * cover + pr * (1 - cover))));
+        dest[di + 1] = Math.max(0, Math.min(255, Math.round(248 * shade * cover + pg * (1 - cover))));
+        dest[di + 2] = Math.max(0, Math.min(255, Math.round(248 * shade * cover + pb * (1 - cover))));
+        continue;
       }
 
-      dest[di] = Math.max(0, Math.min(255, Math.round(outR)));
-      dest[di + 1] = Math.max(0, Math.min(255, Math.round(outG)));
-      dest[di + 2] = Math.max(0, Math.min(255, Math.round(outB)));
+      const ink = (1 - artLum / 255) * cover;
+      dest[di] = Math.max(0, Math.min(255, Math.round(pr * (1 - ink) + ar * shade * ink)));
+      dest[di + 1] = Math.max(0, Math.min(255, Math.round(pg * (1 - ink) + ag * shade * ink)));
+      dest[di + 2] = Math.max(0, Math.min(255, Math.round(pb * (1 - ink) + ab * shade * ink)));
     }
   }
 
