@@ -7,6 +7,13 @@ description: Headless Blender / Cycles studio for Undisclosed unlabeled vial sto
 
 Canonical tool: `tools/blender-vials/`.
 
+```
+tools/blender-vials/
+  references/   current locked plates (symlinks)
+  renders/      Cycles output (gitignored)
+  scripts/      render + publish
+```
+
 Rebuilds the four unlabeled locked plates from one 3 mL scene and one 10 mL
 scene. The two 3 mL plates are twins — same mesh, camera, lights, cap, and
 crimp. Only cake color changes.
@@ -25,6 +32,7 @@ Canvas is always **1024 × 1536**, pure black, black flip-off, brushed-silver cr
 ## Rules
 
 - Do not replace locked masters until Benjamin approves the look.
+- Compare new plates to `tools/blender-vials/references/` first.
 - Label placement stays 20 / 60 / 20 from measured `bodyBoundsPx`. Never add `labelBoundsPx`.
 - Both 3 mL stocks must stay geometrically identical except cake color.
 - B12 is a native liquid volume. Never recolor a powder cake to fake liquid.
@@ -36,9 +44,9 @@ Canvas is always **1024 × 1536**, pure black, black flip-off, brushed-silver cr
 From repo root:
 
 ```bash
-bash tools/blender-vials/render.sh --preview
-bash tools/blender-vials/render.sh --variants 01,02 --preview
-bash tools/blender-vials/render.sh
+bash tools/blender-vials/scripts/render.sh --preview
+bash tools/blender-vials/scripts/render.sh --variants 01,02 --preview
+bash tools/blender-vials/scripts/render.sh
 ```
 
 From `ud-label-system` (same tool):
@@ -49,19 +57,19 @@ npm run vial-studio
 npm run publish-vial-stocks
 ```
 
-`render.sh` downloads Blender 4.2 LTS when `blender` is not on `PATH`.
-Override with `BLENDER_BIN`.
+`scripts/render.sh` downloads Blender 4.2 LTS when `blender` is not on `PATH`.
+Override with `BLENDER_BIN`. Renders land in `renders/`.
 
-`publish-vial-stocks` copies `tools/blender-vials/output/*.png` onto locked
-masters, `assets/vials/`, and `public/ud-labels/vials/`, then writes
-`bodyBoundsPx` and `ud-label-system/blender/PUBLISHED.json`.
+`scripts/publish-stocks.mjs` copies `renders/*.png` onto locked masters,
+`assets/vials/`, and `public/ud-labels/vials/`, then writes `bodyBoundsPx`
+and `ud-label-system/blender/PUBLISHED.json`.
 
 Until that publish file exists, `npm run build` keeps the legacy cobalt
 neutralize + B12 paint path.
 
 ## After a lighting change
 
-1. Preview all four variants.
-2. Compare against `ud-label-system/locked-masters/vials/`.
+1. Preview all four variants into `renders/`.
+2. Compare against `references/`.
 3. Only then run `npm run publish-vial-stocks`.
 4. Run `npm run build` in `ud-label-system` and require `validation-report.json` = `PASS`.

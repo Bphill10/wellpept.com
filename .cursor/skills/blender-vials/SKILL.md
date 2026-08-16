@@ -5,5 +5,7 @@ description: Use the Undisclosed Blender vial studio. Trigger on blender, belnde
 
 # Blender vials
 
-Follow `tools/blender-vials/SKILL.md`. That folder is the canonical tool.
+Follow `tools/blender-vials/SKILL.md`.
+
+Layout: `references/`, `renders/`, `scripts/`.
 Do not invent a second renderer inside `ud-label-system`.

@@ -12,5 +12,8 @@ ud-label-system/output/
 ud-label-system/blender/output/
 ud-label-system/blender/__pycache__/
 tools/blender-vials/output/
+tools/blender-vials/renders/*
+!tools/blender-vials/renders/.gitkeep
 tools/blender-vials/__pycache__/
+tools/blender-vials/scripts/__pycache__/
 

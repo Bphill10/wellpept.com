@@ -1,8 +1,5 @@
 # Blender publish hook
 
-The studio itself lives in `tools/blender-vials/`.
+The studio lives in `tools/blender-vials/` (`references/`, `renders/`, `scripts/`).
 
-- `render.sh` — wrapper that calls that tool
-- `publish-stocks.mjs` — copies approved 1024×1536 plates into locked masters
-
-See `tools/blender-vials/SKILL.md`.
+These files are wrappers. See `tools/blender-vials/SKILL.md`.

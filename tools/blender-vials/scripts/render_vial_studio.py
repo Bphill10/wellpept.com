@@ -27,7 +27,8 @@ from mathutils import Vector
 
 
 SCRIPT_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
-DEFAULT_OUT = SCRIPT_DIR / "output"
+TOOL_ROOT = SCRIPT_DIR.parent
+DEFAULT_OUT = TOOL_ROOT / "renders"
 
 CANVAS = (1024, 1536)
 # Cycles treats 1 BU as 1 meter. Profiles below are authored in millimeters.

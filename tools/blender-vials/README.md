@@ -1,20 +1,16 @@
 # tools/blender-vials
 
-Headless Blender / Cycles studio for Undisclosed unlabeled vial stocks.
-
-Read `SKILL.md` first. That is the agent workflow.
-
-```bash
-bash tools/blender-vials/render.sh --preview
-bash tools/blender-vials/render.sh
+```
+references/   locked look to match
+renders/      Cycles output
+scripts/      render.sh, render_vial_studio.py, publish-stocks.mjs
 ```
 
-From `ud-label-system`:
+Read `SKILL.md` first.
 
 ```bash
-npm run vial-studio -- --preview
-npm run publish-vial-stocks
+bash tools/blender-vials/scripts/render.sh --preview
+bash tools/blender-vials/scripts/render.sh
 ```
 
-Output lands in `tools/blender-vials/output/`. Publish is a separate step and
-does not run during `npm run build`.
+Publish is a separate step and does not run during `npm run build`.
