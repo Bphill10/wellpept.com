@@ -11,6 +11,7 @@
 - `examples/generated/` — current SVG, preview, and NIIMBOT M2 one-bit proofs
 - `examples/vial-mockups/` — deterministic 20/60/20 placement proofs
 - `config/` — exact label, QR, printer, and vial-placement settings
+- `blender/` — headless Cycles studio for the four unlabeled locked vial stocks
 - `scripts/` — workbook sync, label generation, placement, and validation tools
 - `validation-report.json` — final PASS report
 

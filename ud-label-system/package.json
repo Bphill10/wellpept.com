@@ -6,6 +6,8 @@
   "scripts": {
     "sync": "node scripts/sync-workbook.mjs",
     "normalize-vials": "node scripts/normalize-vial-stocks.mjs",
+    "vial-studio": "bash blender/render.sh",
+    "publish-vial-stocks": "node blender/publish-stocks.mjs",
     "label": "node scripts/generate-label.mjs",
     "examples": "node scripts/generate-approved-examples.mjs",
     "red-liquid-vial": "node scripts/render-vial-contents.mjs",

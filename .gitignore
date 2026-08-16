@@ -9,4 +9,5 @@ dist/
 .env*
 ud-label-system/node_modules/
 ud-label-system/output/
+ud-label-system/blender/output/
 
