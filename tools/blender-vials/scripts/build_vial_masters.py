@@ -385,13 +385,17 @@ def build_materials():
     links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
     mats["crimp"] = crimp
 
-    cap, _n, _l, bsdf, _o = new_material("MAT_CAP_BLACK")
-    bsdf.inputs["Base Color"].default_value = (0.008, 0.008, 0.009, 1)
-    bsdf.inputs["Roughness"].default_value = 0.62
-    bsdf.inputs["Metallic"].default_value = 0.0
-    bsdf.inputs["Specular IOR Level"].default_value = 0.08
-    bsdf.inputs["Emission Strength"].default_value = 0.0
-    bsdf.inputs["Coat Weight"].default_value = 0.0
+    cap = bpy.data.materials.new("MAT_CAP_BLACK")
+    cap.use_nodes = True
+    nodes = cap.node_tree.nodes
+    links = cap.node_tree.links
+    nodes.clear()
+    out = nodes.new("ShaderNodeOutputMaterial")
+    diff = nodes.new("ShaderNodeBsdfDiffuse")
+    diff.inputs["Color"].default_value = (0.012, 0.012, 0.013, 1)
+    if "Roughness" in diff.inputs:
+        diff.inputs["Roughness"].default_value = 0.70
+    links.new(diff.outputs["BSDF"], out.inputs["Surface"])
     mats["cap"] = cap
 
     label, nodes, links, bsdf, _o = new_material("MAT_LABEL_WHITE")
@@ -794,10 +798,16 @@ def frame_subject(scene, look, width_mm, height_mm, resolution, padding=1.28):
     aspect = resolution[0] / resolution[1]
     frame_h = height_mm * padding
     frame_w = width_mm * padding
-    dist_h = (frame_h * lens) / sensor
-    dist_w = (frame_w * lens) / (sensor * aspect)
+    # AUTO sensor fit maps sensor_width to the longer frame axis.
+    if aspect >= 1.0:
+        dist_w = (frame_w * lens) / sensor
+        dist_h = (frame_h * lens * aspect) / sensor
+    else:
+        dist_h = (frame_h * lens) / sensor
+        dist_w = (frame_w * lens) / (sensor * aspect)
     distance = mm(max(dist_h, dist_w))
-    return setup_camera(scene, look, distance, lens=lens)
+    sensor_fit = "HORIZONTAL" if aspect >= 1.0 else "VERTICAL"
+    return setup_camera(scene, look, distance, lens=lens, sensor_fit=sensor_fit)
 
 
 def configure_render(scene, size, samples):
