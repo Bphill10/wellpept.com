@@ -547,7 +547,8 @@ export async function compositeLabelOnPhotoMaster({
   const mode = String(fitMode).toLowerCase();
   const contain = mode === "contain";
   const widthFit = mode === "width";
-  const maxTheta = Number(cylinderMaxThetaRad);
+  const heightFit = mode === "height";
+  const maxTheta = heightFit ? 0 : Number(cylinderMaxThetaRad);
   const linearFrac = Math.max(0, Math.min(1, Number(centerLinearFrac) || 0));
   const ink = parseCssColor(labelInkColor, LABEL_INK_COLOR);
   const inkContrast = optimizeText ? 0.82 : 1;
@@ -595,7 +596,12 @@ export async function compositeLabelOnPhotoMaster({
   let destH = faceH;
   let destLeft = left;
   let destTop = top;
-  if ((contain || widthFit) && artW > 0 && artH > 0) {
+  if (heightFit && artW > 0 && artH > 0) {
+    destH = faceH;
+    destW = Math.max(1, Math.round((faceH * artW) / artH));
+    destLeft = left;
+    destTop = top;
+  } else if ((contain || widthFit) && artW > 0 && artH > 0) {
     const uniform = widthFit ? faceW / artW : Math.min(faceW / artW, faceH / artH);
     destW = Math.max(1, Math.round(artW * uniform));
     destH = Math.max(1, Math.round(artH * uniform));
@@ -614,23 +620,37 @@ export async function compositeLabelOnPhotoMaster({
 
   for (let y = 0; y < destH; y += 1) {
     const v = destH === 1 ? 0 : y / (destH - 1);
-    const clipY = rectClipCoverage(0, y, destW, destH);
-    if (clipY <= 0) continue;
     for (let x = 0; x < destW; x += 1) {
-      const clip = rectClipCoverage(x, y, destW, destH);
-      if (clip <= 0.001) continue;
-
       const dx = destLeft + x;
       const dy = destTop + y;
       if (dx < 0 || dy < 0 || dx >= mw || dy >= mh) continue;
+
+      let clipX = x;
+      let clipY = y;
+      let clipW = destW;
+      let clipH = destH;
+      if (heightFit) {
+        clipX = dx - left;
+        clipY = dy - top;
+        clipW = faceW;
+        clipH = faceH;
+        if (clipX < 0 || clipY < 0 || clipX >= faceW || clipY >= faceH) continue;
+      }
+
+      const clip = rectClipCoverage(clipX, clipY, clipW, clipH);
+      if (clip <= 0.001) continue;
       const di = (dy * mw + dx) * 4;
       const pr = dest[di];
       const pg = dest[di + 1];
       const pb = dest[di + 2];
-      const paper = edgePaperGate(pr, pg, pb, x, y, destW, destH);
+      const paper = edgePaperGate(pr, pg, pb, clipX, clipY, clipW, clipH);
       if (paper <= 0.001) continue;
 
-      const uFace = mapFaceU(destW === 1 ? 0 : x / (destW - 1), contain || widthFit ? 0 : maxTheta, linearFrac);
+      const uFace = mapFaceU(
+        destW === 1 ? 0 : x / (destW - 1),
+        contain || widthFit || heightFit ? 0 : maxTheta,
+        linearFrac
+      );
       const u = win.u0 + uFace * (win.u1 - win.u0);
       const vArt = win.v0 + v * (win.v1 - win.v0);
       const [ar, ag, ab, aa] = samplePixel(u, vArt);
@@ -754,7 +774,7 @@ export async function compositeLabelOnPhotoMaster({
     destTop,
     destW,
     destH,
-    fitMode: widthFit ? "width" : contain ? "contain" : "fill",
+    fitMode: heightFit ? "height" : widthFit ? "width" : contain ? "contain" : "fill",
     scaleX: destW / artW,
     scaleY: destH / artH,
     canvasWidth: mw,
