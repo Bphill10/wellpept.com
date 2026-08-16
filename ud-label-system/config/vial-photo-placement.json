@@ -1,0 +1,155 @@
+{
+  "version": "2.0-test",
+  "status": "TEST_ONLY_AWAITING_VISUAL_APPROVAL",
+  "canvas": {
+    "widthPx": 1122,
+    "heightPx": 1402,
+    "background": "photographed marble studio — do not replace"
+  },
+  "principle": "Place artwork only inside the photographed blank-white wrap. Never regenerate, redraw, stretch, tint, or reconstruct the vial photograph. Do not use 20/60/20 bodyBounds placement.",
+  "pairGeometry": {
+    "3ml": {
+      "matching": true,
+      "vertical": "compatible",
+      "notes": "White and cobalt share the same vertical wrap band (top 606–607, height 408–412, bottoms 1013–1018). Width differs by image-gen: cobalt wrap is 30 px wider (392 vs 362) and shifts 13 px left / 17 px right. Each master keeps its own measured face. Artwork is not distorted to hide the width delta.",
+      "white": { "labelLeft": 377, "labelTop": 607, "labelWidth": 362, "labelHeight": 412 },
+      "cobalt": { "labelLeft": 364, "labelTop": 606, "labelWidth": 392, "labelHeight": 408 },
+      "deltaCobaltMinusWhite": { "left": -13, "top": -1, "width": 30, "height": -4, "right": 17, "bottom": -5 }
+    },
+    "10ml": {
+      "matching": false,
+      "vertical": "compatible-top-only",
+      "notes": "White and red share a compatible top edge (624 vs 620). The red photograph’s wrap is 52 px wider and 50 px taller (411×460 vs 359×410) and extends 46 px lower. This is an image-gen difference, not a shared physical die. Each master uses its own measured face. Artwork is not stretched to force one box.",
+      "white": { "labelLeft": 381, "labelTop": 624, "labelWidth": 359, "labelHeight": 410 },
+      "red": { "labelLeft": 356, "labelTop": 620, "labelWidth": 411, "labelHeight": 460 },
+      "deltaRedMinusWhite": { "left": -25, "top": -4, "width": 52, "height": 50, "right": 27, "bottom": 46 }
+    }
+  },
+  "compositor": {
+    "edgeInsetPx": 3,
+    "cylinderMaxThetaRad": 0.16,
+    "labelRasterMinWidth": 3600,
+    "blend": "luminance-preserving-ink",
+    "never": [
+      "opaque white rectangle over the photographed wrap",
+      "20/60/20 reconstruction",
+      "JavaScript cake tinting",
+      "redraw glass, cap, crimp, or contents",
+      "reduce locked SVG product-name font sizes"
+    ]
+  },
+  "masters": {
+    "3ml-white": {
+      "file": "locked-masters/vial-photos/3ml-white.png",
+      "sourceReference": "tools/blender-vials/references/image-gen-3ml White.png",
+      "profile": "3ML_WHITE",
+      "vialMl": 3,
+      "contents": "WHITE CAKE",
+      "labelSize": "40x20",
+      "canvasWidth": 1122,
+      "canvasHeight": 1402,
+      "labelLeft": 377,
+      "labelTop": 607,
+      "labelWidth": 362,
+      "labelHeight": 412,
+      "labelQuad": {
+        "topLeft": { "x": 377, "y": 656 },
+        "topRight": { "x": 738, "y": 656 },
+        "bottomRight": { "x": 737, "y": 969 },
+        "bottomLeft": { "x": 377, "y": 969 }
+      },
+      "faceNotes": "Front wrap is nearly rectangular (scanline width delta 3 px). Quad recorded for completeness; compositor uses the axis-aligned rect plus mild cylindrical shading."
+    },
+    "3ml-cobalt": {
+      "file": "locked-masters/vial-photos/3ml-cobalt.png",
+      "sourceReference": "tools/blender-vials/references/image-gen-3ml Blue.png",
+      "profile": "3ML_BLUE",
+      "vialMl": 3,
+      "contents": "COBALT BLUE CAKE",
+      "labelSize": "40x20",
+      "canvasWidth": 1122,
+      "canvasHeight": 1402,
+      "labelLeft": 364,
+      "labelTop": 606,
+      "labelWidth": 392,
+      "labelHeight": 408,
+      "labelQuad": {
+        "topLeft": { "x": 364, "y": 655 },
+        "topRight": { "x": 756, "y": 655 },
+        "bottomRight": { "x": 755, "y": 964 },
+        "bottomLeft": { "x": 363, "y": 964 }
+      },
+      "faceNotes": "Vertical band matches 3ml-white. Wrap is 30 px wider from image-gen, not from a different vial size."
+    },
+    "5ml-white": {
+      "file": "locked-masters/vial-photos/5ml-white.png",
+      "sourceReference": "tools/blender-vials/references/image-gen-5ml White.png",
+      "profile": "5ML_WHITE",
+      "vialMl": 5,
+      "contents": "WHITE CAKE",
+      "labelSize": "40x20",
+      "canvasWidth": 1122,
+      "canvasHeight": 1402,
+      "labelLeft": 360,
+      "labelTop": 615,
+      "labelWidth": 385,
+      "labelHeight": 438,
+      "labelQuad": {
+        "topLeft": { "x": 360, "y": 667 },
+        "topRight": { "x": 744, "y": 667 },
+        "bottomRight": { "x": 744, "y": 1000 },
+        "bottomLeft": { "x": 361, "y": 1000 }
+      },
+      "faceNotes": "Valid master. No catalog products are 5 mL. Demo-only until a product requests this size."
+    },
+    "10ml-white": {
+      "file": "locked-masters/vial-photos/10ml-white.png",
+      "sourceReference": "tools/blender-vials/references/image-gen-10ml White.png",
+      "profile": "10ML_WHITE",
+      "vialMl": 10,
+      "contents": "WHITE CAKE",
+      "labelSize": "50x30",
+      "canvasWidth": 1122,
+      "canvasHeight": 1402,
+      "labelLeft": 381,
+      "labelTop": 624,
+      "labelWidth": 359,
+      "labelHeight": 410,
+      "labelQuad": {
+        "topLeft": { "x": 381, "y": 673 },
+        "topRight": { "x": 739, "y": 673 },
+        "bottomRight": { "x": 738, "y": 984 },
+        "bottomLeft": { "x": 381, "y": 984 }
+      },
+      "faceNotes": "Nearly rectangular (width delta 1 px). Do not reuse the 10ml-red box."
+    },
+    "10ml-red": {
+      "file": "locked-masters/vial-photos/10ml-red.png",
+      "sourceReference": "tools/blender-vials/references/image-gen-10ml Red.png",
+      "profile": "10ML_B12_LIQUID",
+      "vialMl": 10,
+      "contents": "RUBY RED LIQUID",
+      "labelSize": "50x30",
+      "canvasWidth": 1122,
+      "canvasHeight": 1402,
+      "labelLeft": 356,
+      "labelTop": 620,
+      "labelWidth": 411,
+      "labelHeight": 460,
+      "labelQuad": {
+        "topLeft": { "x": 356, "y": 675 },
+        "topRight": { "x": 766, "y": 675 },
+        "bottomRight": { "x": 766, "y": 1024 },
+        "bottomLeft": { "x": 356, "y": 1024 }
+      },
+      "faceNotes": "Same physical 10 mL size as 10ml-white, but the photographed wrap is larger. Per-master coordinates only."
+    }
+  },
+  "profileToMaster": {
+    "3ML_WHITE": "3ml-white",
+    "3ML_BLUE": "3ml-cobalt",
+    "5ML_WHITE": "5ml-white",
+    "10ML_WHITE": "10ml-white",
+    "10ML_B12_LIQUID": "10ml-red"
+  }
+}
