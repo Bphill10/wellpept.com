@@ -12,7 +12,9 @@ import {
   compositeLabelOnPhotoMaster,
   masterPath,
   renderLockedLabelPngHiRes,
+  resolveLabelPlacementKey,
   resolvePhotoMasterKey,
+  resolvePlacementRect,
 } from "./composite-label-on-photo-master.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -50,6 +52,7 @@ const FIVE_ML_DEMO = {
   materialColor: "WHITE",
   visualType: "WHITE CAKE",
   placementProfile: "5ML_WHITE",
+  labelPlacement: "5ML_LABEL_PLACEMENT",
   qrValue: "https://www.wellpept.com",
   qrEnabled: true,
   companyName: "UNDISCLOSED",
@@ -79,8 +82,8 @@ function fileStem(product) {
 
 async function renderProduct(product, defaults, placement, outputDir, extra = {}) {
   const masterKey = extra.masterKey || resolvePhotoMasterKey(product, placement);
-  const profile = placement.masters[masterKey];
-  if (!profile) throw new Error(`Missing master profile ${masterKey}`);
+  const placementKey = extra.placementKey || resolveLabelPlacementKey(product, placement);
+  const profile = resolvePlacementRect(placement, placementKey);
   const label = await renderLockedLabelPngHiRes(
     product,
     defaults,
@@ -104,6 +107,7 @@ async function renderProduct(product, defaults, placement, outputDir, extra = {}
     vialMl: product.vialMl,
     labelType: product.labelType,
     masterKey,
+    placementKey,
     output: path.relative(repoRoot, pngPath),
     labelMaster: label.masterRel,
     labelRaster: `${label.width}x${label.height}`,
@@ -122,7 +126,7 @@ async function buildMastersSheet(placement) {
   const labels = [];
   for (let i = 0; i < keys.length; i += 1) {
     const key = keys[i];
-    const file = path.join(systemRoot, placement.masters[key].file);
+    const file = path.join(systemRoot, placement.photos[key].file);
     const x = pad + i * (cellW + pad);
     const y = pad + labelH;
     const fitted = await sharp(file)
@@ -226,6 +230,56 @@ async function buildComparisonSheet(results) {
   return out;
 }
 
+async function buildNewOnlySheet(results) {
+  const cards = [
+    { title: "3 mL white", id: "UD-0277" },
+    { title: "3 mL cobalt", id: "UD-0161" },
+    { title: "5 mL demo", id: "UD-5ML-DEMO" },
+    { title: "10 mL white", id: "UD-0204" },
+    { title: "10 mL red", id: "UD-0037" },
+  ];
+  const cellW = 200;
+  const cellH = 300;
+  const gutter = 20;
+  const topGutter = 64;
+  const width = gutter + cards.length * (cellW + gutter);
+  const height = topGutter + cellH + 48;
+  const labels = cards
+    .map((card, i) => {
+      const x = gutter + i * (cellW + gutter) + cellW / 2;
+      return `<text x="${x}" y="36" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#111">${card.title}</text>`;
+    })
+    .join("\n");
+  const caption = `<text x="${width / 2}" y="${height - 16}" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#444">Website card size 200×300 — NEW only</text>`;
+  const svg = Buffer.from(
+    `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      <rect width="${width}" height="${height}" fill="#f4f4f4"/>
+      ${labels}
+      ${caption}
+    </svg>`
+  );
+  const composites = [];
+  for (let i = 0; i < cards.length; i += 1) {
+    const row = results.find((item) => item.catalogId === cards[i].id);
+    if (!row) throw new Error(`Missing new-only card ${cards[i].id}`);
+    const fitted = await sharp(path.join(repoRoot, row.output))
+      .resize(cellW, cellH, { fit: "contain", background: "#0a0a0a", kernel: "lanczos3" })
+      .png()
+      .toBuffer();
+    composites.push({
+      input: fitted,
+      left: gutter + i * (cellW + gutter),
+      top: topGutter,
+    });
+  }
+  const out = path.join(REVIEW_DIR, "vial-system-v2-new-only.png");
+  await sharp(svg)
+    .composite(composites)
+    .png({ compressionLevel: 9 })
+    .toFile(out);
+  return out;
+}
+
 async function main() {
   const [catalog, placement] = await Promise.all([
     fs.readFile(CATALOG_PATH, "utf8").then(JSON.parse),
@@ -274,6 +328,7 @@ async function main() {
 
   const mastersSheet = await buildMastersSheet(placement);
   const comparisonSheet = await buildComparisonSheet(catalogResults);
+  const newOnlySheet = await buildNewOnlySheet(catalogResults);
 
   const manifest = {
     status: "TEST_ONLY_AWAITING_VISUAL_APPROVAL",
@@ -287,8 +342,9 @@ async function main() {
     review: {
       comparison: path.relative(repoRoot, comparisonSheet),
       masters: path.relative(repoRoot, mastersSheet),
+      newOnly: path.relative(repoRoot, newOnlySheet),
     },
-    pairGeometry: placement.pairGeometry,
+    placements: placement.placements,
   };
   await fs.writeFile(
     path.join(TEST_DIR, "manifest.json"),

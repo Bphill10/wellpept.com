@@ -5,8 +5,8 @@
  * public/ud-labels/catalog/ and the existing manifest.
  * Production calculator still uses drawGeneratedVial() in vialArt.js.
  *
- * Catalog and calculator must share these masters and placement
- * rectangles. Only the locked SVG artwork differs (catalog vs calculator).
+ * Five immutable photographs. Three authoritative placement profiles.
+ * Catalog and calculator share both. Only the locked SVG artwork differs.
  */
 export const PHOTO_MASTER_FILES = Object.freeze({
   "3ml-white": "/ud-labels/vial-photos-v2/3ml-white.png",
@@ -22,6 +22,14 @@ export const PHOTO_MASTER_BY_PROFILE = Object.freeze({
   "5ML_WHITE": "5ml-white",
   "10ML_WHITE": "10ml-white",
   "10ML_B12_LIQUID": "10ml-red",
+});
+
+export const LABEL_PLACEMENT_BY_PHOTO = Object.freeze({
+  "3ml-white": "3ML_LABEL_PLACEMENT",
+  "3ml-cobalt": "3ML_LABEL_PLACEMENT",
+  "5ml-white": "5ML_LABEL_PLACEMENT",
+  "10ml-white": "10ML_LABEL_PLACEMENT",
+  "10ml-red": "10ML_LABEL_PLACEMENT",
 });
 
 /**
@@ -46,6 +54,14 @@ export function resolvePhotoMasterKey({
   return /BLUE|COBALT/i.test(`${materialColor} ${visualType}`)
     ? "3ml-cobalt"
     : "3ml-white";
+}
+
+/**
+ * Size-only placement. Cobalt uses 3ML. Red uses 10ML.
+ */
+export function resolveLabelPlacementKey(options = {}) {
+  const photoKey = resolvePhotoMasterKey(options);
+  return LABEL_PLACEMENT_BY_PHOTO[photoKey] || "3ML_LABEL_PLACEMENT";
 }
 
 export function photoMasterSrc(key) {

@@ -16,29 +16,16 @@ const systemRoot = path.resolve(scriptDir, "..");
 
 const DEFAULT_RASTER_MIN_WIDTH = 3600;
 const DEFAULT_INSET = 3;
-const DEFAULT_THETA = 0.16;
+const DEFAULT_THETA = 0.1;
 
 function lum(r, g, b) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-function sat(r, g, b) {
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  return max === 0 ? 0 : (max - min) / max;
-}
-
-function isPhotographedPaper(r, g, b) {
-  const L = lum(r, g, b);
-  const S = sat(r, g, b);
-  return S <= 0.28 && L >= 88 && Math.min(r, g, b) >= 70;
-}
-
 export function resolvePhotoMasterKey(product = {}, placement) {
   const requested = String(product.placementProfile || "").toUpperCase();
-  if (placement?.profileToMaster?.[requested]) {
-    return placement.profileToMaster[requested];
-  }
+  const photoMap = placement?.photoByCatalogProfile || placement?.profileToMaster || {};
+  if (photoMap[requested]) return photoMap[requested];
   const vialMl = Number(product.vialMl) || 3;
   if (vialMl >= 8) {
     return /RED|B12|LIQUID/i.test(
@@ -51,6 +38,25 @@ export function resolvePhotoMasterKey(product = {}, placement) {
   return /BLUE|COBALT/i.test(String(product.materialColor || product.visualType || ""))
     ? "3ml-cobalt"
     : "3ml-white";
+}
+
+/**
+ * Size-only placement. Content color never changes the rectangle.
+ */
+export function resolveLabelPlacementKey(product = {}, placement = {}) {
+  const photoKey = resolvePhotoMasterKey(product, placement);
+  const fromPhoto = placement?.photos?.[photoKey]?.placement;
+  if (fromPhoto && placement?.placements?.[fromPhoto]) return fromPhoto;
+  const vialMl = Number(product.vialMl) || 3;
+  if (vialMl >= 8) return "10ML_LABEL_PLACEMENT";
+  if (vialMl >= 4.5 && vialMl < 8) return "5ML_LABEL_PLACEMENT";
+  return "3ML_LABEL_PLACEMENT";
+}
+
+export function resolvePlacementRect(placement, placementKey) {
+  const rect = placement?.placements?.[placementKey];
+  if (!rect) throw new Error(`Unknown label placement profile: ${placementKey}`);
+  return rect;
 }
 
 export async function renderLockedLabelPngHiRes(
@@ -210,8 +216,6 @@ export async function compositeLabelOnPhotoMaster({
       const pg = dest[di + 1];
       const pb = dest[di + 2];
 
-      if (!isPhotographedPaper(pr, pg, pb)) continue;
-
       const paperLum = lum(pr, pg, pb);
       const shade = Math.min(1.12, Math.max(0.58, paperLum / 210));
       const artLum = lum(ar, ag, ab);
@@ -283,7 +287,7 @@ export async function compositeLabelOnPhotoMaster({
 }
 
 export function masterPath(masterKey, placement) {
-  const entry = placement.masters[masterKey];
+  const entry = placement.photos?.[masterKey] || placement.masters?.[masterKey];
   if (!entry) throw new Error(`Unknown photo master: ${masterKey}`);
   return path.join(systemRoot, entry.file);
 }

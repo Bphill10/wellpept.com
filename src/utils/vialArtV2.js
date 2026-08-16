@@ -5,10 +5,14 @@
  * in vialArt.js (unlabeled glass + 20/60/20 wrap).
  *
  * When production is approved to switch, calculator and shop should both
- * use resolvePhotoMasterKey() plus the same vial-photo-placement.json faces.
- * Only the locked SVG (catalog vs calculator) differs.
+ * use resolvePhotoMasterKey() plus the same 3ML / 5ML / 10ML placement
+ * profiles. Only the locked SVG (catalog vs calculator) differs.
  */
-import { photoMasterSrc, resolvePhotoMasterKey } from "./vialPhotoMasters";
+import {
+  photoMasterSrc,
+  resolveLabelPlacementKey,
+  resolvePhotoMasterKey,
+} from "./vialPhotoMasters";
 
 export const VIAL_ART_V2_STATUS = "TEST_ONLY_AWAITING_VISUAL_APPROVAL";
 
@@ -25,6 +29,10 @@ export const CALCULATOR_V2_TEST_IMAGES = Object.freeze({
  */
 export function resolveCalculatorPhotoMaster(options = {}) {
   return resolvePhotoMasterKey(options);
+}
+
+export function resolveCalculatorLabelPlacement(options = {}) {
+  return resolveLabelPlacementKey(options);
 }
 
 /**
