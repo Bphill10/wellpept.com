@@ -6,6 +6,7 @@
  */
 
 import catalogManifest from "./udCatalogVialManifest.json";
+import silverVialOverrides from "./udSilverVialOverrides.json";
 
 export const UD_LABEL_BRAND = {
   latest: "/ud-labels/brand/UD_Brand_Mark_Latest_Original.png",
@@ -53,14 +54,10 @@ function amountKey(value) {
   return String(value || "").trim();
 }
 
-/**
- * Resolve placed-label vial photo from Excel catalog mapping.
- */
-export function catalogVialImage(product = {}) {
-  const byKey = catalogManifest?.byKey || {};
-  const products = catalogManifest?.products || [];
+/** Manifest candidate keys for a product: name aliases x amount/unit/vialMl. */
+function candidateKeys(product = {}) {
   const name = normName(product.name || product.sku || product.labelName);
-  if (!name) return "";
+  if (!name) return { keys: [], aliases: [], amount: "", vialMl: 3 };
   const amount = amountKey(product.mg ?? product.amount ?? product.mass);
   const unit = String(product.unit || "mg").trim().toUpperCase() || "MG";
   const vialMl = Number(product.vialMl) || 3;
@@ -77,21 +74,44 @@ export function catalogVialImage(product = {}) {
   if (/CJC/.test(head) && /IPA|IPAMORELIN/.test(head)) {
     nameAliases.push("CJC/IPA", "CJC-1295 / IPAMORELIN", "CI");
   }
-  if (/^RETA\b|^RETATRUTIDE\b/.test(head)) {
-    nameAliases.push("RETA", "RETATRUTIDE");
-  }
+  if (/^RETA\b|^RETATRUTIDE\b/.test(head)) nameAliases.push("RETA", "RETATRUTIDE");
+  if (/^VITAMIN\s*B12\b|^B12\b/.test(head)) nameAliases.push("B12", "VITAMIN B12");
 
-  const candidates = [];
-  for (const n of [...new Set(nameAliases)]) {
-    candidates.push(
+  const aliases = [...new Set(nameAliases)];
+  const keys = [];
+  for (const n of aliases) {
+    keys.push(
       `${n}|${amount}|${unit}|${vialMl}`,
       `${n}|${amount}|MG|${vialMl}`,
       `${n}|${amount}|IU|${vialMl}`,
       `${n}|${amount}`
     );
   }
+  return { keys, aliases, amount, vialMl };
+}
 
-  for (const key of candidates) {
+/**
+ * Curated silver-accent finals (per strength). Top priority so hand-built photos
+ * win over the auto-generated catalog plates.
+ */
+export function approvedSilverImage(product = {}) {
+  const { keys } = candidateKeys(product);
+  for (const key of keys) {
+    if (silverVialOverrides[key]) return silverVialOverrides[key];
+  }
+  return "";
+}
+
+/**
+ * Resolve placed-label vial photo from Excel catalog mapping.
+ */
+export function catalogVialImage(product = {}) {
+  const byKey = catalogManifest?.byKey || {};
+  const products = catalogManifest?.products || [];
+  const { keys, aliases, amount, vialMl } = candidateKeys(product);
+  if (!keys.length) return "";
+
+  for (const key of keys) {
     if (byKey[key]) return byKey[key];
   }
 
@@ -99,7 +119,7 @@ export function catalogVialImage(product = {}) {
   const soft = products
     .filter((row) => {
       const rn = normName(row.labelName);
-      return nameAliases.includes(rn) && Number(row.vialMl) === vialMl;
+      return aliases.includes(rn) && Number(row.vialMl) === vialMl;
     })
     .sort(
       (a, b) =>
@@ -112,10 +132,13 @@ export function catalogVialImage(product = {}) {
 }
 
 /**
- * Use the single catalog renderer output, then hand-approved finals as a
- * last-resort compatibility fallback. Never mixes in proof/legacy renderers.
+ * Curated silver finals first, then the catalog renderer output, then
+ * hand-approved finals as a last-resort compatibility fallback.
  */
 export function approvedCatalogImage(product = {}) {
+  const silver = approvedSilverImage(product);
+  if (silver) return silver;
+
   const fromMap = catalogVialImage(product);
   if (fromMap) return fromMap;
 
