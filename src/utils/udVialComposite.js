@@ -272,6 +272,65 @@ function buildBaseGlass(base, green, liquid) {
   return out;
 }
 
+// Clean cool paper white shown as the label's reverse through the glass (stock colour later).
+const PAPER_BACK = [246, 249, 253];
+
+/**
+ * The label's pale reverse, seen through the clear glass. On a real filled vial the white (or
+ * coloured) back of the wrap glows softly inside the empty upper body above the fill. We screen
+ * a gentle panel of the label's paper colour into that clear-glass window — brightest down the
+ * centre, fading into the glass walls at the sides and up into the shoulder — so the real
+ * photo's highlights still ride on top and it reads as depth inside the glass, not a painted
+ * block. Powder vials only (a liquid fills that window, so it is skipped there).
+ */
+function buildLabelBack(base, green, liquid, paper) {
+  const { W, H, data } = base;
+  const out = new Uint8ClampedArray(data);
+  if (liquid) return out; // liquid fills the upper body — no empty-glass window to light
+  const top0 = green.top0;
+  // Vial width per row above the label; find the straight body, stop where it necks in.
+  const rowXL = new Int32Array(H).fill(-1), rowXR = new Int32Array(H).fill(-1);
+  let bodyW = 0;
+  for (let y = top0 - 1; y >= 0; y--) {
+    let xl = W, xr = -1;
+    for (let x = 0; x < W; x++) if (data[(y * W + x) * 4 + 3] > 60) { if (x < xl) xl = x; xr = x; }
+    if (xr < xl) break;
+    rowXL[y] = xl; rowXR[y] = xr;
+    const w = xr - xl + 1; if (w > bodyW) bodyW = w;
+  }
+  if (bodyW < 8) return out;
+  let yTop = top0 - 1;
+  for (let y = top0 - 1; y >= 0; y--) {
+    if (rowXL[y] < 0) { yTop = y + 1; break; }
+    if (rowXR[y] - rowXL[y] + 1 < 0.72 * bodyW) { yTop = y + 1; break; }
+    yTop = y;
+  }
+  const bandH = (top0 - 1) - yTop;
+  if (bandH < 4) return out;
+  const [pr, pg, pb] = paper;
+  const STR = 0.64, mFrac = 0.12; // centre strength, side-wall fade fraction
+  for (let y = yTop; y < top0; y++) {
+    const xl = rowXL[y], xr = rowXR[y]; if (xl < 0) continue;
+    const wpx = xr - xl; if (wpx <= 0) continue;
+    const vt = (y - yTop) / bandH;         // 0 shoulder → 1 label
+    const vf = vt < 0.55 ? vt / 0.55 : 1;  // fade in from the shoulder curve
+    for (let x = xl; x <= xr; x++) {
+      const t = (x - xl) / wpx;
+      let hf = t < mFrac ? t / mFrac : t > 1 - mFrac ? (1 - t) / mFrac : 1;
+      hf = hf * hf * (3 - 2 * hf);          // smoothstep side falloff
+      const a = STR * hf * vf;
+      if (a < 0.002) continue;
+      const i = (y * W + x) * 4;
+      // Lerp toward clean paper white — the glass here is already light, so a screen barely
+      // reads; a lerp lifts it distinctly white while the falloffs keep the glass edges.
+      out[i]     = data[i]     + (pr - data[i])     * a;
+      out[i + 1] = data[i + 1] + (pg - data[i + 1]) * a;
+      out[i + 2] = data[i + 2] + (pb - data[i + 2]) * a;
+    }
+  }
+  return out;
+}
+
 async function renderLabelPixels(svg, LW, LH) {
   const img = await loadImage("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg));
   const c = document.createElement("canvas");
@@ -308,7 +367,9 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS
     // Liquid vials (B12) fill the label band; powder vials are empty glass there. `baseGlass`
     // (the bare-glass gap shown while spinning) is built lazily on first wrap use.
     const liquid = /red|liquid/i.test(String(baseSrc));
-    return { base, ld, lw: dims.w, lh: dims.h, green, liquid };
+    // Pre-bake the label's pale reverse into the clear glass above the label (screen-fixed).
+    const baseBack = buildLabelBack(base, green, liquid, PAPER_BACK);
+    return { base, ld, lw: dims.w, lh: dims.h, green, liquid, baseBack };
   }
 
   // Fallback (non-chroma base): guess a band on the vial silhouette.
@@ -345,7 +406,8 @@ function composeGreen(canvas, prepared, rot, wrap) {
   const baseGlass = prepared.baseGlass;
   const T = 1 + GAP_UNITS;
   const rr = wrap ? rot * T : rot; // one component revolution (rot 0→1) spans the whole strip
-  const out = new Uint8ClampedArray(src);
+  // Start from the base with the label's pale reverse already lit into the clear glass above.
+  const out = new Uint8ClampedArray(prepared.baseBack || src);
   const lwm = lw - 1, fh = Math.max(1, bot0 - top0), LN = ASIN_LUT.length - 1;
   const PAPER = 236; // neutral paper shown through the label's transparent margins/corners
   for (let y = top; y <= bot; y++) {
