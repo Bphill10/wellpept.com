@@ -125,7 +125,7 @@ export function buildSilverLabelSVG(o = {}) {
     <linearGradient id="silver" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef1f3"/><stop offset="0.4" stop-color="#aab0b8"/><stop offset="0.6" stop-color="#7d838c"/><stop offset="1" stop-color="#c2c8ce"/></linearGradient>
     <linearGradient id="silverbar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dfe3e7"/><stop offset="0.5" stop-color="#aeb4bc"/><stop offset="1" stop-color="#878d95"/></linearGradient>
   </defs>
-  <rect x="0" y="0" width="${w}" height="${h}" fill="#f4f3ef"/>
+  <rect x="0" y="0" width="${w}" height="${h}" fill="#ffffff"/>
   <rect x="0" y="0" width="${band}" height="${h}" fill="#111"/>
   <rect x="${band}" y="0" width="4" height="${h}" fill="${A.line}"/>
   <text x="${band * 0.50}" y="${h * 0.455}" fill="${A.mark}" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="${Math.min(h * 0.071, (h * 0.74) / (Math.max(6, BN.length) * 0.62))}" letter-spacing="${h * 0.009}" text-anchor="middle" dominant-baseline="central" transform="rotate(-90 ${band * 0.50} ${h * 0.455})">${esc(BN)}</text>

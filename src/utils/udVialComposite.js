@@ -132,11 +132,10 @@ export function composeVial(canvas, prepared, rot = 0) {
     const lx = Math.round(uSrc * (lw - 1));
     const ly = Math.min(lh - 1, Math.round(((y - fp.top) / (fp.h - 1)) * (lh - 1)));
     const li = (ly * lw + lx) * 4;
-    const r = src[vi], g = src[vi + 1], b = src[vi + 2];
-    const baseB = 235 + (0.299 * r + 0.587 * g + 0.114 * b - 210) * 0.15;
-    out[vi] = clamp(baseB * (ld[li] / 255));
-    out[vi + 1] = clamp(baseB * (ld[li + 1] / 255));
-    out[vi + 2] = clamp(baseB * (ld[li + 2] / 255));
+    const shade = 1 - 0.13 * Math.abs(f); // gentle cylinder curvature only
+    out[vi] = clamp(ld[li] * shade);
+    out[vi + 1] = clamp(ld[li + 1] * shade);
+    out[vi + 2] = clamp(ld[li + 2] * shade);
   }
   // Extend the label's blank bottom edge (rail + paper) down toward the powder so no empty
   // glass strip shows — but STOP as soon as the row is the powder/liquid (textured or
@@ -160,11 +159,10 @@ export function composeVial(canvas, prepared, rot = 0) {
       const uSrc = Math.max(0, Math.min(1, uc + rot + half * f));
       const lx = Math.round(uSrc * (lw - 1));
       const li = ((lh - 1) * lw + lx) * 4;
-      const r = src[vi], g = src[vi + 1], b = src[vi + 2];
-      const baseB = 235 + (0.299 * r + 0.587 * g + 0.114 * b - 210) * 0.15;
-      out[vi] = clamp(baseB * (ld[li] / 255));
-      out[vi + 1] = clamp(baseB * (ld[li + 1] / 255));
-      out[vi + 2] = clamp(baseB * (ld[li + 2] / 255));
+      const shade = 1 - 0.13 * Math.abs(f);
+      out[vi] = clamp(ld[li] * shade);
+      out[vi + 1] = clamp(ld[li + 1] * shade);
+      out[vi + 2] = clamp(ld[li + 2] * shade);
     }
   }
   canvas.width = W; canvas.height = H;
