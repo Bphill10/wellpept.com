@@ -123,7 +123,7 @@ import {
   clearCoaUrl,
 } from "./utils/coaStore";
 import CatalogVial from "./components/CatalogVial";
-import HeroVial from "./components/HeroVial";
+import ChannelVial from "./components/ChannelVial";
 import PeptideCalculator, {
   parseCalculatorQuery,
 } from "./components/PeptideCalculator";
@@ -173,6 +173,19 @@ import {
   cartShippingTotal,
   cartShippingBreakdown,
 } from "./data/warehouses";
+
+// Landing showcase "channels" — the hero vial surfs these real compounds, changing labels
+// (and glass colour: blue KLOW/GHK, red B12 liquid, silver powder) like an old-school TV dial.
+// Order interleaves colours so each channel change reads as a clear swap. Stable module ref so
+// the showcase animation isn't restarted on every App render.
+const UD_SHOWCASE_CHANNELS = [
+  { name: "KLOW", mass: "80", unit: "mg", vialMl: 3, formText: "LYOPHILIZED POWDER" },
+  { name: "Vitamin B12", mass: "5", unit: "mg", vialMl: 10, formText: "LIQUID" },
+  { name: "Retatrutide", mass: "10", unit: "mg", vialMl: 3, formText: "LYOPHILIZED POWDER" },
+  { name: "GHK-Cu", mass: "50", unit: "mg", vialMl: 3, formText: "LYOPHILIZED POWDER" },
+  { name: "NAD+", mass: "500", unit: "mg", vialMl: 10, formText: "LYOPHILIZED POWDER" },
+  { name: "Semaglutide", mass: "10", unit: "mg", vialMl: 3, formText: "LYOPHILIZED POWDER" },
+];
 
 const VIEWS = {
   skincare: "skincare",
@@ -2054,14 +2067,15 @@ export default function App() {
             <section className="section ud-showcase" aria-label="Undisclosed vial showcase">
               <div className="container ud-showcase-inner">
                 <div className="ud-showcase-stage">
-                  <HeroVial name="KLOW" mass="80" unit="mg" vialMl={3} />
+                  <ChannelVial channels={UD_SHOWCASE_CHANNELS} />
                 </div>
                 <div className="ud-showcase-copy">
-                  <span className="ud-showcase-kicker">Signature research kit</span>
-                  <h2 className="ud-showcase-title">KLOW, turned to the light.</h2>
+                  <span className="ud-showcase-kicker">Undisclosed catalog</span>
+                  <h2 className="ud-showcase-title">Change the channel.</h2>
                   <p className="ud-showcase-text">
-                    GHK-Cu · BPC-157 · TB-500 · KPV — the signature Undisclosed blend.
-                    Silver label, sealed glass, QR-verified from every side.
+                    Every compound, one dial away — KLOW, B12, Retatrutide, GHK-Cu and more.
+                    Silver label, sealed glass, QR-verified from every side. Watch the catalog
+                    tune in.
                   </p>
                 </div>
               </div>

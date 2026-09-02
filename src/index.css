@@ -11869,6 +11869,30 @@ label.field select,
   filter: drop-shadow(0 26px 42px rgba(0, 0, 0, 0.6));
 }
 .hero-vial-canvas.is-ready { opacity: 1; }
+/* Channel-surf showcase: the vial + a little TV "CH 0X · NAME" readout under it. */
+.channel-vial {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 0.55rem;
+}
+.channel-vial-readout {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: #9fdcff;
+  text-shadow: 0 0 12px rgba(96, 200, 255, 0.55);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  padding: 0.28rem 0.7rem;
+  border: 1px solid rgba(120, 205, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(14, 22, 34, 0.55);
+  white-space: nowrap;
+}
+.channel-vial .hero-vial-canvas.is-ready ~ .channel-vial-readout { opacity: 0.9; }
 .ud-showcase-copy { color: #e8edf2; }
 .ud-showcase-kicker {
   display: inline-block;
