@@ -331,6 +331,36 @@ function buildLabelBack(base, green, liquid, paper) {
   return out;
 }
 
+/**
+ * Recolour the vial's white powder to `tint` (an [r,g,b]). The powder photographs as a
+ * near-neutral bright mound below the label; multiplying those pixels by the tint keeps every
+ * grain of texture and every shadow while swapping the hue — white × colour = coloured powder.
+ * Only bright, low-saturation pixels below the label are touched, so the glass, walls and the
+ * dark crevices are left alone. Used by the landing showcase to surf random colours; the base
+ * photo must be a white-powder vial for the tint to read true.
+ */
+function tintPowder(out, base, green, tint) {
+  const { W, H, data } = base;
+  const tr = tint[0], tg = tint[1], tb = tint[2];
+  const y0 = Math.min(H - 1, (green.bot || green.bot0) + 2);
+  for (let y = y0; y < H; y++) {
+    let xl = W, xr = -1;
+    for (let x = 0; x < W; x++) if (data[(y * W + x) * 4 + 3] > 60) { if (x < xl) xl = x; xr = x; }
+    if (xr < xl) continue;
+    for (let x = xl; x <= xr; x++) {
+      const i = (y * W + x) * 4;
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      const mx = r > g ? (r > b ? r : b) : g > b ? g : b;
+      const mn = r < g ? (r < b ? r : b) : g < b ? g : b;
+      const L = 0.299 * r + 0.587 * g + 0.114 * b;
+      if (L < 88 || mx - mn > 54) continue; // skip dark glass + already-coloured/edge pixels
+      out[i]     = (r * tr) / 255;
+      out[i + 1] = (g * tg) / 255;
+      out[i + 2] = (b * tb) / 255;
+    }
+  }
+}
+
 async function renderLabelPixels(svg, LW, LH) {
   const img = await loadImage("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg));
   const c = document.createElement("canvas");
@@ -354,7 +384,7 @@ export const ROT_MAX = 0.62;
  * Precomputes a per-column wrap LUT (`fcol`) and per-row label-row map (`rowBase`) so the
  * compose hot loop is pure array lookups.
  */
-export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS }) {
+export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS, tint = null }) {
   const ml = Number(vialMl) >= 8 ? 10 : 3;
   const dims = silverLabelDims(ml);
   const base = await getBase(baseSrc, ss);
@@ -366,9 +396,13 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS
   if (green) {
     // Liquid vials (B12) fill the label band; powder vials are empty glass there. `baseGlass`
     // (the bare-glass gap shown while spinning) is built lazily on first wrap use.
-    const liquid = /red|liquid/i.test(String(baseSrc));
+    // Match the red-liquid base by its filename token (…_Red.png), not a loose "red" — a base64
+    // data-URL src would otherwise false-positive (no "_" or word breaks in standard base64).
+    const liquid = /_red\b|\bliquid\b/i.test(String(baseSrc));
     // Pre-bake the label's pale reverse into the clear glass above the label (screen-fixed).
     const baseBack = buildLabelBack(base, green, liquid, PAPER_BACK);
+    // Optional powder recolour (landing showcase) — multiply the white powder to the tint.
+    if (tint && !liquid) tintPowder(baseBack, base, green, tint);
     return { base, ld, lw: dims.w, lh: dims.h, green, liquid, baseBack };
   }
 

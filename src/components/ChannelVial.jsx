@@ -24,6 +24,26 @@ const FADE_MS = 720;  // reduced-motion cross-dissolve
 const SPIN_MS = 11000; // one full label revolution during the hold
 const FRAME_MS = 33;   // ~30fps cap for the hold spin
 
+// Vivid powder colours the showcase surfs at random — the white powder is tinted to one of these
+// per channel (a fresh shuffle each page load), so the catalog changes colour as it changes label.
+const SHOWCASE_PALETTE = [
+  [46, 92, 230],   // royal blue
+  [34, 190, 120],  // emerald
+  [30, 180, 190],  // teal
+  [150, 90, 235],  // violet
+  [230, 70, 150],  // rose
+  [235, 175, 45],  // amber
+  [225, 55, 60],   // crimson
+  [70, 205, 225],  // cyan
+];
+
+// Fisher–Yates shuffle (returns a new array) so each load gets a different colour order.
+function shuffled(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
 /** Build red / green / blue single-channel copies of the frozen vial for the split. */
 function buildTints(gfx, buf) {
   const W = buf.width, H = buf.height;
@@ -121,6 +141,7 @@ export default function ChannelVial({ channels = [], className = "" }) {
   const chRef = useRef(channels);
   chRef.current = channels;
 
+  const colorsRef = useRef(SHOWCASE_PALETTE); // per-channel powder tint (shuffled on mount)
   const prepsRef = useRef(new Map());     // index -> prepared compositor (or in-flight promise)
   const gfxRef = useRef({ noise: null, scan: null, W: 0, H: 0 }); // reusable glitch scratch
   const tintsRef = useRef(null);
@@ -149,7 +170,9 @@ export default function ChannelVial({ channels = [], className = "" }) {
       formText: (c.formText || "Lyophilized Powder").toUpperCase(),
       storageTemp: "36–46°F", vialMl: ml,
     });
-    return { svg, ml, baseSrc: silverVialBaseSrc(c.name, ml) };
+    // Always the white-powder base — the showcase recolours the powder to a random tint, so the
+    // photo's own colour must be neutral. Size (3 vs 10 mL) still follows the channel.
+    return { svg, ml, baseSrc: silverVialBaseSrc("", ml) };
   };
 
   const ensurePrep = (i) => {
@@ -160,7 +183,8 @@ export default function ChannelVial({ channels = [], className = "" }) {
     const hit = cache.get(idx);
     if (hit) return hit.then ? hit : Promise.resolve(hit);
     const { svg, ml, baseSrc } = buildSVG(list[idx]);
-    const promise = prepareVialCompositor({ svg, vialMl: ml, baseSrc, ss: ssFor() })
+    const tint = colorsRef.current[idx % colorsRef.current.length];
+    const promise = prepareVialCompositor({ svg, vialMl: ml, baseSrc, ss: ssFor(), tint })
       .then((prep) => { cache.set(idx, prep); return prep; })
       .catch(() => { cache.delete(idx); return null; });
     cache.set(idx, promise);
@@ -302,6 +326,7 @@ export default function ChannelVial({ channels = [], className = "" }) {
     reducedRef.current = !!mm?.("(prefers-reduced-motion: reduce)")?.matches;
     coarseRef.current = !!mm?.("(pointer: coarse)")?.matches;
     prepsRef.current = new Map();
+    colorsRef.current = shuffled(SHOWCASE_PALETTE); // fresh random colour order each load
     curRef.current = 0; nextRef.current = chRef.current.length > 1 ? 1 : 0;
     phaseRef.current = "hold"; rotRef.current = 0; swappedRef.current = false;
 
