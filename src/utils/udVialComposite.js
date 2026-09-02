@@ -487,7 +487,7 @@ export function paintVialScene(canvas, state, rot = 0, opts = {}) {
  * vial base is planted on the floor line; 10 mL vials are drawn taller than 3 mL so the size
  * difference reads true. Output is an opaque scene canvas sized to `sceneSrc`.
  */
-export async function drawVialScene(canvas, { svg, vialMl, baseSrc, sceneSrc, rot = 0 }) {
-  const state = await prepareVialScene({ svg, vialMl, baseSrc, sceneSrc });
+export async function drawVialScene(canvas, { svg, vialMl, baseSrc, sceneSrc, rot = 0, ss, maxOut = 0 }) {
+  const state = await prepareVialScene({ svg, vialMl, baseSrc, sceneSrc, ...(ss ? { ss } : {}), maxOut });
   return paintVialScene(canvas, state, rot, { wrap: rot !== 0 });
 }
