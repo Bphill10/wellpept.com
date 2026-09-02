@@ -7372,35 +7372,36 @@ body:has(.app-shell--undisclosed)::before {
   }
 }
 
-/* Phone: put the live vial preview compact at the TOP with the main dosage controls right
-   below, so you can watch the label update while you make changes. The label panel is
-   dissolved into the single-column grid so its children can be reordered. */
+/* Phone: put the calculation + label-type choices at the TOP, with the vial/label previews
+   and secondary options below — you make the main changes first and glance at the picture
+   underneath. The label panel is dissolved into the single-column grid so its children can
+   be reordered. */
 @media (max-width: 640px) {
   .calc-layout--with-label .calc-label-panel {
     display: contents;
   }
+  /* dosage card + label type/size keep default order (top); previews then extras go below */
   .calc-layout--with-label .calc-vial-stage {
-    order: -2;
-    margin: 0 0 0.5rem !important;
+    order: 5;
+    margin: 0.2rem 0 0.5rem !important;
     display: grid;
     place-items: center;
   }
   .calc-vial-stage .silver-label-vial,
   .calc-vial-stage .calc-generated-vial {
-    max-height: 32vh !important;
+    max-height: 34vh !important;
   }
-  .calc-layout--with-label .calc-card--skinny {
-    order: -1;
-  }
-  .calc-layout--with-label .calc-label-caption {
-    order: 4;
-  }
-  .calc-layout--with-label .calc-label-stage {
-    order: 5;
-  }
-  .calc-card--skinny .form-grid {
-    gap: 0.5rem;
-  }
+  .calc-layout--with-label .calc-label-caption { order: 6; }
+  .calc-layout--with-label .calc-label-stage { order: 7; }
+  .calc-layout--with-label .calc-brand-custom { order: 8; }
+  .calc-layout--with-label .calc-coa { order: 9; }
+  .calc-card--skinny .form-grid { gap: 0.5rem; }
+  /* trim verbose helper/info lines to save room (they duplicate the dropdowns/label) */
+  .calc-label-panel > .meta { display: none; }
+  .calc-card--skinny .form-grid > p.meta { display: none; }
+  /* smaller unit bar graph on phones */
+  .syringe-visual { margin: 0.4rem 0 0.5rem; }
+  .syringe-bar { height: 1.15rem; }
 }
 
 .calc-card {
@@ -7478,12 +7479,12 @@ body:has(.app-shell--undisclosed)::before {
 }
 
 .syringe-visual {
-  margin: 0.85rem 0 1rem;
+  margin: 0.55rem 0 0.65rem;
 }
 
 .syringe-bar {
   position: relative;
-  height: 2rem;
+  height: 1.45rem;
   border-radius: 999px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.7);
