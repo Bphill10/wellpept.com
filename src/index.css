@@ -3647,6 +3647,15 @@ body:has(.app-shell--undisclosed)::before {
   overflow: hidden;
 }
 
+/* Old glow halos removed — the catalog vials now carry their own baked black-marble
+   scene + reflection, so the leftover warm/blue light behind them is gone for good. */
+.app-shell--undisclosed .vial-approved-photo::before,
+.app-shell--undisclosed .vial-glow--sun::before,
+.app-shell--undisclosed .vial-glow--blue::before,
+.app-shell--undisclosed .product-card:hover .vial-approved-photo::before {
+  display: none !important;
+}
+
 .app-shell--undisclosed .vial-approved-photo,
 .app-shell--undisclosed .skin-bottle-preview--photo {
   background: transparent;
