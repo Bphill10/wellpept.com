@@ -89,7 +89,8 @@ export default function CatalogVial({
       mass: mg != null && mg !== "" ? String(mg) : "",
       unit: unit || "mg",
       labelType: "CATALOG",
-      formText: (form || "Lyophilized Powder").toUpperCase(),
+      // Clean form for the label — never the vendor pack code (e.g. "· 30mg*10vials").
+      formText: /\bB\s*12\b|VITAMIN\s*B12/i.test(`${name} ${form}`) ? "LIQUID" : "LYOPHILIZED POWDER",
       storageTemp: "36–46°F",
       vialMl: ml,
     });
@@ -193,6 +194,39 @@ export default function CatalogVial({
       restoreStill();
     }
   };
+
+  // Touch devices have no hover — auto-spin the vial while it sits near the centre of the
+  // viewport (one at a time as you scroll), so the rotation is visible on phones too. Fine
+  // pointers use hover instead; reduced-motion opts out.
+  useEffect(() => {
+    if (!visible || !ready) return undefined;
+    if (typeof window === "undefined" || typeof IntersectionObserver === "undefined") return undefined;
+    const mm = window.matchMedia;
+    if (mm?.("(prefers-reduced-motion: reduce)")?.matches) return undefined;
+    if (mm?.("(pointer: fine)")?.matches) return undefined; // desktop uses hover
+    const canvas = canvasRef.current;
+    if (!canvas) return undefined;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const centered = entries.some((e) => e.isIntersecting);
+        if (centered) {
+          ensureSceneState().then((st) => {
+            if (!st || modeRef.current === "spin") return;
+            lastTsRef.current = 0;
+            modeRef.current = "spin";
+            cancelAnimationFrame(rafRef.current);
+            rafRef.current = requestAnimationFrame(step);
+          });
+        } else if (modeRef.current === "spin") {
+          modeRef.current = "return";
+        }
+      },
+      { rootMargin: "-42% 0px -42% 0px", threshold: 0.01 }
+    );
+    io.observe(canvas);
+    return () => io.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, ready]);
 
   // Stop everything on unmount.
   useEffect(() => () => {
