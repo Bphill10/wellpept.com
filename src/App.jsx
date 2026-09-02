@@ -2052,14 +2052,14 @@ export default function App() {
             <section className="section ud-showcase" aria-label="Undisclosed vial showcase">
               <div className="container ud-showcase-inner">
                 <div className="ud-showcase-stage">
-                  <HeroVial name="Vitamin B12" mass="5" unit="mg" vialMl={10} />
+                  <HeroVial name="KLOW" mass="80" unit="mg" vialMl={3} />
                 </div>
                 <div className="ud-showcase-copy">
-                  <span className="ud-showcase-kicker">Research-grade, verified</span>
-                  <h2 className="ud-showcase-title">Every vial, turned to the light.</h2>
+                  <span className="ud-showcase-kicker">Signature research kit</span>
+                  <h2 className="ud-showcase-title">KLOW, turned to the light.</h2>
                   <p className="ud-showcase-text">
-                    Silver label, sealed glass, QR-verified. Each Undisclosed vial is
-                    labeled the moment it ships — turn it and read it from every side.
+                    GHK-Cu · BPC-157 · TB-500 · KPV — the signature Undisclosed blend.
+                    Silver label, sealed glass, QR-verified from every side.
                   </p>
                 </div>
               </div>
