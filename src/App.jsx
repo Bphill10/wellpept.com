@@ -12,6 +12,7 @@ import {
   Package,
   Truck,
   Calculator,
+  Newspaper,
 } from "lucide-react";
 import {
   CATEGORIES,
@@ -1628,13 +1629,14 @@ export default function App() {
                   }, 40);
                 }}
               >
+                <Newspaper size={16} />
                 <span>News</span>
               </button>
             )}
             {labVisible && (
               <button
                 type="button"
-                className="ghost-btn"
+                className="ghost-btn ghost-btn--accent"
                 onClick={() => {
                   setCalcInitial(null);
                   setView(VIEWS.calculator);

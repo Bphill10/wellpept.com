@@ -655,6 +655,22 @@ svg {
   color: #fff;
 }
 
+/* Calculator button — cool electric accent so it stands out among the plain header buttons. */
+.app-shell--undisclosed .site-header .ghost-btn--accent {
+  color: #eaf7ff;
+  border: 1px solid rgba(62, 200, 255, 0.6);
+  background: linear-gradient(180deg, rgba(62, 200, 255, 0.22), rgba(62, 200, 255, 0.1));
+  box-shadow: 0 0 0 1px rgba(62, 200, 255, 0.22), 0 6px 18px rgba(62, 200, 255, 0.18);
+}
+.app-shell--undisclosed .site-header .ghost-btn--accent svg {
+  color: #86dcff;
+}
+.app-shell--undisclosed .site-header .ghost-btn--accent:hover {
+  border-color: rgba(134, 220, 255, 0.9);
+  background: linear-gradient(180deg, rgba(62, 200, 255, 0.34), rgba(62, 200, 255, 0.16));
+  box-shadow: 0 0 0 1px rgba(134, 220, 255, 0.4), 0 8px 22px rgba(62, 200, 255, 0.3);
+}
+
 .ghost-btn {
   background: transparent;
   border: 1px solid transparent;
