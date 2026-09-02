@@ -305,6 +305,10 @@ function buildLabelBack(base, green, liquid, paper) {
     if (rowXR[y] - rowXL[y] + 1 < 0.72 * bodyW) { yTop = y + 1; break; }
     yTop = y;
   }
+  // Cap the lit band so it stays a glow near the label instead of washing the whole upper body
+  // (the tall 10 mL has a big empty body above the label that otherwise reads as haze).
+  const yTopCap = top0 - Math.round(H * 0.14);
+  if (yTop < yTopCap) yTop = yTopCap;
   const bandH = (top0 - 1) - yTop;
   if (bandH < 4) return out;
   const [pr, pg, pb] = paper;
@@ -332,39 +336,60 @@ function buildLabelBack(base, green, liquid, paper) {
 }
 
 /**
- * Recolour the vial's metal crimp cap to `tint` (an [r,g,b]). The cap photographs as a
- * near-neutral metallic dome at the very top of the vial; multiplying those pixels by the tint
- * keeps every highlight and shadow of the metal while swapping the hue — grey × colour =
- * anodised colour cap. Only the top slice of the vial is touched, and only bright-ish neutral
- * (metal) pixels, so the glass neck, stopper and dark crevices are left alone. Pairs with a
- * matching label accent so the cap and label read as a coordinated colour-coded set.
+ * Recolour the vial's metal cap — the rounded flip-top DOME and the CRIMP collar below it — to
+ * two coordinated tints (an [r,g,b] each). Multiplying the neutral metal by a tint keeps every
+ * highlight and shadow so it reads as anodised colour, not paint. The cap bottom is found by
+ * width (the crimp collar is the widest metal near the top; the glass neck narrows sharply just
+ * below it), so on the slimmer 10 mL the colour no longer bleeds onto the neck. The dome and
+ * crimp take slightly different shades so they match without being identical. Pairs with a
+ * matching label accent for a coordinated colour-coded set.
  */
-function tintCap(out, base, tint) {
+function tintCap(out, base, domeTint, crimpTint) {
   const { W, H, data } = base;
-  const tr = tint[0], tg = tint[1], tb = tint[2];
-  // Vial vertical extent → the cap is the top ~22% of it.
+  // Per-row horizontal extent + the vial's vertical span.
+  const rowL = new Int32Array(H).fill(-1), rowR = new Int32Array(H).fill(-1);
   let minY = H, maxY = 0;
   for (let y = 0; y < H; y++) {
-    let any = false;
-    for (let x = 0; x < W; x++) if (data[(y * W + x) * 4 + 3] > 60) { any = true; break; }
-    if (any) { if (y < minY) minY = y; maxY = y; }
+    let xl = W, xr = -1;
+    for (let x = 0; x < W; x++) if (data[(y * W + x) * 4 + 3] > 60) { if (x < xl) xl = x; xr = x; }
+    if (xr >= xl) { rowL[y] = xl; rowR[y] = xr; if (y < minY) minY = y; maxY = y; }
   }
   if (maxY <= minY) return;
-  const capBot = minY + Math.round((maxY - minY) * 0.22);
-  for (let y = minY; y <= capBot; y++) {
-    for (let x = 0; x < W; x++) {
-      const i = (y * W + x) * 4;
-      if (data[i + 3] < 60) continue;
-      const r = data[i], g = data[i + 1], b = data[i + 2];
-      const mx = r > g ? (r > b ? r : b) : g > b ? g : b;
-      const mn = r < g ? (r < b ? r : b) : g < b ? g : b;
-      const L = 0.299 * r + 0.587 * g + 0.114 * b;
-      if (L < 42 || mx - mn > 46) continue; // skip near-black crevices + any coloured pixels
-      out[i]     = (r * tr) / 255;
-      out[i + 1] = (g * tg) / 255;
-      out[i + 2] = (b * tb) / 255;
+  const vh = maxY - minY;
+  const wAt = (y) => (rowR[y] >= 0 ? rowR[y] - rowL[y] + 1 : 0);
+  // The crimp collar is the widest metal in the top quarter (above the neck; the shoulder that
+  // widens again lower down is excluded). Then the neck is the narrowest row just below it —
+  // that pinch is where the glass begins, so the cap ends a hair above it (no bleed onto neck).
+  const collarBot = minY + Math.round(vh * 0.24);
+  let collarW = 0, collarY = minY;
+  for (let y = minY; y <= collarBot && y <= maxY; y++) if (wAt(y) > collarW) { collarW = wAt(y); collarY = y; }
+  const neckBot = Math.min(maxY, collarY + Math.round(vh * 0.16));
+  let neckW = collarW, neckY = collarY;
+  for (let y = collarY; y <= neckBot; y++) if (wAt(y) < neckW) { neckW = wAt(y); neckY = y; }
+  let capBot = neckY - Math.round(vh * 0.008);
+  if (capBot < collarY + 2) capBot = collarY + 2;
+  const domeBot = minY + Math.round((capBot - minY) * 0.55); // dome above, crimp collar below
+  const paint = (y0, y1, tint) => {
+    const tr = tint[0], tg = tint[1], tb = tint[2];
+    for (let y = y0; y <= y1; y++) {
+      const lo = rowL[y]; if (lo < 0) continue;
+      const hi = rowR[y];
+      for (let x = lo; x <= hi; x++) {
+        const i = (y * W + x) * 4;
+        if (data[i + 3] < 60) continue;
+        const r = data[i], g = data[i + 1], b = data[i + 2];
+        const mx = r > g ? (r > b ? r : b) : g > b ? g : b;
+        const mn = r < g ? (r < b ? r : b) : g < b ? g : b;
+        const L = 0.299 * r + 0.587 * g + 0.114 * b;
+        if (L < 42 || mx - mn > 46) continue; // skip near-black crevices + coloured/glass pixels
+        out[i]     = (r * tr) / 255;
+        out[i + 1] = (g * tg) / 255;
+        out[i + 2] = (b * tb) / 255;
+      }
     }
-  }
+  };
+  paint(minY, domeBot, domeTint);
+  paint(domeBot + 1, capBot, crimpTint);
 }
 
 async function renderLabelPixels(svg, LW, LH) {
@@ -390,7 +415,7 @@ export const ROT_MAX = 0.62;
  * Precomputes a per-column wrap LUT (`fcol`) and per-row label-row map (`rowBase`) so the
  * compose hot loop is pure array lookups.
  */
-export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS, capTint = null }) {
+export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS, capTint = null, crimpTint = null }) {
   const ml = Number(vialMl) >= 8 ? 10 : 3;
   const dims = silverLabelDims(ml);
   const base = await getBase(baseSrc, ss);
@@ -407,8 +432,8 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS
     const liquid = /_red\b|\bliquid\b/i.test(String(baseSrc));
     // Pre-bake the label's pale reverse into the clear glass above the label (screen-fixed).
     const baseBack = buildLabelBack(base, green, liquid, PAPER_BACK);
-    // Optional crimp-cap recolour (landing showcase) — multiply the metal cap to the tint.
-    if (capTint) tintCap(baseBack, base, capTint);
+    // Optional cap recolour (landing showcase) — dome + crimp collar in two coordinated tints.
+    if (capTint) tintCap(baseBack, base, capTint, crimpTint || capTint);
     return { base, ld, lw: dims.w, lh: dims.h, green, liquid, baseBack };
   }
 
