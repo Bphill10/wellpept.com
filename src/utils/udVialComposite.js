@@ -9,11 +9,12 @@
  */
 import { silverLabelDims } from "./udSilverLabel";
 
-// Label footprint band on the (consistent) vial silhouette, as fractions of its height —
-// sized to fully cover the vial's printed white label patch so no blank strip peeks out.
+// Label footprint band on the (consistent) vial silhouette, as fractions of its height.
+// `top`/`bot` hold the aspect-correct label; `fill` extends the label's blank bottom paper
+// down toward the powder so no empty glass strip shows below the label.
 const BAND = {
-  3: { top: 0.432, bot: 0.845 },
-  10: { top: 0.383, bot: 0.812 },
+  3: { top: 0.432, bot: 0.845, fill: 0.915 },
+  10: { top: 0.383, bot: 0.812, fill: 0.900 },
 };
 
 const BASE = {
@@ -66,20 +67,22 @@ function vbbox(d, W, H) {
   return { minX: a, minY: b, maxX: c, maxY: e, w: c - a + 1, h: e - b + 1 };
 }
 
-function footprint(d, W, H, topF, botF) {
+function footprint(d, W, H, topF, botF, fillF) {
   const v = vbbox(d, W, H);
   const top = Math.round(v.minY + v.h * topF), bot = Math.round(v.minY + v.h * botF);
+  const fill = fillF ? Math.round(v.minY + v.h * fillF) : bot;
   const mask = new Uint8Array(W * H);
+  const rowLo = new Int32Array(H).fill(-1), rowHi = new Int32Array(H).fill(-1);
   let left = W, right = 0;
-  for (let y = top; y <= bot; y++) {
+  for (let y = top; y <= Math.max(bot, fill); y++) {
     let lo = -1, hi = -1;
     for (let x = v.minX; x <= v.maxX; x++) if (d[(y * W + x) * 4 + 3] > 128) { if (lo < 0) lo = x; hi = x; }
     if (lo < 0) continue;
     const inset = Math.round((hi - lo) * 0.004); lo += inset; hi -= inset;
-    for (let x = lo; x <= hi; x++) mask[y * W + x] = 1;
-    if (lo < left) left = lo; if (hi > right) right = hi;
+    rowLo[y] = lo; rowHi[y] = hi;
+    if (y <= bot) { for (let x = lo; x <= hi; x++) mask[y * W + x] = 1; if (lo < left) left = lo; if (hi > right) right = hi; }
   }
-  return { mask, left, right, top, bot, w: right - left + 1, h: bot - top + 1 };
+  return { mask, left, right, top, bot, fill, rowLo, rowHi, w: right - left + 1, h: bot - top + 1 };
 }
 
 async function renderLabelPixels(svg, LW, LH) {
@@ -106,7 +109,7 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc }) {
   const ml = Number(vialMl) >= 8 ? 10 : 3;
   const dims = silverLabelDims(ml);
   const base = await getBase(baseSrc);
-  const fp = footprint(base.data, base.W, base.H, BAND[ml].top, BAND[ml].bot);
+  const fp = footprint(base.data, base.W, base.H, BAND[ml].top, BAND[ml].bot, BAND[ml].fill);
   const ld = await renderLabelPixels(svg, dims.w, dims.h);
   return { base, fp, ld, lw: dims.w, lh: dims.h };
 }
@@ -134,6 +137,35 @@ export function composeVial(canvas, prepared, rot = 0) {
     out[vi] = clamp(baseB * (ld[li] / 255));
     out[vi + 1] = clamp(baseB * (ld[li + 1] / 255));
     out[vi + 2] = clamp(baseB * (ld[li + 2] / 255));
+  }
+  // Extend the label's blank bottom edge (rail + paper) down toward the powder so no empty
+  // glass strip shows — but STOP as soon as the row is the powder/liquid (textured or
+  // coloured), so the contents stay visible below the label.
+  for (let y = fp.bot + 1; y <= fp.fill; y++) {
+    const lo = fp.rowLo[y], hi = fp.rowHi[y];
+    if (lo < 0) continue;
+    let mn = 999, mx = 0, csum = 0, n = 0;
+    const x0 = Math.round(lo + (hi - lo) * 0.28), x1 = Math.round(lo + (hi - lo) * 0.72);
+    for (let x = x0; x <= x1; x++) {
+      const i = (y * W + x) * 4, l = 0.299 * src[i] + 0.587 * src[i + 1] + 0.114 * src[i + 2];
+      if (l < mn) mn = l; if (l > mx) mx = l;
+      csum += Math.max(src[i], src[i + 1], src[i + 2]) - Math.min(src[i], src[i + 1], src[i + 2]);
+      n++;
+    }
+    if (mx - mn > 74 || csum / n > 30) break; // reached the powder/liquid → stop
+    for (let x = Math.max(fp.left, lo); x <= Math.min(fp.right, hi); x++) {
+      const vi = (y * W + x) * 4;
+      const uo = (x - fp.left) / (fp.w - 1);
+      const f = Math.asin(Math.max(-1, Math.min(1, (2 * uo - 1) * sB))) / B;
+      const uSrc = Math.max(0, Math.min(1, uc + rot + half * f));
+      const lx = Math.round(uSrc * (lw - 1));
+      const li = ((lh - 1) * lw + lx) * 4;
+      const r = src[vi], g = src[vi + 1], b = src[vi + 2];
+      const baseB = 235 + (0.299 * r + 0.587 * g + 0.114 * b - 210) * 0.15;
+      out[vi] = clamp(baseB * (ld[li] / 255));
+      out[vi + 1] = clamp(baseB * (ld[li + 1] / 255));
+      out[vi + 2] = clamp(baseB * (ld[li + 2] / 255));
+    }
   }
   canvas.width = W; canvas.height = H;
   canvas.getContext("2d").putImageData(new ImageData(out, W, H), 0, 0);
