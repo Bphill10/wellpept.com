@@ -37,6 +37,11 @@ const BASE = {
 // Cylinder-wrap constants (shared by the composite and the LUT).
 const UC = 0.34, HALF = 0.33, B = 1.05, SB = Math.sin(B);
 
+// A real vial label doesn't wrap all the way around — it covers most of the circumference and
+// leaves a bare-glass gap where its two ends meet. GAP_UNITS is that gap as a fraction of the
+// label's own width, so the label covers 1/(1+GAP_UNITS) of the turn (~0.42 → ~30% bare).
+const GAP_UNITS = 0.42;
+
 // Screen-x → label-u foreshortening LUT (includes the HALF factor). Indexed by the visible
 // column fraction 0..1 across the label run; lets the green path wrap per-row without an
 // asin in the hot loop.
@@ -212,6 +217,61 @@ function detectGreenLabel(d, W, H) {
   return { rowLo, rowHi, rowInvW, top, bot, top0, bot0, ref };
 }
 
+/**
+ * Reconstruct what the vial looks like UNDER the label (the bare-glass gap shown as the vial
+ * turns). The label band itself is hidden by green, so we borrow the vial's own glass from an
+ * adjacent clear region and tile it across the band: the liquid just below the label for a
+ * liquid vial (B12), or the clear neck glass just above the label for a powder vial (where the
+ * band is empty glass — the powder sits at the bottom). A vertical blur erases the tiling
+ * seams while keeping the vertical glass highlights aligned, so it reads as the real vial.
+ */
+function buildBaseGlass(base, green, liquid) {
+  const { W, H, data } = base;
+  const { rowLo, rowHi, top, bot, top0, bot0 } = green;
+  const out = new Uint8ClampedArray(data);
+  const K = Math.max(4, Math.round(H * 0.05));
+  const margin = Math.round(H * 0.006);
+  const srcY0 = liquid
+    ? Math.min(H - K - 1, bot0 + margin)
+    : Math.max(0, top0 - margin - K);
+  // Vial x-extent for each source row (to clamp samples to the glass).
+  const sxl = new Int32Array(K), sxr = new Int32Array(K);
+  for (let k = 0; k < K; k++) {
+    const yy = srcY0 + k; let xl = W, xr = 0;
+    for (let x = 0; x < W; x++) if (data[(yy * W + x) * 4 + 3] > 60) { if (x < xl) xl = x; if (x > xr) xr = x; }
+    sxl[k] = xl; sxr[k] = xr;
+  }
+  const twoK = 2 * K;
+  for (let y = top; y <= bot; y++) {
+    const lo = rowLo[y]; if (lo < 0) continue;
+    const hi = rowHi[y];
+    const tt = (y - top) % twoK, off = tt < K ? tt : twoK - 1 - tt; // reflect-tile
+    const sy = srcY0 + off, kxl = sxl[off], kxr = sxr[off];
+    for (let x = lo; x <= hi; x++) {
+      const sx = x < kxl ? kxl : x > kxr ? kxr : x;
+      const si = (sy * W + sx) * 4, di = (y * W + x) * 4;
+      out[di] = data[si]; out[di + 1] = data[si + 1]; out[di + 2] = data[si + 2];
+    }
+  }
+  // Vertical blur to erase the tiling seams (vertical highlights are per-column, so kept).
+  const R = Math.max(2, Math.round(K * 0.8));
+  const tmp = new Uint8ClampedArray(out);
+  for (let y = top; y <= bot; y++) {
+    const lo = rowLo[y]; if (lo < 0) continue;
+    const hi = rowHi[y];
+    for (let x = lo; x <= hi; x++) {
+      let sr = 0, sg = 0, sb = 0, n = 0;
+      for (let dy = -R; dy <= R; dy++) {
+        const yy = y + dy; if (yy < top || yy > bot) continue;
+        const l2 = rowLo[yy]; if (l2 < 0 || x < l2 || x > rowHi[yy]) continue;
+        const j = (yy * W + x) * 4; sr += tmp[j]; sg += tmp[j + 1]; sb += tmp[j + 2]; n++;
+      }
+      if (n) { const di = (y * W + x) * 4; out[di] = (sr / n) | 0; out[di + 1] = (sg / n) | 0; out[di + 2] = (sb / n) | 0; }
+    }
+  }
+  return out;
+}
+
 async function renderLabelPixels(svg, LW, LH) {
   const img = await loadImage("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg));
   const c = document.createElement("canvas");
@@ -244,7 +304,12 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS
   // Preferred path: a blank green label on the base → wrap the silver label onto exactly that
   // paper, shaded by the real photo.
   const green = detectGreenLabel(base.data, base.W, base.H);
-  if (green) return { base, ld, lw: dims.w, lh: dims.h, green };
+  if (green) {
+    // Liquid vials (B12) fill the label band; powder vials are empty glass there. `baseGlass`
+    // (the bare-glass gap shown while spinning) is built lazily on first wrap use.
+    const liquid = /red|liquid/i.test(String(baseSrc));
+    return { base, ld, lw: dims.w, lh: dims.h, green, liquid };
+  }
 
   // Fallback (non-chroma base): guess a band on the vial silhouette.
   const fp = footprint(base.data, base.W, base.H, BAND[ml].top, BAND[ml].bot, BAND[ml].fill);
@@ -274,6 +339,12 @@ function composeGreen(canvas, prepared, rot, wrap) {
   const { base, ld, lw, lh, green } = prepared;
   const { W, H, data: src } = base;
   const { rowLo, rowHi, rowInvW, top, bot, top0, bot0, ref } = green;
+  // Bare-glass gap for the spin: the label wraps most of the way, and where it doesn't we show
+  // the vial's own reconstructed glass (screen-fixed, so its highlights stay put).
+  if (wrap && !prepared.baseGlass) prepared.baseGlass = buildBaseGlass(base, green, prepared.liquid);
+  const baseGlass = prepared.baseGlass;
+  const T = 1 + GAP_UNITS;
+  const rr = wrap ? rot * T : rot; // one component revolution (rot 0→1) spans the whole strip
   const out = new Uint8ClampedArray(src);
   const lwm = lw - 1, fh = Math.max(1, bot0 - top0), LN = ASIN_LUT.length - 1;
   const PAPER = 236; // neutral paper shown through the label's transparent margins/corners
@@ -291,8 +362,16 @@ function composeGreen(canvas, prepared, rot, wrap) {
       const r = src[i], g = src[i + 1], b = src[i + 2];
       if (!maskGreenPix(r, g, b)) continue; // follow the real curved edge; leave gaps as photo
       const uo = (x - lo) * invW;
-      let u = UC + rot + ASIN_LUT[(uo * LN) | 0];
-      u = wrap ? u - Math.floor(u) : (u < 0 ? 0 : u > 1 ? 1 : u);
+      let u = UC + rr + ASIN_LUT[(uo * LN) | 0];
+      if (wrap) {
+        u -= Math.floor(u / T) * T; // wrap around the full strip (label + gap)
+        if (u >= 1) { // in the bare-glass gap — show the vial's own glass, not the label
+          out[i] = baseGlass[i]; out[i + 1] = baseGlass[i + 1]; out[i + 2] = baseGlass[i + 2];
+          continue;
+        }
+      } else {
+        u = u < 0 ? 0 : u > 1 ? 1 : u;
+      }
       const li = (rb + ((u * lwm) | 0)) * 4;
       // Composite the label over neutral paper by its own alpha (so transparent art reads as
       // paper, never black), then multiply by the real paper's brightness for curvature.
