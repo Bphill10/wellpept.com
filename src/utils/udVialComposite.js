@@ -230,7 +230,7 @@ export async function drawVialScene(canvas, { svg, vialMl, baseSrc, sceneSrc, ro
 
   // 3) Place the vial: base on the floor line, sized by volume.
   const floorY = Math.round(H * 0.80);
-  const targetH = Math.round(H * (ml === 10 ? 0.80 : 0.68));
+  const targetH = Math.round(H * (ml === 10 ? 0.73 : 0.66));
   const s = targetH / vh;
   const dw = Math.round(vw * s), dh = targetH;
   const cx = Math.round(W / 2), dx = Math.round(cx - dw / 2);

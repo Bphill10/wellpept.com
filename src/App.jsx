@@ -133,6 +133,7 @@ import {
   WELLPEPT_COSMETIC_LEGAL,
 } from "./data/siteLegal";
 import ChannelTuneOverlay, { TUNE_MS } from "./components/ChannelTuneOverlay";
+import UndisclosedFx from "./components/UndisclosedFx";
 import PriceListDropzone from "./components/PriceListDropzone";
 import LiveChat, { openLiveChat, contactEmail } from "./components/LiveChat";
 import SentinelKnowledgeChat from "./components/SentinelKnowledgeChat";
@@ -1400,6 +1401,7 @@ export default function App() {
         channelTuning ? " app-shell--ud-powering" : ""
       }`}
     >
+      {labVisible && <UndisclosedFx />}
       {!ageOk && (
         <AgeGate
           brand={labVisible ? "Undisclosed" : "WellPept"}

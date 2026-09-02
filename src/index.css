@@ -11648,3 +11648,78 @@ label.field select,
     to { background-position: -60% 0; opacity: 0; }
   }
 }
+
+/* ============================================================================
+   Undisclosed special effects: cursor spotlight, floating motes, scroll reveal,
+   3D vial tilt, and an interactive glow on the selected/hovered vial tile.
+   ========================================================================== */
+
+/* Cursor spotlight — screen-blends so it only lights the dark marble, not labels. */
+.ud-spotlight {
+  position: fixed;
+  inset: 0;
+  z-index: 42;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+  mix-blend-mode: screen;
+  background: radial-gradient(300px circle at var(--sx, 50%) var(--sy, 30%),
+    rgba(226, 234, 246, 0.12), rgba(150, 180, 220, 0.04) 42%, transparent 66%);
+}
+
+/* Floating light motes (screen-blend so they only show over the dark ground). */
+.ud-motes {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+  mix-blend-mode: screen;
+}
+.ud-motes i {
+  position: absolute;
+  bottom: -5%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232, 240, 252, 0.95), rgba(200, 216, 240, 0) 70%);
+  opacity: 0;
+}
+
+/* 3D tilt + scroll-rise live on the vial's image box so they never fight the card hover. */
+.app-shell--undisclosed .product-visual {
+  transform: perspective(860px) translateY(var(--rise, 0px))
+    rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transition: transform 0.24s ease-out, box-shadow 0.3s ease, filter 0.3s ease;
+}
+
+/* Interactive glow — the selected/hovered vial tile lights up (marble + vial rim). */
+.app-shell--undisclosed .product-card:hover .product-visual,
+.app-shell--undisclosed .product-card:focus-within .product-visual {
+  box-shadow:
+    inset 0 0 0 1px rgba(220, 230, 245, 0.18),
+    0 0 36px rgba(150, 200, 240, 0.2),
+    0 20px 46px rgba(0, 0, 0, 0.5);
+  filter: brightness(1.09) contrast(1.03);
+}
+
+/* Scroll reveal (only active once JS confirms IntersectionObserver support). */
+.app-shell--undisclosed.fx-reveal-on .product-card {
+  opacity: 0;
+  --rise: 22px;
+}
+.app-shell--undisclosed.fx-reveal-on .product-card.is-revealed {
+  opacity: 1;
+  --rise: 0px;
+  transition: opacity 0.6s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ud-motes i {
+    animation: ud-mote-float var(--mote-dur, 20s) linear var(--mote-delay, 0s) infinite;
+  }
+  @keyframes ud-mote-float {
+    0% { transform: translate(0, 0); opacity: 0; }
+    12% { opacity: var(--mote-peak, 0.2); }
+    88% { opacity: var(--mote-peak, 0.2); }
+    100% { transform: translate(var(--mote-drift, 0), -112vh); opacity: 0; }
+  }
+}
