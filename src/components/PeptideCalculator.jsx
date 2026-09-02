@@ -797,6 +797,35 @@ export default function PeptideCalculator({
                   );
                 })}
               </div>
+              <div className="calc-coa">
+                <label className="calc-coa-label" htmlFor="calc-coa-url">
+                  COA / website link — the label QR opens this
+                </label>
+                <div className="calc-coa-fields">
+                  <input
+                    id="calc-coa-url"
+                    type="url"
+                    className="calc-coa-input"
+                    placeholder="https://your-coa-or-site.com"
+                    value={coaLink}
+                    onChange={(e) => setCoaLink(e.target.value)}
+                  />
+                  <label className="calc-coa-file soft-btn">
+                    <Upload size={14} /> {coaFileName ? "COA selected" : "Choose COA file"}
+                    <input
+                      type="file"
+                      accept="application/pdf,image/*"
+                      onChange={onCoaFile}
+                      hidden
+                    />
+                  </label>
+                </div>
+                <span className="meta">
+                  {coaFileName
+                    ? `“${coaFileName}” selected — upload it to your host and paste its link above so the QR can open it.`
+                    : "Paste any link (a COA PDF, a product page, your site). Leave blank and the QR points to wellpept.com."}
+                </span>
+              </div>
               <div className="calc-brand-custom">
                 <label className="calc-brand-toggle">
                   <input
@@ -843,35 +872,6 @@ export default function PeptideCalculator({
                     </span>
                   </div>
                 )}
-              </div>
-              <div className="calc-coa">
-                <label className="calc-coa-label" htmlFor="calc-coa-url">
-                  COA / website link — the label QR opens this
-                </label>
-                <div className="calc-coa-fields">
-                  <input
-                    id="calc-coa-url"
-                    type="url"
-                    className="calc-coa-input"
-                    placeholder="https://your-coa-or-site.com"
-                    value={coaLink}
-                    onChange={(e) => setCoaLink(e.target.value)}
-                  />
-                  <label className="calc-coa-file soft-btn">
-                    <Upload size={14} /> {coaFileName ? "COA selected" : "Choose COA file"}
-                    <input
-                      type="file"
-                      accept="application/pdf,image/*"
-                      onChange={onCoaFile}
-                      hidden
-                    />
-                  </label>
-                </div>
-                <span className="meta">
-                  {coaFileName
-                    ? `“${coaFileName}” selected — upload it to your host and paste its link above so the QR can open it.`
-                    : "Paste any link (a COA PDF, a product page, your site). Leave blank and the QR points to wellpept.com."}
-                </span>
               </div>
               <div className="calc-vial-stage">
                 <SilverLabelVial
