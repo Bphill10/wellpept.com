@@ -3754,10 +3754,10 @@ body:has(.app-shell--undisclosed)::before {
 /* Featured KLOW kit + PDP / cart thumbs that are blue peptides */
 .app-shell--undisclosed .featured-vendor-media img,
 .app-shell--undisclosed .featured-vendor img {
+  /* Soft neutral gallery glow (was cyan) to match the black-marble luxury look. */
   filter:
-    drop-shadow(0 0 8px rgba(120, 230, 255, 0.9))
-    drop-shadow(0 0 20px rgba(62, 200, 255, 0.55))
-    drop-shadow(0 0 40px rgba(40, 170, 255, 0.3));
+    drop-shadow(0 14px 30px rgba(0, 0, 0, 0.62))
+    drop-shadow(0 0 26px rgba(222, 226, 234, 0.14));
 }
 
 .app-shell--undisclosed .product-card h3,
@@ -11487,5 +11487,91 @@ label.field select,
   .glass-world-reveal {
     animation: none;
     opacity: 1;
+  }
+}
+
+/* ============================================================================
+   Luxury polish — the "wow": hero shimmer, ambient gallery light, card bloom,
+   and a gloss sweep across each vial on hover. Motion gated to no-preference.
+   ========================================================================== */
+
+/* Gloss layer over each vial scene (idle until the card is hovered). */
+.app-shell--undisclosed .vial-approved-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 42%,
+    rgba(255, 255, 255, 0.16) 49%,
+    transparent 57%
+  );
+  background-size: 250% 100%;
+  background-position: 150% 0;
+  opacity: 0;
+}
+
+/* Cards lift and bloom on hover — the interactive "wow". */
+.app-shell--undisclosed .product-card {
+  transition:
+    transform 0.34s cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 0.34s ease,
+    border-color 0.34s ease;
+  will-change: transform;
+}
+.app-shell--undisclosed .product-card:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 36px 72px rgba(0, 0, 0, 0.58),
+    0 0 42px rgba(214, 220, 232, 0.07);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Metallic shimmer sweeping across the hero wordmark. */
+  .app-shell--undisclosed .hero--undisclosed .hero-brand {
+    background: linear-gradient(
+      100deg,
+      #eceef2 0%,
+      #eceef2 40%,
+      #ffffff 47%,
+      #fff6df 50%,
+      #ffffff 53%,
+      #c9ccd4 60%,
+      #eceef2 100%
+    );
+    background-size: 260% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    text-shadow: none;
+    filter:
+      drop-shadow(0 2px 8px rgba(0, 0, 0, 0.85))
+      drop-shadow(0 14px 40px rgba(0, 0, 0, 0.6));
+    animation: ud-title-shine 7s ease-in-out infinite;
+  }
+  @keyframes ud-title-shine {
+    0%, 100% { background-position: 165% 0; }
+    50% { background-position: -65% 0; }
+  }
+
+  /* Gentle breathing gallery light across the shell. */
+  .app-shell--undisclosed::after {
+    animation: ud-ambient-glow 12s ease-in-out infinite;
+  }
+  @keyframes ud-ambient-glow {
+    0%, 100% { opacity: 0.42; }
+    50% { opacity: 0.72; }
+  }
+
+  /* One-shot gloss sweep across a vial when its card is hovered. */
+  .app-shell--undisclosed .product-card:hover .vial-approved-photo::after {
+    animation: ud-gloss-sweep 0.9s ease forwards;
+  }
+  @keyframes ud-gloss-sweep {
+    from { background-position: 150% 0; opacity: 1; }
+    to { background-position: -60% 0; opacity: 0; }
   }
 }
