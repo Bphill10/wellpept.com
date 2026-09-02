@@ -3409,9 +3409,9 @@ body:has(.app-shell--skincare) {
   /* Cinematic ground: charcoal wall with diagonal light beams over a polished marble floor
      (gallery-lit product-shot look). A light dark wash keeps body text legible while the
      beams and stone still read. */
-  background-color: #060608;
+  background-color: #0b0d13;
   background-image:
-    linear-gradient(180deg, rgba(6, 6, 9, 0.24), rgba(4, 4, 6, 0.58)),
+    linear-gradient(180deg, rgba(12, 15, 22, 0.04), rgba(7, 9, 14, 0.30)),
     url("/ud-labels/bg/beam_bg.webp");
   background-size: cover, cover;
   background-position: center top, center center;
@@ -3421,9 +3421,9 @@ body:has(.app-shell--skincare) {
 
 body:has(.app-shell--undisclosed) {
   color: #f4f6f8;
-  background-color: #060608;
+  background-color: #0b0d13;
   background-image:
-    linear-gradient(180deg, rgba(6, 6, 9, 0.24), rgba(4, 4, 6, 0.58)),
+    linear-gradient(180deg, rgba(12, 15, 22, 0.04), rgba(7, 9, 14, 0.30)),
     url("/ud-labels/bg/beam_bg.webp");
   background-size: cover, cover;
   background-position: center top, center center;
@@ -3449,19 +3449,29 @@ body:has(.app-shell--undisclosed)::before {
   animation: none;
 }
 
-/* Controlled cyan illumination keeps the data-grid clinical, not theatrical. */
+/* Gallery lighting — brighter cool light pools that lift the room and gently breathe. */
 .app-shell--undisclosed::after {
   content: "";
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.55;
+  opacity: 0.92;
   background:
-    radial-gradient(ellipse 72% 46% at 50% 4%, rgba(242, 240, 233, 0.06), transparent 70%),
-    radial-gradient(ellipse 50% 34% at 16% 90%, rgba(210, 210, 220, 0.035), transparent 74%);
+    radial-gradient(ellipse 90% 56% at 50% -6%, rgba(216, 232, 255, 0.17), transparent 66%),
+    radial-gradient(ellipse 46% 44% at 84% 6%, rgba(190, 222, 255, 0.13), transparent 72%),
+    radial-gradient(ellipse 42% 40% at 15% 20%, rgba(200, 226, 255, 0.10), transparent 74%),
+    radial-gradient(ellipse 62% 50% at 12% 90%, rgba(224, 228, 238, 0.08), transparent 76%);
   mix-blend-mode: screen;
-  animation: none;
+  animation: ud-ambient-pulse 9s ease-in-out infinite;
+}
+
+@keyframes ud-ambient-pulse {
+  0%, 100% { opacity: 0.82; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-shell--undisclosed::after { animation: none; }
 }
 
 .app-shell--undisclosed.app-shell--ud-powering::after {
@@ -3632,13 +3642,38 @@ body:has(.app-shell--undisclosed)::before {
 }
 
 .app-shell--undisclosed .product-card:hover {
-  border-color: rgba(255, 255, 255, 0.28);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  border-color: rgba(174, 216, 255, 0.55);
+  box-shadow:
+    0 20px 48px rgba(0, 0, 0, 0.4),
+    0 0 26px rgba(120, 200, 255, 0.34),
+    0 0 62px rgba(120, 200, 255, 0.16);
 }
 
 /* Preserve the finalized catalog plates inside each card. */
 .app-shell--undisclosed .product-card {
   overflow: hidden;
+  transition: border-color 280ms ease, box-shadow 320ms ease, transform 240ms ease;
+}
+
+/* Cool light bloom over the vial on hover — it lights up a little. */
+.app-shell--undisclosed .vial-approved-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 64% 58% at 50% 42%,
+    rgba(198, 233, 255, 0.34),
+    rgba(120, 200, 255, 0.13) 46%,
+    transparent 72%
+  );
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 320ms ease;
+}
+.app-shell--undisclosed .product-card:hover .vial-approved-photo::after {
+  opacity: 1;
 }
 
 .app-shell--undisclosed .product-visual {
