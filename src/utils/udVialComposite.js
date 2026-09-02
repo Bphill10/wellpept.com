@@ -23,15 +23,31 @@ const BAND = {
   10: { top: 0.383, bot: 0.812, fill: 0.900 },
 };
 
+// Base vial photos carry a blank GREEN label (an evenly-lit chroma key). The compositor
+// detects the green paper precisely and wraps the silver label onto exactly that region,
+// picking up the real paper's curvature/shading — cleaner and more realistic than guessing
+// a band on a white vial.
 const BASE = {
-  "3-white": "/ud-labels/vials/UD_Base_3mL_White.png",
-  "3-blue": "/ud-labels/vials/UD_Base_3mL_Blue.png",
-  "10-white": "/ud-labels/vials/UD_Base_10mL_White.png",
-  "10-red": "/ud-labels/vials/UD_Base_10mL_Red.png",
+  "3-white": "/ud-labels/vials/UD_Green_3mL_White.png",
+  "3-blue": "/ud-labels/vials/UD_Green_3mL_Blue.png",
+  "10-white": "/ud-labels/vials/UD_Green_10mL_White.png",
+  "10-red": "/ud-labels/vials/UD_Green_10mL_Red.png",
 };
 
 // Cylinder-wrap constants (shared by the composite and the LUT).
 const UC = 0.34, HALF = 0.33, B = 1.05, SB = Math.sin(B);
+
+// Screen-x → label-u foreshortening LUT (includes the HALF factor). Indexed by the visible
+// column fraction 0..1 across the label run; lets the green path wrap per-row without an
+// asin in the hot loop.
+const ASIN_LUT = (() => {
+  const N = 1024, t = new Float32Array(N);
+  for (let k = 0; k < N; k++) {
+    const uo = k / (N - 1);
+    t[k] = (HALF * Math.asin(Math.max(-1, Math.min(1, (2 * uo - 1) * SB)))) / B;
+  }
+  return t;
+})();
 
 /**
  * Pick the base vial photo by contents colour + size. Prefers an explicit `powderColor`
@@ -111,6 +127,66 @@ function footprint(d, W, H, topF, botF, fillF) {
   return { mask, left, right, top, bot, fill, rowLo, rowHi, w: right - left + 1, h: bot - top + 1 };
 }
 
+// Is this pixel the blank green label paper? (green clearly dominant, reasonably bright).
+function isGreenPix(r, g, b) {
+  return g > 75 && g > r * 1.15 && g > b * 1.15 && (g - (r > b ? r : b)) > 24;
+}
+
+/**
+ * Detect the blank green label on a chroma-key base vial. For each row finds the longest
+ * contiguous green run (its left/right edge on the cylinder) and gap-fills any glint-split
+ * rows, so the label region is a clean per-row band. Also samples a brightness reference so
+ * the silver label can be multiplied by the paper's real curvature/shading. Returns null if
+ * the base has no substantial green label (non-chroma base → caller falls back to the band).
+ */
+function detectGreenLabel(d, W, H) {
+  const rowLo = new Int32Array(H).fill(-1);
+  const rowHi = new Int32Array(H).fill(-1);
+  const minRun = W * 0.06;
+  let top = -1, bot = -1, rows = 0;
+  for (let y = 0; y < H; y++) {
+    let bestLo = -1, bestHi = -2, curLo = -1;
+    for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4;
+      const green = isGreenPix(d[i], d[i + 1], d[i + 2]);
+      if (green && curLo < 0) curLo = x;
+      if ((!green || x === W - 1) && curLo >= 0) {
+        const curHi = green ? x : x - 1;
+        if (curHi - curLo > bestHi - bestLo) { bestLo = curLo; bestHi = curHi; }
+        curLo = -1;
+      }
+    }
+    if (bestLo >= 0 && bestHi - bestLo > minRun) {
+      rowLo[y] = bestLo; rowHi[y] = bestHi;
+      if (top < 0) top = y;
+      bot = y; rows++;
+    }
+  }
+  if (rows < H * 0.02) return null;
+  // Gap-fill glint-split rows inside the band so no green strip is left unpainted.
+  for (let y = top + 1; y <= bot; y++) {
+    if (rowLo[y] < 0) { rowLo[y] = rowLo[y - 1]; rowHi[y] = rowHi[y - 1]; }
+  }
+  // Brightness reference (92nd percentile of green paper) for the shading multiply.
+  const samples = [];
+  for (let y = top; y <= bot; y += 2) {
+    const lo = rowLo[y], hi = rowHi[y];
+    if (lo < 0) continue;
+    for (let x = lo; x <= hi; x += 2) {
+      const i = (y * W + x) * 4;
+      samples.push(0.25 * d[i] + 0.7 * d[i + 1] + 0.05 * d[i + 2]);
+    }
+  }
+  samples.sort((a, b) => a - b);
+  const ref = samples[Math.floor(samples.length * 0.92)] || 160;
+  const rowInvW = new Float32Array(H);
+  for (let y = top; y <= bot; y++) {
+    const w = rowHi[y] - rowLo[y];
+    rowInvW[y] = w > 0 ? 1 / w : 0;
+  }
+  return { rowLo, rowHi, rowInvW, top, bot, ref };
+}
+
 async function renderLabelPixels(svg, LW, LH) {
   const img = await loadImage("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg));
   const c = document.createElement("canvas");
@@ -138,9 +214,15 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS
   const ml = Number(vialMl) >= 8 ? 10 : 3;
   const dims = silverLabelDims(ml);
   const base = await getBase(baseSrc, ss);
-  const fp = footprint(base.data, base.W, base.H, BAND[ml].top, BAND[ml].bot, BAND[ml].fill);
   const ld = await renderLabelPixels(svg, dims.w, dims.h);
 
+  // Preferred path: a blank green label on the base → wrap the silver label onto exactly that
+  // paper, shaded by the real photo.
+  const green = detectGreenLabel(base.data, base.W, base.H);
+  if (green) return { base, ld, lw: dims.w, lh: dims.h, green };
+
+  // Fallback (non-chroma base): guess a band on the vial silhouette.
+  const fp = footprint(base.data, base.W, base.H, BAND[ml].top, BAND[ml].bot, BAND[ml].fill);
   // Per-column wrap offset (HALF * asin term) — depends only on the column, not on rot or y.
   const fcol = new Float32Array(fp.w);
   for (let i = 0; i < fp.w; i++) {
@@ -158,12 +240,49 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS
 }
 
 /**
+ * Green-label (chroma-key) compose: wrap the silver label onto exactly the detected green
+ * paper, multiplied by the real paper's brightness so it inherits the photo's curvature,
+ * edge fall-off and paper texture. Everything outside the green (cap, glass, powder, liquid)
+ * is the untouched photo. Per-row wrap via the shared asin LUT; `wrap` tiles for a full spin.
+ */
+function composeGreen(canvas, prepared, rot, wrap) {
+  const { base, ld, lw, lh, green } = prepared;
+  const { W, H, data: src } = base;
+  const { rowLo, rowHi, rowInvW, top, bot, ref } = green;
+  const out = new Uint8ClampedArray(src);
+  const lwm = lw - 1, fh = Math.max(1, bot - top), LN = ASIN_LUT.length - 1;
+  for (let y = top; y <= bot; y++) {
+    const lo = rowLo[y];
+    if (lo < 0) continue;
+    const hi = rowHi[y], invW = rowInvW[y];
+    const ly = Math.min(lh - 1, (((y - top) / fh) * (lh - 1)) | 0);
+    const rb = ly * lw;
+    for (let x = lo; x <= hi; x++) {
+      const i = (y * W + x) * 4;
+      const uo = (x - lo) * invW;
+      let u = UC + rot + ASIN_LUT[(uo * LN) | 0];
+      u = wrap ? u - Math.floor(u) : (u < 0 ? 0 : u > 1 ? 1 : u);
+      const li = (rb + ((u * lwm) | 0)) * 4;
+      let sh = (0.25 * src[i] + 0.7 * src[i + 1] + 0.05 * src[i + 2]) / ref;
+      sh = sh < 0.5 ? 0.5 : sh > 1.08 ? 1.08 : sh;
+      out[i] = clamp(ld[li] * sh);
+      out[i + 1] = clamp(ld[li + 1] * sh);
+      out[i + 2] = clamp(ld[li + 2] * sh);
+    }
+  }
+  canvas.width = W; canvas.height = H;
+  canvas.getContext("2d").putImageData(new ImageData(out, W, H), 0, 0);
+  return true;
+}
+
+/**
  * Paint the prepared vial to `canvas` at rotation `rot` (label-u offset; 0 = default front).
  * With `wrap` the label tiles around the cylinder (its two ends meet at a back seam) so a full
  * revolution reads continuously; without it the wrap clamps at the label edges (drag preview).
  */
 export function composeVial(canvas, prepared, rot = 0, opts = {}) {
   const wrap = !!opts.wrap;
+  if (prepared.green) return composeGreen(canvas, prepared, rot, wrap);
   const { base, fp, ld, lw, lh, fcol, rowBase } = prepared;
   const { W, H, data: src } = base;
   const out = new Uint8ClampedArray(src); // copy (keeps cap/glass/alpha outside the band)
