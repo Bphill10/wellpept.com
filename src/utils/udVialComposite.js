@@ -614,7 +614,7 @@ export async function prepareVialScene({ svg, vialMl, baseSrc, sceneSrc, ss = BA
   // 10 mL vials are physically larger than 3 mL — render them clearly bigger and chunkier so
   // the size difference reads true. Height is capped by the scene (the cap must not clip at the
   // top); `wide` fattens the 10 mL a touch beyond its slender photo so it reads as a 10 mL.
-  const SZ = ml === 10 ? { h: 0.70, wide: 1.105 } : { h: 0.62, wide: 1.0 };
+  const SZ = ml === 10 ? { h: 0.67, wide: 1.08 } : { h: 0.62, wide: 1.0 };
   const targetH = Math.round(H * SZ.h);
   const s = targetH / bbox.h;
   const dw = Math.round(bbox.w * s * SZ.wide), dh = targetH;
