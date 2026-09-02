@@ -404,9 +404,13 @@ export async function prepareVialScene({ svg, vialMl, baseSrc, sceneSrc, ss = BA
 
   // Placement (constant across rotations).
   const floorY = Math.round(H * 0.80);
-  const targetH = Math.round(H * (ml === 10 ? 0.73 : 0.66));
+  // 10 mL vials are physically larger than 3 mL — render them clearly bigger and chunkier so
+  // the size difference reads true. Height is capped by the scene (the cap must not clip at the
+  // top); `wide` fattens the 10 mL a touch beyond its slender photo so it reads as a 10 mL.
+  const SZ = ml === 10 ? { h: 0.79, wide: 1.28 } : { h: 0.62, wide: 1.0 };
+  const targetH = Math.round(H * SZ.h);
   const s = targetH / bbox.h;
-  const dw = Math.round(bbox.w * s), dh = targetH;
+  const dw = Math.round(bbox.w * s * SZ.wide), dh = targetH;
   const cx = Math.round(W / 2), dx = Math.round(cx - dw / 2), topY = floorY - dh;
 
   // Pre-bake the static ground: scene + contact shadow (vial + reflection are drawn per frame).
