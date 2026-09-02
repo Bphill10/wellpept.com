@@ -92,28 +92,40 @@ async function renderLabelPixels(svg, LW, LH) {
 
 const clamp = (v) => (v < 0 ? 0 : v > 255 ? 255 : v);
 
+// Rotation range (in label-u space) so a drag turns the vial from its left edge/band
+// across the middle to the QR side. 0 = the approved default (band + middle 60%).
+export const ROT_MIN = -0.34;
+export const ROT_MAX = 0.62;
+
 /**
- * Composite `svg` (a silver label) onto the vial photo `baseSrc` and paint it to `canvas`.
- * Returns true on success.
+ * Load the base vial + render the label once, so rotation can re-wrap without re-rendering
+ * the SVG (keeps dragging smooth). Returns a prepared compositor.
  */
-export async function drawSilverLabelVial(canvas, { svg, vialMl, baseSrc }) {
+export async function prepareVialCompositor({ svg, vialMl, baseSrc }) {
   const ml = Number(vialMl) >= 8 ? 10 : 3;
   const dims = silverLabelDims(ml);
   const base = await getBase(baseSrc);
-  const { W, H, data: src } = base;
-  const geom = BAND[ml];
-  const fp = footprint(src, W, H, geom.top, geom.bot);
+  const fp = footprint(base.data, base.W, base.H, BAND[ml].top, BAND[ml].bot);
   const ld = await renderLabelPixels(svg, dims.w, dims.h);
-  const lw = dims.w, lh = dims.h;
+  return { base, fp, ld, lw: dims.w, lh: dims.h };
+}
 
+/**
+ * Paint the prepared vial to `canvas` at rotation `rot` (label-u offset; 0 = default front).
+ * Pixels whose wrap falls outside the label show the bare vial (turning reveals the sides).
+ */
+export function composeVial(canvas, prepared, rot = 0) {
+  const { base, fp, ld, lw, lh } = prepared;
+  const { W, H, data: src } = base;
   const out = new Uint8ClampedArray(src); // copy (keeps cap/glass/alpha outside the band)
   const uc = 0.34, half = 0.33, B = 1.05, sB = Math.sin(B);
   for (let y = fp.top; y <= fp.bot; y++) for (let x = fp.left; x <= fp.right; x++) {
     if (!fp.mask[y * W + x]) continue;
-    const vi = (y * W + x) * 4;
     const uo = (x - fp.left) / (fp.w - 1);
     const f = Math.asin(Math.max(-1, Math.min(1, (2 * uo - 1) * sB))) / B;
-    const uSrc = Math.max(0, Math.min(1, uc + half * f));
+    const uSrc = uc + rot + half * f;
+    if (uSrc < 0 || uSrc > 1) continue; // off the sticker → bare vial
+    const vi = (y * W + x) * 4;
     const lx = Math.round(uSrc * (lw - 1));
     const ly = Math.min(lh - 1, Math.round(((y - fp.top) / (fp.h - 1)) * (lh - 1)));
     const li = (ly * lw + lx) * 4;
@@ -126,4 +138,10 @@ export async function drawSilverLabelVial(canvas, { svg, vialMl, baseSrc }) {
   canvas.width = W; canvas.height = H;
   canvas.getContext("2d").putImageData(new ImageData(out, W, H), 0, 0);
   return true;
+}
+
+/** Convenience: prepare + compose at a single rotation. */
+export async function drawSilverLabelVial(canvas, { svg, vialMl, baseSrc, rot = 0 }) {
+  const prepared = await prepareVialCompositor({ svg, vialMl, baseSrc });
+  return composeVial(canvas, prepared, rot);
 }

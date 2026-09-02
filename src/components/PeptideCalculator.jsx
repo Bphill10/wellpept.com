@@ -808,6 +808,10 @@ export default function PeptideCalculator({
                   className="calc-generated-vial"
                 />
               </div>
+              <p className="calc-vial-hint">↔ Drag the vial to turn it</p>
+              <p className="calc-label-caption meta">
+                This flat label is what prints (exact size):
+              </p>
               <div className="calc-label-stage">
                 <LabelTemplate
                   blank={false}
