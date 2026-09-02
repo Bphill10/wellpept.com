@@ -143,15 +143,16 @@ export function composeVial(canvas, prepared, rot = 0) {
   for (let y = fp.bot + 1; y <= fp.fill; y++) {
     const lo = fp.rowLo[y], hi = fp.rowHi[y];
     if (lo < 0) continue;
-    let mn = 999, mx = 0, csum = 0, n = 0;
+    let sum = 0, sq = 0, csum = 0, n = 0;
     const x0 = Math.round(lo + (hi - lo) * 0.28), x1 = Math.round(lo + (hi - lo) * 0.72);
     for (let x = x0; x <= x1; x++) {
       const i = (y * W + x) * 4, l = 0.299 * src[i] + 0.587 * src[i + 1] + 0.114 * src[i + 2];
-      if (l < mn) mn = l; if (l > mx) mx = l;
+      sum += l; sq += l * l;
       csum += Math.max(src[i], src[i + 1], src[i + 2]) - Math.min(src[i], src[i + 1], src[i + 2]);
       n++;
     }
-    if (mx - mn > 74 || csum / n > 30) break; // reached the powder/liquid → stop
+    const std = Math.sqrt(Math.max(0, sq / n - (sum / n) * (sum / n)));
+    if (std > 17 || csum / n > 26) break; // granular powder (texture) or coloured liquid → stop
     for (let x = Math.max(fp.left, lo); x <= Math.min(fp.right, hi); x++) {
       const vi = (y * W + x) * 4;
       const uo = (x - fp.left) / (fp.w - 1);
