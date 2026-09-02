@@ -24,12 +24,19 @@ const BASE = {
   "10-red": "/ud-labels/vials/UD_Base_10mL_Red.png",
 };
 
-/** Pick the base vial photo by size + peptide (blue for GHK-Cu/KLOW, red liquid for B12). */
-export function silverVialBaseSrc(name, vialMl) {
+/**
+ * Pick the base vial photo by contents colour + size. Prefers an explicit `powderColor`
+ * ("blue", "liquid-red", …) from the product; otherwise infers from the name (GHK-Cu/KLOW
+ * → blue, B12 → red). Blue stock is 3 mL and red liquid is 10 mL; anything else is white.
+ */
+export function silverVialBaseSrc(name, vialMl, powderColor = "") {
   const ml = Number(vialMl) >= 8 ? 10 : 3;
   const n = String(name || "").toUpperCase();
-  if (ml === 3 && /(KLOW|GLOW|GHK)/.test(n)) return BASE["3-blue"];
-  if (ml === 10 && /B\s*12|B12/.test(n)) return BASE["10-red"];
+  const pc = String(powderColor || "").toLowerCase();
+  const isBlue = pc.includes("blue") || /(KLOW|GLOW|GHK)/.test(n);
+  const isRed = pc.includes("red") || pc.includes("liquid") || /\bB\s*12\b|VITAMIN\s*B12/.test(n);
+  if (isRed) return BASE["10-red"];
+  if (isBlue && ml === 3) return BASE["3-blue"];
   return ml === 10 ? BASE["10-white"] : BASE["3-white"];
 }
 
