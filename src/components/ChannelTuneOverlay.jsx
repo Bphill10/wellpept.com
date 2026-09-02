@@ -1,39 +1,43 @@
 import { useEffect, useRef } from "react";
 import { UD_LABEL_BRAND } from "../data/udLabelAssets";
 
-const TUNE_MS = 5200;
+const TUNE_MS = 6800;
 const REVEAL_MS = 1480;
 const REDUCED_MS = 160;
 
+// Shard `d` (ms) staggers the break as a center-out cascade from the impact: the pieces
+// nearest the strike let go first, the outer corners hang, then drop last — so the mirror
+// comes apart deliberately rather than all at once. x/y are the fly-away throw (vw/vh),
+// r the in-plane tumble.
 const GLASS_SHARDS = [
-  { clip: "polygon(0 0, 24% 0, 19% 24%, 0 31%)", x: -18, y: 118, r: -24, d: 0 },
-  { clip: "polygon(24% 0, 48% 0, 50% 22%, 19% 24%)", x: -7, y: 126, r: 16, d: 70 },
-  { clip: "polygon(48% 0, 73% 0, 68% 28%, 50% 22%)", x: 8, y: 116, r: -13, d: 30 },
-  { clip: "polygon(73% 0, 100% 0, 100% 30%, 68% 28%)", x: 19, y: 128, r: 26, d: 100 },
-  { clip: "polygon(0 31%, 19% 24%, 31% 47%, 0 55%)", x: -22, y: 124, r: 19, d: 90 },
-  { clip: "polygon(19% 24%, 50% 22%, 49% 48%, 31% 47%)", x: -8, y: 136, r: -29, d: 10 },
-  { clip: "polygon(50% 22%, 68% 28%, 72% 51%, 49% 48%)", x: 10, y: 122, r: 24, d: 120 },
-  { clip: "polygon(68% 28%, 100% 30%, 100% 55%, 72% 51%)", x: 23, y: 132, r: -18, d: 45 },
-  { clip: "polygon(0 55%, 31% 47%, 24% 76%, 0 73%)", x: -20, y: 126, r: -16, d: 130 },
-  { clip: "polygon(31% 47%, 49% 48%, 52% 74%, 24% 76%)", x: -6, y: 142, r: 28, d: 55 },
-  { clip: "polygon(49% 48%, 72% 51%, 78% 77%, 52% 74%)", x: 7, y: 132, r: -25, d: 145 },
-  { clip: "polygon(72% 51%, 100% 55%, 100% 77%, 78% 77%)", x: 20, y: 124, r: 17, d: 25 },
-  { clip: "polygon(0 73%, 24% 76%, 28% 100%, 0 100%)", x: -17, y: 120, r: 22, d: 75 },
-  { clip: "polygon(24% 76%, 52% 74%, 49% 100%, 28% 100%)", x: -5, y: 130, r: -20, d: 155 },
-  { clip: "polygon(52% 74%, 78% 77%, 73% 100%, 49% 100%)", x: 9, y: 138, r: 15, d: 40 },
-  { clip: "polygon(78% 77%, 100% 77%, 100% 100%, 73% 100%)", x: 18, y: 122, r: -27, d: 115 },
+  { clip: "polygon(0 0, 24% 0, 19% 24%, 0 31%)", x: -24, y: 126, r: -29, d: 820 },
+  { clip: "polygon(24% 0, 48% 0, 50% 22%, 19% 24%)", x: -9, y: 134, r: 19, d: 430 },
+  { clip: "polygon(48% 0, 73% 0, 68% 28%, 50% 22%)", x: 11, y: 124, r: -16, d: 380 },
+  { clip: "polygon(73% 0, 100% 0, 100% 30%, 68% 28%)", x: 25, y: 136, r: 31, d: 720 },
+  { clip: "polygon(0 31%, 19% 24%, 31% 47%, 0 55%)", x: -30, y: 132, r: 23, d: 540 },
+  { clip: "polygon(19% 24%, 50% 22%, 49% 48%, 31% 47%)", x: -10, y: 146, r: -35, d: 0 },
+  { clip: "polygon(50% 22%, 68% 28%, 72% 51%, 49% 48%)", x: 13, y: 130, r: 29, d: 70 },
+  { clip: "polygon(68% 28%, 100% 30%, 100% 55%, 72% 51%)", x: 30, y: 140, r: -22, d: 470 },
+  { clip: "polygon(0 55%, 31% 47%, 24% 76%, 0 73%)", x: -26, y: 134, r: -19, d: 620 },
+  { clip: "polygon(31% 47%, 49% 48%, 52% 74%, 24% 76%)", x: -8, y: 150, r: 34, d: 200 },
+  { clip: "polygon(49% 48%, 72% 51%, 78% 77%, 52% 74%)", x: 9, y: 140, r: -30, d: 260 },
+  { clip: "polygon(72% 51%, 100% 55%, 100% 77%, 78% 77%)", x: 26, y: 132, r: 20, d: 680 },
+  { clip: "polygon(0 73%, 24% 76%, 28% 100%, 0 100%)", x: -22, y: 128, r: 26, d: 1180 },
+  { clip: "polygon(24% 76%, 52% 74%, 49% 100%, 28% 100%)", x: -7, y: 138, r: -24, d: 900 },
+  { clip: "polygon(52% 74%, 78% 77%, 73% 100%, 49% 100%)", x: 12, y: 146, r: 18, d: 960 },
+  { clip: "polygon(78% 77%, 100% 77%, 100% 100%, 73% 100%)", x: 23, y: 130, r: -32, d: 1320 },
 ];
 
-const GLASS_SPLINTERS = Array.from({ length: 34 }, (_, index) => {
-  const angle = (index / 34) * Math.PI * 2 + (index % 3) * 0.17;
-  const distance = 26 + (index % 8) * 7;
+const GLASS_SPLINTERS = Array.from({ length: 46 }, (_, index) => {
+  const angle = (index / 46) * Math.PI * 2 + (index % 3) * 0.17;
+  const distance = 24 + (index % 9) * 7;
   return {
     x: Math.cos(angle) * distance,
-    y: Math.sin(angle) * distance + 82 + (index % 5) * 5,
+    y: Math.sin(angle) * distance + 84 + (index % 5) * 6,
     r: -150 + ((index * 83) % 300),
-    d: 20 + ((index * 47) % 420),
-    w: 3 + (index % 4) * 1.7,
-    h: 0.7 + (index % 3) * 0.55,
+    d: (index * 61) % 1000,
+    w: 2.6 + (index % 4) * 1.7,
+    h: 0.6 + (index % 3) * 0.55,
   };
 });
 

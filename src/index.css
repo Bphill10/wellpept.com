@@ -11074,12 +11074,17 @@ label.field select,
   inset: 0;
   z-index: 18;
   border: 1px solid rgba(225, 248, 255, 0.24);
+  /* Faint reflective dark-mirror surface: a diagonal sheen + a subtle darkening that pools
+     toward the strike, so the intact pane reads as a mirror before it comes apart. */
+  background:
+    linear-gradient(125deg, rgba(255, 255, 255, 0.07) 0 10%, transparent 26% 60%, rgba(188, 228, 246, 0.06) 76%, transparent),
+    radial-gradient(ellipse at var(--glass-ox) var(--glass-oy), transparent 0 20%, rgba(3, 7, 10, 0.18) 62%);
   box-shadow:
     inset 0 0 110px rgba(192, 231, 244, 0.16),
     inset 0 0 3px rgba(255, 255, 255, 0.95),
     0 0 0 100vmax rgba(0, 0, 0, 0.08);
   pointer-events: none;
-  animation: glass-surface-release 3.4s ease 1.18s both;
+  animation: glass-surface-release 3.8s ease 1.5s both;
 }
 
 .glass-transition::after {
@@ -11245,16 +11250,26 @@ label.field select,
   transform-style: preserve-3d;
   backface-visibility: visible;
   will-change: transform, opacity;
-  animation: glass-piece-fall 3.15s cubic-bezier(0.24, 0.02, 0.42, 1) calc(1.15s + var(--piece-delay)) both;
+  /* Gravity-accelerated fall (ease-in), starting after the cracked mirror holds a beat;
+     each shard's --piece-delay staggers it into a center-out cascade. */
+  animation: glass-piece-fall 3.6s cubic-bezier(0.42, 0, 0.72, 0.55) calc(1.55s + var(--piece-delay)) both;
 }
 
 .glass-piece::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.38) 48%, transparent 66%);
+  /* Prismatic edge glint — a refracted cyan→white→magenta streak as the shard catches light. */
+  background: linear-gradient(
+    105deg,
+    transparent 26%,
+    rgba(120, 240, 255, 0.28) 43%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 120, 220, 0.24) 57%,
+    transparent 72%
+  );
   mix-blend-mode: screen;
-  animation: glass-piece-glint 1.2s ease-in-out calc(1.1s + var(--piece-delay)) both;
+  animation: glass-piece-glint 1.25s ease-in-out calc(1.5s + var(--piece-delay)) both;
 }
 
 .glass-splinter-field {
@@ -11293,7 +11308,7 @@ label.field select,
   transform: translate(-50%, -50%);
   opacity: 0;
   pointer-events: none;
-  animation: glass-world-title 3.1s cubic-bezier(0.16, 1, 0.3, 1) 1.5s both;
+  animation: glass-world-title 4s cubic-bezier(0.16, 1, 0.3, 1) 2.3s both;
 }
 
 .glass-world-reveal img {
@@ -11323,7 +11338,7 @@ label.field select,
     radial-gradient(ellipse at center, transparent 34%, rgba(0, 0, 0, 0.72) 100%);
   opacity: 0;
   pointer-events: none;
-  animation: glass-vignette 3.5s ease 1.15s both;
+  animation: glass-vignette 4.4s ease 1.3s both;
 }
 
 @keyframes glass-transition-hold {
@@ -11414,12 +11429,16 @@ label.field select,
     opacity: 1;
     transform: translate3d(0, 0, 0) rotateX(0) rotateY(0) rotateZ(0) scale(1);
   }
-  9% {
+  6% {
+    /* burst outward toward the viewer as the pane lets go */
     opacity: 1;
-    transform: translate3d(0, -1.2vh, var(--piece-z)) rotateX(7deg) rotateY(-5deg) rotateZ(1deg) scale(1.012);
+    transform: translate3d(0, -1.6vh, 70px) rotateX(8deg) rotateY(-6deg) rotateZ(1.5deg) scale(1.025);
   }
-  36% {
-    opacity: 0.98;
+  16% {
+    opacity: 1;
+  }
+  62% {
+    opacity: 0.95;
   }
   100% {
     opacity: 0;
@@ -11456,14 +11475,15 @@ label.field select,
 }
 
 @keyframes glass-world-title {
-  0% { opacity: 0; filter: blur(12px); transform: translate(-50%, -44%) scale(0.82); }
-  18%, 76% { opacity: 1; filter: blur(0); transform: translate(-50%, -50%) scale(1); }
-  100% { opacity: 0; filter: blur(3px); transform: translate(-50%, -54%) scale(1.06); }
+  0% { opacity: 0; filter: blur(16px); transform: translate(-50%, -42%) scale(0.68); }
+  20%, 74% { opacity: 1; filter: blur(0); transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; filter: blur(4px); transform: translate(-50%, -56%) scale(1.12); }
 }
 
 @keyframes glass-vignette {
   0% { opacity: 0; }
-  30% { opacity: 0.65; }
+  26% { opacity: 0.68; }
+  70% { opacity: 0.5; }
   100% { opacity: 0; }
 }
 
