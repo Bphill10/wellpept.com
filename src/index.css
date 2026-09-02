@@ -3409,9 +3409,9 @@ body:has(.app-shell--skincare) {
   /* Cinematic ground: charcoal wall with diagonal light beams over a polished marble floor
      (gallery-lit product-shot look). A light dark wash keeps body text legible while the
      beams and stone still read. */
-  background-color: #0b0d13;
+  background-color: #12151d;
   background-image:
-    linear-gradient(180deg, rgba(12, 15, 22, 0.04), rgba(7, 9, 14, 0.30)),
+    linear-gradient(180deg, rgba(18, 22, 32, 0), rgba(10, 13, 20, 0.12)),
     url("/ud-labels/bg/beam_bg.webp");
   background-size: cover, cover;
   background-position: center top, center center;
@@ -3421,9 +3421,9 @@ body:has(.app-shell--skincare) {
 
 body:has(.app-shell--undisclosed) {
   color: #f4f6f8;
-  background-color: #0b0d13;
+  background-color: #12151d;
   background-image:
-    linear-gradient(180deg, rgba(12, 15, 22, 0.04), rgba(7, 9, 14, 0.30)),
+    linear-gradient(180deg, rgba(18, 22, 32, 0), rgba(10, 13, 20, 0.12)),
     url("/ud-labels/bg/beam_bg.webp");
   background-size: cover, cover;
   background-position: center top, center center;
@@ -3449,25 +3449,29 @@ body:has(.app-shell--undisclosed)::before {
   animation: none;
 }
 
-/* Gallery lighting — brighter cool light pools that lift the room and gently breathe. */
+/* Gallery lighting — bright cool light pools + soft diagonal beams, fixed to the viewport so
+   they light the room even on phones (where the background photo zooms in). Screen-blended
+   over the dark ground and gently breathing. */
 .app-shell--undisclosed::after {
   content: "";
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.92;
+  opacity: 1;
   background:
-    radial-gradient(ellipse 90% 56% at 50% -6%, rgba(216, 232, 255, 0.17), transparent 66%),
-    radial-gradient(ellipse 46% 44% at 84% 6%, rgba(190, 222, 255, 0.13), transparent 72%),
-    radial-gradient(ellipse 42% 40% at 15% 20%, rgba(200, 226, 255, 0.10), transparent 74%),
-    radial-gradient(ellipse 62% 50% at 12% 90%, rgba(224, 228, 238, 0.08), transparent 76%);
+    radial-gradient(ellipse 105% 60% at 50% -8%, rgba(206, 227, 255, 0.42), transparent 58%),
+    radial-gradient(circle at 82% 12%, rgba(150, 200, 255, 0.30), transparent 34%),
+    radial-gradient(circle at 16% 20%, rgba(186, 214, 255, 0.24), transparent 38%),
+    linear-gradient(118deg, transparent 26%, rgba(190, 214, 255, 0.09) 37%, transparent 46%),
+    linear-gradient(62deg, transparent 56%, rgba(190, 214, 255, 0.07) 65%, transparent 74%),
+    radial-gradient(ellipse 82% 52% at 50% 106%, rgba(206, 216, 240, 0.14), transparent 66%);
   mix-blend-mode: screen;
   animation: ud-ambient-pulse 9s ease-in-out infinite;
 }
 
 @keyframes ud-ambient-pulse {
-  0%, 100% { opacity: 0.82; }
+  0%, 100% { opacity: 0.88; }
   50% { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -3633,8 +3637,8 @@ body:has(.app-shell--undisclosed)::before {
 .app-shell--undisclosed .product-card,
 .app-shell--undisclosed .panel,
 .app-shell--undisclosed .thesis-card {
-  background: rgba(0, 0, 0, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(26, 32, 44, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   color: #f4f6f8;
   box-shadow: none;
   border-radius: 2px;
