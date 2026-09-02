@@ -119,10 +119,15 @@ export function composeVial(canvas, prepared, rot = 0) {
   const { W, H, data: src } = base;
   const out = new Uint8ClampedArray(src); // copy (keeps cap/glass/alpha outside the band)
   const uc = 0.34, half = 0.33, B = 1.05, sB = Math.sin(B);
+  // The sticker sits inset from the vial's silhouette so clear glass shows on both sides
+  // (a real label, not a full wrap). SIDE is the fraction of the front left bare each side.
+  const SIDE = 0.085;
   for (let y = fp.top; y <= fp.bot; y++) for (let x = fp.left; x <= fp.right; x++) {
     if (!fp.mask[y * W + x]) continue;
     const uo = (x - fp.left) / (fp.w - 1);
-    const f = Math.asin(Math.max(-1, Math.min(1, (2 * uo - 1) * sB))) / B;
+    if (uo < SIDE || uo > 1 - SIDE) continue; // glass margin where the label ends
+    const uo2 = (uo - SIDE) / (1 - 2 * SIDE); // re-span the label across the inset window
+    const f = Math.asin(Math.max(-1, Math.min(1, (2 * uo2 - 1) * sB))) / B;
     const uSrc = uc + rot + half * f;
     if (uSrc < 0 || uSrc > 1) continue; // off the sticker → bare vial
     const vi = (y * W + x) * 4;
