@@ -5,6 +5,7 @@ import {
   prepareVialCompositor,
   composeVial,
 } from "../utils/udVialComposite";
+import { capScheme } from "../utils/labelColor";
 
 /**
  * Undisclosed landing showcase — a single hero vial that channel-surfs the catalog. Each
@@ -45,10 +46,6 @@ function shuffled(arr) {
   return a;
 }
 
-const rgbHex = ([r, g, b]) => `#${[r, g, b].map((n) => n.toString(16).padStart(2, "0")).join("")}`;
-// Coordinated shades of one hue so the dome, crimp and label match without being identical.
-const lighten = (rgb, t) => rgb.map((v) => Math.round(v + (255 - v) * t));
-const darken = (rgb, t) => rgb.map((v) => Math.round(v * (1 - t)));
 
 /** Build red / green / blue single-channel copies of the frozen vial for the split. */
 function buildTints(gfx, buf) {
@@ -189,12 +186,9 @@ export default function ChannelVial({ channels = [], className = "" }) {
     const hit = cache.get(idx);
     if (hit) return hit.then ? hit : Promise.resolve(hit);
     const rgb = colorsRef.current[idx % colorsRef.current.length];
-    // Three coordinated shades of the channel's hue: dome (base), crimp collar (lighter), label
-    // accent (a touch deeper) — everything matches, nothing is the exact same colour.
-    const dome = rgb;
-    const crimp = lighten(rgb, 0.42);
-    const labelColor = darken(rgb, 0.12);
-    const { svg, ml, baseSrc } = buildSVG(list[idx], rgbHex(labelColor));
+    // Coordinated set: dome (base), crimp collar (analogous different hue), label accent (deeper).
+    const { dome, crimp, labelHex } = capScheme(rgb);
+    const { svg, ml, baseSrc } = buildSVG(list[idx], labelHex);
     const promise = prepareVialCompositor({ svg, vialMl: ml, baseSrc, ss: ssFor(), capTint: dome, crimpTint: crimp })
       .then((prep) => { cache.set(idx, prep); return prep; })
       .catch(() => { cache.delete(idx); return null; });

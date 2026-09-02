@@ -283,10 +283,11 @@ const PAPER_BACK = [246, 249, 253];
  * photo's highlights still ride on top and it reads as depth inside the glass, not a painted
  * block. Powder vials only (a liquid fills that window, so it is skipped there).
  */
-function buildLabelBack(base, green, liquid, paper) {
+function buildLabelBack(base, green, liquid, paper, ml) {
   const { W, H, data } = base;
   const out = new Uint8ClampedArray(data);
   if (liquid) return out; // liquid fills the upper body — no empty-glass window to light
+  if (ml === 10) return out; // 10 mL has a big empty body — the glow reads as haze, so skip it
   const top0 = green.top0;
   // Vial width per row above the label; find the straight body, stop where it necks in.
   const rowXL = new Int32Array(H).fill(-1), rowXR = new Int32Array(H).fill(-1);
@@ -430,8 +431,8 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS
     // Match the red-liquid base by its filename token (…_Red.png), not a loose "red" — a base64
     // data-URL src would otherwise false-positive (no "_" or word breaks in standard base64).
     const liquid = /_red\b|\bliquid\b/i.test(String(baseSrc));
-    // Pre-bake the label's pale reverse into the clear glass above the label (screen-fixed).
-    const baseBack = buildLabelBack(base, green, liquid, PAPER_BACK);
+    // Pre-bake the label's pale reverse into the clear glass above the label (screen-fixed; 3 mL).
+    const baseBack = buildLabelBack(base, green, liquid, PAPER_BACK, ml);
     // Optional cap recolour (landing showcase) — dome + crimp collar in two coordinated tints.
     if (capTint) tintCap(baseBack, base, capTint, crimpTint || capTint);
     return { base, ld, lw: dims.w, lh: dims.h, green, liquid, baseBack };
@@ -595,9 +596,9 @@ function alphaBBox(canvas) {
  * nothing. Pass a small `ss` (base res) + `maxOut` (output cap in px) for a smooth live spin,
  * or the defaults (BASE_SS, native scene size) for the crisp still. `paintVialScene` paints.
  */
-export async function prepareVialScene({ svg, vialMl, baseSrc, sceneSrc, ss = BASE_SS, maxOut = 0 }) {
+export async function prepareVialScene({ svg, vialMl, baseSrc, sceneSrc, ss = BASE_SS, maxOut = 0, capTint = null, crimpTint = null }) {
   const ml = Number(vialMl) >= 8 ? 10 : 3;
-  const prepared = await prepareVialCompositor({ svg, vialMl: ml, baseSrc, ss });
+  const prepared = await prepareVialCompositor({ svg, vialMl: ml, baseSrc, ss, capTint, crimpTint });
   const scene = await loadImage(sceneSrc);
   const off = document.createElement("canvas");
   composeVial(off, prepared, 0, { wrap: true });
@@ -613,7 +614,7 @@ export async function prepareVialScene({ svg, vialMl, baseSrc, sceneSrc, ss = BA
   // 10 mL vials are physically larger than 3 mL — render them clearly bigger and chunkier so
   // the size difference reads true. Height is capped by the scene (the cap must not clip at the
   // top); `wide` fattens the 10 mL a touch beyond its slender photo so it reads as a 10 mL.
-  const SZ = ml === 10 ? { h: 0.70, wide: 1.105 } : { h: 0.62, wide: 1.0 };
+  const SZ = ml === 10 ? { h: 0.75, wide: 1.105 } : { h: 0.62, wide: 1.0 };
   const targetH = Math.round(H * SZ.h);
   const s = targetH / bbox.h;
   const dw = Math.round(bbox.w * s * SZ.wide), dh = targetH;
@@ -693,7 +694,7 @@ export function paintVialScene(canvas, state, rot = 0, opts = {}) {
  * vial base is planted on the floor line; 10 mL vials are drawn taller than 3 mL so the size
  * difference reads true. Output is an opaque scene canvas sized to `sceneSrc`.
  */
-export async function drawVialScene(canvas, { svg, vialMl, baseSrc, sceneSrc, rot = 0, ss, maxOut = 0 }) {
-  const state = await prepareVialScene({ svg, vialMl, baseSrc, sceneSrc, ...(ss ? { ss } : {}), maxOut });
+export async function drawVialScene(canvas, { svg, vialMl, baseSrc, sceneSrc, rot = 0, ss, maxOut = 0, capTint = null, crimpTint = null }) {
+  const state = await prepareVialScene({ svg, vialMl, baseSrc, sceneSrc, ...(ss ? { ss } : {}), maxOut, capTint, crimpTint });
   return paintVialScene(canvas, state, rot, { wrap: rot !== 0 });
 }

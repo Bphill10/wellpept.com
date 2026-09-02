@@ -6,6 +6,7 @@ import {
   prepareVialScene,
   paintVialScene,
 } from "../utils/udVialComposite";
+import { capScheme, catalogCapColor } from "../utils/labelColor";
 
 /** Black-marble studio scene the catalog vials are composited onto. */
 const VIAL_SCENE_SRC = "/ud-labels/bg/vial_card_bg.webp";
@@ -84,6 +85,8 @@ export default function CatalogVial({
     stillRef.current = null;
 
     const ml = Number(vialMl) >= 8 ? 10 : 3;
+    // Stable per-product colour: a two-tone cap (dome + analogous crimp) and a matching label.
+    const { dome, crimp, labelHex } = capScheme(catalogCapColor(name));
     const { svg } = labelSVGFromFields({
       name: name || "Peptide",
       mass: mg != null && mg !== "" ? String(mg) : "",
@@ -93,11 +96,12 @@ export default function CatalogVial({
       formText: /\bB\s*12\b|VITAMIN\s*B12/i.test(`${name} ${form}`) ? "LIQUID" : "LYOPHILIZED POWDER",
       storageTemp: "36–46°F",
       vialMl: ml,
+      accentColor: labelHex,
     });
     const baseSrc = silverVialBaseSrc(name, ml, powderColor);
-    fieldsRef.current = { svg, ml, baseSrc };
+    fieldsRef.current = { svg, ml, baseSrc, capTint: dome, crimpTint: crimp };
 
-    drawVialScene(canvas, { svg, vialMl: ml, baseSrc, sceneSrc: VIAL_SCENE_SRC, ss: 1.2, maxOut: 820 })
+    drawVialScene(canvas, { svg, vialMl: ml, baseSrc, sceneSrc: VIAL_SCENE_SRC, ss: 1.2, maxOut: 820, capTint: dome, crimpTint: crimp })
       .then(() => {
         if (cancelled) return;
         setReady(true);
@@ -124,8 +128,8 @@ export default function CatalogVial({
       canvas.height = snap.height;
       canvas.getContext("2d").drawImage(snap, 0, 0);
     } else if (fieldsRef.current) {
-      const { svg, ml, baseSrc } = fieldsRef.current;
-      drawVialScene(canvas, { svg, vialMl: ml, baseSrc, sceneSrc: VIAL_SCENE_SRC, ss: 1.2, maxOut: 820 }).catch(() => {});
+      const { svg, ml, baseSrc, capTint, crimpTint } = fieldsRef.current;
+      drawVialScene(canvas, { svg, vialMl: ml, baseSrc, sceneSrc: VIAL_SCENE_SRC, ss: 1.2, maxOut: 820, capTint, crimpTint }).catch(() => {});
     }
   };
 
@@ -162,7 +166,7 @@ export default function CatalogVial({
     if (!f) return Promise.resolve(null);
     buildingRef.current = prepareVialScene({
       svg: f.svg, vialMl: f.ml, baseSrc: f.baseSrc, sceneSrc: VIAL_SCENE_SRC,
-      ss: 0.42, maxOut: 520,
+      ss: 0.42, maxOut: 520, capTint: f.capTint, crimpTint: f.crimpTint,
     }).then((st) => { sceneRef.current = st; return st; })
       .catch(() => null);
     return buildingRef.current;
