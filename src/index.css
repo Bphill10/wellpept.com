@@ -6462,6 +6462,22 @@ body:has(.app-shell--undisclosed)::before {
   border: 1px solid rgba(0, 71, 171, 0.22);
 }
 
+/* Live label-on-vial composite canvas */
+.silver-label-vial {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 360px;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.55));
+}
+
+.silver-label-vial.is-ready {
+  opacity: 1;
+}
+
 .calc-label-stage {
   width: 100%;
   display: grid;

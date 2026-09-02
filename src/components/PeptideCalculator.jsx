@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Calculator, RotateCcw, Link2, Download, Upload } from "lucide-react";
 import LabelTemplate from "./LabelTemplate";
-import GeneratedVial from "./GeneratedVial";
 import {
   CATEGORIES,
   calculatorOptionsFromListings,
@@ -10,14 +9,12 @@ import {
 import {
   buildCalculatorShareUrl,
   defaultsFromCatalogSelection,
-  formatDoseRangeLabel,
   normalizeDoseUnit,
   suggestedBacMl as suggestedBacFromAutomation,
 } from "../utils/automation";
 import {
   LABEL_BOTTLE_SIZES_ML,
   labelSpecForVialMl,
-  UD_LABEL_TEMPLATE_OPTIONS,
   udLabelTemplateById,
   udLabelTemplateFor,
 } from "../utils/vialArt";
@@ -25,6 +22,7 @@ import { shortCapName, capStlSlug } from "../data/capNames";
 import {
   UD_FEATURED_KIT_SRC,
 } from "../data/udLabelAssets";
+import SilverLabelVial from "./SilverLabelVial";
 
 const CUSTOM_ID = "custom";
 const BOTTLE_SIZES_ML = LABEL_BOTTLE_SIZES_ML;
@@ -143,13 +141,6 @@ export default function PeptideCalculator({
     selectedPeptide?.strengths.find((s) => s.key === strengthKey) ||
     selectedPeptide?.strengths[0] ||
     null;
-
-  function applyLabelTemplate(templateId) {
-    const next = udLabelTemplateById(templateId);
-    setLabelTemplateId(next.id);
-    setVialMl(next.vialMl);
-    setShareMsg("");
-  }
 
   function applyCustomMode(seed = null) {
     setPeptideId(CUSTOM_ID);
@@ -280,14 +271,6 @@ export default function PeptideCalculator({
     result?.units && doseLowNumber > 0
       ? Number(result.units) * (doseHighNumber / doseLowNumber)
       : 0;
-  const liveDoseRange = formatDoseRangeLabel(
-    dose,
-    doseUnit,
-    result?.units ? Number(result.units) : 10,
-    doseHigh,
-    highDoseUnits || null
-  );
-
   // Split dose for the silver label: mg amount on the value line, syringe units below.
   const doseParts = useMemo(() => {
     const fmt = (n) => parseFloat(Number(n).toFixed(2)).toString();
@@ -699,24 +682,63 @@ export default function PeptideCalculator({
                 or calculator (your dose) · silver design · download free to print
                 (40×20 mm / 50×30 mm, Niimbot-ready)
               </p>
+              <span className="calc-controls-label">Label type</span>
               <div
                 className="calc-label-templates"
                 role="radiogroup"
-                aria-label="Label template"
+                aria-label="Label type"
               >
-                {UD_LABEL_TEMPLATE_OPTIONS.map((opt) => {
-                  const active = opt.id === labelTemplateId;
+                {[
+                  ["CATALOG", "Catalog", "Name · form · storage"],
+                  ["CALCULATOR", "Dosage", "Your dose · diluent · conc."],
+                ].map(([t, title, blurb]) => {
+                  const active = labelTemplate.labelType === t;
                   return (
                     <button
-                      key={opt.id}
+                      key={t}
                       type="button"
                       role="radio"
                       aria-checked={active}
                       className={`calc-label-template${active ? " is-active" : ""}`}
-                      onClick={() => applyLabelTemplate(opt.id)}
+                      onClick={() =>
+                        setLabelTemplateId(
+                          udLabelTemplateFor(Number(vialMl) || 3, t).id
+                        )
+                      }
                     >
-                      <strong>{opt.title}</strong>
-                      <span>{opt.blurb}</span>
+                      <strong>{title}</strong>
+                      <span>{blurb}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <span className="calc-controls-label">Bottle size</span>
+              <div
+                className="calc-label-templates"
+                role="radiogroup"
+                aria-label="Bottle size"
+              >
+                {[
+                  [3, "3 mL", "40 × 20 mm label"],
+                  [10, "10 mL", "50 × 30 mm label"],
+                ].map(([ml, title, blurb]) => {
+                  const active = (Number(vialMl) >= 8 ? 10 : 3) === ml;
+                  return (
+                    <button
+                      key={ml}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      className={`calc-label-template${active ? " is-active" : ""}`}
+                      onClick={() => {
+                        setVialMl(ml);
+                        setLabelTemplateId(
+                          udLabelTemplateFor(ml, labelTemplate.labelType).id
+                        );
+                      }}
+                    >
+                      <strong>{title}</strong>
+                      <span>{blurb}</span>
                     </button>
                   );
                 })}
@@ -769,21 +791,20 @@ export default function PeptideCalculator({
                 )}
               </div>
               <div className="calc-vial-stage">
-                <GeneratedVial
+                <SilverLabelVial
                   name={name || selectedPeptide?.name || "Peptide"}
                   mass={mass}
                   unit={vialUnit || "mg"}
-                  bacWater={solution ? `${formatNum(solution, 2)} mL` : ""}
-                  concentration={result?.concLabel || ""}
-                  doseRange={liveDoseRange}
-                  vialMl={Number(vialMl) || 3}
-                  form={selectedStrength?.form || ""}
-                  size="lg"
-                  catalogTemplate={false}
                   labelType={labelTemplate.labelType}
-                  showLabel
-                  productId={selectedStrength?.defaultOfferId || ""}
-                  coaUrl={selectedStrength?.coaUrl || ""}
+                  formText={(selectedStrength?.form || "Lyophilized Powder").toUpperCase()}
+                  storageTemp="36–46°F"
+                  diluent={solution ? `${formatNum(solution, 2)} mL` : ""}
+                  concentration={result?.concLabel || ""}
+                  doseValue={doseParts.value}
+                  doseUnits={doseParts.units}
+                  brandName={activeBrandName}
+                  brandImage={activeBrandImage}
+                  vialMl={Number(vialMl) || 3}
                   className="calc-generated-vial"
                 />
               </div>

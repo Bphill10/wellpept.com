@@ -136,6 +136,39 @@ export function buildSilverLabelSVG(o = {}) {
 </svg>`;
 }
 
+/**
+ * Map friendly calculator/catalog fields to a label SVG. Single source of truth so the
+ * flat printable label and the on-vial composite always render identically.
+ */
+export function labelSVGFromFields(fields = {}) {
+  const {
+    name = "Peptide", mass = "", unit = "mg", labelType = "CALCULATOR",
+    formText = "LYOPHILIZED POWDER", storageTemp = "36–46°F",
+    diluent = "", concentration = "", doseValue = "", doseUnits = "",
+    brandName = "UNDISCLOSED", brandImage = "", vialMl = 3, blank = false,
+  } = fields;
+  const dims = silverLabelDims(vialMl);
+  const type = String(labelType || "CALCULATOR").toUpperCase() === "CATALOG" ? "catalog" : "calculator";
+  const mg = !blank && mass ? `${mass} ${String(unit || "mg").toUpperCase()}` : "";
+  const svg = buildSilverLabelSVG({
+    name: blank ? "" : name,
+    mg,
+    type,
+    accent: "silver",
+    w: dims.w,
+    h: dims.h,
+    line1: blank ? "" : formText,
+    line2: blank ? "" : `STORE AT ${storageTemp}`,
+    diluent: blank ? "" : diluent,
+    concentration: blank ? "" : concentration,
+    doseValue: blank ? "" : doseValue,
+    doseUnits: blank ? "" : doseUnits,
+    brandName: brandName || "UNDISCLOSED",
+    brandImage: brandImage || undefined,
+  });
+  return { svg, dims, type };
+}
+
 /** SVG string → data URL for an <img> preview (crisp vector, scales with CSS). */
 export function svgToImageSrc(svg) {
   return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
