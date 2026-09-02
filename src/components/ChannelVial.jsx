@@ -22,7 +22,6 @@ import { capScheme } from "../utils/labelColor";
 const HOLD_MS = 3200; // gentle turn on each channel before it changes
 const TUNE_MS = 640;  // the channel-change glitch
 const FADE_MS = 720;  // reduced-motion cross-dissolve
-const SPIN_MS = 26000; // very slow drift so it holds on the brand/logo front (not the QR side)
 const FRAME_MS = 33;   // ~30fps cap for the hold spin
 
 // Accent colours the showcase surfs at random — each channel gets one (a fresh shuffle each page
@@ -279,7 +278,9 @@ export default function ChannelVial({ channels = [], className = "" }) {
     // ---- Full motion: gentle turn, then a channel-change glitch that masks the swap. ----
     if (phaseRef.current === "hold") {
       if (dt >= FRAME_MS || rotRef.current === 0) {
-        rotRef.current = (rotRef.current + dt * (1 / SPIN_MS)) % 1;
+        // Gentle sway that only ever drifts toward the brand rail (left of the label), so the
+        // company name + logo are always in view — never round to the QR side.
+        rotRef.current = -0.024 * (1 - Math.cos(e / 1600));
         composeVial(canvas, cur, rotRef.current, { wrap: true });
       }
       if (e >= HOLD_MS) {
