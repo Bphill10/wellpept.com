@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Calculator, RotateCcw, Link2, Download } from "lucide-react";
+import { ArrowLeft, Calculator, RotateCcw, Link2, Download, Upload } from "lucide-react";
 import LabelTemplate from "./LabelTemplate";
-import GeneratedVial from "./GeneratedVial";
 import {
   CATEGORIES,
   calculatorOptionsFromListings,
@@ -10,14 +9,12 @@ import {
 import {
   buildCalculatorShareUrl,
   defaultsFromCatalogSelection,
-  formatDoseRangeLabel,
   normalizeDoseUnit,
   suggestedBacMl as suggestedBacFromAutomation,
 } from "../utils/automation";
 import {
   LABEL_BOTTLE_SIZES_ML,
   labelSpecForVialMl,
-  UD_LABEL_TEMPLATE_OPTIONS,
   udLabelTemplateById,
   udLabelTemplateFor,
 } from "../utils/vialArt";
@@ -25,6 +22,7 @@ import { shortCapName, capStlSlug } from "../data/capNames";
 import {
   UD_FEATURED_KIT_SRC,
 } from "../data/udLabelAssets";
+import SilverLabelVial from "./SilverLabelVial";
 
 const CUSTOM_ID = "custom";
 const BOTTLE_SIZES_ML = LABEL_BOTTLE_SIZES_ML;
@@ -143,13 +141,6 @@ export default function PeptideCalculator({
     selectedPeptide?.strengths.find((s) => s.key === strengthKey) ||
     selectedPeptide?.strengths[0] ||
     null;
-
-  function applyLabelTemplate(templateId) {
-    const next = udLabelTemplateById(templateId);
-    setLabelTemplateId(next.id);
-    setVialMl(next.vialMl);
-    setShareMsg("");
-  }
 
   function applyCustomMode(seed = null) {
     setPeptideId(CUSTOM_ID);
@@ -280,13 +271,53 @@ export default function PeptideCalculator({
     result?.units && doseLowNumber > 0
       ? Number(result.units) * (doseHighNumber / doseLowNumber)
       : 0;
-  const liveDoseRange = formatDoseRangeLabel(
-    dose,
-    doseUnit,
-    result?.units ? Number(result.units) : 10,
-    doseHigh,
-    highDoseUnits || null
-  );
+  // Split dose for the silver label: mg amount on the value line, syringe units below.
+  const doseParts = useMemo(() => {
+    const fmt = (n) => parseFloat(Number(n).toFixed(2)).toString();
+    const unitLabel = doseUnit === "IU" ? "IU" : "MG";
+    if (!(result && doseLowNumber > 0)) return { value: "", units: "" };
+    const uLow = Number(result.units) || 0;
+    if (doseRangeValid && doseHighNumber > doseLowNumber) {
+      return {
+        value: `${fmt(doseLowNumber)} – ${fmt(doseHighNumber)} ${unitLabel}`,
+        units: `${fmt(uLow)} – ${fmt(highDoseUnits)} U`,
+      };
+    }
+    return { value: `${fmt(doseLowNumber)} ${unitLabel}`, units: `${fmt(uLow)} U` };
+  }, [result, doseLowNumber, doseHighNumber, doseRangeValid, highDoseUnits, doseUnit]);
+
+  // Custom private-label branding (name + logo instead of UNDISCLOSED).
+  const [customBrand, setCustomBrand] = useState(false);
+  const [brandNameInput, setBrandNameInput] = useState("");
+  const [brandLogo, setBrandLogo] = useState("");
+  // COA / website link the label QR points to.
+  const [coaLink, setCoaLink] = useState("");
+  const [coaFileName, setCoaFileName] = useState("");
+
+  function onBrandLogoFile(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setBrandLogo(String(reader.result || ""));
+    reader.readAsDataURL(file);
+  }
+
+  const activeBrandName =
+    customBrand && brandNameInput.trim() ? brandNameInput.trim() : "UNDISCLOSED";
+  const activeBrandImage = customBrand && brandLogo ? brandLogo : "";
+
+  // Normalize the COA / website link (add https:// if the scheme is missing) for the QR.
+  const qrLink = (() => {
+    const v = coaLink.trim();
+    if (!v) return "";
+    return /^https?:\/\//i.test(v) ? v : `https://${v}`;
+  })();
+
+  function onCoaFile(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setCoaFileName(file.name);
+  }
 
   function onPeptideChange(id) {
     if (id === CUSTOM_ID) {
@@ -663,51 +694,169 @@ export default function PeptideCalculator({
                 <h2>Vial label · free</h2>
               </div>
               <p className="meta">
-                Pick a label template · {bottleOptionLabel(Number(vialMl) || 3)} ·
-                live on the vial and flat wrap · QR → peptide COA when linked,
-                otherwise wellpept.com · download free
+                Pick a label · {bottleOptionLabel(Number(vialMl) || 3)} · catalog
+                or calculator (your dose) · silver design · download free to print
+                (40×20 mm / 50×30 mm, Niimbot-ready)
               </p>
+              <span className="calc-controls-label">Label type</span>
               <div
                 className="calc-label-templates"
                 role="radiogroup"
-                aria-label="Label template"
+                aria-label="Label type"
               >
-                {UD_LABEL_TEMPLATE_OPTIONS.map((opt) => {
-                  const active = opt.id === labelTemplateId;
+                {[
+                  ["CATALOG", "Catalog", "Name · form · storage"],
+                  ["CALCULATOR", "Dosage", "Your dose · diluent · conc."],
+                ].map(([t, title, blurb]) => {
+                  const active = labelTemplate.labelType === t;
                   return (
                     <button
-                      key={opt.id}
+                      key={t}
                       type="button"
                       role="radio"
                       aria-checked={active}
                       className={`calc-label-template${active ? " is-active" : ""}`}
-                      onClick={() => applyLabelTemplate(opt.id)}
+                      onClick={() =>
+                        setLabelTemplateId(
+                          udLabelTemplateFor(Number(vialMl) || 3, t).id
+                        )
+                      }
                     >
-                      <strong>{opt.title}</strong>
-                      <span>{opt.blurb}</span>
+                      <strong>{title}</strong>
+                      <span>{blurb}</span>
                     </button>
                   );
                 })}
               </div>
+              <span className="calc-controls-label">Bottle size</span>
+              <div
+                className="calc-label-templates"
+                role="radiogroup"
+                aria-label="Bottle size"
+              >
+                {[
+                  [3, "3 mL", "40 × 20 mm label"],
+                  [10, "10 mL", "50 × 30 mm label"],
+                ].map(([ml, title, blurb]) => {
+                  const active = (Number(vialMl) >= 8 ? 10 : 3) === ml;
+                  return (
+                    <button
+                      key={ml}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      className={`calc-label-template${active ? " is-active" : ""}`}
+                      onClick={() => {
+                        setVialMl(ml);
+                        setLabelTemplateId(
+                          udLabelTemplateFor(ml, labelTemplate.labelType).id
+                        );
+                      }}
+                    >
+                      <strong>{title}</strong>
+                      <span>{blurb}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="calc-brand-custom">
+                <label className="calc-brand-toggle">
+                  <input
+                    type="checkbox"
+                    checked={customBrand}
+                    onChange={(e) => setCustomBrand(e.target.checked)}
+                  />
+                  <span>
+                    Custom branding — your own name &amp; logo instead of
+                    UNDISCLOSED
+                  </span>
+                </label>
+                {customBrand && (
+                  <div className="calc-brand-fields">
+                    <input
+                      type="text"
+                      className="calc-brand-name"
+                      placeholder="Your brand name"
+                      value={brandNameInput}
+                      maxLength={22}
+                      onChange={(e) => setBrandNameInput(e.target.value)}
+                    />
+                    <label className="calc-brand-logo soft-btn">
+                      <Upload size={14} />{" "}
+                      {brandLogo ? "Change logo" : "Upload logo"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={onBrandLogoFile}
+                        hidden
+                      />
+                    </label>
+                    {brandLogo && (
+                      <button
+                        type="button"
+                        className="calc-brand-clear soft-btn"
+                        onClick={() => setBrandLogo("")}
+                      >
+                        Remove logo
+                      </button>
+                    )}
+                    <span className="meta">
+                      A white or light logo shows best on the black strip.
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="calc-coa">
+                <label className="calc-coa-label" htmlFor="calc-coa-url">
+                  COA / website link — the label QR opens this
+                </label>
+                <div className="calc-coa-fields">
+                  <input
+                    id="calc-coa-url"
+                    type="url"
+                    className="calc-coa-input"
+                    placeholder="https://your-coa-or-site.com"
+                    value={coaLink}
+                    onChange={(e) => setCoaLink(e.target.value)}
+                  />
+                  <label className="calc-coa-file soft-btn">
+                    <Upload size={14} /> {coaFileName ? "COA selected" : "Choose COA file"}
+                    <input
+                      type="file"
+                      accept="application/pdf,image/*"
+                      onChange={onCoaFile}
+                      hidden
+                    />
+                  </label>
+                </div>
+                <span className="meta">
+                  {coaFileName
+                    ? `“${coaFileName}” selected — upload it to your host and paste its link above so the QR can open it.`
+                    : "Paste any link (a COA PDF, a product page, your site). Leave blank and the QR points to wellpept.com."}
+                </span>
+              </div>
               <div className="calc-vial-stage">
-                <GeneratedVial
+                <SilverLabelVial
+                  qrPayload={qrLink}
                   name={name || selectedPeptide?.name || "Peptide"}
                   mass={mass}
                   unit={vialUnit || "mg"}
-                  bacWater={solution ? `${formatNum(solution, 2)} mL` : ""}
-                  concentration={result?.concLabel || ""}
-                  doseRange={liveDoseRange}
-                  vialMl={Number(vialMl) || 3}
-                  form={selectedStrength?.form || ""}
-                  size="lg"
-                  catalogTemplate={false}
                   labelType={labelTemplate.labelType}
-                  showLabel
-                  productId={selectedStrength?.defaultOfferId || ""}
-                  coaUrl={selectedStrength?.coaUrl || ""}
+                  formText={(selectedStrength?.form || "Lyophilized Powder").toUpperCase()}
+                  storageTemp="36–46°F"
+                  diluent={solution ? `${formatNum(solution, 2)} mL` : ""}
+                  concentration={result?.concLabel || ""}
+                  doseValue={doseParts.value}
+                  doseUnits={doseParts.units}
+                  brandName={activeBrandName}
+                  brandImage={activeBrandImage}
+                  vialMl={Number(vialMl) || 3}
                   className="calc-generated-vial"
                 />
               </div>
+              <p className="calc-label-caption meta">
+                This flat label is what prints (exact size):
+              </p>
               <div className="calc-label-stage">
                 <LabelTemplate
                   blank={false}
@@ -717,13 +866,16 @@ export default function PeptideCalculator({
                   unit={vialUnit || "mg"}
                   bacWater={solution ? `${formatNum(solution, 2)} mL` : ""}
                   concentration={result?.concLabel || ""}
-                  doseRange={liveDoseRange}
+                  doseRange={doseParts.value}
+                  doseUnits={doseParts.units}
                   vialMl={Number(vialMl) || 3}
                   labelType={labelTemplate.labelType}
-                  templateId={labelTemplateId}
+                  formText={(selectedStrength?.form || "Lyophilized Powder").toUpperCase()}
+                  storageTemp="36–46°F"
+                  brandName={activeBrandName}
+                  brandImage={activeBrandImage}
+                  qrPayload={qrLink}
                   showDownload
-                  productId={selectedStrength?.defaultOfferId || ""}
-                  coaUrl={selectedStrength?.coaUrl || ""}
                 />
               </div>
             </aside>
