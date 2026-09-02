@@ -1,8 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { UD_LABEL_BRAND } from "../data/udLabelAssets";
 
-const TUNE_MS = 7600;
-const REVEAL_MS = 1480;
+// Combined unlock: a phone-glass crack at the tap point, then the display glitches and the
+// rift-portal opens into Undisclosed. CRACK_MS is the glass intro; RIFT_MS is the glitch +
+// portal that follows; TUNE_MS is the total overlay lifetime.
+const CRACK_MS = 1450;
+const RIFT_MS = 5800;
+const TUNE_MS = CRACK_MS + RIFT_MS;
+const REVEAL_MS = 4300;
 const REDUCED_MS = 160;
 
 // Shard `d` (ms) staggers the break as a center-out cascade from the impact: the pieces
@@ -378,7 +383,7 @@ function startGlassAudio() {
   };
 }
 
-function GlassShatter({ rootRef, finishOnce, impact }) {
+function GlassShatter({ rootRef, finishOnce, impact, crackOnly = false }) {
   const ox = Number.isFinite(impact?.xPct) ? impact.xPct : 50;
   const oy = Number.isFinite(impact?.yPct) ? impact.yPct : 43;
   // Crack art is authored around viewBox (50, 43); shift so it blooms at the tap.
@@ -408,8 +413,12 @@ function GlassShatter({ rootRef, finishOnce, impact }) {
       <div className="glass-impact-core" />
       <div className="glass-shockwave" />
       <div className="glass-transition-flash" />
-      <div className="glass-dive" aria-hidden="true" />
-      <div className="glass-lightburst" aria-hidden="true" />
+      {!crackOnly && (
+        <>
+          <div className="glass-dive" aria-hidden="true" />
+          <div className="glass-lightburst" aria-hidden="true" />
+        </>
+      )}
       <svg
         className="glass-cracks"
         viewBox="0 0 100 100"
@@ -458,6 +467,8 @@ function GlassShatter({ rootRef, finishOnce, impact }) {
         </g>
       </svg>
 
+      {!crackOnly && (
+        <>
       <div className="glass-shard-field">
         {GLASS_SHARDS.map((shard, index) => (
           <i
@@ -504,6 +515,8 @@ function GlassShatter({ rootRef, finishOnce, impact }) {
         <small>RESEARCH CATALOG</small>
       </div>
       <div className="glass-transition-vignette" />
+        </>
+      )}
     </div>
   );
 }
@@ -520,6 +533,8 @@ export default function ChannelTuneOverlay({ active, impact, onReveal, onDone })
   const finishedRef = useRef(false);
   const revealedRef = useRef(false);
   const rootRef = useRef(null);
+  const glassRef = useRef(null);
+  const [showRift, setShowRift] = useState(false);
 
   function finishOnce() {
     if (finishedRef.current) return;
@@ -540,6 +555,7 @@ export default function ChannelTuneOverlay({ active, impact, onReveal, onDone })
     if (!active) {
       finishedRef.current = false;
       revealedRef.current = false;
+      setShowRift(false);
       return undefined;
     }
 
@@ -563,6 +579,10 @@ export default function ChannelTuneOverlay({ active, impact, onReveal, onDone })
     } catch {
       /* ignore */
     }
+
+    // Phone-glass crack plays first; then the glitch + rift-portal phase mounts on top.
+    if (reduced) setShowRift(true);
+    const riftTimer = reduced ? null : window.setTimeout(() => setShowRift(true), CRACK_MS);
 
     const revealAt = reduced ? 40 : REVEAL_MS;
     const doneAt = reduced ? REDUCED_MS : TUNE_MS;
@@ -593,6 +613,7 @@ export default function ChannelTuneOverlay({ active, impact, onReveal, onDone })
       window.clearTimeout(revealTimer);
       window.clearTimeout(doneTimer);
       window.clearTimeout(failsafeTimer);
+      if (riftTimer) window.clearTimeout(riftTimer);
       stopAudio();
       try {
         navigator.vibrate?.(0);
@@ -605,18 +626,24 @@ export default function ChannelTuneOverlay({ active, impact, onReveal, onDone })
   if (!active) return null;
 
   return (
-    <GlassShatter rootRef={rootRef} finishOnce={finishOnce} impact={impact} />
+    <>
+      {/* Phase 1 — the tap cracks the glass at your finger (phone-glass). */}
+      <GlassShatter rootRef={glassRef} finishOnce={() => {}} impact={impact} crackOnly />
+      {/* Phase 2 — it glitches, then the rift-portal opens into Undisclosed. */}
+      {showRift && <RiftGlitch rootRef={rootRef} finishOnce={finishOnce} />}
+    </>
   );
+}
 
-  /* Legacy rift markup retained below temporarily for reference. */
-  /* c8 ignore start */
+/** Phase 2: display-glitch meltdown → rift-portal → UNDISCLOSED reveal. */
+function RiftGlitch({ rootRef, finishOnce }) {
   return (
     <div
       ref={rootRef}
       className="tv-tune tv-tune--rift tv-tune--phone-fault"
       role="presentation"
       aria-hidden="true"
-      style={{ "--tv-tune-dur": `${TUNE_MS}ms` }}
+      style={{ "--tv-tune-dur": `${RIFT_MS}ms`, zIndex: 240 }}
       onAnimationEnd={(e) => {
         if (e.target !== e.currentTarget) return;
         if (e.animationName !== "tv-tune-hold") return;
