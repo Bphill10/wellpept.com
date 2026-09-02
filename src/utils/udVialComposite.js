@@ -6,6 +6,12 @@
  * The label is centered on its middle section so the QR/edges wrap away naturally
  * (matching the storefront vials). Base photos are same-origin so pixels read without
  * tainting the canvas.
+ *
+ * Two resolutions share the same math:
+ *  - the crisp at-rest render uses BASE_SS=2 (razor-sharp type on hi-DPI),
+ *  - the live rotation ("spinning label") uses a small `ss` so a full frame composites in
+ *    a couple of milliseconds — smooth at 60fps. A per-column asin LUT (precomputed in
+ *    `prepareVialCompositor`) keeps the hot loop to array lookups.
  */
 import { silverLabelDims } from "./udSilverLabel";
 
@@ -23,6 +29,9 @@ const BASE = {
   "10-white": "/ud-labels/vials/UD_Base_10mL_White.png",
   "10-red": "/ud-labels/vials/UD_Base_10mL_Red.png",
 };
+
+// Cylinder-wrap constants (shared by the composite and the LUT).
+const UC = 0.34, HALF = 0.33, B = 1.05, SB = Math.sin(B);
 
 /**
  * Pick the base vial photo by contents colour + size. Prefers an explicit `powderColor`
@@ -51,19 +60,19 @@ function loadImage(src) {
   });
 }
 
-// Supersample factor for the composed vial. The base photos are ~700 px wide; compositing
-// at 2x keeps the vector label text razor-sharp on hi-DPI / large displays (the glass photo
-// is only mildly upscaled, but crisp type is what the eye reads). Bumps the output canvas to
-// ~1400x2100 — still light for a lazily-rendered grid.
+// Supersample factor for the crisp composed vial. The base photos are 700 px wide; compositing
+// at 2x keeps the vector label text razor-sharp on hi-DPI / large displays. The live spin passes
+// a smaller ss so a frame composites fast enough to animate.
 const BASE_SS = 2;
 
-// Cache decoded base vials + their pixel data (keyed by src).
+// Cache decoded base vials + their pixel data (keyed by src + ss).
 const baseCache = new Map();
-async function getBase(src) {
-  if (baseCache.has(src)) return baseCache.get(src);
+async function getBase(src, ss = BASE_SS) {
+  const key = `${src}@${ss}`;
+  if (baseCache.has(key)) return baseCache.get(key);
   const img = await loadImage(src);
-  const W = Math.round(img.naturalWidth * BASE_SS);
-  const H = Math.round(img.naturalHeight * BASE_SS);
+  const W = Math.max(1, Math.round(img.naturalWidth * ss));
+  const H = Math.max(1, Math.round(img.naturalHeight * ss));
   const c = document.createElement("canvas");
   c.width = W;
   c.height = H;
@@ -72,7 +81,7 @@ async function getBase(src) {
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(img, 0, 0, W, H);
   const entry = { W, H, data: ctx.getImageData(0, 0, W, H).data };
-  baseCache.set(src, entry);
+  baseCache.set(key, entry);
   return entry;
 }
 
@@ -120,43 +129,60 @@ export const ROT_MAX = 0.62;
 
 /**
  * Load the base vial + render the label once, so rotation can re-wrap without re-rendering
- * the SVG (keeps dragging smooth). Returns a prepared compositor.
+ * the SVG (keeps dragging/spinning smooth). Returns a prepared compositor. `ss` sets the
+ * base resolution: BASE_SS (2) for the crisp still, a smaller value for the live spin.
+ * Precomputes a per-column wrap LUT (`fcol`) and per-row label-row map (`rowBase`) so the
+ * compose hot loop is pure array lookups.
  */
-export async function prepareVialCompositor({ svg, vialMl, baseSrc }) {
+export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS }) {
   const ml = Number(vialMl) >= 8 ? 10 : 3;
   const dims = silverLabelDims(ml);
-  const base = await getBase(baseSrc);
+  const base = await getBase(baseSrc, ss);
   const fp = footprint(base.data, base.W, base.H, BAND[ml].top, BAND[ml].bot, BAND[ml].fill);
   const ld = await renderLabelPixels(svg, dims.w, dims.h);
-  return { base, fp, ld, lw: dims.w, lh: dims.h };
+
+  // Per-column wrap offset (HALF * asin term) — depends only on the column, not on rot or y.
+  const fcol = new Float32Array(fp.w);
+  for (let i = 0; i < fp.w; i++) {
+    const uo = i / (fp.w - 1);
+    const f = Math.asin(Math.max(-1, Math.min(1, (2 * uo - 1) * SB))) / B;
+    fcol[i] = HALF * f;
+  }
+  // Per-row label row start (in label pixels) for band rows; fill rows use the label's last row.
+  const rowBase = new Int32Array(base.H);
+  for (let y = fp.top; y <= fp.bot; y++) {
+    const ly = Math.min(dims.h - 1, Math.round(((y - fp.top) / (fp.h - 1)) * (dims.h - 1)));
+    rowBase[y] = ly * dims.w;
+  }
+  return { base, fp, ld, lw: dims.w, lh: dims.h, fcol, rowBase };
 }
 
 /**
  * Paint the prepared vial to `canvas` at rotation `rot` (label-u offset; 0 = default front).
- * Pixels whose wrap falls outside the label show the bare vial (turning reveals the sides).
+ * With `wrap` the label tiles around the cylinder (its two ends meet at a back seam) so a full
+ * revolution reads continuously; without it the wrap clamps at the label edges (drag preview).
  */
-export function composeVial(canvas, prepared, rot = 0) {
-  const { base, fp, ld, lw, lh } = prepared;
+export function composeVial(canvas, prepared, rot = 0, opts = {}) {
+  const wrap = !!opts.wrap;
+  const { base, fp, ld, lw, lh, fcol, rowBase } = prepared;
   const { W, H, data: src } = base;
   const out = new Uint8ClampedArray(src); // copy (keeps cap/glass/alpha outside the band)
-  const uc = 0.34, half = 0.33, B = 1.05, sB = Math.sin(B);
-  for (let y = fp.top; y <= fp.bot; y++) for (let x = fp.left; x <= fp.right; x++) {
-    if (!fp.mask[y * W + x]) continue;
-    const vi = (y * W + x) * 4;
-    const uo = (x - fp.left) / (fp.w - 1);
-    const f = Math.asin(Math.max(-1, Math.min(1, (2 * uo - 1) * sB))) / B;
-    const uSrc = Math.max(0, Math.min(1, uc + rot + half * f));
-    const lx = Math.round(uSrc * (lw - 1));
-    const ly = Math.min(lh - 1, Math.round(((y - fp.top) / (fp.h - 1)) * (lh - 1)));
-    const li = (ly * lw + lx) * 4;
-    const shade = 1; // gentle cylinder curvature only
-    out[vi] = clamp(ld[li] * shade);
-    out[vi + 1] = clamp(ld[li + 1] * shade);
-    out[vi + 2] = clamp(ld[li + 2] * shade);
+  const lwm = lw - 1, left = fp.left;
+  for (let y = fp.top; y <= fp.bot; y++) {
+    const rowOff = y * W, rb = rowBase[y];
+    for (let x = left; x <= fp.right; x++) {
+      if (!fp.mask[rowOff + x]) continue;
+      const vi = (rowOff + x) * 4;
+      let u = UC + rot + fcol[x - left];
+      u = wrap ? u - Math.floor(u) : (u < 0 ? 0 : u > 1 ? 1 : u);
+      const li = (rb + ((u * lwm) | 0)) * 4;
+      out[vi] = ld[li]; out[vi + 1] = ld[li + 1]; out[vi + 2] = ld[li + 2];
+    }
   }
   // Extend the label's blank bottom edge (rail + paper) down toward the powder so no empty
   // glass strip shows — but STOP as soon as the row is the powder/liquid (textured or
   // coloured), so the contents stay visible below the label.
+  const rbFill = (lh - 1) * lw;
   for (let y = fp.bot + 1; y <= fp.fill; y++) {
     const lo = fp.rowLo[y], hi = fp.rowHi[y];
     if (lo < 0) continue;
@@ -170,17 +196,12 @@ export function composeVial(canvas, prepared, rot = 0) {
     }
     const std = Math.sqrt(Math.max(0, sq / n - (sum / n) * (sum / n)));
     if (std > 17 || csum / n > 26) break; // granular powder (texture) or coloured liquid → stop
-    for (let x = Math.max(fp.left, lo); x <= Math.min(fp.right, hi); x++) {
+    for (let x = Math.max(left, lo); x <= Math.min(fp.right, hi); x++) {
       const vi = (y * W + x) * 4;
-      const uo = (x - fp.left) / (fp.w - 1);
-      const f = Math.asin(Math.max(-1, Math.min(1, (2 * uo - 1) * sB))) / B;
-      const uSrc = Math.max(0, Math.min(1, uc + rot + half * f));
-      const lx = Math.round(uSrc * (lw - 1));
-      const li = ((lh - 1) * lw + lx) * 4;
-      const shade = 1;
-      out[vi] = clamp(ld[li] * shade);
-      out[vi + 1] = clamp(ld[li + 1] * shade);
-      out[vi + 2] = clamp(ld[li + 2] * shade);
+      let u = UC + rot + fcol[x - left];
+      u = wrap ? u - Math.floor(u) : (u < 0 ? 0 : u > 1 ? 1 : u);
+      const li = (rbFill + ((u * lwm) | 0)) * 4;
+      out[vi] = ld[li]; out[vi + 1] = ld[li + 1]; out[vi + 2] = ld[li + 2];
     }
   }
   canvas.width = W; canvas.height = H;
@@ -194,61 +215,90 @@ export async function drawSilverLabelVial(canvas, { svg, vialMl, baseSrc, rot = 
   return composeVial(canvas, prepared, rot);
 }
 
-/**
- * Compose the vial onto the black-marble studio scene (charcoal wall + light beams + polished
- * floor) with a soft reflection and contact shadow — the "product photo on marble" look. The
- * vial base is planted on the floor line; 10 mL vials are drawn taller than 3 mL so the size
- * difference reads true. Output is an opaque scene canvas sized to `sceneSrc`.
- */
-export async function drawVialScene(canvas, { svg, vialMl, baseSrc, sceneSrc, rot = 0 }) {
-  const ml = Number(vialMl) >= 8 ? 10 : 3;
-  const prepared = await prepareVialCompositor({ svg, vialMl: ml, baseSrc });
-
-  // 1) Render the vial on a transparent surround, then tightly crop it.
-  const off = document.createElement("canvas");
-  composeVial(off, prepared, rot);
-  const W0 = off.width, H0 = off.height;
-  const od = off.getContext("2d").getImageData(0, 0, W0, H0).data;
-  let minX = W0, minY = H0, maxX = 0, maxY = 0;
-  for (let y = 0; y < H0; y++) for (let x = 0; x < W0; x++) {
-    if (od[(y * W0 + x) * 4 + 3] > 24) {
+// Tight alpha bbox of a composed vial (the glass silhouette is constant across rotations).
+function alphaBBox(canvas) {
+  const W = canvas.width, H = canvas.height;
+  const d = canvas.getContext("2d").getImageData(0, 0, W, H).data;
+  let minX = W, minY = H, maxX = 0, maxY = 0;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    if (d[(y * W + x) * 4 + 3] > 24) {
       if (x < minX) minX = x; if (x > maxX) maxX = x;
       if (y < minY) minY = y; if (y > maxY) maxY = y;
     }
   }
-  const vw = Math.max(1, maxX - minX + 1), vh = Math.max(1, maxY - minY + 1);
-  const crop = document.createElement("canvas");
-  crop.width = vw; crop.height = vh;
-  crop.getContext("2d").drawImage(off, minX, minY, vw, vh, 0, 0, vw, vh);
+  return { minX, minY, w: Math.max(1, maxX - minX + 1), h: Math.max(1, maxY - minY + 1) };
+}
 
-  // 2) Draw the marble scene as the ground.
+/**
+ * Prepare everything needed to paint the vial on the black-marble scene repeatedly (spin):
+ * the compositor, a pre-baked background (scene + contact shadow at the output size), the
+ * constant vial crop bbox, placement, and reusable offscreen canvases so frames allocate
+ * nothing. Pass a small `ss` (base res) + `maxOut` (output cap in px) for a smooth live spin,
+ * or the defaults (BASE_SS, native scene size) for the crisp still. `paintVialScene` paints.
+ */
+export async function prepareVialScene({ svg, vialMl, baseSrc, sceneSrc, ss = BASE_SS, maxOut = 0 }) {
+  const ml = Number(vialMl) >= 8 ? 10 : 3;
+  const prepared = await prepareVialCompositor({ svg, vialMl: ml, baseSrc, ss });
   const scene = await loadImage(sceneSrc);
-  const W = scene.naturalWidth, H = scene.naturalHeight;
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(scene, 0, 0, W, H);
+  const off = document.createElement("canvas");
+  composeVial(off, prepared, 0, { wrap: true });
+  const bbox = alphaBBox(off);
 
-  // 3) Place the vial: base on the floor line, sized by volume.
+  // Output size (cap for live spin; native for the crisp still).
+  const sw = scene.naturalWidth, sh = scene.naturalHeight;
+  const scl = maxOut ? Math.min(1, maxOut / Math.max(sw, sh)) : 1;
+  const W = Math.max(1, Math.round(sw * scl)), H = Math.max(1, Math.round(sh * scl));
+
+  // Placement (constant across rotations).
   const floorY = Math.round(H * 0.80);
   const targetH = Math.round(H * (ml === 10 ? 0.73 : 0.66));
-  const s = targetH / vh;
-  const dw = Math.round(vw * s), dh = targetH;
-  const cx = Math.round(W / 2), dx = Math.round(cx - dw / 2);
-  const topY = floorY - dh;
+  const s = targetH / bbox.h;
+  const dw = Math.round(bbox.w * s), dh = targetH;
+  const cx = Math.round(W / 2), dx = Math.round(cx - dw / 2), topY = floorY - dh;
 
-  // 4) Contact shadow under the base.
-  ctx.save();
-  ctx.filter = `blur(${Math.max(2, Math.round(dw * 0.05))}px)`;
-  ctx.fillStyle = "rgba(0,0,0,0.55)";
-  ctx.beginPath();
-  ctx.ellipse(cx, floorY, dw * 0.42, dh * 0.05, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
+  // Pre-bake the static ground: scene + contact shadow (vial + reflection are drawn per frame).
+  const bg = document.createElement("canvas");
+  bg.width = W; bg.height = H;
+  const bctx = bg.getContext("2d");
+  bctx.imageSmoothingQuality = "high";
+  bctx.drawImage(scene, 0, 0, W, H);
+  bctx.save();
+  bctx.filter = `blur(${Math.max(2, Math.round(dw * 0.05))}px)`;
+  bctx.fillStyle = "rgba(0,0,0,0.55)";
+  bctx.beginPath();
+  bctx.ellipse(cx, floorY, dw * 0.42, dh * 0.05, 0, 0, Math.PI * 2);
+  bctx.fill();
+  bctx.restore();
 
-  // 5) Reflection: flipped, faded copy on the polished floor.
-  const rc = document.createElement("canvas");
-  rc.width = dw; rc.height = dh;
-  const rctx = rc.getContext("2d");
+  // Reusable offscreen canvases (crop = tight vial, refl = flipped faded copy).
+  const crop = document.createElement("canvas");
+  crop.width = dw; crop.height = dh;
+  const refl = document.createElement("canvas");
+  refl.width = dw; refl.height = dh;
+
+  return { prepared, off, bbox, bg, crop, refl, place: { W, H, dw, dh, dx, topY, floorY } };
+}
+
+/**
+ * Paint one scene frame at rotation `rot`. Reuses the pre-baked background + crop bbox +
+ * offscreen canvases from `prepareVialScene`, so a frame is one composite + a few drawImages
+ * with no per-frame allocation — fast enough to animate a live spin.
+ */
+export function paintVialScene(canvas, state, rot = 0, opts = {}) {
+  const wrap = opts.wrap !== undefined ? opts.wrap : true;
+  const { prepared, off, bbox, bg, crop, refl, place } = state;
+  const { W, H, dw, dh, dx, topY, floorY } = place;
+  composeVial(off, prepared, rot, { wrap });
+
+  // Crop the vial tightly (constant silhouette) into the reusable crop canvas, scaled to dw×dh.
+  const cctx = crop.getContext("2d");
+  cctx.clearRect(0, 0, dw, dh);
+  cctx.drawImage(off, bbox.minX, bbox.minY, bbox.w, bbox.h, 0, 0, dw, dh);
+
+  // Reflection: flipped, faded copy on the polished floor.
+  const rctx = refl.getContext("2d");
+  rctx.setTransform(1, 0, 0, 1, 0, 0);
+  rctx.clearRect(0, 0, dw, dh);
   rctx.translate(0, dh);
   rctx.scale(1, -1);
   rctx.drawImage(crop, 0, 0, dw, dh);
@@ -259,12 +309,28 @@ export async function drawVialScene(canvas, { svg, vialMl, baseSrc, sceneSrc, ro
   g.addColorStop(0.45, "rgba(0,0,0,0)");
   rctx.fillStyle = g;
   rctx.fillRect(0, 0, dw, dh);
+  rctx.globalCompositeOperation = "source-over";
+
+  // Composite: ground → reflection → vial.
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(bg, 0, 0);
   ctx.save();
   ctx.globalAlpha = 0.55;
-  ctx.drawImage(rc, dx, floorY);
+  ctx.drawImage(refl, dx, floorY);
   ctx.restore();
-
-  // 6) The vial itself.
   ctx.drawImage(crop, dx, topY, dw, dh);
   return true;
+}
+
+/**
+ * Compose the vial onto the black-marble studio scene (charcoal wall + light beams + polished
+ * floor) with a soft reflection and contact shadow — the "product photo on marble" look. The
+ * vial base is planted on the floor line; 10 mL vials are drawn taller than 3 mL so the size
+ * difference reads true. Output is an opaque scene canvas sized to `sceneSrc`.
+ */
+export async function drawVialScene(canvas, { svg, vialMl, baseSrc, sceneSrc, rot = 0 }) {
+  const state = await prepareVialScene({ svg, vialMl, baseSrc, sceneSrc });
+  return paintVialScene(canvas, state, rot, { wrap: rot !== 0 });
 }
