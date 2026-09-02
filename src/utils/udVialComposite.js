@@ -9,10 +9,11 @@
  */
 import { silverLabelDims } from "./udSilverLabel";
 
-// Label footprint band on the (consistent) vial silhouette, as fractions of its height.
+// Label footprint band on the (consistent) vial silhouette, as fractions of its height —
+// sized to fully cover the vial's printed white label patch so no blank strip peeks out.
 const BAND = {
-  3: { top: 0.434, bot: 0.820 },
-  10: { top: 0.385, bot: 0.790 },
+  3: { top: 0.432, bot: 0.845 },
+  10: { top: 0.383, bot: 0.812 },
 };
 
 const BASE = {
