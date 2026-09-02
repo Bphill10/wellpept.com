@@ -272,6 +272,70 @@ function buildBaseGlass(base, green, liquid) {
   return out;
 }
 
+/**
+ * A lightly FROSTED version of the reconstructed glass, shown in the bare-glass gap as the vial
+ * turns (the spot where the wrapped label's two ends don't meet). Real etched/frosted glass
+ * scatters light: the sharp vertical highlights diffuse sideways and the whole panel takes on a
+ * cool, milky, low-contrast cast. We horizontally blur the glass (the scatter) then blend a cool
+ * frost tint over it with the contrast gently compressed. Kept subtle — "frost it a little".
+ */
+function buildFrostGlass(baseGlass, base, green) {
+  const { W } = base;
+  const { rowLo, rowHi, top, bot } = green;
+  const { H } = base;
+  const out = new Uint8ClampedArray(baseGlass);
+  // 1) Horizontal diffuse — softens the per-column glass highlights so they read as scattered
+  // (etched glass), not brushed metal.
+  const R = Math.max(3, Math.round(W * 0.03));
+  let tmp = new Uint8ClampedArray(baseGlass);
+  for (let y = top; y <= bot; y++) {
+    const lo = rowLo[y]; if (lo < 0) continue;
+    const hi = rowHi[y];
+    for (let x = lo; x <= hi; x++) {
+      let sr = 0, sg = 0, sb = 0, n = 0;
+      for (let dx = -R; dx <= R; dx++) {
+        const xx = x + dx; if (xx < lo || xx > hi) continue;
+        const j = (y * W + xx) * 4; sr += tmp[j]; sg += tmp[j + 1]; sb += tmp[j + 2]; n++;
+      }
+      const di = (y * W + x) * 4; out[di] = (sr / n) | 0; out[di + 1] = (sg / n) | 0; out[di + 2] = (sb / n) | 0;
+    }
+  }
+  // 1b) Vertical diffuse — erase the horizontal tiling bands left by the glass reconstruction so
+  // the frost is smooth and uniform, not striped.
+  const Rv = Math.max(3, Math.round(H * 0.02));
+  tmp = new Uint8ClampedArray(out);
+  for (let y = top; y <= bot; y++) {
+    const lo = rowLo[y]; if (lo < 0) continue;
+    const hi = rowHi[y];
+    for (let x = lo; x <= hi; x++) {
+      let sr = 0, sg = 0, sb = 0, n = 0;
+      for (let dy = -Rv; dy <= Rv; dy++) {
+        const yy = y + dy; if (yy < top || yy > bot) continue;
+        const l2 = rowLo[yy]; if (l2 < 0 || x < l2 || x > rowHi[yy]) continue;
+        const j = (yy * W + x) * 4; sr += tmp[j]; sg += tmp[j + 1]; sb += tmp[j + 2]; n++;
+      }
+      if (n) { const di = (y * W + x) * 4; out[di] = (sr / n) | 0; out[di + 1] = (sg / n) | 0; out[di + 2] = (sb / n) | 0; }
+    }
+  }
+  // 2) Milky veil — cool frost tint, blended in, with contrast compressed around a bright pivot
+  // so the panel lifts to a soft translucent white (etched glass catching the key light).
+  const TINT = [233, 237, 244], MIX = 0.52, PIVOT = 182, COMPRESS = 0.5;
+  for (let y = top; y <= bot; y++) {
+    const lo = rowLo[y]; if (lo < 0) continue;
+    const hi = rowHi[y];
+    for (let x = lo; x <= hi; x++) {
+      const i = (y * W + x) * 4;
+      const r = out[i], g = out[i + 1], b = out[i + 2];
+      const L = 0.299 * r + 0.587 * g + 0.114 * b;
+      const s = (PIVOT + (L - PIVOT) * COMPRESS) / PIVOT; // contrast-compressed luma scale
+      out[i] = clamp(r + (TINT[0] * s - r) * MIX);
+      out[i + 1] = clamp(g + (TINT[1] * s - g) * MIX);
+      out[i + 2] = clamp(b + (TINT[2] * s - b) * MIX);
+    }
+  }
+  return out;
+}
+
 // Clean cool paper white shown as the label's reverse through the glass (stock colour later).
 const PAPER_BACK = [246, 249, 253];
 
@@ -469,7 +533,9 @@ function composeGreen(canvas, prepared, rot, wrap) {
   // Bare-glass gap for the spin: the label wraps most of the way, and where it doesn't we show
   // the vial's own reconstructed glass (screen-fixed, so its highlights stay put).
   if (wrap && !prepared.baseGlass) prepared.baseGlass = buildBaseGlass(base, green, prepared.liquid);
+  if (wrap && !prepared.frostGlass) prepared.frostGlass = buildFrostGlass(prepared.baseGlass, base, green);
   const baseGlass = prepared.baseGlass;
+  const frostGlass = prepared.frostGlass;
   const T = 1 + GAP_UNITS;
   const rr = wrap ? rot * T : rot; // one component revolution (rot 0→1) spans the whole strip
   // Start from the base with the label's pale reverse already lit into the clear glass above.
@@ -493,8 +559,15 @@ function composeGreen(canvas, prepared, rot, wrap) {
       let u = UC + rr + ASIN_LUT[(uo * LN) | 0];
       if (wrap) {
         u -= Math.floor(u / T) * T; // wrap around the full strip (label + gap)
-        if (u >= 1) { // in the bare-glass gap — show the vial's own glass, not the label
-          out[i] = baseGlass[i]; out[i + 1] = baseGlass[i + 1]; out[i + 2] = baseGlass[i + 2];
+        if (u >= 1) { // in the bare-glass gap — show the vial's own glass, lightly frosted
+          // Feather the frost so it meets the label ends through a thin clear border (reads as an
+          // etched panel), strongest across the middle of the gap.
+          const gp = (u - 1) / GAP_UNITS;            // 0..1 across the gap
+          let f = (gp < 0.5 ? gp : 1 - gp) / 0.22;   // ramp over the outer ~22% on each side
+          f = f < 0 ? 0 : f > 1 ? 1 : f;
+          out[i] = baseGlass[i] + (frostGlass[i] - baseGlass[i]) * f;
+          out[i + 1] = baseGlass[i + 1] + (frostGlass[i + 1] - baseGlass[i + 1]) * f;
+          out[i + 2] = baseGlass[i + 2] + (frostGlass[i + 2] - baseGlass[i + 2]) * f;
           continue;
         }
       } else {
