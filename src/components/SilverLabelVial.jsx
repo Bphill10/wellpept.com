@@ -19,6 +19,7 @@ export default function SilverLabelVial({
   doseUnits = "",
   brandName = "UNDISCLOSED",
   brandImage = "",
+  qrPayload = "",
   vialMl = 3,
   className = "",
 }) {
@@ -32,7 +33,7 @@ export default function SilverLabelVial({
     const ml = Number(vialMl) >= 8 ? 10 : 3;
     const { svg } = labelSVGFromFields({
       name, mass, unit, labelType, formText, storageTemp,
-      diluent, concentration, doseValue, doseUnits, brandName, brandImage, vialMl: ml,
+      diluent, concentration, doseValue, doseUnits, brandName, brandImage, qrPayload, vialMl: ml,
     });
     const baseSrc = silverVialBaseSrc(name, ml);
     drawSilverLabelVial(canvas, { svg, vialMl: ml, baseSrc })
@@ -41,7 +42,7 @@ export default function SilverLabelVial({
     return () => { cancelled = true; };
   }, [
     name, mass, unit, labelType, formText, storageTemp,
-    diluent, concentration, doseValue, doseUnits, brandName, brandImage, vialMl,
+    diluent, concentration, doseValue, doseUnits, brandName, brandImage, qrPayload, vialMl,
   ]);
 
   return (

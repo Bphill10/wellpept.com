@@ -6376,6 +6376,54 @@ body:has(.app-shell--undisclosed)::before {
   font-size: 0.72rem;
 }
 
+/* COA / website link → QR */
+.calc-coa {
+  margin: 0.5rem 0 0.15rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+}
+
+.calc-coa-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.calc-coa-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.calc-coa-input {
+  flex: 1 1 12rem;
+  min-width: 9rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.calc-coa-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.calc-coa .meta {
+  display: block;
+  margin: 0.5rem 0 0;
+  font-size: 0.72rem;
+}
+
 .calc-label-panel .calc-label-stage {
   flex: 1;
   width: 100%;

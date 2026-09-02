@@ -36,6 +36,8 @@ export default function LabelTemplate({
   /** Custom private-label overrides. */
   brandName = "UNDISCLOSED",
   brandImage = "",
+  /** COA / website link the QR encodes. */
+  qrPayload = "",
   showDownload = true,
   className = "",
   /** Layout + brand chrome only — no peptide fields filled. */
@@ -61,11 +63,12 @@ export default function LabelTemplate({
       doseUnits: blank ? "" : doseUnits,
       brandName: brandName || "UNDISCLOSED",
       brandImage: brandImage || undefined,
+      qrPayload: qrPayload || undefined,
     });
   }, [
     blank, name, mass, unit, type, dims.w, dims.h,
     formText, storageTemp, bacWater, concentration, doseRange, doseUnits,
-    brandName, brandImage,
+    brandName, brandImage, qrPayload,
   ]);
 
   const imgSrc = useMemo(() => svgToImageSrc(svg), [svg]);

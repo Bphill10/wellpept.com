@@ -290,6 +290,9 @@ export default function PeptideCalculator({
   const [customBrand, setCustomBrand] = useState(false);
   const [brandNameInput, setBrandNameInput] = useState("");
   const [brandLogo, setBrandLogo] = useState("");
+  // COA / website link the label QR points to.
+  const [coaLink, setCoaLink] = useState("");
+  const [coaFileName, setCoaFileName] = useState("");
 
   function onBrandLogoFile(e) {
     const file = e.target.files && e.target.files[0];
@@ -302,6 +305,19 @@ export default function PeptideCalculator({
   const activeBrandName =
     customBrand && brandNameInput.trim() ? brandNameInput.trim() : "UNDISCLOSED";
   const activeBrandImage = customBrand && brandLogo ? brandLogo : "";
+
+  // Normalize the COA / website link (add https:// if the scheme is missing) for the QR.
+  const qrLink = (() => {
+    const v = coaLink.trim();
+    if (!v) return "";
+    return /^https?:\/\//i.test(v) ? v : `https://${v}`;
+  })();
+
+  function onCoaFile(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setCoaFileName(file.name);
+  }
 
   function onPeptideChange(id) {
     if (id === CUSTOM_ID) {
@@ -790,8 +806,38 @@ export default function PeptideCalculator({
                   </div>
                 )}
               </div>
+              <div className="calc-coa">
+                <label className="calc-coa-label" htmlFor="calc-coa-url">
+                  COA / website link — the label QR opens this
+                </label>
+                <div className="calc-coa-fields">
+                  <input
+                    id="calc-coa-url"
+                    type="url"
+                    className="calc-coa-input"
+                    placeholder="https://your-coa-or-site.com"
+                    value={coaLink}
+                    onChange={(e) => setCoaLink(e.target.value)}
+                  />
+                  <label className="calc-coa-file soft-btn">
+                    <Upload size={14} /> {coaFileName ? "COA selected" : "Choose COA file"}
+                    <input
+                      type="file"
+                      accept="application/pdf,image/*"
+                      onChange={onCoaFile}
+                      hidden
+                    />
+                  </label>
+                </div>
+                <span className="meta">
+                  {coaFileName
+                    ? `“${coaFileName}” selected — upload it to your host and paste its link above so the QR can open it.`
+                    : "Paste any link (a COA PDF, a product page, your site). Leave blank and the QR points to wellpept.com."}
+                </span>
+              </div>
               <div className="calc-vial-stage">
                 <SilverLabelVial
+                  qrPayload={qrLink}
                   name={name || selectedPeptide?.name || "Peptide"}
                   mass={mass}
                   unit={vialUnit || "mg"}
@@ -828,6 +874,7 @@ export default function PeptideCalculator({
                   storageTemp="36–46°F"
                   brandName={activeBrandName}
                   brandImage={activeBrandImage}
+                  qrPayload={qrLink}
                   showDownload
                 />
               </div>

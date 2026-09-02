@@ -10,7 +10,11 @@
  * Custom private-label: pass `brandName` + `brandImage` to replace UNDISCLOSED and the
  * UD mark with a customer's own name and logo. Everything else stays identical.
  */
+import QRCode from "qrcode";
 import { UD_MARK_DATA_URI } from "./udBrandMarkDataUri";
+
+/** Default QR target when no COA / link is provided. */
+export const DEFAULT_QR_URL = "https://www.wellpept.com";
 
 // accent presets: line=hairlines/dividers/brackets, mark=elements on the black band,
 // bar=dose bar, barText=dose text, head=small headers/top line
@@ -32,19 +36,27 @@ function esc(s) {
   return String(s == null ? "" : s).replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]));
 }
 
-// Deterministic placeholder QR pattern (finder squares + pseudo-random cells). Real COA
-// codes get wired in later; this keeps the approved look.
-function qr(x, y, size, seed) {
-  const n = 21, c = size / n; let s = "", r = seed || 7;
-  const rnd = () => (r = (r * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
-  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
-    const finder = (i < 7 && j < 7) || (i < 7 && j > n - 8) || (i > n - 8 && j < 7);
-    const on = finder
-      ? (i === 0 || i === 6 || j === 0 || j === 6 || (i > 1 && i < 5 && j > 1 && j < 5)) ? 1 : 0
-      : rnd() > 0.5 ? 1 : 0;
-    if (on) s += `<rect x="${(x + j * c).toFixed(1)}" y="${(y + i * c).toFixed(1)}" width="${c.toFixed(1)}" height="${c.toFixed(1)}" fill="#111"/>`;
+// Real, scannable QR encoding the COA / link payload. Falls back to a placeholder pattern
+// only if encoding fails, so the label always renders.
+function qr(x, y, size, payload) {
+  try {
+    const m = QRCode.create(String(payload || DEFAULT_QR_URL), { errorCorrectionLevel: "M" }).modules;
+    const n = m.size, c = size / n;
+    let s = "";
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+      if (m.get(i, j)) s += `<rect x="${(x + j * c).toFixed(2)}" y="${(y + i * c).toFixed(2)}" width="${(c + 0.4).toFixed(2)}" height="${(c + 0.4).toFixed(2)}" fill="#111"/>`;
+    }
+    return s;
+  } catch {
+    const n = 21, c = size / n; let s = "", r = 7;
+    const rnd = () => (r = (r * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+      const finder = (i < 7 && j < 7) || (i < 7 && j > n - 8) || (i > n - 8 && j < 7);
+      const on = finder ? ((i === 0 || i === 6 || j === 0 || j === 6 || (i > 1 && i < 5 && j > 1 && j < 5)) ? 1 : 0) : (rnd() > 0.5 ? 1 : 0);
+      if (on) s += `<rect x="${(x + j * c).toFixed(1)}" y="${(y + i * c).toFixed(1)}" width="${c.toFixed(1)}" height="${c.toFixed(1)}" fill="#111"/>`;
+    }
+    return s;
   }
-  return s;
 }
 
 /**
@@ -68,7 +80,7 @@ export function buildSilverLabelSVG(o = {}) {
   const {
     name = "PEPTIDE", mg = "", type = "catalog", accent = "silver", w, h,
     line1 = "", line2 = "", diluent = "", concentration = "", doseValue = "", doseUnits = "",
-    brandName = "UNDISCLOSED", brandImage = UD_MARK_DATA_URI,
+    brandName = "UNDISCLOSED", brandImage = UD_MARK_DATA_URI, qrPayload = DEFAULT_QR_URL,
   } = o;
   const A = LABEL_ACCENTS[accent] || LABEL_ACCENTS.silver;
   const BN = String(brandName || "UNDISCLOSED").toUpperCase();
@@ -125,7 +137,7 @@ export function buildSilverLabelSVG(o = {}) {
   <rect x="${barX}" y="${h * 0.655}" width="${barW}" height="2" fill="${A.line}"/>
   ${bottom}
   <rect x="${divX}" y="${h * 0.10}" width="2" height="${h * 0.80}" fill="${A.line}"/>
-  ${qr(qx, qy, qs, (NM.charCodeAt(0) || 7) * 7 + 3)}
+  ${qr(qx, qy, qs, qrPayload)}
   <path d="M${qx - 12} ${qy - 12 + br} V${qy - 12} H${qx - 12 + br}" stroke="${A.line}" stroke-width="${t}" fill="none"/>
   <path d="M${qx + qs + 12 - br} ${qy - 12} H${qx + qs + 12} V${qy - 12 + br}" stroke="${A.line}" stroke-width="${t}" fill="none"/>
   <path d="M${qx - 12} ${qy + qs + 12 - br} V${qy + qs + 12} H${qx - 12 + br}" stroke="${A.line}" stroke-width="${t}" fill="none"/>
@@ -146,6 +158,7 @@ export function labelSVGFromFields(fields = {}) {
     formText = "LYOPHILIZED POWDER", storageTemp = "36–46°F",
     diluent = "", concentration = "", doseValue = "", doseUnits = "",
     brandName = "UNDISCLOSED", brandImage = "", vialMl = 3, blank = false,
+    qrPayload = DEFAULT_QR_URL,
   } = fields;
   const dims = silverLabelDims(vialMl);
   const type = String(labelType || "CALCULATOR").toUpperCase() === "CATALOG" ? "catalog" : "calculator";
@@ -165,6 +178,7 @@ export function labelSVGFromFields(fields = {}) {
     doseUnits: blank ? "" : doseUnits,
     brandName: brandName || "UNDISCLOSED",
     brandImage: brandImage || undefined,
+    qrPayload: qrPayload || DEFAULT_QR_URL,
   });
   return { svg, dims, type };
 }
