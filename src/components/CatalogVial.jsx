@@ -199,38 +199,10 @@ export default function CatalogVial({
     }
   };
 
-  // Touch devices have no hover — auto-spin the vial while it sits near the centre of the
-  // viewport (one at a time as you scroll), so the rotation is visible on phones too. Fine
-  // pointers use hover instead; reduced-motion opts out.
-  useEffect(() => {
-    if (!visible || !ready) return undefined;
-    if (typeof window === "undefined" || typeof IntersectionObserver === "undefined") return undefined;
-    const mm = window.matchMedia;
-    if (mm?.("(prefers-reduced-motion: reduce)")?.matches) return undefined;
-    if (mm?.("(pointer: fine)")?.matches) return undefined; // desktop uses hover
-    const canvas = canvasRef.current;
-    if (!canvas) return undefined;
-    const io = new IntersectionObserver(
-      (entries) => {
-        const centered = entries.some((e) => e.isIntersecting);
-        if (centered) {
-          ensureSceneState().then((st) => {
-            if (!st || modeRef.current === "spin") return;
-            lastTsRef.current = 0;
-            modeRef.current = "spin";
-            cancelAnimationFrame(rafRef.current);
-            rafRef.current = requestAnimationFrame(step);
-          });
-        } else if (modeRef.current === "spin") {
-          modeRef.current = "return";
-        }
-      },
-      { rootMargin: "-42% 0px -42% 0px", threshold: 0.01 }
-    );
-    io.observe(canvas);
-    return () => io.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, ready]);
+  // Catalog vials stay STILL on phones. A scroll-triggered auto-spin used to turn each vial as
+  // it passed the centre of the screen and unwind it on the way out, which read as the images
+  // "going in and out" while scrolling — distracting. Rotation is still available via hover on
+  // desktop, and the channel-change hero on the landing carries the motion.
 
   // Stop everything on unmount.
   useEffect(() => () => {
