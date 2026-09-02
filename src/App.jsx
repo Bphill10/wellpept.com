@@ -180,11 +180,11 @@ import {
 // the showcase animation isn't restarted on every App render.
 const UD_SHOWCASE_CHANNELS = [
   { name: "KLOW", mass: "80", unit: "mg", vialMl: 3, formText: "LYOPHILIZED POWDER" },
-  { name: "Vitamin B12", mass: "5", unit: "mg", vialMl: 10, formText: "LIQUID" },
   { name: "Retatrutide", mass: "10", unit: "mg", vialMl: 3, formText: "LYOPHILIZED POWDER" },
   { name: "GHK-Cu", mass: "50", unit: "mg", vialMl: 3, formText: "LYOPHILIZED POWDER" },
   { name: "NAD+", mass: "500", unit: "mg", vialMl: 10, formText: "LYOPHILIZED POWDER" },
   { name: "Semaglutide", mass: "10", unit: "mg", vialMl: 3, formText: "LYOPHILIZED POWDER" },
+  { name: "Tesamorelin", mass: "10", unit: "mg", vialMl: 10, formText: "LYOPHILIZED POWDER" },
 ];
 
 const VIEWS = {
@@ -2073,7 +2073,7 @@ export default function App() {
                   <span className="ud-showcase-kicker">Undisclosed catalog</span>
                   <h2 className="ud-showcase-title">Change the channel.</h2>
                   <p className="ud-showcase-text">
-                    Every compound, one dial away — KLOW, B12, Retatrutide, GHK-Cu and more.
+                    Every compound, one dial away — and a different colour each turn.
                     Silver label, sealed glass, QR-verified from every side. Watch the catalog
                     tune in.
                   </p>
