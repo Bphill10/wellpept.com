@@ -92,6 +92,14 @@ function esc(s) {
   return String(s == null ? "" : s).replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]));
 }
 
+// Perceived luminance (0–255) of a #rrggbb colour — used to pick contrasting dose-bar text.
+function hexLum(hex) {
+  const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(String(hex || ""));
+  if (!m) return 200;
+  const r = parseInt(m[1], 16), g = parseInt(m[2], 16), b = parseInt(m[3], 16);
+  return 0.299 * r + 0.587 * g + 0.114 * b;
+}
+
 // Real, scannable QR encoding the COA / link payload. Falls back to a placeholder pattern
 // only if encoding fails, so the label always renders.
 function qr(x, y, size, payload) {
@@ -137,8 +145,14 @@ export function buildSilverLabelSVG(o = {}) {
     name = "PEPTIDE", mg = "", type = "catalog", accent = "silver", w, h,
     line1 = "", line2 = "", diluent = "", concentration = "", doseValue = "", doseUnits = "",
     brandName = "UNDISCLOSED", brandImage = UD_MARK_DATA_URI, qrPayload = DEFAULT_QR_URL,
+    accentColor = "",
   } = o;
-  const A = LABEL_ACCENTS[accent] || LABEL_ACCENTS.silver;
+  // A single custom accent colour (used by the landing showcase to colour-code the label to
+  // match a coloured crimp cap): tints the dividers, brand mark, dose bar and small headers,
+  // with the dose text flipped to white/ink for contrast. Everything else stays as designed.
+  const A = accentColor
+    ? { line: accentColor, mark: accentColor, bar: accentColor, barText: hexLum(accentColor) < 150 ? "#ffffff" : "#141414", head: accentColor }
+    : LABEL_ACCENTS[accent] || LABEL_ACCENTS.silver;
   const BN = String(brandName || "UNDISCLOSED").toUpperCase();
   const NM = String(shortLabelName(name) || "PEPTIDE").toUpperCase();
   // Typefaces: Playfair Display (serif) for the product name + vertical brand — the luxury
@@ -224,7 +238,7 @@ export function labelSVGFromFields(fields = {}) {
     formText = "LYOPHILIZED POWDER", storageTemp = "36–46°F",
     diluent = "", concentration = "", doseValue = "", doseUnits = "",
     brandName = "UNDISCLOSED", brandImage = "", vialMl = 3, blank = false,
-    qrPayload = DEFAULT_QR_URL,
+    qrPayload = DEFAULT_QR_URL, accentColor = "",
   } = fields;
   const dims = silverLabelDims(vialMl);
   const type = String(labelType || "CALCULATOR").toUpperCase() === "CATALOG" ? "catalog" : "calculator";
@@ -245,6 +259,7 @@ export function labelSVGFromFields(fields = {}) {
     brandName: brandName || "UNDISCLOSED",
     brandImage: brandImage || undefined,
     qrPayload: qrPayload || DEFAULT_QR_URL,
+    accentColor,
   });
   return { svg, dims, type };
 }

@@ -332,28 +332,34 @@ function buildLabelBack(base, green, liquid, paper) {
 }
 
 /**
- * Recolour the vial's white powder to `tint` (an [r,g,b]). The powder photographs as a
- * near-neutral bright mound below the label; multiplying those pixels by the tint keeps every
- * grain of texture and every shadow while swapping the hue — white × colour = coloured powder.
- * Only bright, low-saturation pixels below the label are touched, so the glass, walls and the
- * dark crevices are left alone. Used by the landing showcase to surf random colours; the base
- * photo must be a white-powder vial for the tint to read true.
+ * Recolour the vial's metal crimp cap to `tint` (an [r,g,b]). The cap photographs as a
+ * near-neutral metallic dome at the very top of the vial; multiplying those pixels by the tint
+ * keeps every highlight and shadow of the metal while swapping the hue — grey × colour =
+ * anodised colour cap. Only the top slice of the vial is touched, and only bright-ish neutral
+ * (metal) pixels, so the glass neck, stopper and dark crevices are left alone. Pairs with a
+ * matching label accent so the cap and label read as a coordinated colour-coded set.
  */
-function tintPowder(out, base, green, tint) {
+function tintCap(out, base, tint) {
   const { W, H, data } = base;
   const tr = tint[0], tg = tint[1], tb = tint[2];
-  const y0 = Math.min(H - 1, (green.bot || green.bot0) + 2);
-  for (let y = y0; y < H; y++) {
-    let xl = W, xr = -1;
-    for (let x = 0; x < W; x++) if (data[(y * W + x) * 4 + 3] > 60) { if (x < xl) xl = x; xr = x; }
-    if (xr < xl) continue;
-    for (let x = xl; x <= xr; x++) {
+  // Vial vertical extent → the cap is the top ~22% of it.
+  let minY = H, maxY = 0;
+  for (let y = 0; y < H; y++) {
+    let any = false;
+    for (let x = 0; x < W; x++) if (data[(y * W + x) * 4 + 3] > 60) { any = true; break; }
+    if (any) { if (y < minY) minY = y; maxY = y; }
+  }
+  if (maxY <= minY) return;
+  const capBot = minY + Math.round((maxY - minY) * 0.22);
+  for (let y = minY; y <= capBot; y++) {
+    for (let x = 0; x < W; x++) {
       const i = (y * W + x) * 4;
+      if (data[i + 3] < 60) continue;
       const r = data[i], g = data[i + 1], b = data[i + 2];
       const mx = r > g ? (r > b ? r : b) : g > b ? g : b;
       const mn = r < g ? (r < b ? r : b) : g < b ? g : b;
       const L = 0.299 * r + 0.587 * g + 0.114 * b;
-      if (L < 88 || mx - mn > 54) continue; // skip dark glass + already-coloured/edge pixels
+      if (L < 42 || mx - mn > 46) continue; // skip near-black crevices + any coloured pixels
       out[i]     = (r * tr) / 255;
       out[i + 1] = (g * tg) / 255;
       out[i + 2] = (b * tb) / 255;
@@ -384,7 +390,7 @@ export const ROT_MAX = 0.62;
  * Precomputes a per-column wrap LUT (`fcol`) and per-row label-row map (`rowBase`) so the
  * compose hot loop is pure array lookups.
  */
-export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS, tint = null }) {
+export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS, capTint = null }) {
   const ml = Number(vialMl) >= 8 ? 10 : 3;
   const dims = silverLabelDims(ml);
   const base = await getBase(baseSrc, ss);
@@ -401,8 +407,8 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS
     const liquid = /_red\b|\bliquid\b/i.test(String(baseSrc));
     // Pre-bake the label's pale reverse into the clear glass above the label (screen-fixed).
     const baseBack = buildLabelBack(base, green, liquid, PAPER_BACK);
-    // Optional powder recolour (landing showcase) — multiply the white powder to the tint.
-    if (tint && !liquid) tintPowder(baseBack, base, green, tint);
+    // Optional crimp-cap recolour (landing showcase) — multiply the metal cap to the tint.
+    if (capTint) tintCap(baseBack, base, capTint);
     return { base, ld, lw: dims.w, lh: dims.h, green, liquid, baseBack };
   }
 
