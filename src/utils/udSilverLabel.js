@@ -16,6 +16,19 @@ import { UD_MARK_DATA_URI } from "./udBrandMarkDataUri";
 /** Default QR target when no COA / link is provided. */
 export const DEFAULT_QR_URL = "https://www.wellpept.com";
 
+// Short display names for long products that don't fit the label. Add more as needed.
+const NAME_SHORT = [
+  [/CJC.*(IPA|IPAMORELIN)|(IPA|IPAMORELIN).*CJC/, "CJC/IPA"],
+  [/SEMAGLUTIDE|^SEMA\b/, "SEMA"],
+];
+
+/** Map a long product name to its short label code (or return it unchanged). */
+export function shortLabelName(name) {
+  const n = String(name || "").toUpperCase();
+  for (const [re, code] of NAME_SHORT) if (re.test(n)) return code;
+  return name;
+}
+
 // accent presets: line=hairlines/dividers/brackets, mark=elements on the black band,
 // bar=dose bar, barText=dose text, head=small headers/top line
 export const LABEL_ACCENTS = {
@@ -84,7 +97,7 @@ export function buildSilverLabelSVG(o = {}) {
   } = o;
   const A = LABEL_ACCENTS[accent] || LABEL_ACCENTS.silver;
   const BN = String(brandName || "UNDISCLOSED").toUpperCase();
-  const NM = String(name || "PEPTIDE").toUpperCase();
+  const NM = String(shortLabelName(name) || "PEPTIDE").toUpperCase();
 
   const band = Math.round(w * 0.10);
   const mainL = band, mainR = w * 0.70, mainC = (mainL + mainR) / 2, mainW = mainR - mainL;

@@ -121,6 +121,7 @@ import {
   setCoaUrl,
   clearCoaUrl,
 } from "./utils/coaStore";
+import CatalogVial from "./components/CatalogVial";
 import PeptideCalculator, {
   parseCalculatorQuery,
 } from "./components/PeptideCalculator";
@@ -226,21 +227,21 @@ function VialPreview({
       </div>
     );
   }
-  const approvedSrc = approvedCatalogImage(product);
-  if (approvedSrc) {
-    return (
-      <div
-        className={`skin-bottle-preview skin-bottle-preview--${size} skin-bottle-preview--photo vial-approved-photo ${vialGlow}`}
-      >
-        <img src={approvedSrc} alt="" className="vial-approved-img" />
-      </div>
-    );
-  }
+  // Every Undisclosed product gets the live silver label wrapped on its vial.
   return (
     <div
-      className={`skin-bottle-preview skin-bottle-preview--${size} skin-bottle-preview--photo vial-approved-photo vial-approved-photo--empty ${vialGlow}`}
-      aria-hidden="true"
-    />
+      className={`skin-bottle-preview skin-bottle-preview--${size} skin-bottle-preview--photo vial-approved-photo ${vialGlow}`}
+    >
+      <CatalogVial
+        name={product?.name}
+        mg={product?.mg}
+        unit={product?.unit}
+        vialMl={product?.vialMl}
+        form={product?.form}
+        powderColor={product?.powderColor}
+        className="vial-approved-img"
+      />
+    </div>
   );
 }
 
