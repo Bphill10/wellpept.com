@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { UD_LABEL_BRAND } from "../data/udLabelAssets";
 
-const TUNE_MS = 6800;
+const TUNE_MS = 7600;
 const REVEAL_MS = 1480;
 const REDUCED_MS = 160;
 
@@ -408,6 +408,8 @@ function GlassShatter({ rootRef, finishOnce, impact }) {
       <div className="glass-impact-core" />
       <div className="glass-shockwave" />
       <div className="glass-transition-flash" />
+      <div className="glass-dive" aria-hidden="true" />
+      <div className="glass-lightburst" aria-hidden="true" />
       <svg
         className="glass-cracks"
         viewBox="0 0 100 100"
