@@ -51,17 +51,27 @@ function loadImage(src) {
   });
 }
 
+// Supersample factor for the composed vial. The base photos are ~700 px wide; compositing
+// at 2x keeps the vector label text razor-sharp on hi-DPI / large displays (the glass photo
+// is only mildly upscaled, but crisp type is what the eye reads). Bumps the output canvas to
+// ~1400x2100 — still light for a lazily-rendered grid.
+const BASE_SS = 2;
+
 // Cache decoded base vials + their pixel data (keyed by src).
 const baseCache = new Map();
 async function getBase(src) {
   if (baseCache.has(src)) return baseCache.get(src);
   const img = await loadImage(src);
+  const W = Math.round(img.naturalWidth * BASE_SS);
+  const H = Math.round(img.naturalHeight * BASE_SS);
   const c = document.createElement("canvas");
-  c.width = img.naturalWidth;
-  c.height = img.naturalHeight;
+  c.width = W;
+  c.height = H;
   const ctx = c.getContext("2d");
-  ctx.drawImage(img, 0, 0);
-  const entry = { W: c.width, H: c.height, data: ctx.getImageData(0, 0, c.width, c.height).data };
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(img, 0, 0, W, H);
+  const entry = { W, H, data: ctx.getImageData(0, 0, W, H).data };
   baseCache.set(src, entry);
   return entry;
 }
