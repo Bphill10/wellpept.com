@@ -24,8 +24,9 @@ const FADE_MS = 720;  // reduced-motion cross-dissolve
 const SPIN_MS = 11000; // one full label revolution during the hold
 const FRAME_MS = 33;   // ~30fps cap for the hold spin
 
-// Vivid powder colours the showcase surfs at random — the white powder is tinted to one of these
-// per channel (a fresh shuffle each page load), so the catalog changes colour as it changes label.
+// Accent colours the showcase surfs at random — each channel gets one (a fresh shuffle each page
+// load) applied to BOTH the crimp cap and the label accents, so the two match. The powder stays
+// its real white; only the cap + label are colour-coded.
 const SHOWCASE_PALETTE = [
   [46, 92, 230],   // royal blue
   [34, 190, 120],  // emerald
@@ -43,6 +44,8 @@ function shuffled(arr) {
   for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; }
   return a;
 }
+
+const rgbHex = ([r, g, b]) => `#${[r, g, b].map((n) => n.toString(16).padStart(2, "0")).join("")}`;
 
 /** Build red / green / blue single-channel copies of the frozen vial for the split. */
 function buildTints(gfx, buf) {
@@ -163,15 +166,15 @@ export default function ChannelVial({ channels = [], className = "" }) {
 
   const ssFor = () => (coarseRef.current ? 0.48 : 0.6);
 
-  const buildSVG = (c) => {
+  const buildSVG = (c, accentColor) => {
     const ml = Number(c.vialMl) >= 8 ? 10 : 3;
     const { svg } = labelSVGFromFields({
       name: c.name, mass: c.mass, unit: c.unit || "mg", labelType: "CATALOG",
       formText: (c.formText || "Lyophilized Powder").toUpperCase(),
-      storageTemp: "36–46°F", vialMl: ml,
+      storageTemp: "36–46°F", vialMl: ml, accentColor,
     });
-    // Always the white-powder base — the showcase recolours the powder to a random tint, so the
-    // photo's own colour must be neutral. Size (3 vs 10 mL) still follows the channel.
+    // Always the white-powder base — the powder stays its real white; only the cap and label are
+    // colour-coded. Size (3 vs 10 mL) still follows the channel.
     return { svg, ml, baseSrc: silverVialBaseSrc("", ml) };
   };
 
@@ -182,9 +185,9 @@ export default function ChannelVial({ channels = [], className = "" }) {
     const cache = prepsRef.current;
     const hit = cache.get(idx);
     if (hit) return hit.then ? hit : Promise.resolve(hit);
-    const { svg, ml, baseSrc } = buildSVG(list[idx]);
-    const tint = colorsRef.current[idx % colorsRef.current.length];
-    const promise = prepareVialCompositor({ svg, vialMl: ml, baseSrc, ss: ssFor(), tint })
+    const rgb = colorsRef.current[idx % colorsRef.current.length];
+    const { svg, ml, baseSrc } = buildSVG(list[idx], rgbHex(rgb)); // label accent matches the cap
+    const promise = prepareVialCompositor({ svg, vialMl: ml, baseSrc, ss: ssFor(), capTint: rgb })
       .then((prep) => { cache.set(idx, prep); return prep; })
       .catch(() => { cache.delete(idx); return null; });
     cache.set(idx, promise);
