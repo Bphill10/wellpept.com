@@ -180,18 +180,19 @@ export function buildSilverLabelSVG(o = {}) {
       ["CONC.", concentration || "—", ""],
       ["DOSE", doseValue || "—", doseUnits || ""],
     ];
-    const cy = h * 0.70, vy = h * 0.805, sy = h * 0.90;
+    // Sized up so diluent / conc / dose stay legible printed on a 3 mL (40×20 mm) vial.
+    const cy = h * 0.71, vy = h * 0.825, sy = h * 0.925;
     const colUsable = mainW * 0.305;
     bottom = cols.map(([head, val, sub], i) => {
       const cxc = mainL + mainW * (0.17 + 0.33 * i);
-      const vf = Math.min(h * 0.060, colUsable / (String(val).length * 0.55));
-      const uf = Math.min(h * 0.055, colUsable / (String(sub || " ").length * 0.55));
-      let s = `<text x="${cxc}" y="${cy}" fill="${A.head}" font-family="${SANS}" font-weight="800" font-size="${h * 0.048}" letter-spacing="0.5" text-anchor="middle">${esc(head)}</text>
+      const vf = Math.min(h * 0.078, colUsable / (String(val).length * 0.52));
+      const uf = Math.min(h * 0.067, colUsable / (String(sub || " ").length * 0.52));
+      let s = `<text x="${cxc}" y="${cy}" fill="${A.head}" font-family="${SANS}" font-weight="800" font-size="${h * 0.058}" letter-spacing="0.5" text-anchor="middle">${esc(head)}</text>
         <text x="${cxc}" y="${vy}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${vf}" text-anchor="middle">${esc(val)}</text>`;
-      if (sub) s += `<text x="${cxc}" y="${sy}" fill="#1a1a1a" font-family="${SANS}" font-weight="500" font-size="${uf}" text-anchor="middle">${esc(sub)}</text>`;
+      if (sub) s += `<text x="${cxc}" y="${sy}" fill="#1a1a1a" font-family="${SANS}" font-weight="600" font-size="${uf}" text-anchor="middle">${esc(sub)}</text>`;
       return s;
     }).join("") +
-      [0.335, 0.665].map((f) => `<rect x="${mainL + mainW * f}" y="${h * 0.68}" width="2" height="${h * 0.245}" fill="${A.line}"/>`).join("");
+      [0.335, 0.665].map((f) => `<rect x="${mainL + mainW * f}" y="${h * 0.665}" width="2" height="${h * 0.275}" fill="${A.line}"/>`).join("");
   } else {
     bottom = `<text x="${mainC}" y="${h * 0.755}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${h * 0.066}" letter-spacing="3" text-anchor="middle">${esc(line1)}</text>
       <text x="${mainC}" y="${h * 0.865}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${h * 0.056}" letter-spacing="2" text-anchor="middle">${esc(line2)}</text>`;
@@ -222,9 +223,9 @@ export function buildSilverLabelSVG(o = {}) {
   <path d="M${qx + qs + 12 - br} ${qy - 12} H${qx + qs + 12} V${qy - 12 + br}" stroke="${A.line}" stroke-width="${t}" fill="none"/>
   <path d="M${qx - 12} ${qy + qs + 12 - br} V${qy + qs + 12} H${qx - 12 + br}" stroke="${A.line}" stroke-width="${t}" fill="none"/>
   <path d="M${qx + qs + 12 - br} ${qy + qs + 12} H${qx + qs + 12} V${qy + qs + 12 - br}" stroke="${A.line}" stroke-width="${t}" fill="none"/>
-  <text x="${rightC}" y="${h * 0.71}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${fit("RESEARCH ONLY.", h * 0.054)}" letter-spacing="0.5" text-anchor="middle">RESEARCH ONLY.</text>
-  <text x="${rightC}" y="${h * 0.812}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${fit("NOT FOR HUMAN", h * 0.046)}" text-anchor="middle">NOT FOR HUMAN</text>
-  <text x="${rightC}" y="${h * 0.882}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${fit("NOT FOR HUMAN", h * 0.046)}" text-anchor="middle">CONSUMPTION.</text>
+  <text x="${rightC}" y="${h * 0.715}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${fit("RESEARCH ONLY.", h * 0.064, 0.52)}" letter-spacing="0.5" text-anchor="middle">RESEARCH ONLY.</text>
+  <text x="${rightC}" y="${h * 0.822}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${fit("NOT FOR HUMAN", h * 0.054, 0.52)}" text-anchor="middle">NOT FOR HUMAN</text>
+  <text x="${rightC}" y="${h * 0.898}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${fit("NOT FOR HUMAN", h * 0.054, 0.52)}" text-anchor="middle">CONSUMPTION.</text>
 </svg>`;
 }
 
