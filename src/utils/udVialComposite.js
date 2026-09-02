@@ -193,3 +193,78 @@ export async function drawSilverLabelVial(canvas, { svg, vialMl, baseSrc, rot = 
   const prepared = await prepareVialCompositor({ svg, vialMl, baseSrc });
   return composeVial(canvas, prepared, rot);
 }
+
+/**
+ * Compose the vial onto the black-marble studio scene (charcoal wall + light beams + polished
+ * floor) with a soft reflection and contact shadow — the "product photo on marble" look. The
+ * vial base is planted on the floor line; 10 mL vials are drawn taller than 3 mL so the size
+ * difference reads true. Output is an opaque scene canvas sized to `sceneSrc`.
+ */
+export async function drawVialScene(canvas, { svg, vialMl, baseSrc, sceneSrc, rot = 0 }) {
+  const ml = Number(vialMl) >= 8 ? 10 : 3;
+  const prepared = await prepareVialCompositor({ svg, vialMl: ml, baseSrc });
+
+  // 1) Render the vial on a transparent surround, then tightly crop it.
+  const off = document.createElement("canvas");
+  composeVial(off, prepared, rot);
+  const W0 = off.width, H0 = off.height;
+  const od = off.getContext("2d").getImageData(0, 0, W0, H0).data;
+  let minX = W0, minY = H0, maxX = 0, maxY = 0;
+  for (let y = 0; y < H0; y++) for (let x = 0; x < W0; x++) {
+    if (od[(y * W0 + x) * 4 + 3] > 24) {
+      if (x < minX) minX = x; if (x > maxX) maxX = x;
+      if (y < minY) minY = y; if (y > maxY) maxY = y;
+    }
+  }
+  const vw = Math.max(1, maxX - minX + 1), vh = Math.max(1, maxY - minY + 1);
+  const crop = document.createElement("canvas");
+  crop.width = vw; crop.height = vh;
+  crop.getContext("2d").drawImage(off, minX, minY, vw, vh, 0, 0, vw, vh);
+
+  // 2) Draw the marble scene as the ground.
+  const scene = await loadImage(sceneSrc);
+  const W = scene.naturalWidth, H = scene.naturalHeight;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(scene, 0, 0, W, H);
+
+  // 3) Place the vial: base on the floor line, sized by volume.
+  const floorY = Math.round(H * 0.80);
+  const targetH = Math.round(H * (ml === 10 ? 0.80 : 0.68));
+  const s = targetH / vh;
+  const dw = Math.round(vw * s), dh = targetH;
+  const cx = Math.round(W / 2), dx = Math.round(cx - dw / 2);
+  const topY = floorY - dh;
+
+  // 4) Contact shadow under the base.
+  ctx.save();
+  ctx.filter = `blur(${Math.max(2, Math.round(dw * 0.05))}px)`;
+  ctx.fillStyle = "rgba(0,0,0,0.55)";
+  ctx.beginPath();
+  ctx.ellipse(cx, floorY, dw * 0.42, dh * 0.05, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // 5) Reflection: flipped, faded copy on the polished floor.
+  const rc = document.createElement("canvas");
+  rc.width = dw; rc.height = dh;
+  const rctx = rc.getContext("2d");
+  rctx.translate(0, dh);
+  rctx.scale(1, -1);
+  rctx.drawImage(crop, 0, 0, dw, dh);
+  rctx.setTransform(1, 0, 0, 1, 0, 0);
+  rctx.globalCompositeOperation = "destination-in";
+  const g = rctx.createLinearGradient(0, 0, 0, dh);
+  g.addColorStop(0, "rgba(0,0,0,0.42)");
+  g.addColorStop(0.45, "rgba(0,0,0,0)");
+  rctx.fillStyle = g;
+  rctx.fillRect(0, 0, dw, dh);
+  ctx.save();
+  ctx.globalAlpha = 0.55;
+  ctx.drawImage(rc, dx, floorY);
+  ctx.restore();
+
+  // 6) The vial itself.
+  ctx.drawImage(crop, dx, topY, dw, dh);
+  return true;
+}
