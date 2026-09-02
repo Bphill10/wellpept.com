@@ -12,6 +12,7 @@
  */
 import QRCode from "qrcode";
 import { UD_MARK_DATA_URI } from "./udBrandMarkDataUri";
+import { UD_LABEL_FONT_FACE_CSS } from "./udLabelFontsDataUri";
 
 /** Default QR target when no COA / link is provided. */
 export const DEFAULT_QR_URL = "https://www.wellpept.com";
@@ -140,6 +141,12 @@ export function buildSilverLabelSVG(o = {}) {
   const A = LABEL_ACCENTS[accent] || LABEL_ACCENTS.silver;
   const BN = String(brandName || "UNDISCLOSED").toUpperCase();
   const NM = String(shortLabelName(name) || "PEPTIDE").toUpperCase();
+  // Typefaces: Playfair Display (serif) for the product name + vertical brand — the luxury
+  // hero — and Inter (sans) for every body / legal / dose line. Both are embedded in the SVG
+  // (see the <style> in <defs>) so they render through <img>/canvas. Real font stacks kept as
+  // fallbacks in case the embedded face ever fails to load.
+  const SERIF = "'UD Serif', Georgia, 'Times New Roman', serif";
+  const SANS = "'UD Sans', Arial, Helvetica, sans-serif";
 
   const band = Math.round(w * 0.10);
   const mainL = band, mainR = w * 0.70, mainC = (mainL + mainR) / 2, mainW = mainR - mainL;
@@ -165,19 +172,20 @@ export function buildSilverLabelSVG(o = {}) {
       const cxc = mainL + mainW * (0.17 + 0.33 * i);
       const vf = Math.min(h * 0.060, colUsable / (String(val).length * 0.55));
       const uf = Math.min(h * 0.055, colUsable / (String(sub || " ").length * 0.55));
-      let s = `<text x="${cxc}" y="${cy}" fill="${A.head}" font-family="Arial" font-weight="800" font-size="${h * 0.048}" letter-spacing="0.5" text-anchor="middle">${esc(head)}</text>
-        <text x="${cxc}" y="${vy}" fill="#0f0f0f" font-family="Arial" font-weight="800" font-size="${vf}" text-anchor="middle">${esc(val)}</text>`;
-      if (sub) s += `<text x="${cxc}" y="${sy}" fill="#1a1a1a" font-family="Arial" font-weight="500" font-size="${uf}" text-anchor="middle">${esc(sub)}</text>`;
+      let s = `<text x="${cxc}" y="${cy}" fill="${A.head}" font-family="${SANS}" font-weight="800" font-size="${h * 0.048}" letter-spacing="0.5" text-anchor="middle">${esc(head)}</text>
+        <text x="${cxc}" y="${vy}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${vf}" text-anchor="middle">${esc(val)}</text>`;
+      if (sub) s += `<text x="${cxc}" y="${sy}" fill="#1a1a1a" font-family="${SANS}" font-weight="500" font-size="${uf}" text-anchor="middle">${esc(sub)}</text>`;
       return s;
     }).join("") +
       [0.335, 0.665].map((f) => `<rect x="${mainL + mainW * f}" y="${h * 0.68}" width="2" height="${h * 0.245}" fill="${A.line}"/>`).join("");
   } else {
-    bottom = `<text x="${mainC}" y="${h * 0.755}" fill="#0f0f0f" font-family="Arial" font-weight="800" font-size="${h * 0.066}" letter-spacing="3" text-anchor="middle">${esc(line1)}</text>
-      <text x="${mainC}" y="${h * 0.865}" fill="#0f0f0f" font-family="Arial" font-weight="800" font-size="${h * 0.056}" letter-spacing="2" text-anchor="middle">${esc(line2)}</text>`;
+    bottom = `<text x="${mainC}" y="${h * 0.755}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${h * 0.066}" letter-spacing="3" text-anchor="middle">${esc(line1)}</text>
+      <text x="${mainC}" y="${h * 0.865}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${h * 0.056}" letter-spacing="2" text-anchor="middle">${esc(line2)}</text>`;
   }
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
   <defs>
+    <style>${UD_LABEL_FONT_FACE_CSS}</style>
     <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f9ecbe"/><stop offset="0.34" stop-color="#caa14a"/><stop offset="0.54" stop-color="#8a6a24"/><stop offset="0.72" stop-color="#e4c877"/><stop offset="1" stop-color="#a67f2e"/></linearGradient>
     <linearGradient id="goldbar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ecd390"/><stop offset="0.5" stop-color="#b7893a"/><stop offset="1" stop-color="#8f6a26"/></linearGradient>
     <linearGradient id="silver" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef1f3"/><stop offset="0.4" stop-color="#aab0b8"/><stop offset="0.6" stop-color="#7d838c"/><stop offset="1" stop-color="#c2c8ce"/></linearGradient>
@@ -186,12 +194,12 @@ export function buildSilverLabelSVG(o = {}) {
   <rect x="0" y="0" width="${w}" height="${h}" fill="#ffffff"/>
   <rect x="0" y="0" width="${band}" height="${h}" fill="#111"/>
   <rect x="${band}" y="0" width="4" height="${h}" fill="${A.line}"/>
-  <text x="${band * 0.50}" y="${h * 0.455}" fill="${A.mark}" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="${Math.min(h * 0.071, (h * 0.74) / (Math.max(6, BN.length) * 0.62))}" letter-spacing="${h * 0.009}" text-anchor="middle" dominant-baseline="central" transform="rotate(-90 ${band * 0.50} ${h * 0.455})">${esc(BN)}</text>
+  <text x="${band * 0.50}" y="${h * 0.455}" fill="${A.mark}" font-family="${SERIF}" font-weight="700" font-size="${Math.min(h * 0.071, (h * 0.74) / (Math.max(6, BN.length) * 0.62))}" letter-spacing="${h * 0.009}" text-anchor="middle" dominant-baseline="central" transform="rotate(-90 ${band * 0.50} ${h * 0.455})">${esc(BN)}</text>
   <image href="${brandImage}" x="${band * 0.5 - band * 0.40}" y="${h * 0.90 - band * 0.40}" width="${band * 0.80}" height="${band * 0.80}" preserveAspectRatio="xMidYMid meet"/>
-  <text x="${mainC}" y="${h * 0.135}" fill="${A.head}" font-family="Arial" font-weight="800" font-size="${Math.min(h * 0.056, (mainW * 0.82) / (Math.max(6, BN.length + 4) * 0.60))}" letter-spacing="${w * 0.006}" text-anchor="middle">— ${esc(BN)} —</text>
-  <text x="${mainC}" y="${h * 0.33}" fill="#141414" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="${nameSize}" letter-spacing="2" text-anchor="middle" dominant-baseline="middle">${esc(NM)}</text>
+  <text x="${mainC}" y="${h * 0.135}" fill="${A.head}" font-family="${SANS}" font-weight="800" font-size="${Math.min(h * 0.056, (mainW * 0.82) / (Math.max(6, BN.length + 4) * 0.60))}" letter-spacing="${w * 0.006}" text-anchor="middle">— ${esc(BN)} —</text>
+  <text x="${mainC}" y="${h * 0.33}" fill="#141414" font-family="${SERIF}" font-weight="800" font-size="${nameSize}" letter-spacing="2" text-anchor="middle" dominant-baseline="middle">${esc(NM)}</text>
   <rect x="${barX}" y="${barY}" width="${barW}" height="${barH}" rx="${h * 0.02}" fill="${A.bar}"/>
-  <text x="${mainC}" y="${barY + barH / 2 + h * 0.005}" fill="${A.barText}" font-family="Arial" font-weight="800" font-size="${h * 0.082}" letter-spacing="2" text-anchor="middle" dominant-baseline="middle">${esc(mg)}</text>
+  <text x="${mainC}" y="${barY + barH / 2 + h * 0.005}" fill="${A.barText}" font-family="${SANS}" font-weight="800" font-size="${h * 0.082}" letter-spacing="2" text-anchor="middle" dominant-baseline="middle">${esc(mg)}</text>
   <rect x="${barX}" y="${h * 0.655}" width="${barW}" height="2" fill="${A.line}"/>
   ${bottom}
   <rect x="${divX}" y="${h * 0.10}" width="2" height="${h * 0.80}" fill="${A.line}"/>
@@ -200,9 +208,9 @@ export function buildSilverLabelSVG(o = {}) {
   <path d="M${qx + qs + 12 - br} ${qy - 12} H${qx + qs + 12} V${qy - 12 + br}" stroke="${A.line}" stroke-width="${t}" fill="none"/>
   <path d="M${qx - 12} ${qy + qs + 12 - br} V${qy + qs + 12} H${qx - 12 + br}" stroke="${A.line}" stroke-width="${t}" fill="none"/>
   <path d="M${qx + qs + 12 - br} ${qy + qs + 12} H${qx + qs + 12} V${qy + qs + 12 - br}" stroke="${A.line}" stroke-width="${t}" fill="none"/>
-  <text x="${rightC}" y="${h * 0.71}" fill="#0f0f0f" font-family="Arial" font-weight="800" font-size="${fit("RESEARCH ONLY.", h * 0.054)}" letter-spacing="0.5" text-anchor="middle">RESEARCH ONLY.</text>
-  <text x="${rightC}" y="${h * 0.812}" fill="#0f0f0f" font-family="Arial" font-weight="800" font-size="${fit("NOT FOR HUMAN", h * 0.046)}" text-anchor="middle">NOT FOR HUMAN</text>
-  <text x="${rightC}" y="${h * 0.882}" fill="#0f0f0f" font-family="Arial" font-weight="800" font-size="${fit("NOT FOR HUMAN", h * 0.046)}" text-anchor="middle">CONSUMPTION.</text>
+  <text x="${rightC}" y="${h * 0.71}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${fit("RESEARCH ONLY.", h * 0.054)}" letter-spacing="0.5" text-anchor="middle">RESEARCH ONLY.</text>
+  <text x="${rightC}" y="${h * 0.812}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${fit("NOT FOR HUMAN", h * 0.046)}" text-anchor="middle">NOT FOR HUMAN</text>
+  <text x="${rightC}" y="${h * 0.882}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${fit("NOT FOR HUMAN", h * 0.046)}" text-anchor="middle">CONSUMPTION.</text>
 </svg>`;
 }
 
