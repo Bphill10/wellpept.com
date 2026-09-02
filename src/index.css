@@ -7335,6 +7335,37 @@ body:has(.app-shell--undisclosed)::before {
   }
 }
 
+/* Phone: put the live vial preview compact at the TOP with the main dosage controls right
+   below, so you can watch the label update while you make changes. The label panel is
+   dissolved into the single-column grid so its children can be reordered. */
+@media (max-width: 640px) {
+  .calc-layout--with-label .calc-label-panel {
+    display: contents;
+  }
+  .calc-layout--with-label .calc-vial-stage {
+    order: -2;
+    margin: 0 0 0.5rem !important;
+    display: grid;
+    place-items: center;
+  }
+  .calc-vial-stage .silver-label-vial,
+  .calc-vial-stage .calc-generated-vial {
+    max-height: 32vh !important;
+  }
+  .calc-layout--with-label .calc-card--skinny {
+    order: -1;
+  }
+  .calc-layout--with-label .calc-label-caption {
+    order: 4;
+  }
+  .calc-layout--with-label .calc-label-stage {
+    order: 5;
+  }
+  .calc-card--skinny .form-grid {
+    gap: 0.5rem;
+  }
+}
+
 .calc-card {
   border: 1px solid var(--line);
   border-radius: 12px;

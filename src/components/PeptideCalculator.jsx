@@ -842,7 +842,7 @@ export default function PeptideCalculator({
                   mass={mass}
                   unit={vialUnit || "mg"}
                   labelType={labelTemplate.labelType}
-                  formText={(selectedStrength?.form || "Lyophilized Powder").toUpperCase()}
+                  formText={/\bB\s*12\b|VITAMIN\s*B12/i.test(`${name || selectedPeptide?.name || ""} ${selectedStrength?.form || ""}`) ? "LIQUID" : "LYOPHILIZED POWDER"}
                   storageTemp="36–46°F"
                   diluent={solution ? `${formatNum(solution, 2)} mL` : ""}
                   concentration={result?.concLabel || ""}
@@ -870,7 +870,7 @@ export default function PeptideCalculator({
                   doseUnits={doseParts.units}
                   vialMl={Number(vialMl) || 3}
                   labelType={labelTemplate.labelType}
-                  formText={(selectedStrength?.form || "Lyophilized Powder").toUpperCase()}
+                  formText={/\bB\s*12\b|VITAMIN\s*B12/i.test(`${name || selectedPeptide?.name || ""} ${selectedStrength?.form || ""}`) ? "LIQUID" : "LYOPHILIZED POWDER"}
                   storageTemp="36–46°F"
                   brandName={activeBrandName}
                   brandImage={activeBrandImage}
