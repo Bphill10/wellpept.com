@@ -6334,6 +6334,29 @@ body:has(.app-shell--undisclosed)::before {
   margin: 0.75rem 0 0.15rem;
 }
 
+/* Label colour picker — a row of tappable swatches (silver/gold/charcoal + colours). */
+.calc-color-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.4rem 0 0.15rem;
+}
+.calc-color-swatch {
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  background: var(--swatch, #ccc);
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.calc-color-swatch:hover { transform: scale(1.08); }
+.calc-color-swatch.is-active {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px rgba(120, 205, 255, 0.7), 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+
 .calc-label-template {
   display: flex;
   flex-direction: column;
@@ -7404,7 +7427,8 @@ body:has(.app-shell--undisclosed)::before {
      vial/label previews and extras. The panel is dissolved so its children reorder freely. */
   .calc-layout--with-label .calc-card-head { order: 0; }
   .calc-layout--with-label .calc-controls-label,
-  .calc-layout--with-label .calc-label-templates { order: 1; }
+  .calc-layout--with-label .calc-label-templates,
+  .calc-layout--with-label .calc-color-swatches { order: 1; }
   .calc-layout--with-label .calc-card--skinny { order: 2; }
   .calc-layout--with-label .calc-vial-stage {
     order: 5;

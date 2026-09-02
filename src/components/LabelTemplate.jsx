@@ -40,6 +40,9 @@ export default function LabelTemplate({
   qrPayload = "",
   showDownload = true,
   className = "",
+  /** Label colour — a preset accent ("silver" | "gold" | "charcoal") or a custom accentColor. */
+  accent = "silver",
+  accentColor = "",
   /** Layout + brand chrome only — no peptide fields filled. */
   blank = false,
 }) {
@@ -52,7 +55,8 @@ export default function LabelTemplate({
       name: blank ? "" : name,
       mg,
       type,
-      accent: "silver",
+      accent,
+      accentColor,
       w: dims.w,
       h: dims.h,
       line1: blank ? "" : formText,
@@ -68,7 +72,7 @@ export default function LabelTemplate({
   }, [
     blank, name, mass, unit, type, dims.w, dims.h,
     formText, storageTemp, bacWater, concentration, doseRange, doseUnits,
-    brandName, brandImage, qrPayload,
+    brandName, brandImage, qrPayload, accent, accentColor,
   ]);
 
   const imgSrc = useMemo(() => svgToImageSrc(svg), [svg]);

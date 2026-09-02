@@ -238,7 +238,7 @@ export function labelSVGFromFields(fields = {}) {
     formText = "LYOPHILIZED POWDER", storageTemp = "36–46°F",
     diluent = "", concentration = "", doseValue = "", doseUnits = "",
     brandName = "UNDISCLOSED", brandImage = "", vialMl = 3, blank = false,
-    qrPayload = DEFAULT_QR_URL, accentColor = "",
+    qrPayload = DEFAULT_QR_URL, accent = "silver", accentColor = "",
   } = fields;
   const dims = silverLabelDims(vialMl);
   const type = String(labelType || "CALCULATOR").toUpperCase() === "CATALOG" ? "catalog" : "calculator";
@@ -247,7 +247,7 @@ export function labelSVGFromFields(fields = {}) {
     name: blank ? "" : name,
     mg,
     type,
-    accent: "silver",
+    accent,
     w: dims.w,
     h: dims.h,
     line1: blank ? "" : formText,
