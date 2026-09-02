@@ -3693,7 +3693,9 @@ body:has(.app-shell--undisclosed)::before {
 
 .app-shell--undisclosed .vial-approved-photo,
 .app-shell--undisclosed .skin-bottle-preview--photo {
-  background: transparent;
+  /* Soft charcoal-spotlight placeholder so a card reads as "loading" rather than black
+     until its vial finishes compositing (the opaque marble scene then covers it). */
+  background: radial-gradient(ellipse 68% 60% at 50% 42%, #242730 0%, #101116 58%, #0a0b0e 100%);
   box-shadow: none;
   overflow: hidden;
   position: relative;

@@ -97,7 +97,7 @@ export default function CatalogVial({
     const baseSrc = silverVialBaseSrc(name, ml, powderColor);
     fieldsRef.current = { svg, ml, baseSrc };
 
-    drawVialScene(canvas, { svg, vialMl: ml, baseSrc, sceneSrc: VIAL_SCENE_SRC })
+    drawVialScene(canvas, { svg, vialMl: ml, baseSrc, sceneSrc: VIAL_SCENE_SRC, ss: 1.2, maxOut: 820 })
       .then(() => {
         if (cancelled) return;
         setReady(true);
@@ -125,7 +125,7 @@ export default function CatalogVial({
       canvas.getContext("2d").drawImage(snap, 0, 0);
     } else if (fieldsRef.current) {
       const { svg, ml, baseSrc } = fieldsRef.current;
-      drawVialScene(canvas, { svg, vialMl: ml, baseSrc, sceneSrc: VIAL_SCENE_SRC }).catch(() => {});
+      drawVialScene(canvas, { svg, vialMl: ml, baseSrc, sceneSrc: VIAL_SCENE_SRC, ss: 1.2, maxOut: 820 }).catch(() => {});
     }
   };
 
