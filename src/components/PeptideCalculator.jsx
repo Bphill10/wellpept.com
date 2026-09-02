@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Calculator, RotateCcw, Link2, Download } from "lucide-react";
+import { ArrowLeft, Calculator, RotateCcw, Link2, Download, Upload } from "lucide-react";
 import LabelTemplate from "./LabelTemplate";
 import GeneratedVial from "./GeneratedVial";
 import {
@@ -287,6 +287,38 @@ export default function PeptideCalculator({
     doseHigh,
     highDoseUnits || null
   );
+
+  // Split dose for the silver label: mg amount on the value line, syringe units below.
+  const doseParts = useMemo(() => {
+    const fmt = (n) => parseFloat(Number(n).toFixed(2)).toString();
+    const unitLabel = doseUnit === "IU" ? "IU" : "MG";
+    if (!(result && doseLowNumber > 0)) return { value: "", units: "" };
+    const uLow = Number(result.units) || 0;
+    if (doseRangeValid && doseHighNumber > doseLowNumber) {
+      return {
+        value: `${fmt(doseLowNumber)} – ${fmt(doseHighNumber)} ${unitLabel}`,
+        units: `${fmt(uLow)} – ${fmt(highDoseUnits)} U`,
+      };
+    }
+    return { value: `${fmt(doseLowNumber)} ${unitLabel}`, units: `${fmt(uLow)} U` };
+  }, [result, doseLowNumber, doseHighNumber, doseRangeValid, highDoseUnits, doseUnit]);
+
+  // Custom private-label branding (name + logo instead of UNDISCLOSED).
+  const [customBrand, setCustomBrand] = useState(false);
+  const [brandNameInput, setBrandNameInput] = useState("");
+  const [brandLogo, setBrandLogo] = useState("");
+
+  function onBrandLogoFile(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setBrandLogo(String(reader.result || ""));
+    reader.readAsDataURL(file);
+  }
+
+  const activeBrandName =
+    customBrand && brandNameInput.trim() ? brandNameInput.trim() : "UNDISCLOSED";
+  const activeBrandImage = customBrand && brandLogo ? brandLogo : "";
 
   function onPeptideChange(id) {
     if (id === CUSTOM_ID) {
@@ -663,9 +695,9 @@ export default function PeptideCalculator({
                 <h2>Vial label · free</h2>
               </div>
               <p className="meta">
-                Pick a label template · {bottleOptionLabel(Number(vialMl) || 3)} ·
-                live on the vial and flat wrap · QR → peptide COA when linked,
-                otherwise wellpept.com · download free
+                Pick a label · {bottleOptionLabel(Number(vialMl) || 3)} · catalog
+                or calculator (your dose) · silver design · download free to print
+                (40×20 mm / 50×30 mm, Niimbot-ready)
               </p>
               <div
                 className="calc-label-templates"
@@ -688,6 +720,53 @@ export default function PeptideCalculator({
                     </button>
                   );
                 })}
+              </div>
+              <div className="calc-brand-custom">
+                <label className="calc-brand-toggle">
+                  <input
+                    type="checkbox"
+                    checked={customBrand}
+                    onChange={(e) => setCustomBrand(e.target.checked)}
+                  />
+                  <span>
+                    Custom branding — your own name &amp; logo instead of
+                    UNDISCLOSED
+                  </span>
+                </label>
+                {customBrand && (
+                  <div className="calc-brand-fields">
+                    <input
+                      type="text"
+                      className="calc-brand-name"
+                      placeholder="Your brand name"
+                      value={brandNameInput}
+                      maxLength={22}
+                      onChange={(e) => setBrandNameInput(e.target.value)}
+                    />
+                    <label className="calc-brand-logo soft-btn">
+                      <Upload size={14} />{" "}
+                      {brandLogo ? "Change logo" : "Upload logo"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={onBrandLogoFile}
+                        hidden
+                      />
+                    </label>
+                    {brandLogo && (
+                      <button
+                        type="button"
+                        className="calc-brand-clear soft-btn"
+                        onClick={() => setBrandLogo("")}
+                      >
+                        Remove logo
+                      </button>
+                    )}
+                    <span className="meta">
+                      A white or light logo shows best on the black strip.
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="calc-vial-stage">
                 <GeneratedVial
@@ -717,13 +796,15 @@ export default function PeptideCalculator({
                   unit={vialUnit || "mg"}
                   bacWater={solution ? `${formatNum(solution, 2)} mL` : ""}
                   concentration={result?.concLabel || ""}
-                  doseRange={liveDoseRange}
+                  doseRange={doseParts.value}
+                  doseUnits={doseParts.units}
                   vialMl={Number(vialMl) || 3}
                   labelType={labelTemplate.labelType}
-                  templateId={labelTemplateId}
+                  formText={(selectedStrength?.form || "Lyophilized Powder").toUpperCase()}
+                  storageTemp="36–46°F"
+                  brandName={activeBrandName}
+                  brandImage={activeBrandImage}
                   showDownload
-                  productId={selectedStrength?.defaultOfferId || ""}
-                  coaUrl={selectedStrength?.coaUrl || ""}
                 />
               </div>
             </aside>
