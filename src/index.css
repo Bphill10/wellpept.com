@@ -11734,9 +11734,11 @@ label.field select,
 }
 .app-shell--undisclosed .product-card:hover {
   transform: translateY(-6px);
+  /* warm ember bloom on hover (matches the showcase glow) */
   box-shadow:
     0 36px 72px rgba(0, 0, 0, 0.58),
-    0 0 42px rgba(214, 220, 232, 0.07);
+    0 0 52px rgba(255, 120, 45, 0.22);
+  border-color: rgba(255, 130, 55, 0.32);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -11913,10 +11915,20 @@ label.field select,
   height: auto;
   max-height: clamp(320px, 46vh, 540px);
   opacity: 0;
-  transition: opacity 0.5s ease;
-  filter: drop-shadow(0 26px 42px rgba(0, 0, 0, 0.6));
+  transition: opacity 0.5s ease, filter 0.45s ease;
+  /* dark contact shadow + a soft warm ember outline (the vial's own alpha shapes the glow) */
+  filter:
+    drop-shadow(0 22px 38px rgba(0, 0, 0, 0.6))
+    drop-shadow(0 0 13px rgba(255, 120, 45, 0.30));
 }
 .hero-vial-canvas.is-ready { opacity: 1; }
+/* Ember outline flares warmer when you hover the showcase. */
+.ud-showcase-stage:hover .hero-vial-canvas {
+  filter:
+    drop-shadow(0 22px 38px rgba(0, 0, 0, 0.6))
+    drop-shadow(0 0 20px rgba(255, 140, 55, 0.66))
+    drop-shadow(0 0 44px rgba(255, 85, 25, 0.42));
+}
 /* Channel-surf showcase: the vial + a little TV "CH 0X · NAME" readout under it. */
 .channel-vial {
   position: relative;
@@ -11924,6 +11936,31 @@ label.field select,
   display: grid;
   justify-items: center;
   gap: 0.55rem;
+}
+/* Warm ember light behind the hero vial, screen-blended over the marble. */
+.channel-vial::before {
+  content: "";
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  width: 66%;
+  aspect-ratio: 1 / 1.15;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse at center, rgba(255, 135, 50, 0.36) 0%, rgba(255, 90, 28, 0.17) 40%, transparent 70%);
+  filter: blur(16px);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.78;
+  transition: opacity 0.45s ease;
+}
+.ud-showcase-stage:hover .channel-vial::before { animation: none; opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .channel-vial::before { animation: ud-ember-pulse 6s ease-in-out infinite; }
+  @keyframes ud-ember-pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 0.92; }
+  }
 }
 .channel-vial-readout {
   font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
