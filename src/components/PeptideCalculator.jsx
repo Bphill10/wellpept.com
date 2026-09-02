@@ -27,6 +27,18 @@ import SilverLabelVial from "./SilverLabelVial";
 const CUSTOM_ID = "custom";
 const BOTTLE_SIZES_ML = LABEL_BOTTLE_SIZES_ML;
 
+// Label colour choices for the free label. Silver / gold / charcoal use the built-in metallic
+// accents; the rest pass a custom accentColor. `swatch` is the CSS shown on the picker chip.
+const LABEL_COLORS = [
+  { id: "silver", label: "Silver", accent: "silver", swatch: "linear-gradient(135deg,#eef1f3,#aab0b8 55%,#7d838c)" },
+  { id: "gold", label: "Gold", accent: "gold", swatch: "linear-gradient(135deg,#f9ecbe,#caa14a 55%,#8a6a24)" },
+  { id: "charcoal", label: "Charcoal", accent: "charcoal", swatch: "linear-gradient(135deg,#3a3a3a,#1d1d1d)" },
+  { id: "blue", label: "Blue", accentColor: "#2f5fd0", swatch: "#2f5fd0" },
+  { id: "emerald", label: "Emerald", accentColor: "#1f9d63", swatch: "#1f9d63" },
+  { id: "violet", label: "Violet", accentColor: "#7a4fd0", swatch: "#7a4fd0" },
+  { id: "crimson", label: "Crimson", accentColor: "#c23b45", swatch: "#c23b45" },
+];
+
 function bottleOptionLabel(ml) {
   const spec = labelSpecForVialMl(ml);
   return `${ml} mL · label ${spec.widthMm}×${spec.heightMm} mm`;
@@ -123,6 +135,9 @@ export default function PeptideCalculator({
   );
   const [shareMsg, setShareMsg] = useState("");
   const [hydratedInitial, setHydratedInitial] = useState(null);
+  const [labelColorId, setLabelColorId] = useState("silver");
+  const labelColor =
+    LABEL_COLORS.find((c) => c.id === labelColorId) || LABEL_COLORS[0];
   const [labelTemplateId, setLabelTemplateId] = useState(() =>
     udLabelTemplateFor(boot.vialMl || 3, "CALCULATOR").id
   );
@@ -759,6 +774,29 @@ export default function PeptideCalculator({
                   );
                 })}
               </div>
+              <span className="calc-controls-label">Label color</span>
+              <div
+                className="calc-color-swatches"
+                role="radiogroup"
+                aria-label="Label color"
+              >
+                {LABEL_COLORS.map((c) => {
+                  const active = c.id === labelColorId;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      aria-label={c.label}
+                      title={c.label}
+                      className={`calc-color-swatch${active ? " is-active" : ""}`}
+                      style={{ "--swatch": c.swatch }}
+                      onClick={() => setLabelColorId(c.id)}
+                    />
+                  );
+                })}
+              </div>
               <div className="calc-brand-custom">
                 <label className="calc-brand-toggle">
                   <input
@@ -851,6 +889,8 @@ export default function PeptideCalculator({
                   brandName={activeBrandName}
                   brandImage={activeBrandImage}
                   vialMl={Number(vialMl) || 3}
+                  accent={labelColor.accent || "silver"}
+                  accentColor={labelColor.accentColor || ""}
                   className="calc-generated-vial"
                 />
               </div>
@@ -875,6 +915,8 @@ export default function PeptideCalculator({
                   brandName={activeBrandName}
                   brandImage={activeBrandImage}
                   qrPayload={qrLink}
+                  accent={labelColor.accent || "silver"}
+                  accentColor={labelColor.accentColor || ""}
                   showDownload
                 />
               </div>

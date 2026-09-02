@@ -35,6 +35,8 @@ export default function SilverLabelVial({
   brandImage = "",
   qrPayload = "",
   vialMl = 3,
+  accent = "silver",
+  accentColor = "",
   className = "",
 }) {
   const canvasRef = useRef(null);
@@ -58,6 +60,7 @@ export default function SilverLabelVial({
     const { svg } = labelSVGFromFields({
       name, mass, unit, labelType, formText, storageTemp,
       diluent, concentration, doseValue, doseUnits, brandName, brandImage, qrPayload, vialMl: ml,
+      accent, accentColor,
     });
     const baseSrc = silverVialBaseSrc(name, ml);
 
@@ -95,6 +98,7 @@ export default function SilverLabelVial({
   }, [
     name, mass, unit, labelType, formText, storageTemp,
     diluent, concentration, doseValue, doseUnits, brandName, brandImage, qrPayload, vialMl,
+    accent, accentColor,
   ]);
 
   const restoreStill = () => {
