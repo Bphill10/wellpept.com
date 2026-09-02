@@ -22,7 +22,7 @@ import { capScheme } from "../utils/labelColor";
 const HOLD_MS = 3200; // gentle turn on each channel before it changes
 const TUNE_MS = 640;  // the channel-change glitch
 const FADE_MS = 720;  // reduced-motion cross-dissolve
-const SPIN_MS = 11000; // one full label revolution during the hold
+const SPIN_MS = 26000; // very slow drift so it holds on the brand/logo front (not the QR side)
 const FRAME_MS = 33;   // ~30fps cap for the hold spin
 
 // Accent colours the showcase surfs at random — each channel gets one (a fresh shuffle each page
