@@ -39,8 +39,8 @@ const UC = 0.34, HALF = 0.33, B = 1.05, SB = Math.sin(B);
 
 // A real vial label doesn't wrap all the way around — it covers most of the circumference and
 // leaves a bare-glass gap where its two ends meet. GAP_UNITS is that gap as a fraction of the
-// label's own width, so the label covers 1/(1+GAP_UNITS) of the turn (~0.42 → ~30% bare).
-const GAP_UNITS = 0.42;
+// label's own width, so the label covers 1/(1+GAP_UNITS) of the turn (~0.25 → ~20% bare).
+const GAP_UNITS = 0.25;
 
 // Screen-x → label-u foreshortening LUT (includes the HALF factor). Indexed by the visible
 // column fraction 0..1 across the label run; lets the green path wrap per-row without an
