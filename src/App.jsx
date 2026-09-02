@@ -2015,36 +2015,33 @@ export default function App() {
                 type="button"
                 className="sentinel-hero-console rise-delay"
                 onClick={() => setSentinelChatOpen(true)}
-                aria-label="Ask Atlas, the Undisclosed Sentinel knowledge guide"
+                aria-label="Open the Undisclosed chat"
               >
                 <span className="sentinel-hero-orbit" aria-hidden="true">
                   <span className="sentinel-hero-figure">
                     <img
-                      src={UD_LABEL_BRAND.mascotWhite}
+                      src={UD_LABEL_BRAND.whiteTransparent}
                       alt=""
-                      width={176}
-                      height={176}
+                      width={120}
+                      height={120}
                     />
-                    <span className="sentinel-hero-torso">
-                      <i />
-                    </span>
                   </span>
                 </span>
                 <span className="sentinel-hero-copy">
                   <span className="sentinel-hero-status">
-                    <i aria-hidden="true" /> Sentinel knowledge desk online
+                    <i aria-hidden="true" /> Online now
                   </span>
-                  <strong>Ask Atlas</strong>
+                  <strong>Chat with us</strong>
                   <small>
-                    Your Undisclosed Sentinel for research guides, COA links,
-                    catalog navigation, and calculator label help.
+                    Ask about research guides, COA links, catalog navigation,
+                    and calculator label help.
                   </small>
                   <span className="sentinel-hero-tools" aria-hidden="true">
                     <b>Research</b>
                     <b>COA</b>
                     <b>Calculator</b>
                   </span>
-                  <span className="sentinel-hero-action">Open knowledge chat →</span>
+                  <span className="sentinel-hero-action">Open chat →</span>
                 </span>
               </button>
             </section>

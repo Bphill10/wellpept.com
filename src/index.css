@@ -895,17 +895,13 @@ svg {
   gap: 1.1rem;
   color: #eef8fa;
   text-align: left;
-  border: 1px solid rgba(119, 210, 234, 0.26);
-  border-top-color: rgba(142, 226, 246, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top-color: rgba(255, 255, 255, 0.2);
   background:
-    linear-gradient(rgba(110, 207, 232, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(110, 207, 232, 0.035) 1px, transparent 1px),
-    radial-gradient(circle at 30% 45%, rgba(42, 164, 198, 0.16), transparent 38%),
-    rgba(4, 11, 16, 0.9);
-  background-size: 22px 22px, 22px 22px, auto, auto;
+    linear-gradient(180deg, rgba(28, 28, 32, 0.86), rgba(14, 14, 17, 0.9));
   box-shadow:
     0 28px 70px rgba(0, 0, 0, 0.55),
-    inset 0 0 45px rgba(74, 188, 219, 0.035);
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   transform: translateY(-50%);
   overflow: hidden;
   cursor: pointer;
@@ -917,17 +913,17 @@ svg {
   content: "";
   position: absolute;
   inset: 0;
-  border-left: 2px solid rgba(106, 215, 240, 0.74);
-  background: linear-gradient(115deg, transparent 62%, rgba(105, 213, 239, 0.05));
+  border-left: 2px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(115deg, transparent 72%, rgba(255, 255, 255, 0.02));
   pointer-events: none;
 }
 
 .sentinel-hero-console:hover,
 .sentinel-hero-console:focus-visible {
-  border-color: rgba(134, 224, 246, 0.62);
+  border-color: rgba(255, 255, 255, 0.28);
   box-shadow:
     0 32px 80px rgba(0, 0, 0, 0.62),
-    0 0 34px rgba(76, 190, 220, 0.13);
+    0 0 24px rgba(255, 255, 255, 0.06);
 }
 
 .sentinel-hero-orbit {
@@ -935,22 +931,18 @@ svg {
   display: grid;
   place-items: center;
   aspect-ratio: 1;
-  border: 1px solid rgba(119, 215, 239, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 50%;
   background:
-    radial-gradient(circle, rgba(83, 194, 222, 0.16), transparent 58%),
-    repeating-radial-gradient(circle, transparent 0 20px, rgba(111, 211, 237, 0.08) 21px 22px);
+    radial-gradient(circle, rgba(255, 255, 255, 0.06), transparent 62%),
+    rgba(255, 255, 255, 0.02);
   box-shadow:
-    0 0 32px rgba(88, 198, 225, 0.12),
-    inset 0 0 28px rgba(91, 204, 231, 0.06);
+    inset 0 0 24px rgba(0, 0, 0, 0.4);
 }
 
 .sentinel-hero-orbit::before,
 .sentinel-hero-orbit::after {
-  content: "";
-  position: absolute;
-  border: 1px solid rgba(118, 218, 241, 0.24);
-  border-radius: 50%;
+  display: none;
 }
 
 .sentinel-hero-orbit::before {
@@ -985,7 +977,7 @@ svg {
   transform: translateX(-50%);
   object-fit: contain;
   filter:
-    drop-shadow(0 0 10px rgba(153, 231, 248, 0.26))
+    drop-shadow(0 0 8px rgba(255, 255, 255, 0.14))
     drop-shadow(0 12px 20px rgba(0, 0, 0, 0.5));
 }
 
@@ -1047,7 +1039,7 @@ svg {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  color: rgba(149, 226, 244, 0.84);
+  color: rgba(230, 232, 236, 0.8);
   font-size: 0.58rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -1058,8 +1050,8 @@ svg {
   width: 0.42rem;
   height: 0.42rem;
   border-radius: 50%;
-  background: #78e4f7;
-  box-shadow: 0 0 10px rgba(120, 228, 247, 0.9);
+  background: #46d17f;
+  box-shadow: 0 0 10px rgba(70, 209, 127, 0.9);
 }
 
 .sentinel-hero-copy strong {
@@ -1084,9 +1076,9 @@ svg {
 
 .sentinel-hero-tools b {
   padding: 0.25rem 0.4rem;
-  color: rgba(178, 232, 245, 0.76);
-  border: 1px solid rgba(119, 210, 234, 0.18);
-  background: rgba(79, 180, 207, 0.055);
+  color: rgba(230, 232, 236, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
   font-size: 0.54rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -3414,27 +3406,28 @@ body:has(.app-shell--skincare) {
   --ud-electric: #3ec8ff;
   --ud-electric-hot: #9ae8ff;
   color: var(--ink);
-  background-color: #05080c;
+  /* Cinematic ground: charcoal wall with diagonal light beams over a polished marble floor
+     (gallery-lit product-shot look). A light dark wash keeps body text legible while the
+     beams and stone still read. */
+  background-color: #060608;
   background-image:
-    linear-gradient(180deg, rgba(5, 14, 22, 0.18), rgba(2, 5, 8, 0.9)),
-    radial-gradient(ellipse 72% 42% at 76% 4%, rgba(24, 119, 160, 0.15), transparent 72%),
-    linear-gradient(rgba(116, 202, 230, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(116, 202, 230, 0.035) 1px, transparent 1px),
-    radial-gradient(circle, rgba(126, 215, 239, 0.1) 1px, transparent 1.5px);
-  background-size: auto, auto, 64px 64px, 64px 64px, 16px 16px;
-  background-attachment: scroll;
+    linear-gradient(180deg, rgba(6, 6, 9, 0.24), rgba(4, 4, 6, 0.58)),
+    url("/ud-labels/bg/beam_bg.webp");
+  background-size: cover, cover;
+  background-position: center top, center center;
+  background-repeat: no-repeat, no-repeat;
+  background-attachment: scroll, scroll;
 }
 
 body:has(.app-shell--undisclosed) {
   color: #f4f6f8;
-  background-color: #05080c;
+  background-color: #060608;
   background-image:
-    linear-gradient(180deg, rgba(5, 14, 22, 0.18), rgba(2, 5, 8, 0.9)),
-    radial-gradient(ellipse 72% 42% at 76% 4%, rgba(24, 119, 160, 0.15), transparent 72%),
-    linear-gradient(rgba(116, 202, 230, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(116, 202, 230, 0.035) 1px, transparent 1px),
-    radial-gradient(circle, rgba(126, 215, 239, 0.1) 1px, transparent 1.5px);
-  background-size: auto, auto, 64px 64px, 64px 64px, 16px 16px;
+    linear-gradient(180deg, rgba(6, 6, 9, 0.24), rgba(4, 4, 6, 0.58)),
+    url("/ud-labels/bg/beam_bg.webp");
+  background-size: cover, cover;
+  background-position: center top, center center;
+  background-repeat: no-repeat, no-repeat;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -3445,7 +3438,7 @@ body:has(.app-shell--undisclosed) {
 }
 
 body:has(.app-shell--undisclosed)::before {
-  opacity: 0.42;
+  opacity: 0;
   background:
     radial-gradient(circle at 12% 20%, transparent 0 6px, rgba(108, 211, 239, 0.19) 7px 8px, transparent 9px),
     radial-gradient(circle at 20% 27%, transparent 0 4px, rgba(108, 211, 239, 0.12) 5px 6px, transparent 7px),
@@ -3463,10 +3456,10 @@ body:has(.app-shell--undisclosed)::before {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.18;
+  opacity: 0.55;
   background:
-    radial-gradient(ellipse 65% 38% at 75% 12%, rgba(82, 197, 225, 0.16), transparent 68%),
-    radial-gradient(ellipse 55% 34% at 14% 82%, rgba(38, 124, 160, 0.08), transparent 72%);
+    radial-gradient(ellipse 72% 46% at 50% 4%, rgba(242, 240, 233, 0.06), transparent 70%),
+    radial-gradient(ellipse 50% 34% at 16% 90%, rgba(210, 210, 220, 0.035), transparent 74%);
   mix-blend-mode: screen;
   animation: none;
 }
@@ -3720,12 +3713,10 @@ body:has(.app-shell--undisclosed)::before {
 .app-shell--undisclosed .vial-approved-photo .vial-approved-img {
   position: relative;
   z-index: 1;
-  filter:
-    drop-shadow(0 18px 12px rgba(0, 0, 0, 0.72))
-    drop-shadow(0 0 8px rgba(183, 231, 243, 0.2))
-    contrast(1.04);
-  transform: translateZ(0) scale(0.98);
-  transition: transform 220ms ease, filter 220ms ease;
+  /* The catalog vial is now a full marble studio scene (opaque) — no rectangle drop-shadow. */
+  filter: contrast(1.03) saturate(1.02);
+  transform: translateZ(0);
+  transition: transform 260ms ease, filter 260ms ease;
 }
 
 .app-shell--undisclosed
@@ -3736,15 +3727,12 @@ body:has(.app-shell--undisclosed)::before {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
 }
 
 .app-shell--undisclosed .product-card:hover .vial-approved-img {
-  filter:
-    drop-shadow(0 22px 14px rgba(0, 0, 0, 0.78))
-    drop-shadow(0 0 12px rgba(183, 231, 243, 0.28))
-    contrast(1.06);
-  transform: translateZ(0) scale(1.015);
+  filter: contrast(1.05) saturate(1.04);
+  transform: translateZ(0) scale(1.03);
 }
 
 .app-shell--undisclosed .product-card:not(.product-card--blue-vial):hover .vial-approved-photo::before,
@@ -6529,6 +6517,19 @@ body:has(.app-shell--undisclosed)::before {
 @media (min-width: 900px) {
   .silver-label-vial {
     max-height: 520px;
+  }
+}
+
+/* 10 mL vials are physically larger than 3 mL — render them noticeably bigger so the
+   size difference reads true on the shelf (e.g. B12 / NAD+ vs a 3 mL peptide vial). */
+/* 10 mL size difference is baked into the marble scene render (drawVialScene), so no
+   canvas transform is needed here. Standalone (non-grid) 10 mL vials get a taller cap. */
+.silver-label-vial--10ml {
+  max-height: 540px;
+}
+@media (min-width: 900px) {
+  .silver-label-vial--10ml {
+    max-height: 600px;
   }
 }
 

@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { labelSVGFromFields } from "../utils/udSilverLabel";
-import { drawSilverLabelVial, silverVialBaseSrc } from "../utils/udVialComposite";
+import { drawVialScene, silverVialBaseSrc } from "../utils/udVialComposite";
+
+/** Black-marble studio scene the catalog vials are composited onto. */
+const VIAL_SCENE_SRC = "/ud-labels/bg/vial_card_bg.webp";
 
 /**
  * Storefront vial with the live silver catalog label wrapped on it. Renders lazily (only
@@ -56,17 +59,19 @@ export default function CatalogVial({
       vialMl: ml,
     });
     const baseSrc = silverVialBaseSrc(name, ml, powderColor);
-    drawSilverLabelVial(canvas, { svg, vialMl: ml, baseSrc })
+    drawVialScene(canvas, { svg, vialMl: ml, baseSrc, sceneSrc: VIAL_SCENE_SRC })
       .then(() => { if (!cancelled) setReady(true); })
       .catch((err) => console.error("Catalog vial render failed", err));
     return () => { cancelled = true; };
   }, [visible, name, mg, unit, vialMl, form, powderColor]);
 
+  // 10 mL vials are physically larger than 3 mL — render them bigger so the size reads true.
+  const isTenMl = Number(vialMl) >= 8;
   return (
     <canvas
       ref={canvasRef}
-      className={`${className} silver-label-vial${ready ? " is-ready" : ""}`.trim()}
-      aria-label={`${name || "Peptide"} Undisclosed vial`}
+      className={`${className} silver-label-vial${isTenMl ? " silver-label-vial--10ml" : ""}${ready ? " is-ready" : ""}`.trim()}
+      aria-label={`${name || "Peptide"} Undisclosed ${isTenMl ? "10 mL" : "3 mL"} vial`}
     />
   );
 }

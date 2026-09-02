@@ -11,7 +11,7 @@ import { UD_LABEL_BRAND } from "../data/udLabelAssets";
 const STARTER_MESSAGE = {
   role: "bot",
   text:
-    "I’m Atlas, your Undisclosed Sentinel and knowledge steward. Ask about a listed peptide’s molecular target, laboratory research focus, COA testing, or calculator labels.",
+    "Hi — welcome to Undisclosed. Ask about a listed peptide’s molecular target, laboratory research focus, COA testing, or calculator labels.",
 };
 
 function normalized(value) {
@@ -128,20 +128,20 @@ export default function SentinelKnowledgeChat({
       className="sentinel-chat"
       role="dialog"
       aria-modal="false"
-      aria-label="Atlas, Undisclosed Sentinel knowledge assistant"
+      aria-label="Undisclosed chat"
     >
       <header className="sentinel-chat-head">
         <img
-          src={UD_LABEL_BRAND.mascotWhite}
+          src={UD_LABEL_BRAND.whiteTransparent}
           alt=""
-          width={44}
-          height={44}
+          width={40}
+          height={40}
         />
         <div>
-          <span><i aria-hidden="true" /> Sentinel knowledge steward online</span>
-          <strong>Atlas</strong>
+          <span><i aria-hidden="true" /> Online now</span>
+          <strong>Undisclosed</strong>
         </div>
-        <button type="button" onClick={onClose} aria-label="Close Atlas">
+        <button type="button" onClick={onClose} aria-label="Close chat">
           <X size={18} />
         </button>
       </header>
@@ -184,14 +184,14 @@ export default function SentinelKnowledgeChat({
           value={input}
           onChange={(event) => setInput(event.target.value)}
           placeholder="Ask about peptide research…"
-          aria-label="Ask Atlas"
+          aria-label="Ask a question"
         />
         <button type="submit" disabled={!input.trim()} aria-label="Send question">
           <Send size={17} />
         </button>
       </form>
 
-      <nav className="sentinel-chat-tools" aria-label="Atlas tools">
+      <nav className="sentinel-chat-tools" aria-label="Chat tools">
         <button type="button" onClick={onBrowseCatalog}>Browse catalog</button>
         <button type="button" onClick={onOpenCalculator}>Calculator</button>
         <button type="button" onClick={onHumanSupport}>
