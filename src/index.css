@@ -6462,7 +6462,7 @@ body:has(.app-shell--undisclosed)::before {
   border: 1px solid rgba(0, 71, 171, 0.22);
 }
 
-/* Live, turnable label-on-vial composite canvas */
+/* Live label-on-vial composite canvas */
 .silver-label-vial {
   display: block;
   width: auto;
@@ -6472,14 +6472,6 @@ body:has(.app-shell--undisclosed)::before {
   opacity: 0;
   transition: opacity 0.25s ease;
   filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.55));
-  cursor: grab;
-  touch-action: pan-y;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.silver-label-vial:active {
-  cursor: grabbing;
 }
 
 .silver-label-vial.is-ready {
@@ -6490,14 +6482,6 @@ body:has(.app-shell--undisclosed)::before {
   .silver-label-vial {
     max-height: 520px;
   }
-}
-
-.calc-vial-hint {
-  margin: 0.4rem 0 0;
-  text-align: center;
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  opacity: 0.7;
 }
 
 /* Compact "this is what prints" flat label — not a stretched full-width banner */

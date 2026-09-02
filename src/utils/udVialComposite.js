@@ -119,27 +119,12 @@ export function composeVial(canvas, prepared, rot = 0) {
   const { W, H, data: src } = base;
   const out = new Uint8ClampedArray(src); // copy (keeps cap/glass/alpha outside the band)
   const uc = 0.34, half = 0.33, B = 1.05, sB = Math.sin(B);
-  // The sticker sits inset from the vial's silhouette so clear glass shows on both sides
-  // (a real label, not a full wrap). SIDE is the fraction of the front left bare each side.
-  const SIDE = 0.085;
-  // The base photo has a blank white label patch over the mid-body, so bare-vial pixels in
-  // the band are white, not glass. Borrow real glass from just above the label patch and
-  // extend it down the column so the uncovered sides read as clear glass.
-  const bandH = fp.bot - fp.top;
-  const yGlass = Math.max(0, fp.top - Math.round(bandH * 0.09));
-  const setGlass = (vi, x) => {
-    const gi = (yGlass * W + x) * 4;
-    if (src[gi + 3] > 128) { out[vi] = src[gi]; out[vi + 1] = src[gi + 1]; out[vi + 2] = src[gi + 2]; }
-  };
   for (let y = fp.top; y <= fp.bot; y++) for (let x = fp.left; x <= fp.right; x++) {
     if (!fp.mask[y * W + x]) continue;
     const vi = (y * W + x) * 4;
     const uo = (x - fp.left) / (fp.w - 1);
-    if (uo < SIDE || uo > 1 - SIDE) { setGlass(vi, x); continue; } // glass margin where the label ends
-    const uo2 = (uo - SIDE) / (1 - 2 * SIDE); // re-span the label across the inset window
-    const f = Math.asin(Math.max(-1, Math.min(1, (2 * uo2 - 1) * sB))) / B;
-    const uSrc = uc + rot + half * f;
-    if (uSrc < 0 || uSrc > 1) { setGlass(vi, x); continue; } // turned past the sticker → glass
+    const f = Math.asin(Math.max(-1, Math.min(1, (2 * uo - 1) * sB))) / B;
+    const uSrc = Math.max(0, Math.min(1, uc + rot + half * f));
     const lx = Math.round(uSrc * (lw - 1));
     const ly = Math.min(lh - 1, Math.round(((y - fp.top) / (fp.h - 1)) * (lh - 1)));
     const li = (ly * lw + lx) * 4;
