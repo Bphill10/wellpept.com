@@ -122,6 +122,7 @@ import {
   clearCoaUrl,
 } from "./utils/coaStore";
 import CatalogVial from "./components/CatalogVial";
+import HeroVial from "./components/HeroVial";
 import PeptideCalculator, {
   parseCalculatorQuery,
 } from "./components/PeptideCalculator";
@@ -2046,6 +2047,22 @@ export default function App() {
                   <span className="sentinel-hero-action">Open chat →</span>
                 </span>
               </button>
+            </section>
+
+            <section className="section ud-showcase" aria-label="Undisclosed vial showcase">
+              <div className="container ud-showcase-inner">
+                <div className="ud-showcase-stage">
+                  <HeroVial name="Vitamin B12" mass="5" unit="mg" vialMl={10} />
+                </div>
+                <div className="ud-showcase-copy">
+                  <span className="ud-showcase-kicker">Research-grade, verified</span>
+                  <h2 className="ud-showcase-title">Every vial, turned to the light.</h2>
+                  <p className="ud-showcase-text">
+                    Silver label, sealed glass, QR-verified. Each Undisclosed vial is
+                    labeled the moment it ships — turn it and read it from every side.
+                  </p>
+                </div>
+              </div>
             </section>
 
             <section className="section featured-vendor-section" id="featured">
