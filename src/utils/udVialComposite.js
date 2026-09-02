@@ -127,28 +127,36 @@ function footprint(d, W, H, topF, botF, fillF) {
   return { mask, left, right, top, bot, fill, rowLo, rowHi, w: right - left + 1, h: bot - top + 1 };
 }
 
-// Is this pixel the blank green label paper? (green clearly dominant, reasonably bright).
+// Strict green paper (bright, clearly green) — used to anchor the label bounds + brightness.
 function isGreenPix(r, g, b) {
   return g > 75 && g > r * 1.15 && g > b * 1.15 && (g - (r > b ? r : b)) > 24;
 }
 
+// Any green-label pixel to paint over, including the label's anti-aliased edge: bright green,
+// faint/washed green, and the murky yellow-green transition tones at the curved top/bottom
+// rim (green-looking but red-dominant). Excludes glass (grey), powder (white) and liquid (red),
+// so it never bleeds onto the vial.
+function maskGreenPix(r, g, b) {
+  return (g > 75 && g > r * 1.15 && g > b * 1.15)
+    || (g > 42 && g > r * 1.03 && g > b * 1.03)
+    || (g > 90 && b < g * 0.62 && r < g * 1.28 && g - b > 40);
+}
+
 /**
- * Detect the blank green label on a chroma-key base vial. For each row finds the longest
- * contiguous green run (its left/right edge on the cylinder) and gap-fills any glint-split
- * rows, so the label region is a clean per-row band. Also samples a brightness reference so
- * the silver label can be multiplied by the paper's real curvature/shading. Returns null if
- * the base has no substantial green label (non-chroma base → caller falls back to the band).
+ * Detect the blank green label on a chroma-key base vial. A strict pass anchors the label's
+ * vertical mapping bounds (top0/bot0) and a brightness reference (for the paper's shading);
+ * then a per-pixel pass records the FULL green extent per row — following the real curved
+ * edges and including the anti-aliased rim — so the silver label covers every green pixel with
+ * no fringe. Returns null if the base has no substantial green label (non-chroma → band).
  */
 function detectGreenLabel(d, W, H) {
-  const rowLo = new Int32Array(H).fill(-1);
-  const rowHi = new Int32Array(H).fill(-1);
   const minRun = W * 0.06;
-  let top = -1, bot = -1, rows = 0;
+  let top0 = -1, bot0 = -1, rows = 0, gLeft = W, gRight = 0;
+  const strictLo = new Int32Array(H).fill(-1), strictHi = new Int32Array(H).fill(-1);
   for (let y = 0; y < H; y++) {
     let bestLo = -1, bestHi = -2, curLo = -1;
     for (let x = 0; x < W; x++) {
-      const i = (y * W + x) * 4;
-      const green = isGreenPix(d[i], d[i + 1], d[i + 2]);
+      const green = isGreenPix(d[(y * W + x) * 4], d[(y * W + x) * 4 + 1], d[(y * W + x) * 4 + 2]);
       if (green && curLo < 0) curLo = x;
       if ((!green || x === W - 1) && curLo >= 0) {
         const curHi = green ? x : x - 1;
@@ -157,20 +165,19 @@ function detectGreenLabel(d, W, H) {
       }
     }
     if (bestLo >= 0 && bestHi - bestLo > minRun) {
-      rowLo[y] = bestLo; rowHi[y] = bestHi;
-      if (top < 0) top = y;
-      bot = y; rows++;
+      strictLo[y] = bestLo; strictHi[y] = bestHi;
+      if (top0 < 0) top0 = y;
+      bot0 = y; rows++;
+      if (bestLo < gLeft) gLeft = bestLo;
+      if (bestHi > gRight) gRight = bestHi;
     }
   }
   if (rows < H * 0.02) return null;
-  // Gap-fill glint-split rows inside the band so no green strip is left unpainted.
-  for (let y = top + 1; y <= bot; y++) {
-    if (rowLo[y] < 0) { rowLo[y] = rowLo[y - 1]; rowHi[y] = rowHi[y - 1]; }
-  }
+
   // Brightness reference (92nd percentile of green paper) for the shading multiply.
   const samples = [];
-  for (let y = top; y <= bot; y += 2) {
-    const lo = rowLo[y], hi = rowHi[y];
+  for (let y = top0; y <= bot0; y += 2) {
+    const lo = strictLo[y], hi = strictHi[y];
     if (lo < 0) continue;
     for (let x = lo; x <= hi; x += 2) {
       const i = (y * W + x) * 4;
@@ -179,12 +186,30 @@ function detectGreenLabel(d, W, H) {
   }
   samples.sort((a, b) => a - b);
   const ref = samples[Math.floor(samples.length * 0.92)] || 160;
+
+  // Per-pixel green extent per row, searched a little beyond the strict band (to catch the
+  // curved rim) and clamped near the label horizontally (so a stray green reflection can't
+  // stretch a row). Records min/max green x; gaps between are skipped at paint time.
+  const capY = Math.round(H * 0.03), padX = Math.round(W * 0.02);
+  const y0 = Math.max(0, top0 - capY), y1 = Math.min(H - 1, bot0 + capY);
+  const x0 = Math.max(0, gLeft - padX), x1 = Math.min(W - 1, gRight + padX);
+  const rowLo = new Int32Array(H).fill(-1), rowHi = new Int32Array(H).fill(-1);
+  let top = -1, bot = -1;
+  for (let y = y0; y <= y1; y++) {
+    let lo = -1, hi = -1;
+    for (let x = x0; x <= x1; x++) {
+      const i = (y * W + x) * 4;
+      if (maskGreenPix(d[i], d[i + 1], d[i + 2])) { if (lo < 0) lo = x; hi = x; }
+    }
+    if (lo >= 0) { rowLo[y] = lo; rowHi[y] = hi; if (top < 0) top = y; bot = y; }
+  }
+
   const rowInvW = new Float32Array(H);
   for (let y = top; y <= bot; y++) {
     const w = rowHi[y] - rowLo[y];
     rowInvW[y] = w > 0 ? 1 / w : 0;
   }
-  return { rowLo, rowHi, rowInvW, top, bot, ref };
+  return { rowLo, rowHi, rowInvW, top, bot, top0, bot0, ref };
 }
 
 async function renderLabelPixels(svg, LW, LH) {
@@ -248,26 +273,35 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS
 function composeGreen(canvas, prepared, rot, wrap) {
   const { base, ld, lw, lh, green } = prepared;
   const { W, H, data: src } = base;
-  const { rowLo, rowHi, rowInvW, top, bot, ref } = green;
+  const { rowLo, rowHi, rowInvW, top, bot, top0, bot0, ref } = green;
   const out = new Uint8ClampedArray(src);
-  const lwm = lw - 1, fh = Math.max(1, bot - top), LN = ASIN_LUT.length - 1;
+  const lwm = lw - 1, fh = Math.max(1, bot0 - top0), LN = ASIN_LUT.length - 1;
+  const PAPER = 236; // neutral paper shown through the label's transparent margins/corners
   for (let y = top; y <= bot; y++) {
     const lo = rowLo[y];
     if (lo < 0) continue;
     const hi = rowHi[y], invW = rowInvW[y];
-    const ly = Math.min(lh - 1, (((y - top) / fh) * (lh - 1)) | 0);
-    const rb = ly * lw;
+    // Map to the label by the strict bounds; the curved rim rows clamp to the label's first/
+    // last row so its edge paper — not stretched content — covers them.
+    let lyf = ((y - top0) / fh) * (lh - 1);
+    lyf = lyf < 0 ? 0 : lyf > lh - 1 ? lh - 1 : lyf;
+    const rb = (lyf | 0) * lw;
     for (let x = lo; x <= hi; x++) {
       const i = (y * W + x) * 4;
+      const r = src[i], g = src[i + 1], b = src[i + 2];
+      if (!maskGreenPix(r, g, b)) continue; // follow the real curved edge; leave gaps as photo
       const uo = (x - lo) * invW;
       let u = UC + rot + ASIN_LUT[(uo * LN) | 0];
       u = wrap ? u - Math.floor(u) : (u < 0 ? 0 : u > 1 ? 1 : u);
       const li = (rb + ((u * lwm) | 0)) * 4;
-      let sh = (0.25 * src[i] + 0.7 * src[i + 1] + 0.05 * src[i + 2]) / ref;
+      // Composite the label over neutral paper by its own alpha (so transparent art reads as
+      // paper, never black), then multiply by the real paper's brightness for curvature.
+      const la = ld[li + 3] / 255, ia = PAPER * (1 - la);
+      let sh = (0.25 * r + 0.7 * g + 0.05 * b) / ref;
       sh = sh < 0.5 ? 0.5 : sh > 1.08 ? 1.08 : sh;
-      out[i] = clamp(ld[li] * sh);
-      out[i + 1] = clamp(ld[li + 1] * sh);
-      out[i + 2] = clamp(ld[li + 2] * sh);
+      out[i] = clamp((ld[li] * la + ia) * sh);
+      out[i + 1] = clamp((ld[li + 1] * la + ia) * sh);
+      out[i + 2] = clamp((ld[li + 2] * la + ia) * sh);
     }
   }
   canvas.width = W; canvas.height = H;
