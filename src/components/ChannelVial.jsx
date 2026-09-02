@@ -5,7 +5,7 @@ import {
   prepareVialCompositor,
   composeVial,
 } from "../utils/udVialComposite";
-import { capScheme } from "../utils/labelColor";
+import { capScheme, catalogCapColor } from "../utils/labelColor";
 
 /**
  * Undisclosed landing showcase — a single hero vial that channel-surfs the catalog. Each
@@ -23,27 +23,6 @@ const HOLD_MS = 3200; // gentle turn on each channel before it changes
 const TUNE_MS = 640;  // the channel-change glitch
 const FADE_MS = 720;  // reduced-motion cross-dissolve
 const FRAME_MS = 33;   // ~30fps cap for the hold spin
-
-// Accent colours the showcase surfs at random — each channel gets one (a fresh shuffle each page
-// load) applied to BOTH the crimp cap and the label accents, so the two match. The powder stays
-// its real white; only the cap + label are colour-coded.
-const SHOWCASE_PALETTE = [
-  [46, 92, 230],   // royal blue
-  [34, 190, 120],  // emerald
-  [30, 180, 190],  // teal
-  [150, 90, 235],  // violet
-  [230, 70, 150],  // rose
-  [235, 175, 45],  // amber
-  [225, 55, 60],   // crimson
-  [70, 205, 225],  // cyan
-];
-
-// Fisher–Yates shuffle (returns a new array) so each load gets a different colour order.
-function shuffled(arr) {
-  const a = arr.slice();
-  for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; }
-  return a;
-}
 
 
 /** Build red / green / blue single-channel copies of the frozen vial for the split. */
@@ -143,7 +122,6 @@ export default function ChannelVial({ channels = [], className = "" }) {
   const chRef = useRef(channels);
   chRef.current = channels;
 
-  const colorsRef = useRef(SHOWCASE_PALETTE); // per-channel powder tint (shuffled on mount)
   const prepsRef = useRef(new Map());     // index -> prepared compositor (or in-flight promise)
   const gfxRef = useRef({ noise: null, scan: null, W: 0, H: 0 }); // reusable glitch scratch
   const tintsRef = useRef(null);
@@ -184,7 +162,8 @@ export default function ChannelVial({ channels = [], className = "" }) {
     const cache = prepsRef.current;
     const hit = cache.get(idx);
     if (hit) return hit.then ? hit : Promise.resolve(hit);
-    const rgb = colorsRef.current[idx % colorsRef.current.length];
+    // Each peptide keeps its own catalog colour (KLOW/GLOW/GHK blue, B12 crimson, etc.).
+    const rgb = catalogCapColor(list[idx].name);
     // Coordinated set: dome (base), crimp collar (analogous different hue), label accent (deeper).
     const { dome, crimp, labelHex } = capScheme(rgb);
     const { svg, ml, baseSrc } = buildSVG(list[idx], labelHex);
@@ -332,7 +311,6 @@ export default function ChannelVial({ channels = [], className = "" }) {
     reducedRef.current = !!mm?.("(prefers-reduced-motion: reduce)")?.matches;
     coarseRef.current = !!mm?.("(pointer: coarse)")?.matches;
     prepsRef.current = new Map();
-    colorsRef.current = shuffled(SHOWCASE_PALETTE); // fresh random colour order each load
     curRef.current = 0; nextRef.current = chRef.current.length > 1 ? 1 : 0;
     phaseRef.current = "hold"; rotRef.current = 0; swappedRef.current = false;
 
