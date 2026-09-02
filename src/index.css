@@ -7419,9 +7419,19 @@ body:has(.app-shell--undisclosed)::before {
   /* trim verbose helper/info lines to save room (they duplicate the dropdowns/label) */
   .calc-label-panel > .meta { display: none; }
   .calc-card--skinny .form-grid > p.meta { display: none; }
-  /* smaller unit bar graph on phones */
-  .syringe-visual { margin: 0.4rem 0 0.5rem; }
-  .syringe-bar { height: 1.15rem; }
+  /* smaller unit bar graph on phones, with the stats as one compact row right below it */
+  .syringe-visual { margin: 0.35rem 0 0.4rem; }
+  .syringe-bar { height: 1.1rem; }
+  .syringe-ticks { margin-top: 0.2rem; font-size: 0.62rem; }
+  .calc-result { margin-top: 0.45rem; padding-top: 0.45rem; }
+  .calc-result-main { font-size: 0.95rem; }
+  .calc-refs--compact {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem;
+    margin-top: 0.4rem;
+  }
+  .calc-refs--compact span { font-size: 0.58rem; }
+  .calc-refs--compact strong { font-size: 0.82rem; }
 }
 
 .calc-card {
