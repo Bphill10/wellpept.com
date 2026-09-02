@@ -7428,7 +7428,8 @@ body:has(.app-shell--undisclosed)::before {
   .calc-layout--with-label .calc-card-head { order: 0; }
   .calc-layout--with-label .calc-controls-label,
   .calc-layout--with-label .calc-label-templates,
-  .calc-layout--with-label .calc-color-swatches { order: 1; }
+  .calc-layout--with-label .calc-color-swatches,
+  .calc-layout--with-label .calc-coa { order: 1; }
   .calc-layout--with-label .calc-card--skinny { order: 2; }
   .calc-layout--with-label .calc-vial-stage {
     order: 5;
@@ -7443,7 +7444,6 @@ body:has(.app-shell--undisclosed)::before {
   .calc-layout--with-label .calc-label-caption { order: 6; }
   .calc-layout--with-label .calc-label-stage { order: 7; }
   .calc-layout--with-label .calc-brand-custom { order: 8; }
-  .calc-layout--with-label .calc-coa { order: 9; }
   .calc-card--skinny .form-grid { gap: 0.5rem; }
   /* Keep the field rows two-up on phones to save vertical space (higher specificity than the
      900px single-column collapse above). Range min / max / unit share a tight three-up row. */
