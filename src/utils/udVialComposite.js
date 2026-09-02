@@ -669,8 +669,8 @@ export function paintVialScene(canvas, state, rot = 0, opts = {}) {
   rctx.setTransform(1, 0, 0, 1, 0, 0);
   rctx.globalCompositeOperation = "destination-in";
   const g = rctx.createLinearGradient(0, 0, 0, dh);
-  g.addColorStop(0, "rgba(0,0,0,0.42)");
-  g.addColorStop(0.45, "rgba(0,0,0,0)");
+  g.addColorStop(0, "rgba(0,0,0,0.30)");
+  g.addColorStop(0.30, "rgba(0,0,0,0)"); // fainter + fades faster → a subtle sheen, not a mirror
   rctx.fillStyle = g;
   rctx.fillRect(0, 0, dw, dh);
   rctx.globalCompositeOperation = "source-over";
@@ -681,7 +681,7 @@ export function paintVialScene(canvas, state, rot = 0, opts = {}) {
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(bg, 0, 0);
   ctx.save();
-  ctx.globalAlpha = 0.55;
+  ctx.globalAlpha = 0.4;
   ctx.drawImage(refl, dx, floorY);
   ctx.restore();
   ctx.drawImage(crop, dx, topY, dw, dh);
