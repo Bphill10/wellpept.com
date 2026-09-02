@@ -16,13 +16,55 @@ import { UD_MARK_DATA_URI } from "./udBrandMarkDataUri";
 /** Default QR target when no COA / link is provided. */
 export const DEFAULT_QR_URL = "https://www.wellpept.com";
 
-// Short display names for long products that don't fit the label. Add more as needed.
+// Short display codes for products whose full name is too long to sit on one uniform line.
+// Every code is <= 8 characters so it renders at the SAME name size on every vial (see
+// `nameSize` below). Order matters: blends and specific variants are matched before the
+// generic single-compound patterns. Names already <= 8 chars (BPC-157, GHK-Cu, NAD+, KPV,
+// MOTS-c, PT-141, …) need no entry and pass through unchanged.
 const NAME_SHORT = [
-  [/CJC.*(IPA|IPAMORELIN)|(IPA|IPAMORELIN).*CJC/, "CJC/IPA"],
-  [/SEMAGLUTIDE|^SEMA\b/, "SEMA"],
+  // Blends / specific variants first
+  [/CJC.*IPA|IPA.*CJC|CJC.*IPAMOREL|IPAMOREL.*CJC/, "CJC/IPA"],
+  [/TESA.*IPA|IPA.*TESA/, "TESA/IPA"],
+  [/WOLVERINE|BPC.*TB|TB.*BPC/, "BPC/TB"],
+  [/CJC.*WITH.*DAC|CJC.*\bDAC\b/, "CJC-DAC"],
+  [/\bCJC\b/, "CJC"],
+  [/HGH.*(FRAG|176)|\b176-?191\b/, "HGH FRAG"],
+  // Metabolic / incretins
+  [/SEMAGLUTIDE|^SEMA$/, "SEMA"],
+  [/RETATRUTIDE|^RETA\b/, "RETA"],
+  [/TIRZEPATIDE|^TIRZ/, "TIRZ"],
+  [/LIRAGLUTIDE/, "LIRA"],
+  [/CAGRILINTIDE|^CAGRI/, "CAGRI"],
+  [/SURVODUTIDE/, "SURVO"],
+  [/MAZDUTIDE/, "MAZD"],
+  // Growth / GH secretagogues
+  [/TESAMORELIN/, "TESA"],
+  [/SERMORELIN/, "SERM"],
+  [/HEXARELIN/, "HEXA"],
+  [/IPAMORELIN/, "IPA"],
+  [/IGF/, "IGF-1"],
+  // Melanocortin
+  [/MELANOTAN.*2|\bMT-?2\b/, "MT-2"],
+  [/MELANOTAN.*1|\bMT-?1\b/, "MT-1"],
+  // Longevity / cellular / cognitive
+  [/EPITHALON|EPITALON/, "EPI"],
+  [/GLUTATHIONE/, "GLUTA"],
+  [/CEREBROLYSIN/, "CEREBRO"],
+  [/GONADORELIN/, "GONAD"],
+  [/FOLLISTATIN/, "FOLLI"],
+  [/KISSPEPTIN/, "KISS-10"],
+  [/MELATONIN/, "MELA"],
+  [/5-?AMINO|1MQ/, "5-AMINO"],
+  [/SLU-?PP/, "SLU-PP"],
+  [/THYMOSIN\s*ALPHA|THYMOSIN\s*ALFA|^TA-?1\b/, "TA-1"],
+  [/FOX0?4|FOXO4/, "FOX04"],
+  // Vitamins / diluent
+  [/VITAMIN\s*B\s*12|METHYLCOBALAMIN|\bB-?12\b/, "B12"],
+  [/VITAMIN\s*B\b/, "VIT-B"],
+  [/BACTERIOSTATIC|BAC\s*WATER|\bBAC\b/, "BAC"],
 ];
 
-/** Map a long product name to its short label code (or return it unchanged). */
+/** Map a long product name to its short label code (or return it unchanged if it already fits). */
 export function shortLabelName(name) {
   const n = String(name || "").toUpperCase();
   for (const [re, code] of NAME_SHORT) if (re.test(n)) return code;
@@ -103,7 +145,10 @@ export function buildSilverLabelSVG(o = {}) {
   const mainL = band, mainR = w * 0.70, mainC = (mainL + mainR) / 2, mainW = mainR - mainL;
   const divX = w * 0.70, rightSafe = w * 0.965, rightC = (divX + rightSafe) / 2, rightUsable = (rightSafe - divX) * 0.80;
   const fit = (s, cap, k = 0.56) => Math.min(cap, rightUsable / (Math.max(1, String(s).length) * k));
-  const nameSize = Math.min(h * 0.245, (mainW * 0.90) / (Math.max(3, NM.length) * 0.60));
+  // Uniform product-name size: every short code (<= 8 chars) lands on the width cap, so the
+  // name is the SAME size on every vial. The divide only shrinks an unexpectedly long custom
+  // name so it still fits on one line.
+  const nameSize = Math.min(mainW * 0.194, (mainW * 0.95) / (Math.max(1, NM.length) * 0.60));
   const barW = mainW * 0.80, barX = mainC - barW / 2, barH = h * 0.135, barY = h * 0.455;
   const qs = Math.min(h * 0.40, rightUsable), qx = rightC - qs / 2, qy = h * 0.14, br = h * 0.05, t = 5;
 
