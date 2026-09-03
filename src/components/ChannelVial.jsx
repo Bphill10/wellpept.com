@@ -23,7 +23,7 @@ import { capScheme, catalogCapColor } from "../utils/labelColor";
  */
 
 const HOLD_MS = 4000;   // slow turntable on each channel before it tunes to the next
-const TUNE_MS = 1400;   // the light-bending tune — long and unhurried, not a snap
+const TUNE_MS = 2000;   // the light-bending tune — long and unhurried, not a snap
 const FADE_MS = 720;    // reduced-motion cross-dissolve
 const HERO_SPIN = 1 / 9000; // label-u per ms — a stately full revolution every ~9s
 
@@ -81,25 +81,43 @@ function makeScan(W, H) {
 }
 
 /**
- * Draw one frozen vial (as its three colour channels) bent as if seen through moving glass: the
- * image is sliced into horizontal bands, and a travelling sine wave displaces each band sideways
- * and stretches it a touch, so the light appears to refract. The three channels are offset by
- * `split` and recombined additively for the soft chromatic fringe of a signal being tuned.
- * Nothing scales up or down and nothing translates as a whole — the vial stays exactly where it is.
+ * Per-frame band geometry for the tune. The vial is sliced into horizontal bands; each is
+ * displaced sideways and stretched by a slow refraction swell plus a faster ripple, and now and
+ * then a band slips hard sideways the way a picture tears while you tune it in. It is computed
+ * ONCE per frame and shared by both vials and all three colour channels — if each channel rolled
+ * its own tears they would desync and the vial would break into confetti instead of tearing as
+ * one picture.
  */
-function bendTints(ctx, tints, W, H, alpha, amp, phase, split, strips) {
+function buildBands(W, H, strips, amp, phase, tear) {
+  const bands = [];
+  for (let i = 0; i < strips; i++) {
+    // Integer band bounds so the slices tile exactly — no hairline seams, no double-lit overlaps.
+    const y0 = Math.round((i * H) / strips), y1 = Math.round(((i + 1) * H) / strips);
+    if (y1 <= y0) continue;
+    const u = i / strips;
+    const w = 0.66 * Math.sin(u * Math.PI * 2.6 + phase)
+            + 0.34 * Math.sin(u * Math.PI * 7.3 - phase * 1.7);
+    let off = amp * w;
+    if (tear > 0 && Math.random() < 0.16 * tear) off += (Math.random() - 0.5) * W * 0.14 * tear;
+    bands.push({ y0, bh: y1 - y0, off, dw: W * (1 + 0.022 * w) });
+  }
+  return bands;
+}
+
+/**
+ * Draw one frozen vial (as its three colour channels) through the current band geometry, so the
+ * light appears to refract and tear through moving glass. The three channels are offset by
+ * `split` and recombined additively for the chromatic fringe of a signal being tuned. Nothing
+ * scales up or down and nothing translates as a whole — the vial stays exactly where it is.
+ */
+function bendTints(ctx, tints, W, alpha, bands, split) {
   if (alpha <= 0.004) return;
   ctx.globalCompositeOperation = "lighter";
   ctx.globalAlpha = alpha;
   const put = (img, dx) => {
-    for (let i = 0; i < strips; i++) {
-      // Integer band bounds so the slices tile exactly — no hairline seams, no double-lit overlaps.
-      const y0 = Math.round((i * H) / strips), y1 = Math.round(((i + 1) * H) / strips);
-      const bh = y1 - y0;
-      if (bh <= 0) continue;
-      const w = Math.sin((i / strips) * Math.PI * 2.6 + phase);
-      const dw = W * (1 + 0.014 * w);          // refraction widens/narrows the band a little
-      ctx.drawImage(img, 0, y0, W, bh, dx + amp * w - (dw - W) / 2, y0, dw, bh);
+    for (let i = 0; i < bands.length; i++) {
+      const b = bands[i];
+      ctx.drawImage(img, 0, b.y0, W, b.bh, dx + b.off - (b.dw - W) / 2, b.y0, b.dw, b.bh);
     }
   };
   put(tints.g, 0); put(tints.r, split); put(tints.b, -split);
@@ -118,20 +136,21 @@ function tuneFrame(ctx, gfx, outT, inT, p, phase, strips) {
   const e = smooth(p);
   ctx.clearRect(0, 0, W, H);
 
-  const amp = W * 0.045 * k;     // how far the light bends
-  const split = 0.8 + 5 * k;     // chromatic fringe
-  bendTints(ctx, outT, W, H, 1 - e, amp, phase, split, strips);
-  bendTints(ctx, inT, W, H, e, amp, phase + 0.9, split, strips);
+  const amp = W * 0.075 * k;     // how far the light bends
+  const split = 1 + 8 * k;       // chromatic fringe
+  // One set of bands per frame, shared by both vials so they tear as a single picture.
+  const bands = buildBands(W, H, strips, amp, phase, k);
+  bendTints(ctx, outT, W, 1 - e, bands, split);
+  bendTints(ctx, inT, W, e, bands, split);
 
   // Fuzz, masked to the glass so it never spills onto the marble.
   ctx.globalCompositeOperation = "source-atop";
   ctx.imageSmoothingEnabled = false;
   const noise = gfx.noise[(Math.random() * gfx.noise.length) | 0];
-  // Kept deliberately restrained: the signal should read as tuning, never bury the product.
-  ctx.globalAlpha = 0.04 + 0.19 * k;
+  ctx.globalAlpha = 0.06 + 0.36 * k;
   ctx.drawImage(noise, 0, 0, noise.width, noise.height, 0, 0, W, H);
   ctx.imageSmoothingEnabled = true;
-  ctx.globalAlpha = 0.13 * k;
+  ctx.globalAlpha = 0.2 * k;
   ctx.drawImage(gfx.scan, 0, 0);
 
   ctx.globalAlpha = 1;
@@ -194,8 +213,8 @@ export default function ChannelVial({ channels = [], className = "" }) {
   };
   // Compositing cap for the continuous turn: a touch slower on phones to save battery.
   const frameMs = () => (coarseRef.current ? 40 : 33);
-  // Bands the tune slices the vial into — fewer on phones, still a smooth bend.
-  const stripsFor = () => (coarseRef.current ? 14 : 20);
+  // Bands the tune slices the vial into — more bands tear more finely; fewer on phones.
+  const stripsFor = () => (coarseRef.current ? 18 : 26);
 
   const buildSVG = (c, accentColor) => {
     const ml = Number(c.vialMl) >= 8 ? 10 : 3;
