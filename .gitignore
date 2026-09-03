@@ -10,3 +10,9 @@ dist/
 ud-label-system/node_modules/
 ud-label-system/output/
 
+# Local scratch / handoff artifacts (keep the repo fast to clone across machines)
+payload/
+tmp-*/
+tmp-*
+*.log
+
