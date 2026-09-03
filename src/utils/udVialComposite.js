@@ -542,7 +542,17 @@ function composeGreen(canvas, prepared, rot, wrap) {
   const T = 1 + GAP_UNITS;
   const rr = wrap ? rot * T : rot; // one component revolution (rot 0→1) spans the whole strip
   // Start from the base with the label's pale reverse already lit into the clear glass above.
-  const out = new Uint8ClampedArray(prepared.baseBack || src);
+  // The buffer is allocated ONCE per prepared vial and reused every frame: the set of pixels this
+  // loop writes is fixed by `maskGreenPix` on the SOURCE pixels (never on `rot`), so it is
+  // identical on every frame, and each written pixel is fully overwritten. Copying the whole base
+  // per frame instead cost megabytes of allocation per frame, which is what capped the hero's
+  // render resolution.
+  const init = prepared.baseBack || src;
+  let out = prepared.outBuf;
+  if (!out || out.length !== init.length) {
+    out = prepared.outBuf = new Uint8ClampedArray(init);
+    prepared.outImg = null;
+  }
   const lwm = lw - 1, fh = Math.max(1, bot0 - top0), LN = ASIN_LUT.length - 1;
   const PAPER = 236; // neutral paper shown through the label's transparent margins/corners
   for (let y = top; y <= bot; y++) {
@@ -587,8 +597,12 @@ function composeGreen(canvas, prepared, rot, wrap) {
       out[i + 2] = clamp((ld[li + 2] * la + ia) * sh);
     }
   }
-  canvas.width = W; canvas.height = H;
-  canvas.getContext("2d").putImageData(new ImageData(out, W, H), 0, 0);
+  // Only resize when it actually changes — assigning width/height reallocates and clears the
+  // canvas, and putImageData rewrites every pixel anyway.
+  if (canvas.width !== W) canvas.width = W;
+  if (canvas.height !== H) canvas.height = H;
+  if (!prepared.outImg) prepared.outImg = new ImageData(out, W, H);
+  canvas.getContext("2d").putImageData(prepared.outImg, 0, 0);
   return true;
 }
 
