@@ -184,7 +184,7 @@ const UD_SHOWCASE_CHANNELS = [
   { name: "GHK-Cu", mass: "50", unit: "mg", vialMl: 3, formText: "LYOPHILIZED POWDER" },
   { name: "NAD+", mass: "500", unit: "mg", vialMl: 10, formText: "LYOPHILIZED POWDER" },
   { name: "Semaglutide", mass: "10", unit: "mg", vialMl: 3, formText: "LYOPHILIZED POWDER" },
-  { name: "Tesamorelin", mass: "10", unit: "mg", vialMl: 10, formText: "LYOPHILIZED POWDER" },
+  { name: "Tesamorelin", mass: "10", unit: "mg", vialMl: 3, formText: "LYOPHILIZED POWDER" },
 ];
 
 const VIEWS = {
