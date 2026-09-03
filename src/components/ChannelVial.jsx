@@ -10,31 +10,36 @@ import { capScheme, catalogCapColor } from "../utils/labelColor";
 /**
  * Undisclosed landing showcase — a single large hero vial that channel-surfs the catalog. Each
  * "channel" is a real compound: the vial turns slowly on a turntable (the whole label wraps past,
- * same as the catalog vials) for a few seconds, then TELEPORTS to the next compound through a
- * burst of old-TV fuzz — the current vial breaks into RGB-split analog snow as it shrinks to its
- * centre and fades, and the next one crackles back out the same way, with a bright bloom at the
- * swap. It goes "in and out", never rolling up and down. A little "CH 0X · NAME" readout
- * underneath sells the dial. Under prefers-reduced-motion it holds each vial still and simply
- * cross-dissolves between the labels — no spin, no scaling, no fuzz, no bloom.
+ * same as the catalog vials) for a few seconds, then TUNES to the next compound. The vial never
+ * leaves the frame and never changes size — instead the light bends through it: the image is
+ * sliced into horizontal bands that a travelling wave displaces and stretches sideways, as if
+ * refracted through moving glass, while the outgoing and incoming vials cross-dissolve through a
+ * soft chromatic fringe, analog snow and a bloom. A little "CH 0X · NAME" readout underneath
+ * sells the dial. Under prefers-reduced-motion it holds each vial still and simply cross-dissolves
+ * between the labels — no spin, no bending, no fuzz, no bloom.
  *
  * Self-contained: composites every vial live from name/strength/size (no per-product image),
  * prepares each channel just ahead of time, and pauses when off-screen or the tab is hidden.
  */
 
-const HOLD_MS = 3600;   // slow turntable on each channel before it teleports
-const TUNE_MS = 760;    // the fuzzy teleport (dematerialise → rematerialise)
+const HOLD_MS = 4000;   // slow turntable on each channel before it tunes to the next
+const TUNE_MS = 1400;   // the light-bending tune — long and unhurried, not a snap
 const FADE_MS = 720;    // reduced-motion cross-dissolve
-const FRAME_MS = 33;    // ~30fps cap for the continuous hold spin (power-friendly)
 const HERO_SPIN = 1 / 9000; // label-u per ms — a stately full revolution every ~9s
 
 const smooth = (x) => x * x * (3 - 2 * x); // smoothstep ease
 
-/** Build red / green / blue single-channel copies of a frozen vial for the chromatic split. */
-function buildTints(gfx, buf) {
+/**
+ * Build red / green / blue single-channel copies of a frozen vial for the chromatic fringe.
+ * `key` namespaces the scratch canvases so the outgoing and incoming vials can each keep a set
+ * and be drawn together during the cross-dissolve.
+ */
+function buildTints(gfx, buf, key) {
   const W = buf.width, H = buf.height;
-  const mk = (key, color) => {
-    let c = gfx[key];
-    if (!c) { c = document.createElement("canvas"); gfx[key] = c; }
+  const mk = (ch, color) => {
+    const slot = key + ch;
+    let c = gfx[slot];
+    if (!c) { c = document.createElement("canvas"); gfx[slot] = c; }
     c.width = W; c.height = H;
     const cx = c.getContext("2d");
     cx.globalCompositeOperation = "source-over";
@@ -47,7 +52,7 @@ function buildTints(gfx, buf) {
     cx.globalCompositeOperation = "source-over";
     return c;
   };
-  return { r: mk("tintR", "#ff0000"), g: mk("tintG", "#00ff00"), b: mk("tintB", "#0000ff") };
+  return { r: mk("R", "#ff0000"), g: mk("G", "#00ff00"), b: mk("B", "#0000ff") };
 }
 
 /** A few chunky grayscale noise tiles for analog snow (blitted upscaled, nearest-neighbour). */
@@ -76,38 +81,57 @@ function makeScan(W, H) {
 }
 
 /**
- * One fuzzy-teleport frame. The frozen vial (as RGB tints) is drawn scaled about its centre and
- * faded — shrinking away on the way OUT, growing back on the way IN — with the channel-change
- * fuzz on top: a chromatic split that widens toward the swap, analog snow, and faint scanlines,
- * all masked to the glass. There is deliberately no vertical roll.
+ * Draw one frozen vial (as its three colour channels) bent as if seen through moving glass: the
+ * image is sliced into horizontal bands, and a travelling sine wave displaces each band sideways
+ * and stretches it a touch, so the light appears to refract. The three channels are offset by
+ * `split` and recombined additively for the soft chromatic fringe of a signal being tuned.
+ * Nothing scales up or down and nothing translates as a whole — the vial stays exactly where it is.
  */
-function fuzzFrame(ctx, gfx, tints, out, t, p) {
-  const W = gfx.W, H = gfx.H;
-  const center = 1 - Math.min(1, Math.abs(p - 0.5) * 2); // triangle, peaks at the swap
-  const k = Math.pow(center, 0.7);
-  const e = smooth(t);
-  const alpha = out ? 1 - e : e;
-  const scale = out ? 1 - 0.34 * e : 0.66 + 0.34 * e;
-  const w = W * scale, h = H * scale, ox = (W - w) / 2, oy = (H - h) / 2;
-  ctx.clearRect(0, 0, W, H);
-  if (alpha <= 0.003) return;
-
-  // Chromatic split: the three channels drift apart sideways as the signal breaks up.
-  const dx = 1.5 + 9 * k;
+function bendTints(ctx, tints, W, H, alpha, amp, phase, split, strips) {
+  if (alpha <= 0.004) return;
   ctx.globalCompositeOperation = "lighter";
   ctx.globalAlpha = alpha;
-  ctx.drawImage(tints.g, ox, oy, w, h);
-  ctx.drawImage(tints.r, ox + dx, oy, w, h);
-  ctx.drawImage(tints.b, ox - dx, oy, w, h);
+  const put = (img, dx) => {
+    for (let i = 0; i < strips; i++) {
+      // Integer band bounds so the slices tile exactly — no hairline seams, no double-lit overlaps.
+      const y0 = Math.round((i * H) / strips), y1 = Math.round(((i + 1) * H) / strips);
+      const bh = y1 - y0;
+      if (bh <= 0) continue;
+      const w = Math.sin((i / strips) * Math.PI * 2.6 + phase);
+      const dw = W * (1 + 0.014 * w);          // refraction widens/narrows the band a little
+      ctx.drawImage(img, 0, y0, W, bh, dx + amp * w - (dw - W) / 2, y0, dw, bh);
+    }
+  };
+  put(tints.g, 0); put(tints.r, split); put(tints.b, -split);
+}
 
-  // Everything below is masked to the vial so the fuzz stays on the glass, not the stage.
+/**
+ * One tune frame: the outgoing and incoming vials cross-dissolve in place, both bent by the same
+ * travelling wave, with analog snow and scanlines masked to the glass. Because both are drawn
+ * every frame the vial is always present — it tunes from one compound to the next rather than
+ * leaving and coming back.
+ */
+function tuneFrame(ctx, gfx, outT, inT, p, phase, strips) {
+  const W = gfx.W, H = gfx.H;
+  const bell = Math.sin(Math.PI * (p < 0 ? 0 : p > 1 ? 1 : p)); // 0 → 1 → 0 across the tune
+  const k = Math.pow(bell, 0.75);
+  const e = smooth(p);
+  ctx.clearRect(0, 0, W, H);
+
+  const amp = W * 0.045 * k;     // how far the light bends
+  const split = 0.8 + 5 * k;     // chromatic fringe
+  bendTints(ctx, outT, W, H, 1 - e, amp, phase, split, strips);
+  bendTints(ctx, inT, W, H, e, amp, phase + 0.9, split, strips);
+
+  // Fuzz, masked to the glass so it never spills onto the marble.
   ctx.globalCompositeOperation = "source-atop";
   ctx.imageSmoothingEnabled = false;
   const noise = gfx.noise[(Math.random() * gfx.noise.length) | 0];
-  ctx.globalAlpha = (0.12 + 0.72 * k) * alpha;
+  // Kept deliberately restrained: the signal should read as tuning, never bury the product.
+  ctx.globalAlpha = 0.04 + 0.19 * k;
   ctx.drawImage(noise, 0, 0, noise.width, noise.height, 0, 0, W, H);
   ctx.imageSmoothingEnabled = true;
-  ctx.globalAlpha = 0.22 * alpha;
+  ctx.globalAlpha = 0.13 * k;
   ctx.drawImage(gfx.scan, 0, 0);
 
   ctx.globalAlpha = 1;
@@ -119,8 +143,8 @@ function teleportBloom(ctx, W, H, k) {
   ctx.globalCompositeOperation = "lighter";
   const cx = W / 2, cy = H * 0.46, r = Math.max(W, H) * 0.55;
   const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-  g.addColorStop(0, `rgba(226,241,255,${0.55 * k})`);
-  g.addColorStop(0.35, `rgba(150,196,255,${0.20 * k})`);
+  g.addColorStop(0, `rgba(226,241,255,${0.34 * k})`);
+  g.addColorStop(0.35, `rgba(150,196,255,${0.13 * k})`);
   g.addColorStop(1, "rgba(120,170,255,0)");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
@@ -141,7 +165,8 @@ export default function ChannelVial({ channels = [], className = "" }) {
   const fromRef = useRef(null);           // frozen OUTgoing vial (dematerialise)
   const toRef = useRef(null);             // frozen INcoming vial (rematerialise)
   const gfxRef = useRef({ noise: null, scan: null, W: 0, H: 0 }); // reusable fuzz scratch
-  const tintsRef = useRef(null);          // RGB tints of whichever vial is currently teleporting
+  const outTintsRef = useRef(null);       // RGB channel copies of the outgoing vial
+  const inTintsRef = useRef(null);        // ...and of the incoming one (both drawn during a tune)
 
   const rafRef = useRef(0);
   const curRef = useRef(0);
@@ -156,7 +181,21 @@ export default function ChannelVial({ channels = [], className = "" }) {
   const reducedRef = useRef(false);
   const coarseRef = useRef(false);
 
-  const ssFor = () => (coarseRef.current ? 0.5 : 0.66);
+  // Render resolution, matched to the screen's actual device pixels. The hero is the biggest
+  // thing on the page: at the old ss 0.5 its 360x540 backing store was blown up ~2.6x on a 3x
+  // phone, which is exactly why the label looked pixelated. The hero displays ~560px tall at most
+  // and the base photo is 1080px, so ss = 560*dpr/1080 lands one rendered pixel on one device
+  // pixel; clamped so a 1x screen still gets a sharp render and a 3x screen stays affordable to
+  // composite every frame. Only affordable at all because composeGreen now reuses its output
+  // buffer instead of reallocating a full frame each time.
+  const ssFor = () => {
+    const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 2;
+    return Math.max(1.0, Math.min(1.25, (560 * Math.min(dpr, 3)) / 1080));
+  };
+  // Compositing cap for the continuous turn: a touch slower on phones to save battery.
+  const frameMs = () => (coarseRef.current ? 40 : 33);
+  // Bands the tune slices the vial into — fewer on phones, still a smooth bend.
+  const stripsFor = () => (coarseRef.current ? 14 : 20);
 
   const buildSVG = (c, accentColor) => {
     const ml = Number(c.vialMl) >= 8 ? 10 : 3;
@@ -272,7 +311,7 @@ export default function ChannelVial({ channels = [], className = "" }) {
       // Continuous rotation (whole label wraps past), composited at ~30fps to save power.
       // lastDrawRef is reset to 0 on entering hold, so the first frame always draws.
       rotRef.current += dt * HERO_SPIN;
-      if (ts - lastDrawRef.current >= FRAME_MS) {
+      if (ts - lastDrawRef.current >= frameMs()) {
         lastDrawRef.current = ts;
         composeVial(canvas, cur, rotRef.current, { wrap: true });
       }
@@ -280,38 +319,38 @@ export default function ChannelVial({ channels = [], className = "" }) {
         const nxt = prepsRef.current.get(nextRef.current);
         if (nxt && !nxt.then) {
           if (!fromRef.current) fromRef.current = document.createElement("canvas");
+          if (!toRef.current) toRef.current = document.createElement("canvas");
           snapshot(cur, rotRef.current, fromRef.current); // freeze the current turn
+          snapshot(nxt, 0, toRef.current);                // and the incoming vial, front-facing
           ensureGfx(fromRef.current);
-          tintsRef.current = buildTints(gfxRef.current, fromRef.current);
+          // Both are on screen for the whole tune, so both need their channel copies up front.
+          outTintsRef.current = buildTints(gfxRef.current, fromRef.current, "out");
+          inTintsRef.current = buildTints(gfxRef.current, toRef.current, "in");
           phaseRef.current = "tune"; phaseStartRef.current = ts; swappedRef.current = false;
         } else {
           ensurePrep(nextRef.current); phaseStartRef.current = ts; // hold until ready
         }
       }
     } else {
-      // Fuzzy teleport: out (shrink + fade in static) → swap → in (grow + fade in static),
-      // with a bloom at the midpoint. The canvas is locked to the frozen vial's size.
+      // Tune: the outgoing and incoming vials cross-dissolve in place while a travelling wave
+      // bends the light through both. Nothing scales or slides — the vial holds its position.
       const p = Math.min(1, e / TUNE_MS);
       const { W, H } = gfxRef.current;
       if (canvas.width !== W) canvas.width = W;
       if (canvas.height !== H) canvas.height = H;
 
+      // Hand over the channel indices (and the readout) once, mid-dissolve.
       if (!swappedRef.current && p >= 0.5) {
         swappedRef.current = true;
         curRef.current = nextRef.current;
         nextRef.current = (curRef.current + 1) % chRef.current.length;
         rotRef.current = 0;
-        if (!toRef.current) toRef.current = document.createElement("canvas");
-        snapshot(prepsRef.current.get(curRef.current), 0, toRef.current); // incoming, front-facing
-        ensureGfx(toRef.current);
-        tintsRef.current = buildTints(gfxRef.current, toRef.current);
         setReadout(curRef.current);
         ensurePrep(nextRef.current);
       }
 
-      if (p < 0.5) fuzzFrame(ctx, gfxRef.current, tintsRef.current, true, p / 0.5, p);
-      else fuzzFrame(ctx, gfxRef.current, tintsRef.current, false, (p - 0.5) / 0.5, p);
-      const bloom = 1 - Math.min(1, Math.abs(p - 0.5) * 2); // triangle, peaks at the swap
+      tuneFrame(ctx, gfxRef.current, outTintsRef.current, inTintsRef.current, p, e / 150, stripsFor());
+      const bloom = 1 - Math.min(1, Math.abs(p - 0.5) * 2); // triangle, peaks mid-tune
       if (bloom > 0) teleportBloom(ctx, W, H, bloom);
 
       if (p >= 1) {
