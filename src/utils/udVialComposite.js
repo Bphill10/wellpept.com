@@ -433,7 +433,10 @@ function tintCap(out, base, domeTint, crimpTint) {
   for (let y = collarY; y <= neckBot; y++) if (wAt(y) < neckW) { neckW = wAt(y); neckY = y; }
   let capBot = neckY - Math.round(vh * 0.008);
   if (capBot < collarY + 2) capBot = collarY + 2;
-  const domeBot = minY + Math.round((capBot - minY) * 0.55); // dome above, crimp collar below
+  // Dome above, crimp collar below. The split sits at the cap's plastic/metal seam — at 0.55 the
+  // dome colour ran a hair too low and painted the collar's bright top rim, so the dome looked
+  // like it bled into the crimp; 0.46 lands the rim on the crimp colour instead.
+  const domeBot = minY + Math.round((capBot - minY) * 0.46);
   const paint = (y0, y1, tint) => {
     const tr = tint[0], tg = tint[1], tb = tint[2];
     for (let y = y0; y <= y1; y++) {
@@ -687,7 +690,9 @@ export async function prepareVialScene({ svg, vialMl, baseSrc, sceneSrc, ss = BA
   // 10 mL vials are physically larger than 3 mL — render them clearly bigger and chunkier so
   // the size difference reads true. Height is capped by the scene (the cap must not clip at the
   // top); `wide` fattens the 10 mL a touch beyond its slender photo so it reads as a 10 mL.
-  const SZ = ml === 10 ? { h: 0.67, wide: 1.08 } : { h: 0.62, wide: 1.0 };
+  // (10 mL: 0.61 — the bases no longer carry a baked-in floor shadow below the heel, so the
+  // bbox is the glass alone; 0.61 keeps the glass the same on-scene size the old 0.67 gave.)
+  const SZ = ml === 10 ? { h: 0.61, wide: 1.08 } : { h: 0.62, wide: 1.0 };
   const targetH = Math.round(H * SZ.h);
   const s = targetH / bbox.h;
   const dw = Math.round(bbox.w * s * SZ.wide), dh = targetH;
@@ -713,7 +718,7 @@ export async function prepareVialScene({ svg, vialMl, baseSrc, sceneSrc, ss = BA
   const refl = document.createElement("canvas");
   refl.width = dw; refl.height = dh;
 
-  return { prepared, off, bbox, bg, crop, refl, place: { W, H, dw, dh, dx, topY, floorY } };
+  return { prepared, off, bbox, bg, crop, refl, place: { W, H, dw, dh, dx, topY, floorY, ml } };
 }
 
 /**
@@ -724,7 +729,7 @@ export async function prepareVialScene({ svg, vialMl, baseSrc, sceneSrc, ss = BA
 export function paintVialScene(canvas, state, rot = 0, opts = {}) {
   const wrap = opts.wrap !== undefined ? opts.wrap : true;
   const { prepared, off, bbox, bg, crop, refl, place } = state;
-  const { W, H, dw, dh, dx, topY, floorY } = place;
+  const { W, H, dw, dh, dx, topY, floorY, ml } = place;
   composeVial(off, prepared, rot, { wrap });
 
   // Crop the vial tightly (constant silhouette) into the reusable crop canvas, scaled to dw×dh.
@@ -753,10 +758,14 @@ export function paintVialScene(canvas, state, rot = 0, opts = {}) {
   const ctx = canvas.getContext("2d");
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(bg, 0, 0);
-  ctx.save();
-  ctx.globalAlpha = 0.4;
-  ctx.drawImage(refl, dx, floorY);
-  ctx.restore();
+  // No reflection under 10 mL vials: their tall base + heel reflected on the floor reads as a
+  // smeared blob at the bottom of the card, so the 10 mL just plants on its contact shadow.
+  if (ml !== 10) {
+    ctx.save();
+    ctx.globalAlpha = 0.4;
+    ctx.drawImage(refl, dx, floorY);
+    ctx.restore();
+  }
   ctx.drawImage(crop, dx, topY, dw, dh);
   return true;
 }

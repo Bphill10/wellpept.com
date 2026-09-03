@@ -10,42 +10,111 @@ import { capScheme, catalogCapColor } from "../utils/labelColor";
 /**
  * Undisclosed landing showcase — a single large hero vial that channel-surfs the catalog. Each
  * "channel" is a real compound: the vial turns slowly on a turntable (the whole label wraps past,
- * same as the catalog vials) for a few seconds, then TELEPORTS to the next compound — the current
- * vial dematerialises (shrinks to its centre and fades) and the next one rematerialises (grows
- * back out), with a bright bloom at the swap. It goes "in and out", never rolling up and down.
- * A little "CH 0X · NAME" readout underneath sells the dial. Under prefers-reduced-motion it holds
- * each vial still and simply cross-dissolves between the labels — no spin, no scaling, no bloom.
+ * same as the catalog vials) for a few seconds, then TELEPORTS to the next compound through a
+ * burst of old-TV fuzz — the current vial breaks into RGB-split analog snow as it shrinks to its
+ * centre and fades, and the next one crackles back out the same way, with a bright bloom at the
+ * swap. It goes "in and out", never rolling up and down. A little "CH 0X · NAME" readout
+ * underneath sells the dial. Under prefers-reduced-motion it holds each vial still and simply
+ * cross-dissolves between the labels — no spin, no scaling, no fuzz, no bloom.
  *
  * Self-contained: composites every vial live from name/strength/size (no per-product image),
  * prepares each channel just ahead of time, and pauses when off-screen or the tab is hidden.
  */
 
 const HOLD_MS = 3600;   // slow turntable on each channel before it teleports
-const TUNE_MS = 760;    // the teleport (dematerialise → rematerialise)
+const TUNE_MS = 760;    // the fuzzy teleport (dematerialise → rematerialise)
 const FADE_MS = 720;    // reduced-motion cross-dissolve
 const FRAME_MS = 33;    // ~30fps cap for the continuous hold spin (power-friendly)
 const HERO_SPIN = 1 / 9000; // label-u per ms — a stately full revolution every ~9s
 
 const smooth = (x) => x * x * (3 - 2 * x); // smoothstep ease
 
-/**
- * One teleport half-frame: draw the frozen vial `img` scaled about its centre and faded. On the
- * way OUT it shrinks + fades to nothing; on the way IN it grows from small + fades up. No vertical
- * translation — it reads as teleporting in and out, not a TV roll.
- */
-function teleportDraw(ctx, W, H, img, out, t) {
-  if (!img) return;
-  const e = smooth(t);
-  const alpha = out ? 1 - e : e;
-  if (alpha <= 0.003) return;
-  const scale = out ? 1 - 0.34 * e : 0.66 + 0.34 * e;
-  const w = W * scale, h = H * scale;
-  ctx.globalAlpha = alpha;
-  ctx.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
-  ctx.globalAlpha = 1;
+/** Build red / green / blue single-channel copies of a frozen vial for the chromatic split. */
+function buildTints(gfx, buf) {
+  const W = buf.width, H = buf.height;
+  const mk = (key, color) => {
+    let c = gfx[key];
+    if (!c) { c = document.createElement("canvas"); gfx[key] = c; }
+    c.width = W; c.height = H;
+    const cx = c.getContext("2d");
+    cx.globalCompositeOperation = "source-over";
+    cx.clearRect(0, 0, W, H);
+    cx.drawImage(buf, 0, 0);
+    cx.globalCompositeOperation = "multiply";   // keep only this colour channel
+    cx.fillStyle = color; cx.fillRect(0, 0, W, H);
+    cx.globalCompositeOperation = "destination-in"; // restore the vial's alpha shape
+    cx.drawImage(buf, 0, 0);
+    cx.globalCompositeOperation = "source-over";
+    return c;
+  };
+  return { r: mk("tintR", "#ff0000"), g: mk("tintG", "#00ff00"), b: mk("tintB", "#0000ff") };
 }
 
-/** Additive bloom flash centred on the vial, peaking at the swap — the teleport "energy". */
+/** A few chunky grayscale noise tiles for analog snow (blitted upscaled, nearest-neighbour). */
+function makeNoise(W, H, n = 5) {
+  const nw = Math.max(48, Math.round(W / 3)), nh = Math.max(72, Math.round(H / 3));
+  const tiles = [];
+  for (let k = 0; k < n; k++) {
+    const c = document.createElement("canvas"); c.width = nw; c.height = nh;
+    const cx = c.getContext("2d"); const img = cx.createImageData(nw, nh);
+    for (let i = 0; i < img.data.length; i += 4) {
+      const v = (Math.random() * 255) | 0;
+      img.data[i] = v; img.data[i + 1] = v; img.data[i + 2] = v; img.data[i + 3] = 255;
+    }
+    cx.putImageData(img, 0, 0); tiles.push(c);
+  }
+  return tiles;
+}
+
+/** Constant faint CRT scanline overlay at the vial resolution. */
+function makeScan(W, H) {
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const cx = c.getContext("2d");
+  cx.fillStyle = "rgba(0,0,0,0.5)";
+  for (let y = 0; y < H; y += 3) cx.fillRect(0, y, W, 1);
+  return c;
+}
+
+/**
+ * One fuzzy-teleport frame. The frozen vial (as RGB tints) is drawn scaled about its centre and
+ * faded — shrinking away on the way OUT, growing back on the way IN — with the channel-change
+ * fuzz on top: a chromatic split that widens toward the swap, analog snow, and faint scanlines,
+ * all masked to the glass. There is deliberately no vertical roll.
+ */
+function fuzzFrame(ctx, gfx, tints, out, t, p) {
+  const W = gfx.W, H = gfx.H;
+  const center = 1 - Math.min(1, Math.abs(p - 0.5) * 2); // triangle, peaks at the swap
+  const k = Math.pow(center, 0.7);
+  const e = smooth(t);
+  const alpha = out ? 1 - e : e;
+  const scale = out ? 1 - 0.34 * e : 0.66 + 0.34 * e;
+  const w = W * scale, h = H * scale, ox = (W - w) / 2, oy = (H - h) / 2;
+  ctx.clearRect(0, 0, W, H);
+  if (alpha <= 0.003) return;
+
+  // Chromatic split: the three channels drift apart sideways as the signal breaks up.
+  const dx = 1.5 + 9 * k;
+  ctx.globalCompositeOperation = "lighter";
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(tints.g, ox, oy, w, h);
+  ctx.drawImage(tints.r, ox + dx, oy, w, h);
+  ctx.drawImage(tints.b, ox - dx, oy, w, h);
+
+  // Everything below is masked to the vial so the fuzz stays on the glass, not the stage.
+  ctx.globalCompositeOperation = "source-atop";
+  ctx.imageSmoothingEnabled = false;
+  const noise = gfx.noise[(Math.random() * gfx.noise.length) | 0];
+  ctx.globalAlpha = (0.12 + 0.72 * k) * alpha;
+  ctx.drawImage(noise, 0, 0, noise.width, noise.height, 0, 0, W, H);
+  ctx.imageSmoothingEnabled = true;
+  ctx.globalAlpha = 0.22 * alpha;
+  ctx.drawImage(gfx.scan, 0, 0);
+
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = "source-over";
+}
+
+/** Additive bloom flash centred on the vial, peaking at the swap — the teleport "snap". */
 function teleportBloom(ctx, W, H, k) {
   ctx.globalCompositeOperation = "lighter";
   const cx = W / 2, cy = H * 0.46, r = Math.max(W, H) * 0.55;
@@ -71,13 +140,14 @@ export default function ChannelVial({ channels = [], className = "" }) {
   const bufRef = useRef(null);            // scratch canvas for composing a vial before snapshotting
   const fromRef = useRef(null);           // frozen OUTgoing vial (dematerialise)
   const toRef = useRef(null);             // frozen INcoming vial (rematerialise)
-  const sizeRef = useRef({ W: 0, H: 0 }); // canvas size locked for the teleport
+  const gfxRef = useRef({ noise: null, scan: null, W: 0, H: 0 }); // reusable fuzz scratch
+  const tintsRef = useRef(null);          // RGB tints of whichever vial is currently teleporting
 
   const rafRef = useRef(0);
   const curRef = useRef(0);
   const nextRef = useRef(1);
   const rotRef = useRef(0);
-  const phaseRef = useRef("hold");        // hold | tune (teleport, or cross-dissolve when reduced)
+  const phaseRef = useRef("hold");        // hold | tune (fuzzy teleport, or cross-dissolve when reduced)
   const phaseStartRef = useRef(0);
   const lastRef = useRef(0);
   const lastDrawRef = useRef(0);          // last hold-spin composite time (for the 30fps cap)
@@ -125,6 +195,16 @@ export default function ChannelVial({ channels = [], className = "" }) {
     if (!el || !list.length) return;
     const n = String((idx % list.length) + 1).padStart(2, "0");
     el.textContent = `CH ${n} · ${list[idx % list.length].name}`;
+  };
+
+  // (Re)build the noise/scanline scratch whenever the frozen vial size changes.
+  const ensureGfx = (buf) => {
+    const g = gfxRef.current;
+    if (g.W !== buf.width || g.H !== buf.height) {
+      g.W = buf.width; g.H = buf.height;
+      g.noise = makeNoise(g.W, g.H, 5);
+      g.scan = makeScan(g.W, g.H);
+    }
   };
 
   // Compose a vial into the scratch buffer and snapshot it into `dest` (a persistent canvas).
@@ -187,7 +267,7 @@ export default function ChannelVial({ channels = [], className = "" }) {
       return;
     }
 
-    // ---- Full motion: slow turntable, then a teleport that masks the swap. ----
+    // ---- Full motion: slow turntable, then a fuzzy teleport that masks the swap. ----
     if (phaseRef.current === "hold") {
       // Continuous rotation (whole label wraps past), composited at ~30fps to save power.
       // lastDrawRef is reset to 0 on entering hold, so the first frame always draws.
@@ -200,17 +280,19 @@ export default function ChannelVial({ channels = [], className = "" }) {
         const nxt = prepsRef.current.get(nextRef.current);
         if (nxt && !nxt.then) {
           if (!fromRef.current) fromRef.current = document.createElement("canvas");
-          const buf = snapshot(cur, rotRef.current, fromRef.current); // freeze the current turn
-          sizeRef.current = { W: buf.width, H: buf.height };
+          snapshot(cur, rotRef.current, fromRef.current); // freeze the current turn
+          ensureGfx(fromRef.current);
+          tintsRef.current = buildTints(gfxRef.current, fromRef.current);
           phaseRef.current = "tune"; phaseStartRef.current = ts; swappedRef.current = false;
         } else {
           ensurePrep(nextRef.current); phaseStartRef.current = ts; // hold until ready
         }
       }
     } else {
-      // Teleport: out (shrink + fade) → swap → in (grow + fade), with a bloom at the midpoint.
+      // Fuzzy teleport: out (shrink + fade in static) → swap → in (grow + fade in static),
+      // with a bloom at the midpoint. The canvas is locked to the frozen vial's size.
       const p = Math.min(1, e / TUNE_MS);
-      const { W, H } = sizeRef.current;
+      const { W, H } = gfxRef.current;
       if (canvas.width !== W) canvas.width = W;
       if (canvas.height !== H) canvas.height = H;
 
@@ -221,13 +303,14 @@ export default function ChannelVial({ channels = [], className = "" }) {
         rotRef.current = 0;
         if (!toRef.current) toRef.current = document.createElement("canvas");
         snapshot(prepsRef.current.get(curRef.current), 0, toRef.current); // incoming, front-facing
+        ensureGfx(toRef.current);
+        tintsRef.current = buildTints(gfxRef.current, toRef.current);
         setReadout(curRef.current);
         ensurePrep(nextRef.current);
       }
 
-      ctx.clearRect(0, 0, W, H);
-      if (p < 0.5) teleportDraw(ctx, W, H, fromRef.current, true, p / 0.5);
-      else teleportDraw(ctx, W, H, toRef.current, false, (p - 0.5) / 0.5);
+      if (p < 0.5) fuzzFrame(ctx, gfxRef.current, tintsRef.current, true, p / 0.5, p);
+      else fuzzFrame(ctx, gfxRef.current, tintsRef.current, false, (p - 0.5) / 0.5, p);
       const bloom = 1 - Math.min(1, Math.abs(p - 0.5) * 2); // triangle, peaks at the swap
       if (bloom > 0) teleportBloom(ctx, W, H, bloom);
 

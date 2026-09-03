@@ -54,11 +54,16 @@ export function hueRotate(rgb, deg, dl = 0) {
 /**
  * From one base colour, the coordinated set: dome (base), crimp collar (analogous hue, a touch
  * lighter — a different colour that still matches), and the label accent hex (a deeper dome).
+ *
+ * The crimp rotates the hue NEGATIVE (toward the cyan/warm neighbour), not positive: a +36°
+ * turn pushed the blue peptides' crimp into violet, so KLOW / GLOW / GHK-Cu read as purple caps
+ * instead of blue. Rotating -26° keeps royal blue → azure (still unmistakably blue), red → rose,
+ * green → green, amber → red-orange — every cap stays two-tone and in its own colour family.
  */
 export function capScheme(rgb) {
   return {
     dome: rgb,
-    crimp: hueRotate(rgb, 36, 0.06),
+    crimp: hueRotate(rgb, -26, 0.06),
     labelHex: rgbHex(darken(rgb, 0.12)),
   };
 }
