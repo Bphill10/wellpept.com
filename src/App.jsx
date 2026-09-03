@@ -187,9 +187,6 @@ const UD_SHOWCASE_CHANNELS = [
   { name: "Tesamorelin", mass: "10", unit: "mg", vialMl: 3, formText: "LYOPHILIZED POWDER" },
 ];
 
-// The unlock ceremony is a first impression, not a toll — it plays once per visit.
-const UD_KEY_SEEN = "ud-key-seen";
-
 const VIEWS = {
   skincare: "skincare",
   skinProduct: "skinProduct",
@@ -592,25 +589,6 @@ export default function App() {
   function startChannelTuneUnlock(impact = null) {
     if (channelTuneLockRef.current || channelTuning || labVisible) return;
     channelTuneLockRef.current = true;
-    // Regulars skip straight in — the key only turns the first time you enter this visit.
-    let seenKey = false;
-    try {
-      seenKey = window.sessionStorage.getItem(UD_KEY_SEEN) === "1";
-    } catch {
-      /* private mode / storage blocked — just play it */
-    }
-    if (seenKey) {
-      channelTuneLockRef.current = false;
-      unlockLabMenu("", { flashMsg: false });
-      setUdGridLive(true);
-      setFlash("Undisclosed unlocked");
-      return;
-    }
-    try {
-      window.sessionStorage.setItem(UD_KEY_SEEN, "1");
-    } catch {
-      /* ignore */
-    }
     [
       UD_LABEL_BRAND.whiteTransparent,
       UD_FEATURED_KIT_SRC,

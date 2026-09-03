@@ -23,7 +23,7 @@ import { capScheme, catalogCapColor } from "../utils/labelColor";
  */
 
 const HOLD_MS = 4000;   // slow turntable on each channel before it tunes to the next
-const TUNE_MS = 2800;   // the light-bending tune — long and unhurried, not a snap
+const TUNE_MS = 3000;   // the light-bending tune — long and unhurried, not a snap
 const FADE_MS = 720;    // reduced-motion cross-dissolve
 const HERO_SPIN = 1 / 9000; // label-u per ms — a stately full revolution every ~9s
 
