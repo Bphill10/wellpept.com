@@ -284,7 +284,6 @@ function paintLiquid(out, cleared, source, width, chamber, body, opts) {
 export async function renderLiquidVial(options = {}) {
   const liquidColor = options.liquidColor || B12_LIQUID.liquidColor;
   const fillFraction = options.fillFraction ?? B12_LIQUID.fillFraction;
-  const sourcePath = path.join(root, options.sourceRel || B12_LIQUID.sourceRel);
   const outRel = options.assetRel || B12_LIQUID.assetRel;
   const assetPath = path.join(root, outRel);
   const publicPath = path.join(
@@ -294,27 +293,49 @@ export async function renderLiquidVial(options = {}) {
     "vials",
     path.basename(outRel)
   );
+  const lockedLiquid = path.join(
+    root,
+    "locked-masters/vials/04_10mL_B12_Ruby_Red_Liquid_75pct_LOCKED.png"
+  );
+  const publishedPath = path.join(root, "blender/PUBLISHED.json");
+  let published = null;
+  try {
+    published = JSON.parse(await fs.readFile(publishedPath, "utf8"));
+  } catch (error) {
+    if (error?.code !== "ENOENT") throw error;
+  }
 
-  const { data, info } = await sharp(sourcePath)
-    .ensureAlpha()
-    .raw()
-    .toBuffer({ resolveWithObject: true });
-  const { width, height } = info;
-  const source = Buffer.from(data);
-  const out = Buffer.from(data);
+  let png;
+  let width;
+  let height;
+  if (published?.plates?.length) {
+    const meta = await sharp(lockedLiquid).metadata();
+    width = meta.width;
+    height = meta.height;
+    png = await sharp(lockedLiquid).png({ compressionLevel: 9 }).toBuffer();
+  } else {
+    const sourcePath = path.join(root, options.sourceRel || B12_LIQUID.sourceRel);
+    const { data, info } = await sharp(sourcePath)
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    width = info.width;
+    height = info.height;
+    const source = Buffer.from(data);
+    const out = Buffer.from(data);
 
-  emptyChamber(out, width, BODY);
-  emptyChamber(out, width, BODY);
-  // Speculars from the cleared plate only — never pull cake texture back in
-  const cleared = Buffer.from(out);
-  paintLiquid(out, cleared, source, width, CHAMBER, BODY, {
-    liquidColor,
-    fillFraction,
-  });
+    emptyChamber(out, width, BODY);
+    emptyChamber(out, width, BODY);
+    const cleared = Buffer.from(out);
+    paintLiquid(out, cleared, source, width, CHAMBER, BODY, {
+      liquidColor,
+      fillFraction,
+    });
 
-  const png = await sharp(out, { raw: { width, height, channels: 4 } })
-    .png({ compressionLevel: 9 })
-    .toBuffer();
+    png = await sharp(out, { raw: { width, height, channels: 4 } })
+      .png({ compressionLevel: 9 })
+      .toBuffer();
+  }
 
   await fs.mkdir(path.dirname(assetPath), { recursive: true });
   await fs.mkdir(path.dirname(publicPath), { recursive: true });

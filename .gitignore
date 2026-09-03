@@ -9,4 +9,13 @@ dist/
 .env*
 ud-label-system/node_modules/
 ud-label-system/output/
+ud-label-system/blender/output/
+ud-label-system/blender/__pycache__/
+tools/blender-vials/output/
+tools/blender-vials/renders/*
+!tools/blender-vials/renders/.gitkeep
+tools/blender-vials/__pycache__/
+tools/blender-vials/scripts/__pycache__/
+tools/blender-vials/masters/*.blend1
+tools/blender-vials/experimental/**/*.png
 

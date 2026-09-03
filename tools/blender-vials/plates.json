@@ -1,0 +1,51 @@
+{
+  "referenceCanvas": { "widthPx": 1122, "heightPx": 1402 },
+  "masterCanvas": { "widthPx": 1024, "heightPx": 1536 },
+  "plates": [
+    {
+      "id": "01",
+      "reference": "image-gen-3ml White.png",
+      "master": "01_3mL_White_Powder_LOCKED.png",
+      "profile": "3ml",
+      "contents": "white_cake",
+      "placement": "3ML_WHITE",
+      "publish": true
+    },
+    {
+      "id": "02",
+      "reference": "image-gen-3ml Blue.png",
+      "master": "02_3mL_Cobalt_Blue_Powder_LOCKED.png",
+      "profile": "3ml",
+      "contents": "cobalt_cake",
+      "placement": "3ML_BLUE",
+      "publish": true
+    },
+    {
+      "id": "03",
+      "reference": "image-gen-10ml White.png",
+      "master": "03_10mL_White_Powder_LOCKED.png",
+      "profile": "10ml",
+      "contents": "white_cake",
+      "placement": "10ML_WHITE",
+      "publish": true
+    },
+    {
+      "id": "04",
+      "reference": "image-gen-10ml Red.png",
+      "master": "04_10mL_B12_Ruby_Red_Liquid_75pct_LOCKED.png",
+      "profile": "10ml",
+      "contents": "ruby_liquid",
+      "placement": "10ML_B12_LIQUID",
+      "publish": true
+    },
+    {
+      "id": "05",
+      "reference": "image-gen-5ml White.png",
+      "master": "05_5mL_White_Powder_LOCKED.png",
+      "profile": "5ml",
+      "contents": "white_cake",
+      "placement": null,
+      "publish": false
+    }
+  ]
+}
