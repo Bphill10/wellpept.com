@@ -23,7 +23,7 @@ import { capScheme, catalogCapColor } from "../utils/labelColor";
  */
 
 const HOLD_MS = 4000;   // slow turntable on each channel before it tunes to the next
-const TUNE_MS = 2000;   // the light-bending tune — long and unhurried, not a snap
+const TUNE_MS = 2800;   // the light-bending tune — long and unhurried, not a snap
 const FADE_MS = 720;    // reduced-motion cross-dissolve
 const HERO_SPIN = 1 / 9000; // label-u per ms — a stately full revolution every ~9s
 
@@ -131,7 +131,11 @@ function bendTints(ctx, tints, W, alpha, bands, split) {
  */
 function tuneFrame(ctx, gfx, outT, inT, p, phase, strips) {
   const W = gfx.W, H = gfx.H;
-  const bell = Math.sin(Math.PI * (p < 0 ? 0 : p > 1 ? 1 : p)); // 0 → 1 → 0 across the tune
+  // A FLAT-TOPPED bell. A plain sine touches full glitch for a single instant and slides off it;
+  // clipping an overdriven sine holds the fully torn state across the middle ~60% of the tune, so
+  // it can actually be looked at rather than passed through.
+  const q = p < 0 ? 0 : p > 1 ? 1 : p;
+  const bell = Math.min(1, Math.sin(Math.PI * q) * 1.75);
   const k = Math.pow(bell, 0.75);
   const e = smooth(p);
   ctx.clearRect(0, 0, W, H);
