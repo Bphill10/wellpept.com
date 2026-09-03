@@ -12128,3 +12128,15 @@ label.field select,
   .ud-key-hole { animation: none; }
   .ud-key-veil { animation: ud-key-veil-in 120ms ease both; }
 }
+
+/* Full-screen analog tune used for the Undisclosed unlock. */
+.ud-tune-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 240;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  background: #04050a;
+  pointer-events: auto;
+}
