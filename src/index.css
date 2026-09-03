@@ -12129,7 +12129,8 @@ label.field select,
   .ud-key-veil { animation: ud-key-veil-in 120ms ease both; }
 }
 
-/* Full-screen analog tune used for the Undisclosed unlock. */
+/* Full-screen analog tune used for the Undisclosed unlock. Transparent — the bent page shows
+   through it, and this canvas only carries the white snow, sync bar and scanlines. */
 .ud-tune-canvas {
   position: fixed;
   inset: 0;
@@ -12137,6 +12138,20 @@ label.field select,
   width: 100vw;
   height: 100vh;
   display: block;
-  background: #04050a;
+  background: transparent;
   pointer-events: auto;
+}
+
+/* The filter definition itself must take no space. */
+.ud-bend-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* The real page slips into bands while the unlock plays. */
+html.ud-bending #root {
+  filter: url(#ud-bend);
+  will-change: filter;
 }
