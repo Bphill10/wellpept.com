@@ -6609,18 +6609,9 @@ body:has(.app-shell--undisclosed)::before {
   }
 }
 
-/* 10 mL vials are physically larger than 3 mL — render them noticeably bigger so the
-   size difference reads true on the shelf (e.g. B12 / NAD+ vs a 3 mL peptide vial). */
-/* 10 mL size difference is baked into the marble scene render (drawVialScene), so no
-   canvas transform is needed here. Standalone (non-grid) 10 mL vials get a taller cap. */
-.silver-label-vial--10ml {
-  max-height: 540px;
-}
-@media (min-width: 900px) {
-  .silver-label-vial--10ml {
-    max-height: 600px;
-  }
-}
+/* The 10 mL size difference (exactly 13% taller and wider than a 3 mL) is baked into the
+   marble scene render (prepareVialScene), so the scene canvas is the same size for every
+   vial — no per-size element sizing here, or it would compound. */
 
 /* Compact "this is what prints" flat label — not a stretched full-width banner */
 .calc-label-panel .calc-label-stage .label-template.label-template--physical {
