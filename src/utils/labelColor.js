@@ -94,14 +94,17 @@ function vividHue(hueDeg) {
  */
 export function catalogCapColor(name) {
   const n = String(name || "").toUpperCase();
-  if (/\bKLOW\b/.test(n)) return [46, 92, 230];   // royal blue
-  if (/\bGLOW\b/.test(n)) return [58, 120, 238];  // brighter blue
-  if (/GHK/.test(n)) return [26, 140, 214];       // copper-cerulean blue
+  // The blue trio is spread across the blue family so the three read as clearly different caps
+  // while every one of them is still unmistakably blue: deep navy, bright electric blue, and a
+  // cerulean/turquoise blue (the copper peptide).
+  if (/\bKLOW\b/.test(n)) return [26, 58, 198];   // deep navy / royal
+  if (/\bGLOW\b/.test(n)) return [40, 132, 246];  // bright electric blue
+  if (/GHK/.test(n)) return [18, 168, 212];       // cerulean / turquoise blue (copper)
   if (/\bB\s*-?12\b|VITAMIN\s*B\s*12|METHYLCOBALAMIN/.test(n)) return [222, 52, 58]; // crimson (red liquid)
   let h = 2166136261;
   for (let i = 0; i < n.length; i++) { h ^= n.charCodeAt(i); h = Math.imul(h, 16777619); }
-  // Skew the hue away from the reserved blue band (200–250°) so non-blue peptides read distinct.
+  // Skew the hue away from the reserved blue band (~186–252°) so non-blue peptides read distinct.
   let hue = (h >>> 0) % 360;
-  if (hue > 198 && hue < 252) hue = (hue + 60) % 360;
+  if (hue > 184 && hue < 252) hue = (hue + 70) % 360;
   return vividHue(hue);
 }

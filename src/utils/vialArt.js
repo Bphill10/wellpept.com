@@ -582,15 +582,13 @@ export function isB12Compound(name = "", form = "") {
   return false;
 }
 
-/** True for NAD / Glutathione / B12 / Tesamorelin — the only 10 mL bottles. */
+/** True for NAD / Glutathione / B12 — the only 10 mL bottles. (Tesamorelin is a 3 mL.) */
 export function isTenMlCompound(name = "", form = "") {
   const text = `${name || ""} ${form || ""}`;
   return (
     /\bglutathione\b/i.test(text) ||
     /\bgluta\b/i.test(text) ||
     /\bnad\+?\b/i.test(text) ||
-    /\btesamorelin\b/i.test(text) ||
-    /\btesa\b/i.test(text) ||
     isB12Compound(name, form)
   );
 }
