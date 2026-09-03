@@ -687,15 +687,19 @@ export async function prepareVialScene({ svg, vialMl, baseSrc, sceneSrc, ss = BA
 
   // Placement (constant across rotations).
   const floorY = Math.round(H * 0.80);
-  // 10 mL vials are physically larger than 3 mL — render them clearly bigger and chunkier so
-  // the size difference reads true. Height is capped by the scene (the cap must not clip at the
-  // top); `wide` fattens the 10 mL a touch beyond its slender photo so it reads as a 10 mL.
-  // (10 mL: 0.61 — the bases no longer carry a baked-in floor shadow below the heel, so the
-  // bbox is the glass alone; 0.61 keeps the glass the same on-scene size the old 0.67 gave.)
-  const SZ = ml === 10 ? { h: 0.61, wide: 1.08 } : { h: 0.62, wide: 1.0 };
-  const targetH = Math.round(H * SZ.h);
-  const s = targetH / bbox.h;
-  const dw = Math.round(bbox.w * s * SZ.wide), dh = targetH;
+  // 3 mL vials fill 62% of the scene height. A 10 mL vial is drawn exactly 13% taller AND 13%
+  // wider than the 3 mL's rendered box (a uniform ×1.13 of the 3 mL glass, whose measured aspect
+  // is GLASS_ASPECT_3ML) — anchored to the 3 mL rather than to its own photo, because the 10 mL
+  // base photo sits smaller and slimmer in its frame and would otherwise read shorter and fatter.
+  const H3 = 0.62, TEN_ML_SCALE = 1.13, GLASS_ASPECT_3ML = 0.4225; // 3 mL white base glass: 387×916
+  let dw, dh;
+  if (ml === 10) {
+    dh = Math.round(H * H3 * TEN_ML_SCALE);
+    dw = Math.round(H * H3 * TEN_ML_SCALE * GLASS_ASPECT_3ML);
+  } else {
+    dh = Math.round(H * H3);
+    dw = Math.round(bbox.w * (dh / bbox.h));
+  }
   const cx = Math.round(W / 2), dx = Math.round(cx - dw / 2), topY = floorY - dh;
 
   // Pre-bake the static ground: scene + contact shadow (vial + reflection are drawn per frame).

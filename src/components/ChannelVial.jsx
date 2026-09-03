@@ -165,9 +165,9 @@ export default function ChannelVial({ channels = [], className = "" }) {
       formText: (c.formText || "Lyophilized Powder").toUpperCase(),
       storageTemp: "36–46°F", vialMl: ml, accentColor,
     });
-    // Always the white-powder base — the powder stays its real white; only the cap and label are
-    // colour-coded. Size (3 vs 10 mL) still follows the channel.
-    return { svg, ml, baseSrc: silverVialBaseSrc("", ml) };
+    // The powder keeps its real colour — blue for the blue-powder compounds (KLOW / GLOW /
+    // GHK-Cu), white otherwise; the cap and label carry the channel colour. Size follows the channel.
+    return { svg, ml, baseSrc: silverVialBaseSrc(c.name, ml) };
   };
 
   const ensurePrep = (i) => {
