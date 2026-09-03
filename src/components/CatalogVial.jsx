@@ -15,6 +15,8 @@ const VIAL_SCENE_SRC = "/ud-labels/bg/vial_card_bg.webp";
 const SPIN_SPEED = 1 / 7000; // label-u per ms
 const RETURN_SPEED = 1 / 520; // label-u per ms (ease back to front)
 const HOVER_INTENT_MS = 120; // ignore vials the cursor just sweeps past
+const AUTO_DWELL_MS = 450;    // phones: a vial must settle in view this long before it turns
+const AUTO_COOLDOWN_MS = 20000; // phones: at most one auto turn per vial per 20s
 
 /**
  * Storefront vial with the live silver catalog label wrapped on it. Renders lazily (only
@@ -50,6 +52,10 @@ export default function CatalogVial({
   const modeRef = useRef("idle");   // idle | spin | return
   const lastTsRef = useRef(0);
   const intentRef = useRef(0);
+  const tapOnceRef = useRef(false); // phone tap: spin exactly one full turn, then ease back
+  const spunRef = useRef(0);        // label-u travelled during the current spin
+  const tapStartRef = useRef(null); // { x, y, t } of a touch-down, to tell a tap from a scroll
+  const lastAutoRef = useRef(-Infinity); // when this vial last turned on its own (phones)
 
   useEffect(() => {
     const el = canvasRef.current;
@@ -80,6 +86,7 @@ export default function CatalogVial({
     cancelAnimationFrame(rafRef.current);
     window.clearTimeout(intentRef.current);
     modeRef.current = "idle";
+    tapOnceRef.current = false; spunRef.current = 0;
     sceneRef.current = null;
     buildingRef.current = null;
     stillRef.current = null;
@@ -140,8 +147,12 @@ export default function CatalogVial({
     const dt = Math.min(48, ts - (lastTsRef.current || ts));
     lastTsRef.current = ts;
     if (modeRef.current === "spin") {
-      rotRef.current = (rotRef.current + dt * SPIN_SPEED) % 1;
+      const adv = dt * SPIN_SPEED;
+      rotRef.current = (rotRef.current + adv) % 1;
+      spunRef.current += adv;
       paintVialScene(canvas, state, rotRef.current, { wrap: true });
+      // A phone tap spins exactly one full turn, then eases back to the front.
+      if (tapOnceRef.current && spunRef.current >= 1) modeRef.current = "return";
       rafRef.current = requestAnimationFrame(step);
     } else if (modeRef.current === "return") {
       let r = rotRef.current;
@@ -184,13 +195,16 @@ export default function CatalogVial({
       const st = await ensureSceneState();
       if (!st) return;
       lastTsRef.current = 0;
+      tapOnceRef.current = false; spunRef.current = 0; // hover = keep turning until leave
       modeRef.current = "spin";
       cancelAnimationFrame(rafRef.current);
       rafRef.current = requestAnimationFrame(step);
     }, HOVER_INTENT_MS);
   };
 
-  const onLeave = () => {
+  const onLeave = (e) => {
+    // A finger lifting off fires pointerleave too — that must not cancel a tap-spin.
+    if (e && e.pointerType && e.pointerType !== "mouse") return;
     window.clearTimeout(intentRef.current);
     if (modeRef.current === "spin") {
       modeRef.current = "return"; // ease back to front, then restore the crisp still
@@ -199,10 +213,71 @@ export default function CatalogVial({
     }
   };
 
-  // Catalog vials stay STILL on phones. A scroll-triggered auto-spin used to turn each vial as
-  // it passed the centre of the screen and unwind it on the way out, which read as the images
-  // "going in and out" while scrolling — distracting. Rotation is still available via hover on
-  // desktop, and the channel-change hero on the landing carries the motion.
+  // One full turn (the whole label wraps past), then ease back to the front. On phones this is
+  // triggered when the vial settles into view (below) and by a tap; in the catalog grid a tap
+  // also opens the product, so the in-view turn is what people actually see there.
+  const spinOnce = () => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+    if (!ready) return;
+    if (modeRef.current === "spin" || modeRef.current === "return") return; // already turning
+    ensureSceneState().then((st) => {
+      if (!st || modeRef.current !== "idle") return;
+      lastTsRef.current = 0;
+      rotRef.current = 0; spunRef.current = 0; tapOnceRef.current = true;
+      modeRef.current = "spin";
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(step);
+    });
+  };
+  // A tap is a touch that lifts within ~450ms without moving more than a few px; a scroll drag
+  // moves and is ignored.
+  const onTap = spinOnce;
+  const onDown = (e) => {
+    if (e.pointerType === "mouse") return; // desktop uses hover
+    tapStartRef.current = { x: e.clientX, y: e.clientY, t: performance.now() };
+  };
+  const onUp = (e) => {
+    const s = tapStartRef.current; tapStartRef.current = null;
+    if (!s || e.pointerType === "mouse") return;
+    if (Math.hypot(e.clientX - s.x, e.clientY - s.y) > 12 || performance.now() - s.t > 450) return; // a scroll, not a tap
+    onTap();
+  };
+
+  // Phones have no hover, so on a coarse pointer a vial gives ONE slow turn on its own once it has
+  // settled into view (≥60% visible for ~450ms), then rests on the front. It never unwinds or
+  // tracks the scroll — the old scroll-tied spin wound up and unwound as cards passed the centre,
+  // which read as the images "going in and out" — and it won't repeat for 20s, so idle scrolling
+  // doesn't keep re-triggering it. Works in the grid and in the product view (visible on open).
+  useEffect(() => {
+    if (!ready) return undefined;
+    const el = canvasRef.current;
+    const mm = typeof window !== "undefined" ? window.matchMedia : null;
+    if (!el || typeof IntersectionObserver === "undefined") return undefined;
+    if (mm?.("(prefers-reduced-motion: reduce)")?.matches) return undefined;
+    if (!mm?.("(pointer: coarse)")?.matches) return undefined;
+    let dwell = 0;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const en = entries[entries.length - 1];
+        if (en.intersectionRatio >= 0.6) {
+          window.clearTimeout(dwell);
+          dwell = window.setTimeout(() => {
+            const now = performance.now();
+            if (now - lastAutoRef.current < AUTO_COOLDOWN_MS) return;
+            lastAutoRef.current = now;
+            spinOnce();
+          }, AUTO_DWELL_MS);
+        } else if (en.intersectionRatio < 0.2) {
+          window.clearTimeout(dwell);
+        }
+      },
+      { threshold: [0.2, 0.6] }
+    );
+    io.observe(el);
+    return () => { window.clearTimeout(dwell); io.disconnect(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
 
   // Stop everything on unmount.
   useEffect(() => () => {
@@ -217,6 +292,9 @@ export default function CatalogVial({
       ref={canvasRef}
       onPointerEnter={onEnter}
       onPointerLeave={onLeave}
+      onPointerDown={onDown}
+      onPointerUp={onUp}
+      style={{ touchAction: "manipulation" }}
       className={`${className} silver-label-vial${isTenMl ? " silver-label-vial--10ml" : ""}${ready ? " is-ready" : ""}`.trim()}
       aria-label={`${name || "Peptide"} Undisclosed ${isTenMl ? "10 mL" : "3 mL"} vial`}
     />
