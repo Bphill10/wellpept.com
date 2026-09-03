@@ -1,0 +1,133 @@
+{
+  "version": "2.1-test",
+  "status": "TEST_ONLY_AWAITING_VISUAL_APPROVAL",
+  "principle": "Five immutable photographs. Three authoritative label-placement profiles. Photography selection and label placement are separate. Do not independently measure or compensate cobalt or red wraps.",
+  "canvas": {
+    "widthPx": 1122,
+    "heightPx": 1402,
+    "background": "photographed marble studio — do not replace"
+  },
+  "compositor": {
+    "edgeInsetPx": 0,
+    "cylinderMaxThetaRad": 0.05,
+    "optimizedCylinderMaxThetaRad": 0.03,
+    "labelRasterMinWidth": 3600,
+    "labelArtworkSupersample": 8,
+    "sharpnessSupersample": 16,
+    "labelInkColor": "#0A0A0A",
+    "blend": "print-ink-only-on-photographed-paper",
+    "never": [
+      "recolor, tint, or brighten the photographed label paper",
+      "opaque rectangle over the photographed wrap",
+      "label-background fill or stock-color plate",
+      "20/60/20 reconstruction",
+      "JavaScript cake tinting",
+      "recolor, regenerate, or reshape vial photography",
+      "independently measure cobalt or red wraps",
+      "reduce locked SVG product-name font sizes",
+      "blur printed artwork"
+    ]
+  },
+  "placements": {
+    "3ML_LABEL_PLACEMENT": {
+      "measuredFrom": "locked-masters/vial-photos/3ml-white.png",
+      "usedByPhotos": ["3ml-white", "3ml-cobalt"],
+      "vialMl": 3,
+      "labelSize": "40x20",
+      "canvasWidth": 1122,
+      "canvasHeight": 1402,
+      "labelLeft": 377,
+      "labelTop": 607,
+      "labelWidth": 362,
+      "labelHeight": 412,
+      "labelQuad": {
+        "topLeft": { "x": 377, "y": 656 },
+        "topRight": { "x": 738, "y": 656 },
+        "bottomRight": { "x": 737, "y": 969 },
+        "bottomLeft": { "x": 377, "y": 969 }
+      }
+    },
+    "5ML_LABEL_PLACEMENT": {
+      "measuredFrom": "locked-masters/vial-photos/5ml-white.png",
+      "usedByPhotos": ["5ml-white"],
+      "vialMl": 5,
+      "labelSize": "40x20",
+      "canvasWidth": 1122,
+      "canvasHeight": 1402,
+      "labelLeft": 360,
+      "labelTop": 615,
+      "labelWidth": 385,
+      "labelHeight": 438,
+      "labelQuad": {
+        "topLeft": { "x": 360, "y": 667 },
+        "topRight": { "x": 744, "y": 667 },
+        "bottomRight": { "x": 744, "y": 1000 },
+        "bottomLeft": { "x": 361, "y": 1000 }
+      }
+    },
+    "10ML_LABEL_PLACEMENT": {
+      "measuredFrom": "locked-masters/vial-photos/10ml-white.png",
+      "usedByPhotos": ["10ml-white", "10ml-red"],
+      "vialMl": 10,
+      "labelSize": "50x30",
+      "canvasWidth": 1122,
+      "canvasHeight": 1402,
+      "labelLeft": 381,
+      "labelTop": 624,
+      "labelWidth": 359,
+      "labelHeight": 410,
+      "labelQuad": {
+        "topLeft": { "x": 381, "y": 673 },
+        "topRight": { "x": 739, "y": 673 },
+        "bottomRight": { "x": 738, "y": 984 },
+        "bottomLeft": { "x": 381, "y": 984 }
+      }
+    }
+  },
+  "photos": {
+    "3ml-white": {
+      "file": "locked-masters/vial-photos/3ml-white.png",
+      "sourceReference": "tools/blender-vials/references/image-gen-3ml White.png",
+      "placement": "3ML_LABEL_PLACEMENT",
+      "contents": "WHITE CAKE",
+      "immutable": true
+    },
+    "3ml-cobalt": {
+      "file": "locked-masters/vial-photos/3ml-cobalt.png",
+      "sourceReference": "tools/blender-vials/references/image-gen-3ml Blue.png",
+      "placement": "3ML_LABEL_PLACEMENT",
+      "contents": "COBALT BLUE CAKE",
+      "immutable": true,
+      "doNotCompensate": "Uses 3ml-white coordinates exactly. Do not remeasure this wrap."
+    },
+    "5ml-white": {
+      "file": "locked-masters/vial-photos/5ml-white.png",
+      "sourceReference": "tools/blender-vials/references/image-gen-5ml White.png",
+      "placement": "5ML_LABEL_PLACEMENT",
+      "contents": "WHITE CAKE",
+      "immutable": true
+    },
+    "10ml-white": {
+      "file": "locked-masters/vial-photos/10ml-white.png",
+      "sourceReference": "tools/blender-vials/references/image-gen-10ml White.png",
+      "placement": "10ML_LABEL_PLACEMENT",
+      "contents": "WHITE CAKE",
+      "immutable": true
+    },
+    "10ml-red": {
+      "file": "locked-masters/vial-photos/10ml-red.png",
+      "sourceReference": "tools/blender-vials/references/image-gen-10ml Red.png",
+      "placement": "10ML_LABEL_PLACEMENT",
+      "contents": "RUBY RED LIQUID",
+      "immutable": true,
+      "doNotCompensate": "Uses 10ml-white coordinates exactly. Do not remeasure this wrap."
+    }
+  },
+  "photoByCatalogProfile": {
+    "3ML_WHITE": "3ml-white",
+    "3ML_BLUE": "3ml-cobalt",
+    "5ML_WHITE": "5ml-white",
+    "10ML_WHITE": "10ml-white",
+    "10ML_B12_LIQUID": "10ml-red"
+  }
+}

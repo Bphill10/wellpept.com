@@ -170,10 +170,23 @@ function applyAutoFit(svg, field, text, defaults = {}) {
   });
 }
 
+function applyHeavierSecondaryText(svg) {
+  // Slightly heavier legal lines only. Do not change product-name size or weight.
+  return svg.replace(
+    /<(text)([^>]*data-field="LEGAL_LINE_[123]"[^>]*)>/g,
+    (full, tag, attrs) => {
+      if (/\bstroke=/.test(attrs)) return full;
+      return `<${tag}${attrs} stroke="#000" stroke-width="1.15" paint-order="stroke fill">`;
+    }
+  );
+}
+
 /**
  * Fill locked SVG template — text + QR only. Geometry untouched.
+ * @param {object} [options]
+ * @param {boolean} [options.heavierSecondaryText]
  */
-export async function fillLockedLabelSvg(product = {}, defaults = {}) {
+export async function fillLockedLabelSvg(product = {}, defaults = {}, options = {}) {
   const rel = resolveLockedLabelRel(product);
   if (!rel) throw new Error("No locked label master for product");
   const svgPath = path.join(mastersRoot, rel);
@@ -218,6 +231,15 @@ export async function fillLockedLabelSvg(product = {}, defaults = {}) {
   const concentration = String(product.concentration ?? "");
   const doseRange = String(product.doseRange ?? "");
   const doseUnits = String(product.doseUnits ?? "");
+  const diluentHeader = String(
+    product.diluentHeader ?? defaults.DILUENT_HEADER ?? "DILUENT"
+  );
+  const concentrationHeader = String(
+    product.concentrationHeader ?? defaults.CONCENTRATION_HEADER ?? "CONCENTRATION"
+  );
+  const doseRangeHeader = String(
+    product.doseRangeHeader ?? defaults.DOSE_RANGE_HEADER ?? "DOSE RANGE"
+  );
   const qrEnabled = bool(product.qrEnabled, bool(defaults.QR_ENABLED, true));
   const qrValue = String(
     product.coaUrl ||
@@ -237,6 +259,9 @@ export async function fillLockedLabelSvg(product = {}, defaults = {}) {
   svg = replaceTextField(svg, "LEGAL_LINE_1", legal1);
   svg = replaceTextField(svg, "LEGAL_LINE_2", legal2);
   svg = replaceTextField(svg, "LEGAL_LINE_3", legal3);
+  svg = replaceTextField(svg, "DILUENT_HEADER", diluentHeader);
+  svg = replaceTextField(svg, "CONCENTRATION_HEADER", concentrationHeader);
+  svg = replaceTextField(svg, "DOSE_RANGE_HEADER", doseRangeHeader);
   svg = replaceTextField(svg, "DILUENT", diluent);
   svg = replaceTextField(svg, "CONCENTRATION", concentration);
   svg = replaceTextField(svg, "DOSE_RANGE", doseRange);
@@ -266,6 +291,10 @@ export async function fillLockedLabelSvg(product = {}, defaults = {}) {
     svg = svg.replace(slot, qrGroup);
   } else if (!qrEnabled) {
     svg = svg.replace(/<g id="qr-slot"[^>]*>[\s\S]*?<\/g>/, "");
+  }
+
+  if (options.heavierSecondaryText) {
+    svg = applyHeavierSecondaryText(svg);
   }
 
   return { svg, masterRel: rel, svgPath };

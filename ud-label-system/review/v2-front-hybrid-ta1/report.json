@@ -1,0 +1,117 @@
+{
+  "face": {
+    "left": 377,
+    "top": 607,
+    "width": 362,
+    "height": 412
+  },
+  "A_currentB": {
+    "file": "ud-label-system/review/v2-front-hybrid-ta1/A_current_B.png",
+    "mapping": "fill-stretch independent X/Y",
+    "scaleX": 0.39433551198257083,
+    "scaleY": 0.6866666666666666
+  },
+  "B_hybrid": {
+    "pngPath": "ud-label-system/review/v2-front-hybrid-ta1/B_hybrid_native_proportion.png",
+    "result": {
+      "outputPath": "/workspace/ud-label-system/review/v2-front-hybrid-ta1/B_hybrid_native_proportion.png",
+      "masterPhotoPath": "/workspace/ud-label-system/locked-masters/vial-photos/3ml-white.png",
+      "left": 377,
+      "top": 607,
+      "faceW": 362,
+      "faceH": 412,
+      "destLeft": 377,
+      "destTop": 668,
+      "destW": 362,
+      "destH": 290,
+      "fitMode": "width",
+      "scaleX": 0.0625,
+      "scaleY": 0.0625,
+      "canvasWidth": 1122,
+      "canvasHeight": 1402,
+      "labelInkColor": "#0A0A0A",
+      "optimizeText": false,
+      "sampleFilter": "bicubic",
+      "artworkAlreadyWindowed": true,
+      "centerLinearFrac": 0,
+      "inkSharpenAmount": 0,
+      "inkHardness": 0,
+      "masterScale": 1
+    },
+    "window": {
+      "u0": 0,
+      "u1": 0.6233333333333333,
+      "v0": 0,
+      "v1": 1
+    },
+    "svgWindow": {
+      "width": 748,
+      "height": 600
+    },
+    "dest": {
+      "width": 362,
+      "height": 290,
+      "left": 377,
+      "top": 668
+    },
+    "scaleX": 0.4839572192513369,
+    "scaleY": 0.48333333333333334,
+    "artwork": {
+      "width": 5792,
+      "height": 4640
+    },
+    "ta1FaceWidthPx": 95.00080213903743
+  },
+  "C_hybrid": {
+    "pngPath": "ud-label-system/review/v2-front-hybrid-ta1/C_hybrid_plus_width.png",
+    "result": {
+      "outputPath": "/workspace/ud-label-system/review/v2-front-hybrid-ta1/C_hybrid_plus_width.png",
+      "masterPhotoPath": "/workspace/ud-label-system/locked-masters/vial-photos/3ml-white.png",
+      "left": 377,
+      "top": 607,
+      "faceW": 362,
+      "faceH": 412,
+      "destLeft": 377,
+      "destTop": 650,
+      "destW": 362,
+      "destH": 327,
+      "fitMode": "width",
+      "scaleX": 0.0625,
+      "scaleY": 0.0625,
+      "canvasWidth": 1122,
+      "canvasHeight": 1402,
+      "labelInkColor": "#0A0A0A",
+      "optimizeText": false,
+      "sampleFilter": "bicubic",
+      "artworkAlreadyWindowed": true,
+      "centerLinearFrac": 0,
+      "inkSharpenAmount": 0,
+      "inkHardness": 0,
+      "masterScale": 1
+    },
+    "window": {
+      "u0": 0,
+      "u1": 0.5541666666666667,
+      "v0": 0,
+      "v1": 1
+    },
+    "svgWindow": {
+      "width": 665,
+      "height": 600
+    },
+    "dest": {
+      "width": 362,
+      "height": 327,
+      "left": 377,
+      "top": 650
+    },
+    "scaleX": 0.544360902255639,
+    "scaleY": 0.545,
+    "artwork": {
+      "width": 5792,
+      "height": 5232
+    },
+    "ta1FaceWidthPx": 106.85804511278195
+  },
+  "C_vs_B_ta1WidthGain": 0.12481203007518804
+}

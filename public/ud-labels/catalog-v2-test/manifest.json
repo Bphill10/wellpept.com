@@ -1,0 +1,260 @@
+{
+  "status": "TEST_ONLY_AWAITING_VISUAL_APPROVAL",
+  "productionUntouched": {
+    "catalog": "public/ud-labels/catalog/",
+    "manifest": "public/ud-labels/catalog-manifest.json",
+    "calculator": "src/utils/vialArt.js drawGeneratedVial"
+  },
+  "catalogTest": [
+    {
+      "catalogId": "UD-0277",
+      "labelName": "TA-1",
+      "amount": 5,
+      "unit": "MG",
+      "vialMl": 3,
+      "labelType": "CATALOG",
+      "masterKey": "3ml-white",
+      "placementKey": "3ML_LABEL_PLACEMENT",
+      "output": "public/ud-labels/catalog-v2-test/UD_0277_TA_1_5MG_3mL_v2.png",
+      "labelMaster": "labels/01_3mL_Catalog_40x20_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x1800"
+    },
+    {
+      "catalogId": "UD-0221",
+      "labelName": "RETATRUTIDE",
+      "amount": 10,
+      "unit": "MG",
+      "vialMl": 3,
+      "labelType": "CATALOG",
+      "masterKey": "3ml-white",
+      "placementKey": "3ML_LABEL_PLACEMENT",
+      "output": "public/ud-labels/catalog-v2-test/UD_0221_RETATRUTIDE_10MG_3mL_v2.png",
+      "labelMaster": "labels/01_3mL_Catalog_40x20_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x1800"
+    },
+    {
+      "catalogId": "UD-0161",
+      "labelName": "KLOW",
+      "amount": 80,
+      "unit": "MG",
+      "vialMl": 3,
+      "labelType": "CATALOG",
+      "masterKey": "3ml-cobalt",
+      "placementKey": "3ML_LABEL_PLACEMENT",
+      "output": "public/ud-labels/catalog-v2-test/UD_0161_KLOW_80MG_3mL_v2.png",
+      "labelMaster": "labels/01_3mL_Catalog_40x20_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x1800"
+    },
+    {
+      "catalogId": "UD-0122",
+      "labelName": "GLOW",
+      "amount": 70,
+      "unit": "MG",
+      "vialMl": 3,
+      "labelType": "CATALOG",
+      "masterKey": "3ml-cobalt",
+      "placementKey": "3ML_LABEL_PLACEMENT",
+      "output": "public/ud-labels/catalog-v2-test/UD_0122_GLOW_70MG_3mL_v2.png",
+      "labelMaster": "labels/01_3mL_Catalog_40x20_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x1800"
+    },
+    {
+      "catalogId": "UD-0204",
+      "labelName": "NAD+",
+      "amount": 1000,
+      "unit": "MG",
+      "vialMl": 10,
+      "labelType": "CATALOG",
+      "masterKey": "10ml-white",
+      "placementKey": "10ML_LABEL_PLACEMENT",
+      "output": "public/ud-labels/catalog-v2-test/UD_0204_NAD_1000MG_10mL_v2.png",
+      "labelMaster": "labels/03_10mL_Catalog_50x30_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x2160"
+    },
+    {
+      "catalogId": "UD-0037",
+      "labelName": "B12",
+      "amount": 10,
+      "unit": "MG",
+      "vialMl": 10,
+      "labelType": "CATALOG",
+      "masterKey": "10ml-red",
+      "placementKey": "10ML_LABEL_PLACEMENT",
+      "output": "public/ud-labels/catalog-v2-test/UD_0037_B12_10MG_10mL_v2.png",
+      "labelMaster": "labels/03_10mL_Catalog_50x30_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x2160"
+    },
+    {
+      "catalogId": "UD-5ML-DEMO",
+      "labelName": "5 mL DEMO",
+      "amount": 10,
+      "unit": "MG",
+      "vialMl": 5,
+      "labelType": "CATALOG",
+      "masterKey": "5ml-white",
+      "placementKey": "5ML_LABEL_PLACEMENT",
+      "output": "public/ud-labels/catalog-v2-test/UD_5ML_DEMO_5_ML_DEMO_10MG_5mL_v2.png",
+      "labelMaster": "labels/01_3mL_Catalog_40x20_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x1800"
+    }
+  ],
+  "calculatorTest": [
+    {
+      "catalogId": "UD-0277",
+      "labelName": "TA-1",
+      "amount": 5,
+      "unit": "MG",
+      "vialMl": 3,
+      "labelType": "CALCULATOR",
+      "masterKey": "3ml-white",
+      "placementKey": "3ML_LABEL_PLACEMENT",
+      "output": "public/ud-labels/calculator-v2-test/calculator-TA1-5mg-3ml-white.png",
+      "labelMaster": "labels/02_3mL_Calculator_40x20_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x1800"
+    },
+    {
+      "catalogId": "UD-0161",
+      "labelName": "KLOW",
+      "amount": 80,
+      "unit": "MG",
+      "vialMl": 3,
+      "labelType": "CALCULATOR",
+      "masterKey": "3ml-cobalt",
+      "placementKey": "3ML_LABEL_PLACEMENT",
+      "output": "public/ud-labels/calculator-v2-test/calculator-KLOW-80mg-3ml-cobalt.png",
+      "labelMaster": "labels/02_3mL_Calculator_40x20_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x1800"
+    },
+    {
+      "catalogId": "UD-0204",
+      "labelName": "NAD+",
+      "amount": 1000,
+      "unit": "MG",
+      "vialMl": 10,
+      "labelType": "CALCULATOR",
+      "masterKey": "10ml-white",
+      "placementKey": "10ML_LABEL_PLACEMENT",
+      "output": "public/ud-labels/calculator-v2-test/calculator-NAD-1000mg-10ml-white.png",
+      "labelMaster": "labels/04_10mL_Calculator_50x30_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x2160"
+    },
+    {
+      "catalogId": "UD-0037",
+      "labelName": "B12",
+      "amount": 10,
+      "unit": "MG",
+      "vialMl": 10,
+      "labelType": "CALCULATOR",
+      "masterKey": "10ml-red",
+      "placementKey": "10ML_LABEL_PLACEMENT",
+      "output": "public/ud-labels/calculator-v2-test/calculator-B12-10mg-10ml-red.png",
+      "labelMaster": "labels/04_10mL_Calculator_50x30_EDIT_CONTENT_ONLY.svg",
+      "labelRaster": "3600x2160"
+    }
+  ],
+  "review": {
+    "comparison": "ud-label-system/review/vial-system-v2-comparison.png",
+    "masters": "ud-label-system/review/vial-system-v2-masters.png",
+    "newOnly": "ud-label-system/review/vial-system-v2-new-only.png"
+  },
+  "placements": {
+    "3ML_LABEL_PLACEMENT": {
+      "measuredFrom": "locked-masters/vial-photos/3ml-white.png",
+      "usedByPhotos": [
+        "3ml-white",
+        "3ml-cobalt"
+      ],
+      "vialMl": 3,
+      "labelSize": "40x20",
+      "canvasWidth": 1122,
+      "canvasHeight": 1402,
+      "labelLeft": 377,
+      "labelTop": 607,
+      "labelWidth": 362,
+      "labelHeight": 412,
+      "labelQuad": {
+        "topLeft": {
+          "x": 377,
+          "y": 656
+        },
+        "topRight": {
+          "x": 738,
+          "y": 656
+        },
+        "bottomRight": {
+          "x": 737,
+          "y": 969
+        },
+        "bottomLeft": {
+          "x": 377,
+          "y": 969
+        }
+      }
+    },
+    "5ML_LABEL_PLACEMENT": {
+      "measuredFrom": "locked-masters/vial-photos/5ml-white.png",
+      "usedByPhotos": [
+        "5ml-white"
+      ],
+      "vialMl": 5,
+      "labelSize": "40x20",
+      "canvasWidth": 1122,
+      "canvasHeight": 1402,
+      "labelLeft": 360,
+      "labelTop": 615,
+      "labelWidth": 385,
+      "labelHeight": 438,
+      "labelQuad": {
+        "topLeft": {
+          "x": 360,
+          "y": 667
+        },
+        "topRight": {
+          "x": 744,
+          "y": 667
+        },
+        "bottomRight": {
+          "x": 744,
+          "y": 1000
+        },
+        "bottomLeft": {
+          "x": 361,
+          "y": 1000
+        }
+      }
+    },
+    "10ML_LABEL_PLACEMENT": {
+      "measuredFrom": "locked-masters/vial-photos/10ml-white.png",
+      "usedByPhotos": [
+        "10ml-white",
+        "10ml-red"
+      ],
+      "vialMl": 10,
+      "labelSize": "50x30",
+      "canvasWidth": 1122,
+      "canvasHeight": 1402,
+      "labelLeft": 381,
+      "labelTop": 624,
+      "labelWidth": 359,
+      "labelHeight": 410,
+      "labelQuad": {
+        "topLeft": {
+          "x": 381,
+          "y": 673
+        },
+        "topRight": {
+          "x": 739,
+          "y": 673
+        },
+        "bottomRight": {
+          "x": 738,
+          "y": 984
+        },
+        "bottomLeft": {
+          "x": 381,
+          "y": 984
+        }
+      }
+    }
+  }
+}
