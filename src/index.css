@@ -11998,3 +11998,133 @@ label.field select,
   .ud-showcase-copy { order: 2; }
   .ud-showcase-text { margin-inline: auto; }
 }
+
+/* ---------- Undisclosed unlock — the monogram key ----------
+   A thin platinum hexagon draws itself on black, the UD monogram seats inside it, the mark turns
+   and locks, and a hexagonal iris opens outward onto Undisclosed. Replaces the cracked-glass /
+   signal-fault unlock: being granted access should not look like the device breaking. */
+.ud-key {
+  position: fixed;
+  inset: 0;
+  z-index: 240;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  /* swallow taps for its (short) lifetime so nothing is hit through the veil */
+  pointer-events: auto;
+}
+
+.ud-key-veil {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  animation: ud-key-veil-in var(--ud-key-veil) ease-out both;
+}
+@keyframes ud-key-veil-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* The hole in the veil. Starts closed, then opens past the far corner of any screen. */
+.ud-key-hole {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0);
+  animation: ud-key-iris var(--ud-key-iris) cubic-bezier(0.65, 0, 0.35, 1) var(--ud-key-reveal) both;
+}
+@keyframes ud-key-iris {
+  from { transform: scale(0); }
+  to { transform: scale(16); }
+}
+
+/* Rides the iris open: the mark grows away with the frame and fades as it passes. */
+.ud-key-mark {
+  position: relative;
+  width: min(40vw, 30vh, 250px);
+  aspect-ratio: 1;
+  animation: ud-key-part var(--ud-key-iris) cubic-bezier(0.65, 0, 0.35, 1) var(--ud-key-reveal) both;
+}
+@keyframes ud-key-part {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(2.7); opacity: 0; }
+}
+
+/* The turn: the ring draws slightly off-seat, then rotates home like a key. */
+.ud-key-turn {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transform: rotate(-7deg);
+  animation: ud-key-seat var(--ud-key-seat) cubic-bezier(0.18, 0.9, 0.22, 1)
+    calc(var(--ud-key-veil) + var(--ud-key-draw)) both;
+}
+@keyframes ud-key-seat {
+  from { transform: rotate(-7deg); }
+  to { transform: rotate(0deg); }
+}
+
+.ud-key-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.ud-key-ring-line {
+  fill: none;
+  stroke: rgba(228, 234, 245, 0.88);
+  stroke-width: 1.1;
+  stroke-linejoin: miter;
+  filter: drop-shadow(0 0 7px rgba(170, 200, 255, 0.4));
+  animation: ud-key-draw var(--ud-key-draw) cubic-bezier(0.35, 0, 0.2, 1) var(--ud-key-veil) both;
+}
+@keyframes ud-key-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* The monogram settles into the ring just as the line closes. */
+.ud-key-glyph {
+  position: relative;
+  width: 52%;
+  height: auto;
+  opacity: 0;
+  transform: scale(1.09);
+  filter: drop-shadow(0 0 12px rgba(150, 190, 255, 0.28));
+  animation: ud-key-glyph-in 440ms cubic-bezier(0.2, 0.8, 0.2, 1)
+    calc(var(--ud-key-veil) + var(--ud-key-draw) - 280ms) both;
+}
+@keyframes ud-key-glyph-in {
+  from { opacity: 0; transform: scale(1.09); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* A single specular sweep across the metal as it locks. */
+.ud-key-sheen {
+  position: absolute;
+  inset: -12%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 42%,
+    rgba(255, 255, 255, 0.5) 50%,
+    transparent 58%
+  );
+  animation: ud-key-sheen 560ms ease-out calc(var(--ud-key-veil) + var(--ud-key-draw) - 80ms) both;
+}
+@keyframes ud-key-sheen {
+  0% { opacity: 0; transform: translateX(-62%); }
+  35% { opacity: 0.85; }
+  100% { opacity: 0; transform: translateX(62%); }
+}
+
+/* Reduced motion: no draw, no turn, no iris — just a brief veil while the page swaps. */
+@media (prefers-reduced-motion: reduce) {
+  .ud-key-mark { display: none; }
+  .ud-key-hole { animation: none; }
+  .ud-key-veil { animation: ud-key-veil-in 120ms ease both; }
+}
