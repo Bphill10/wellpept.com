@@ -94,7 +94,7 @@ export default function CatalogVial({
     const ml = Number(vialMl) >= 8 ? 10 : 3;
     // Stable per-product cap: a palette colour, a finish (painted / clear-tinted / clear) and a
     // crimp collar under it, plus a label accent that matches.
-    const { dome, domeFinish, crimp, labelHex } = capSchemeFor(name);
+    const { dome, domeFinish, crimp, labelHex, nameHex } = capSchemeFor(name);
     const { svg } = labelSVGFromFields({
       name: name || "Peptide",
       mass: mg != null && mg !== "" ? String(mg) : "",
@@ -105,6 +105,7 @@ export default function CatalogVial({
       storageTemp: "36–46°F",
       vialMl: ml,
       accentColor: labelHex,
+      nameColor: nameHex,
     });
     const baseSrc = silverVialBaseSrc(name, ml, powderColor);
     fieldsRef.current = { svg, ml, baseSrc, capTint: dome, capFinish: domeFinish, crimpTint: crimp };
