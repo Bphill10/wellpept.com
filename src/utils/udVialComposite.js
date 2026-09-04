@@ -302,36 +302,69 @@ function buildBaseGlass(base, green, liquid) {
 // mid-grey; composited onto the dark marble that reads as frosted silver rather than as something
 // you can see through. Real glass against a dark ground is mostly DARK with narrow bright
 // speculars, so the midtones are pulled down and the highlights left alone.
-const GLASS_GAMMA = 1.75, GLASS_CHROMA = 34;
-const GLASS_LUT = (() => {
-  const t = new Uint8ClampedArray(256);
-  for (let v = 0; v < 256; v++) t[v] = Math.round(255 * Math.pow(v / 255, GLASS_GAMMA));
-  return t;
-})();
+// Every clear-glass vial should land on the same brightness whichever photo shoot its base came
+// from, so the target is a brightness, not a curve. A fixed gamma cannot do that: the same curve
+// applied to a bright photo and a dark one leaves them exactly as far apart as they started,
+// which is why the 3 mL read smoky next to a 10 mL shot brighter than it.
+const GLASS_TARGET = 138, GLASS_CHROMA = 34;
+const GLASS_GAMMA_MIN = 0.55, GLASS_GAMMA_MAX = 2.4;
 
 /**
- * Pull the vial's clear glass down so it transmits instead of glowing. Only LOW-CHROMA pixels are
- * touched, so the powder stays white, the liquid stays red and a coloured cap is untouched; and
- * only below the neck, so the crimp keeps its weight. The curve leaves highlights nearly intact —
- * losing those would flatten the glass rather than clear it.
+ * Bring the vial's clear glass to the brightness real glass has against a dark ground: mostly
+ * dark, with narrow bright speculars left alone. Only LOW-CHROMA pixels are touched, so the
+ * powder stays white, the liquid stays red and a coloured cap is untouched; and only below the
+ * neck, so the crimp keeps its weight.
+ *
+ * The curve is derived per base rather than fixed. Each base is measured on its own EMPTY
+ * SHOULDER — the band of bare glass between the neck and the top of the label, which holds no
+ * powder and no paper — and gets the gamma that lands that band on GLASS_TARGET. So a base shot
+ * bright and a base shot dark finish at the same glass instead of staying as far apart as their
+ * photos were.
  */
-function transmitGlass(out, base) {
+function transmitGlass(out, base, labelTop = -1) {
   const { W, H, data } = base;
-  const wid = new Int32Array(H);
+  const rowL = new Int32Array(H).fill(-1), rowR = new Int32Array(H).fill(-1);
   let minY = H, maxY = 0;
   for (let y = 0; y < H; y++) {
     let xl = -1, xr = -1;
     for (let x = 0; x < W; x++) if (data[(y * W + x) * 4 + 3] > 60) { if (xl < 0) xl = x; xr = x; }
-    wid[y] = xl < 0 ? 0 : xr - xl + 1;
-    if (xl >= 0) { if (y < minY) minY = y; maxY = y; }
+    if (xl >= 0) { rowL[y] = xl; rowR[y] = xr; if (y < minY) minY = y; maxY = y; }
   }
   if (maxY <= minY) return;
   const vh = maxY - minY + 1;
   // The neck is the narrowest row in the upper third; everything above it is cap and crimp.
   let neck = minY, nw = 1 << 30;
   for (let y = minY + Math.round(vh * 0.06); y < minY + Math.round(vh * 0.34); y++) {
-    if (wid[y] > 0 && wid[y] < nw) { nw = wid[y]; neck = y; }
+    const w = rowL[y] < 0 ? 0 : rowR[y] - rowL[y] + 1;
+    if (w > 0 && w < nw) { nw = w; neck = y; }
   }
+
+  // Measure the empty shoulder. Inset from the silhouette so the bright rim highlight — which is
+  // specular, not transmission — does not drag the average up.
+  const mTop = neck + Math.round(vh * 0.03);
+  const mBot = labelTop > mTop + 4 ? labelTop - Math.round(vh * 0.012) : neck + Math.round(vh * 0.14);
+  let sum = 0, n = 0;
+  for (let y = mTop; y < mBot; y++) {
+    const lo = rowL[y]; if (lo < 0) continue;
+    const hi = rowR[y], inset = Math.round((hi - lo) * 0.25);
+    for (let x = lo + inset; x <= hi - inset; x++) {
+      const i = (y * W + x) * 4;
+      if (data[i + 3] < 200) continue;
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      const mx = r > g ? (r > b ? r : b) : (g > b ? g : b);
+      const mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
+      if (mx - mn > GLASS_CHROMA) continue;
+      sum += 0.299 * r + 0.587 * g + 0.114 * b; n++;
+    }
+  }
+  if (!n) return;
+  const mean = Math.max(8, Math.min(247, sum / n));
+  let gamma = Math.log(GLASS_TARGET / 255) / Math.log(mean / 255);
+  if (gamma < GLASS_GAMMA_MIN) gamma = GLASS_GAMMA_MIN;
+  else if (gamma > GLASS_GAMMA_MAX) gamma = GLASS_GAMMA_MAX;
+  const lut = new Uint8ClampedArray(256);
+  for (let v = 0; v < 256; v++) lut[v] = Math.round(255 * Math.pow(v / 255, gamma));
+
   for (let y = neck + Math.round(vh * 0.01); y <= maxY; y++) {
     for (let x = 0; x < W; x++) {
       const i = (y * W + x) * 4;
@@ -340,7 +373,7 @@ function transmitGlass(out, base) {
       const mx = r > g ? (r > b ? r : b) : (g > b ? g : b);
       const mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
       if (mx - mn > GLASS_CHROMA) continue; // coloured contents or cap — leave alone
-      out[i] = GLASS_LUT[r]; out[i + 1] = GLASS_LUT[g]; out[i + 2] = GLASS_LUT[b];
+      out[i] = lut[r]; out[i + 1] = lut[g]; out[i + 2] = lut[b];
     }
   }
 }
@@ -522,7 +555,7 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS
     // needs to look clear, and because it was skipped on 10 mL bases it also made the 3 mL vials
     // read milkier than the 10 mL ones — the glass now matches across every size.
     const baseBack = new Uint8ClampedArray(base.data);
-    transmitGlass(baseBack, base);
+    transmitGlass(baseBack, base, green.top);
     // Optional cap recolour (landing showcase) — dome + crimp collar in two coordinated tints.
     if (capTint) tintCap(baseBack, base, capTint, crimpTint || capTint, capFinish);
     return { base, ld, lw: dims.w, lh: dims.h, green, liquid, baseBack };
