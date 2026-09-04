@@ -345,69 +345,6 @@ function transmitGlass(out, base) {
   }
 }
 
-// Clean cool paper white shown as the label's reverse through the glass (stock colour later).
-const PAPER_BACK = [246, 249, 253];
-
-/**
- * The label's pale reverse, seen through the clear glass. On a real filled vial the white (or
- * coloured) back of the wrap glows softly inside the empty upper body above the fill. We screen
- * a gentle panel of the label's paper colour into that clear-glass window — brightest down the
- * centre, fading into the glass walls at the sides and up into the shoulder — so the real
- * photo's highlights still ride on top and it reads as depth inside the glass, not a painted
- * block. Powder vials only (a liquid fills that window, so it is skipped there).
- */
-function buildLabelBack(base, green, liquid, paper, ml) {
-  const { W, H, data } = base;
-  const out = new Uint8ClampedArray(data);
-  if (liquid) return out; // liquid fills the upper body — no empty-glass window to light
-  if (ml === 10) return out; // 10 mL has a big empty body — the glow reads as haze, so skip it
-  const top0 = green.top0;
-  // Vial width per row above the label; find the straight body, stop where it necks in.
-  const rowXL = new Int32Array(H).fill(-1), rowXR = new Int32Array(H).fill(-1);
-  let bodyW = 0;
-  for (let y = top0 - 1; y >= 0; y--) {
-    let xl = W, xr = -1;
-    for (let x = 0; x < W; x++) if (data[(y * W + x) * 4 + 3] > 60) { if (x < xl) xl = x; xr = x; }
-    if (xr < xl) break;
-    rowXL[y] = xl; rowXR[y] = xr;
-    const w = xr - xl + 1; if (w > bodyW) bodyW = w;
-  }
-  if (bodyW < 8) return out;
-  let yTop = top0 - 1;
-  for (let y = top0 - 1; y >= 0; y--) {
-    if (rowXL[y] < 0) { yTop = y + 1; break; }
-    if (rowXR[y] - rowXL[y] + 1 < 0.72 * bodyW) { yTop = y + 1; break; }
-    yTop = y;
-  }
-  // Cap the lit band so it stays a glow near the label instead of washing the whole upper body
-  // (the tall 10 mL has a big empty body above the label that otherwise reads as haze).
-  const yTopCap = top0 - Math.round(H * 0.14);
-  if (yTop < yTopCap) yTop = yTopCap;
-  const bandH = (top0 - 1) - yTop;
-  if (bandH < 4) return out;
-  const [pr, pg, pb] = paper;
-  const STR = 0.3, mFrac = 0.12; // centre strength, side-wall fade fraction
-  for (let y = yTop; y < top0; y++) {
-    const xl = rowXL[y], xr = rowXR[y]; if (xl < 0) continue;
-    const wpx = xr - xl; if (wpx <= 0) continue;
-    const vt = (y - yTop) / bandH;         // 0 shoulder → 1 label
-    const vf = vt < 0.55 ? vt / 0.55 : 1;  // fade in from the shoulder curve
-    for (let x = xl; x <= xr; x++) {
-      const t = (x - xl) / wpx;
-      let hf = t < mFrac ? t / mFrac : t > 1 - mFrac ? (1 - t) / mFrac : 1;
-      hf = hf * hf * (3 - 2 * hf);          // smoothstep side falloff
-      const a = STR * hf * vf;
-      if (a < 0.002) continue;
-      const i = (y * W + x) * 4;
-      // Lerp toward clean paper white — the glass here is already light, so a screen barely
-      // reads; a lerp lifts it distinctly white while the falloffs keep the glass edges.
-      out[i]     = data[i]     + (pr - data[i])     * a;
-      out[i + 1] = data[i + 1] + (pg - data[i + 1]) * a;
-      out[i + 2] = data[i + 2] + (pb - data[i + 2]) * a;
-    }
-  }
-  return out;
-}
 
 /**
  * Recolour the vial's metal cap — the rounded flip-top DOME and the CRIMP collar below it — to
@@ -507,8 +444,10 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS
     // Match the red-liquid base by its filename token (…_Red.png), not a loose "red" — a base64
     // data-URL src would otherwise false-positive (no "_" or word breaks in standard base64).
     const liquid = /_red\b|\bliquid\b/i.test(String(baseSrc));
-    // Pre-bake the label's pale reverse into the clear glass above the label (screen-fixed; 3 mL).
-    const baseBack = buildLabelBack(base, green, liquid, PAPER_BACK, ml);
+    // No pale reverse screened into the empty body any more. It fogged exactly the area that most
+    // needs to look clear, and because it was skipped on 10 mL bases it also made the 3 mL vials
+    // read milkier than the 10 mL ones — the glass now matches across every size.
+    const baseBack = new Uint8ClampedArray(base.data);
     transmitGlass(baseBack, base);
     // Optional cap recolour (landing showcase) — dome + crimp collar in two coordinated tints.
     if (capTint) tintCap(baseBack, base, capTint, crimpTint || capTint);
