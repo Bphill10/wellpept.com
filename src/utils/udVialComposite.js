@@ -347,15 +347,42 @@ function transmitGlass(out, base) {
 
 
 /**
- * Recolour the vial's metal cap — the rounded flip-top DOME and the CRIMP collar below it — to
- * two coordinated tints (an [r,g,b] each). Multiplying the neutral metal by a tint keeps every
- * highlight and shadow so it reads as anodised colour, not paint. The cap bottom is found by
- * width (the crimp collar is the widest metal near the top; the glass neck narrows sharply just
- * below it), so on the slimmer 10 mL the colour no longer bleeds onto the neck. The dome and
- * crimp take slightly different shades so they match without being identical. Pairs with a
- * matching label accent for a coordinated colour-coded set.
+ * How each dome finish maps the base plastic's tones.
+ *
+ *  - `solid` paints the dome: the colour lands on its mid-tone, shadows fall to black and
+ *    speculars still blow out to white.
+ *  - `tint` is clear plastic with colour in it. Looking through the thin middle of the barrel
+ *    you get a pale, bright, high-contrast wash; at the silhouette edge the line of sight runs
+ *    the long way through the wall, so it darkens and the colour goes full strength. That
+ *    bright-centre/dark-saturated-rim gradient is the whole difference between reading as glass
+ *    and reading as a coat of pastel paint.
+ *  - `clear` is the same optics with almost all the colour taken out: the centre is water-clear
+ *    and only the rim picks any up, the way plain plastic does sitting over a coloured collar.
+ *    It keeps a trace rather than none, because four fully colourless tops would all look like
+ *    the same cap.
  */
-function tintCap(out, base, domeTint, crimpTint) {
+const CAP_FINISH_CURVE = {
+  //        contrast  centre lift  paleness  rim shade  rim colour
+  solid: { contrast: 1.00, lift: 0.00, pale: 0.00, edge: 0.00, edgeSat: 0.00 },
+  tint:  { contrast: 1.34, lift: 0.09, pale: 0.46, edge: 0.60, edgeSat: 0.90 },
+  clear: { contrast: 1.46, lift: 0.15, pale: 0.88, edge: 0.66, edgeSat: 0.62 },
+};
+
+/**
+ * Recolour the vial's metal cap — the rounded flip-top DOME and the CRIMP collar below it — to
+ * two coordinated tints (an [r,g,b] each), with the dome in one of three finishes.
+ *
+ * Colour is applied by pivoting the material on its OWN mid-tone: below the pivot the pixel
+ * ramps down to black, above it up to white, with the tint sitting exactly at the middle. This
+ * replaced a flat multiply, which could only ever darken — so a white cap came out grey metal
+ * and a black one crushed to a flat silhouette with no gloss left. Pivoting keeps every
+ * highlight and shadow, so anodised colour, painted black and bright white all read correctly.
+ *
+ * The cap bottom is found by width (the crimp collar is the widest metal near the top; the
+ * glass neck narrows sharply just below it), so on the slimmer 10 mL the colour does not bleed
+ * onto the neck.
+ */
+function tintCap(out, base, domeTint, crimpTint, domeFinish = "solid") {
   const { W, H, data } = base;
   // Per-row horizontal extent + the vial's vertical span.
   const rowL = new Int32Array(H).fill(-1), rowR = new Int32Array(H).fill(-1);
@@ -383,27 +410,74 @@ function tintCap(out, base, domeTint, crimpTint) {
   // dome colour ran a hair too low and painted the collar's bright top rim, so the dome looked
   // like it bled into the crimp; 0.46 lands the rim on the crimp colour instead.
   const domeBot = minY + Math.round((capBot - minY) * 0.46);
-  const paint = (y0, y1, tint) => {
-    const tr = tint[0], tg = tint[1], tb = tint[2];
+
+  // A pixel counts as recolourable metal/plastic: bright enough not to be a crevice, and
+  // neutral enough not to be glass or already-coloured contents.
+  const paintable = (i) => {
+    if (data[i + 3] < 60) return false;
+    const r = data[i], g = data[i + 1], b = data[i + 2];
+    const mx = r > g ? (r > b ? r : b) : g > b ? g : b;
+    const mn = r < g ? (r < b ? r : b) : g < b ? g : b;
+    if (mx - mn > 46) return false;
+    return 0.299 * r + 0.587 * g + 0.114 * b >= 42;
+  };
+
+  // Where the barrel starts turning away from us — inside this the wall is effectively thin.
+  const EDGE_START = 0.52;
+
+  const paint = (y0, y1, tint, finish) => {
+    const { contrast, lift, pale, edge: edgeAmt, edgeSat } = CAP_FINISH_CURVE[finish] || CAP_FINISH_CURVE.solid;
+    // Pale-shift the tint toward white for the see-through finishes (at pale = 1 the colour is
+    // gone entirely and `clear` becomes a plain colourless ramp).
+    const paleOf = (p) => [tint[0] + (255 - tint[0]) * p, tint[1] + (255 - tint[1]) * p, tint[2] + (255 - tint[2]) * p];
+    const mid = paleOf(pale);
+    // Pivot on this region's own mean brightness, so the dome (matte, dark) and the collar
+    // (bright metal) each land their colour on their own mid-tone instead of a global guess.
+    let sum = 0, n = 0;
+    for (let y = y0; y <= y1; y++) {
+      const lo = rowL[y]; if (lo < 0) continue;
+      for (let x = lo, hi = rowR[y]; x <= hi; x++) {
+        const i = (y * W + x) * 4;
+        if (!paintable(i)) continue;
+        sum += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]; n++;
+      }
+    }
+    if (!n) return;
+    const pivot = Math.max(24, Math.min(231, sum / n));
     for (let y = y0; y <= y1; y++) {
       const lo = rowL[y]; if (lo < 0) continue;
       const hi = rowR[y];
+      const half = (hi - lo) * 0.5 || 1, cx = lo + half;
       for (let x = lo; x <= hi; x++) {
         const i = (y * W + x) * 4;
-        if (data[i + 3] < 60) continue;
-        const r = data[i], g = data[i + 1], b = data[i + 2];
-        const mx = r > g ? (r > b ? r : b) : g > b ? g : b;
-        const mn = r < g ? (r < b ? r : b) : g < b ? g : b;
-        const L = 0.299 * r + 0.587 * g + 0.114 * b;
-        if (L < 42 || mx - mn > 46) continue; // skip near-black crevices + coloured/glass pixels
-        out[i]     = (r * tr) / 255;
-        out[i + 1] = (g * tg) / 255;
-        out[i + 2] = (b * tb) / 255;
+        if (!paintable(i)) continue;
+        const L = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+        // 0 = black, 0.5 = the tint itself, 1 = blown-out white.
+        let t = L <= pivot ? (L / pivot) * 0.5 : 0.5 + ((L - pivot) / (255 - pivot)) * 0.5;
+        t = 0.5 + (t - 0.5) * contrast;
+        let cr = mid[0], cg = mid[1], cb = mid[2];
+        if (edgeAmt > 0) {
+          const nx = Math.abs(x - cx) / half;
+          const e = nx <= EDGE_START ? 0 : (nx - EDGE_START) / (1 - EDGE_START);
+          const edge = e * e * (3 - 2 * e); // smoothstep — no hard ring where the falloff starts
+          t = t * (1 - edgeAmt * edge) + lift * (1 - edge);
+          if (edgeSat > 0) { const c = paleOf(pale * (1 - edgeSat * edge)); cr = c[0]; cg = c[1]; cb = c[2]; }
+        } else {
+          t += lift;
+        }
+        if (t < 0) t = 0; else if (t > 1) t = 1;
+        if (t <= 0.5) {
+          const k = t * 2;
+          out[i] = cr * k; out[i + 1] = cg * k; out[i + 2] = cb * k;
+        } else {
+          const k = (t - 0.5) * 2;
+          out[i] = cr + (255 - cr) * k; out[i + 1] = cg + (255 - cg) * k; out[i + 2] = cb + (255 - cb) * k;
+        }
       }
     }
   };
-  paint(minY, domeBot, domeTint);
-  paint(domeBot + 1, capBot, crimpTint);
+  paint(minY, domeBot, domeTint, domeFinish);
+  paint(domeBot + 1, capBot, crimpTint, "solid");
 }
 
 async function renderLabelPixels(svg, LW, LH) {
@@ -429,7 +503,7 @@ export const ROT_MAX = 0.62;
  * Precomputes a per-column wrap LUT (`fcol`) and per-row label-row map (`rowBase`) so the
  * compose hot loop is pure array lookups.
  */
-export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS, capTint = null, crimpTint = null }) {
+export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS, capTint = null, capFinish = "solid", crimpTint = null }) {
   const ml = Number(vialMl) >= 8 ? 10 : 3;
   const dims = silverLabelDims(ml);
   const base = await getBase(baseSrc, ss);
@@ -450,7 +524,7 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS
     const baseBack = new Uint8ClampedArray(base.data);
     transmitGlass(baseBack, base);
     // Optional cap recolour (landing showcase) — dome + crimp collar in two coordinated tints.
-    if (capTint) tintCap(baseBack, base, capTint, crimpTint || capTint);
+    if (capTint) tintCap(baseBack, base, capTint, crimpTint || capTint, capFinish);
     return { base, ld, lw: dims.w, lh: dims.h, green, liquid, baseBack };
   }
 
@@ -716,9 +790,9 @@ function alphaBBox(canvas) {
  * nothing. Pass a small `ss` (base res) + `maxOut` (output cap in px) for a smooth live spin,
  * or the defaults (BASE_SS, native scene size) for the crisp still. `paintVialScene` paints.
  */
-export async function prepareVialScene({ svg, vialMl, baseSrc, sceneSrc, ss = BASE_SS, maxOut = 0, capTint = null, crimpTint = null }) {
+export async function prepareVialScene({ svg, vialMl, baseSrc, sceneSrc, ss = BASE_SS, maxOut = 0, capTint = null, capFinish = "solid", crimpTint = null }) {
   const ml = Number(vialMl) >= 8 ? 10 : 3;
-  const prepared = await prepareVialCompositor({ svg, vialMl: ml, baseSrc, ss, capTint, crimpTint });
+  const prepared = await prepareVialCompositor({ svg, vialMl: ml, baseSrc, ss, capTint, capFinish, crimpTint });
   const scene = await loadImage(sceneSrc);
   const off = document.createElement("canvas");
   composeVial(off, prepared, 0, { wrap: true });
@@ -824,7 +898,7 @@ export function paintVialScene(canvas, state, rot = 0, opts = {}) {
  * vial base is planted on the floor line; 10 mL vials are drawn taller than 3 mL so the size
  * difference reads true. Output is an opaque scene canvas sized to `sceneSrc`.
  */
-export async function drawVialScene(canvas, { svg, vialMl, baseSrc, sceneSrc, rot = 0, ss, maxOut = 0, capTint = null, crimpTint = null }) {
-  const state = await prepareVialScene({ svg, vialMl, baseSrc, sceneSrc, ...(ss ? { ss } : {}), maxOut, capTint, crimpTint });
+export async function drawVialScene(canvas, { svg, vialMl, baseSrc, sceneSrc, rot = 0, ss, maxOut = 0, capTint = null, capFinish = "solid", crimpTint = null }) {
+  const state = await prepareVialScene({ svg, vialMl, baseSrc, sceneSrc, ...(ss ? { ss } : {}), maxOut, capTint, capFinish, crimpTint });
   return paintVialScene(canvas, state, rot, { wrap: rot !== 0 });
 }

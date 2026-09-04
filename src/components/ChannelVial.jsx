@@ -5,7 +5,7 @@ import {
   prepareVialCompositor,
   composeVial,
 } from "../utils/udVialComposite";
-import { capScheme, catalogCapColor } from "../utils/labelColor";
+import { capSchemeFor } from "../utils/labelColor";
 
 /**
  * Undisclosed landing showcase — a single large hero vial that channel-surfs the catalog. Each
@@ -239,12 +239,11 @@ export default function ChannelVial({ channels = [], className = "" }) {
     const cache = prepsRef.current;
     const hit = cache.get(idx);
     if (hit) return hit.then ? hit : Promise.resolve(hit);
-    // Each peptide keeps its own catalog colour (KLOW/GLOW/GHK blue, B12 crimson, etc.).
-    const rgb = catalogCapColor(list[idx].name);
-    // Coordinated set: dome (base), crimp collar (analogous different hue), label accent (deeper).
-    const { dome, crimp, labelHex } = capScheme(rgb);
+    // Each peptide keeps its own catalog cap: a palette colour, the dome finish (painted,
+    // clear-tinted or clear), the crimp collar under it, and a matching label accent.
+    const { dome, domeFinish, crimp, labelHex } = capSchemeFor(list[idx].name);
     const { svg, ml, baseSrc } = buildSVG(list[idx], labelHex);
-    const promise = prepareVialCompositor({ svg, vialMl: ml, baseSrc, ss: ssFor(), capTint: dome, crimpTint: crimp })
+    const promise = prepareVialCompositor({ svg, vialMl: ml, baseSrc, ss: ssFor(), capTint: dome, capFinish: domeFinish, crimpTint: crimp })
       .then((prep) => { cache.set(idx, prep); return prep; })
       .catch(() => { cache.delete(idx); return null; });
     cache.set(idx, promise);
