@@ -42,6 +42,8 @@ const UC = 0.34, HALF = 0.33, B = 1.05, SB = Math.sin(B);
 // label's own width, so the label covers 1/(1+GAP_UNITS) of the turn (~0.25 → ~20% bare).
 const GAP_UNITS = 0.25;
 
+
+
 // Screen-x → label-u foreshortening LUT (includes the HALF factor). Indexed by the visible
 // column fraction 0..1 across the label run; lets the green path wrap per-row without an
 // asin in the hot loop.
@@ -242,10 +244,22 @@ function buildBaseGlass(base, green, liquid) {
     sxl[k] = xl; sxr[k] = xr;
   }
   const twoK = 2 * K;
+  const span = Math.max(1, bot - top);
   for (let y = top; y <= bot; y++) {
     const lo = rowLo[y]; if (lo < 0) continue;
     const hi = rowHi[y];
-    const tt = (y - top) % twoK, off = tt < K ? tt : twoK - 1 - tt; // reflect-tile
+    let off;
+    if (liquid) {
+      // STRETCH the sampled rows across the band rather than tiling them. Reflect-tiling repeated
+      // the liquid every 2K rows, which read as horizontal banding through the bare-glass window,
+      // and left the band's last row on an arbitrary phase — a hard seam where it met the real
+      // liquid below the label. Anchoring the band's BOTTOM row to the row directly beneath the
+      // label makes that join continuous, and stretching removes the repeat.
+      off = Math.round(((bot - y) / span) * (K - 1));
+    } else {
+      const tt = (y - top) % twoK;
+      off = tt < K ? tt : twoK - 1 - tt; // reflect-tile
+    }
     const sy = srcY0 + off, kxl = sxl[off], kxr = sxr[off];
     for (let x = lo; x <= hi; x++) {
       const sx = x < kxl ? kxl : x > kxr ? kxr : x;
@@ -267,70 +281,6 @@ function buildBaseGlass(base, green, liquid) {
         const j = (yy * W + x) * 4; sr += tmp[j]; sg += tmp[j + 1]; sb += tmp[j + 2]; n++;
       }
       if (n) { const di = (y * W + x) * 4; out[di] = (sr / n) | 0; out[di + 1] = (sg / n) | 0; out[di + 2] = (sb / n) | 0; }
-    }
-  }
-  return out;
-}
-
-/**
- * A lightly FROSTED version of the reconstructed glass, shown in the bare-glass gap as the vial
- * turns (the spot where the wrapped label's two ends don't meet). Real etched/frosted glass
- * scatters light: the sharp vertical highlights diffuse sideways and the whole panel takes on a
- * cool, milky, low-contrast cast. We horizontally blur the glass (the scatter) then blend a cool
- * frost tint over it with the contrast gently compressed. Kept subtle — "frost it a little".
- */
-function buildFrostGlass(baseGlass, base, green) {
-  const { W } = base;
-  const { rowLo, rowHi, top, bot } = green;
-  const { H } = base;
-  const out = new Uint8ClampedArray(baseGlass);
-  // 1) Horizontal diffuse — softens the per-column glass highlights so they read as scattered
-  // (etched glass), not brushed metal.
-  const R = Math.max(3, Math.round(W * 0.03));
-  let tmp = new Uint8ClampedArray(baseGlass);
-  for (let y = top; y <= bot; y++) {
-    const lo = rowLo[y]; if (lo < 0) continue;
-    const hi = rowHi[y];
-    for (let x = lo; x <= hi; x++) {
-      let sr = 0, sg = 0, sb = 0, n = 0;
-      for (let dx = -R; dx <= R; dx++) {
-        const xx = x + dx; if (xx < lo || xx > hi) continue;
-        const j = (y * W + xx) * 4; sr += tmp[j]; sg += tmp[j + 1]; sb += tmp[j + 2]; n++;
-      }
-      const di = (y * W + x) * 4; out[di] = (sr / n) | 0; out[di + 1] = (sg / n) | 0; out[di + 2] = (sb / n) | 0;
-    }
-  }
-  // 1b) Vertical diffuse — erase the horizontal tiling bands left by the glass reconstruction so
-  // the frost is smooth and uniform, not striped.
-  const Rv = Math.max(3, Math.round(H * 0.02));
-  tmp = new Uint8ClampedArray(out);
-  for (let y = top; y <= bot; y++) {
-    const lo = rowLo[y]; if (lo < 0) continue;
-    const hi = rowHi[y];
-    for (let x = lo; x <= hi; x++) {
-      let sr = 0, sg = 0, sb = 0, n = 0;
-      for (let dy = -Rv; dy <= Rv; dy++) {
-        const yy = y + dy; if (yy < top || yy > bot) continue;
-        const l2 = rowLo[yy]; if (l2 < 0 || x < l2 || x > rowHi[yy]) continue;
-        const j = (yy * W + x) * 4; sr += tmp[j]; sg += tmp[j + 1]; sb += tmp[j + 2]; n++;
-      }
-      if (n) { const di = (y * W + x) * 4; out[di] = (sr / n) | 0; out[di + 1] = (sg / n) | 0; out[di + 2] = (sb / n) | 0; }
-    }
-  }
-  // 2) Milky veil — cool frost tint, blended in, with contrast compressed around a bright pivot
-  // so the panel lifts to a soft translucent white (etched glass catching the key light).
-  const TINT = [233, 237, 244], MIX = 0.52, PIVOT = 182, COMPRESS = 0.5;
-  for (let y = top; y <= bot; y++) {
-    const lo = rowLo[y]; if (lo < 0) continue;
-    const hi = rowHi[y];
-    for (let x = lo; x <= hi; x++) {
-      const i = (y * W + x) * 4;
-      const r = out[i], g = out[i + 1], b = out[i + 2];
-      const L = 0.299 * r + 0.587 * g + 0.114 * b;
-      const s = (PIVOT + (L - PIVOT) * COMPRESS) / PIVOT; // contrast-compressed luma scale
-      out[i] = clamp(r + (TINT[0] * s - r) * MIX);
-      out[i + 1] = clamp(g + (TINT[1] * s - g) * MIX);
-      out[i + 2] = clamp(b + (TINT[2] * s - b) * MIX);
     }
   }
   return out;
@@ -529,21 +479,62 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS
  * edge fall-off and paper texture. Everything outside the green (cap, glass, powder, liquid)
  * is the untouched photo. Per-row wrap via the shared asin LUT; `wrap` tiles for a full spin.
  */
+/**
+ * Sub-pixel coverage for the label's curved top and bottom rims.
+ *
+ * maskGreenPix is a binary test and the rims are very shallow curves — the bottom edge rises only
+ * ~13px across the label's whole width — so a hard mask draws them as a staircase: ~28px of flat
+ * run, then a 1px jump. That is plainly visible against the liquid. Here the boundary row is
+ * measured per column and smoothed into a FRACTIONAL curve, so each pixel can take partial
+ * coverage and the rim anti-aliases the way a drawn curve would.
+ *
+ * Only the top and bottom rims are softened. The left and right edges are the vial's own
+ * silhouette, already anti-aliased in the photograph.
+ */
+function buildEdgeCoverage(base, green) {
+  const { W, data } = base;
+  const { rowLo, rowHi, top, bot } = green;
+  const rawTop = new Float32Array(W).fill(-1);
+  const rawBot = new Float32Array(W).fill(-1);
+  for (let x = 0; x < W; x++) {
+    let first = -1, last = -1;
+    for (let y = top; y <= bot; y++) {
+      const lo = rowLo[y];
+      if (lo < 0 || x < lo || x > rowHi[y]) continue;
+      const i = (y * W + x) * 4;
+      if (!maskGreenPix(data[i], data[i + 1], data[i + 2])) continue;
+      if (first < 0) first = y;
+      last = y;
+    }
+    rawTop[x] = first; rawBot[x] = last;
+  }
+  // Average across neighbouring columns so the integer boundary becomes a smooth fractional one.
+  const R = 6;
+  const sTop = new Float32Array(W).fill(-1);
+  const sBot = new Float32Array(W).fill(-1);
+  for (let x = 0; x < W; x++) {
+    if (rawTop[x] < 0) continue;
+    let st = 0, sb = 0, n = 0;
+    for (let d = -R; d <= R; d++) {
+      const xx = x + d;
+      if (xx < 0 || xx >= W || rawTop[xx] < 0) continue;
+      st += rawTop[xx]; sb += rawBot[xx]; n++;
+    }
+    if (n) { sTop[x] = st / n; sBot[x] = sb / n; }
+  }
+  return { sTop, sBot };
+}
+
 function composeGreen(canvas, prepared, rot, wrap) {
   const { base, ld, lw, lh, green } = prepared;
   const { W, H, data: src } = base;
   const { rowLo, rowHi, rowInvW, top, bot, top0, bot0, ref } = green;
   // Bare-glass gap for the spin: the label wraps most of the way, and where it doesn't we show
   // the vial's own reconstructed glass (screen-fixed, so its highlights stay put).
+  if (!prepared.edgeCov) prepared.edgeCov = buildEdgeCoverage(base, green);
+  const { sTop, sBot } = prepared.edgeCov;
   if (wrap && !prepared.baseGlass) prepared.baseGlass = buildBaseGlass(base, green, prepared.liquid);
-  // Powder vials get a lightly frosted gap. LIQUID vials must not: the frost's milky veil washes
-  // the contents into a grey translucent panel that reads as a second label bridging the label's
-  // two ends, when the gap is meant to be a bare glass window with the liquid visible through it.
-  if (wrap && !prepared.frostGlass && !prepared.liquid) {
-    prepared.frostGlass = buildFrostGlass(prepared.baseGlass, base, green);
-  }
   const baseGlass = prepared.baseGlass;
-  const frostGlass = prepared.frostGlass;
   const T = 1 + GAP_UNITS;
   const rr = wrap ? rot * T : rot; // one component revolution (rot 0→1) spans the whole strip
   // Start from the base with the label's pale reverse already lit into the clear glass above.
@@ -573,24 +564,31 @@ function composeGreen(canvas, prepared, rot, wrap) {
       const i = (y * W + x) * 4;
       const r = src[i], g = src[i + 1], b = src[i + 2];
       if (!maskGreenPix(r, g, b)) continue; // follow the real curved edge; leave gaps as photo
+      // Partial coverage at the curved rims so they anti-alias instead of stepping. This depends
+      // only on x and y, never on rotation, so the set of pixels written stays identical every
+      // frame and the reused output buffer stays valid.
+      let cov = 1;
+      const te = sTop[x];
+      if (te >= 0) {
+        const dTop = y - te + 0.5, dBot = sBot[x] - y + 0.5;
+        cov = dTop < dBot ? dTop : dBot;
+        if (cov <= 0) continue;
+        if (cov > 1) cov = 1;
+      }
       const uo = (x - lo) * invW;
       let u = UC + rr + ASIN_LUT[(uo * LN) | 0];
       if (wrap) {
         u -= Math.floor(u / T) * T; // wrap around the full strip (label + gap)
-        if (u >= 1) { // in the bare-glass gap between the label's two ends
-          if (frostGlass) {
-            // Powder vial: lightly frost it, feathered so it meets the label ends through a thin
-            // clear border and reads as an etched panel.
-            const gp = (u - 1) / GAP_UNITS;            // 0..1 across the gap
-            let f = (gp < 0.5 ? gp : 1 - gp) / 0.22;   // ramp over the outer ~22% on each side
-            f = f < 0 ? 0 : f > 1 ? 1 : f;
-            out[i] = baseGlass[i] + (frostGlass[i] - baseGlass[i]) * f;
-            out[i + 1] = baseGlass[i + 1] + (frostGlass[i + 1] - baseGlass[i + 1]) * f;
-            out[i + 2] = baseGlass[i + 2] + (frostGlass[i + 2] - baseGlass[i + 2]) * f;
-          } else {
-            // Liquid vial: bare transparent glass, so the liquid reads through at full strength
-            // with the vial's own reflections intact.
-            out[i] = baseGlass[i]; out[i + 1] = baseGlass[i + 1]; out[i + 2] = baseGlass[i + 2];
+        if (u >= 1) {
+          // The bare-glass window between the label's two ends. Every vial shows plain
+          // transparent glass here — the contents read through it at full strength with the
+          // vial's own reflections intact. It is never frosted and never filled.
+          const gr = baseGlass[i], gg = baseGlass[i + 1], gb = baseGlass[i + 2];
+          if (cov >= 1) { out[i] = gr; out[i + 1] = gg; out[i + 2] = gb; }
+          else {
+            out[i] = init[i] + (gr - init[i]) * cov;
+            out[i + 1] = init[i + 1] + (gg - init[i + 1]) * cov;
+            out[i + 2] = init[i + 2] + (gb - init[i + 2]) * cov;
           }
           continue;
         }
@@ -603,9 +601,16 @@ function composeGreen(canvas, prepared, rot, wrap) {
       const la = ld[li + 3] / 255, ia = PAPER * (1 - la);
       let sh = (0.25 * r + 0.7 * g + 0.05 * b) / ref;
       sh = sh < 0.5 ? 0.5 : sh > 1.08 ? 1.08 : sh;
-      out[i] = clamp((ld[li] * la + ia) * sh);
-      out[i + 1] = clamp((ld[li + 1] * la + ia) * sh);
-      out[i + 2] = clamp((ld[li + 2] * la + ia) * sh);
+      const pr = (ld[li] * la + ia) * sh;
+      const pg = (ld[li + 1] * la + ia) * sh;
+      const pb = (ld[li + 2] * la + ia) * sh;
+      if (cov >= 1) {
+        out[i] = clamp(pr); out[i + 1] = clamp(pg); out[i + 2] = clamp(pb);
+      } else {
+        out[i] = clamp(init[i] + (pr - init[i]) * cov);
+        out[i + 1] = clamp(init[i + 1] + (pg - init[i + 1]) * cov);
+        out[i + 2] = clamp(init[i + 2] + (pb - init[i + 2]) * cov);
+      }
     }
   }
   // Only resize when it actually changes — assigning width/height reallocates and clears the
