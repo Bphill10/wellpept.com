@@ -536,7 +536,12 @@ function composeGreen(canvas, prepared, rot, wrap) {
   // Bare-glass gap for the spin: the label wraps most of the way, and where it doesn't we show
   // the vial's own reconstructed glass (screen-fixed, so its highlights stay put).
   if (wrap && !prepared.baseGlass) prepared.baseGlass = buildBaseGlass(base, green, prepared.liquid);
-  if (wrap && !prepared.frostGlass) prepared.frostGlass = buildFrostGlass(prepared.baseGlass, base, green);
+  // Powder vials get a lightly frosted gap. LIQUID vials must not: the frost's milky veil washes
+  // the contents into a grey translucent panel that reads as a second label bridging the label's
+  // two ends, when the gap is meant to be a bare glass window with the liquid visible through it.
+  if (wrap && !prepared.frostGlass && !prepared.liquid) {
+    prepared.frostGlass = buildFrostGlass(prepared.baseGlass, base, green);
+  }
   const baseGlass = prepared.baseGlass;
   const frostGlass = prepared.frostGlass;
   const T = 1 + GAP_UNITS;
@@ -572,15 +577,21 @@ function composeGreen(canvas, prepared, rot, wrap) {
       let u = UC + rr + ASIN_LUT[(uo * LN) | 0];
       if (wrap) {
         u -= Math.floor(u / T) * T; // wrap around the full strip (label + gap)
-        if (u >= 1) { // in the bare-glass gap — show the vial's own glass, lightly frosted
-          // Feather the frost so it meets the label ends through a thin clear border (reads as an
-          // etched panel), strongest across the middle of the gap.
-          const gp = (u - 1) / GAP_UNITS;            // 0..1 across the gap
-          let f = (gp < 0.5 ? gp : 1 - gp) / 0.22;   // ramp over the outer ~22% on each side
-          f = f < 0 ? 0 : f > 1 ? 1 : f;
-          out[i] = baseGlass[i] + (frostGlass[i] - baseGlass[i]) * f;
-          out[i + 1] = baseGlass[i + 1] + (frostGlass[i + 1] - baseGlass[i + 1]) * f;
-          out[i + 2] = baseGlass[i + 2] + (frostGlass[i + 2] - baseGlass[i + 2]) * f;
+        if (u >= 1) { // in the bare-glass gap between the label's two ends
+          if (frostGlass) {
+            // Powder vial: lightly frost it, feathered so it meets the label ends through a thin
+            // clear border and reads as an etched panel.
+            const gp = (u - 1) / GAP_UNITS;            // 0..1 across the gap
+            let f = (gp < 0.5 ? gp : 1 - gp) / 0.22;   // ramp over the outer ~22% on each side
+            f = f < 0 ? 0 : f > 1 ? 1 : f;
+            out[i] = baseGlass[i] + (frostGlass[i] - baseGlass[i]) * f;
+            out[i + 1] = baseGlass[i + 1] + (frostGlass[i + 1] - baseGlass[i + 1]) * f;
+            out[i + 2] = baseGlass[i + 2] + (frostGlass[i + 2] - baseGlass[i + 2]) * f;
+          } else {
+            // Liquid vial: bare transparent glass, so the liquid reads through at full strength
+            // with the vial's own reflections intact.
+            out[i] = baseGlass[i]; out[i + 1] = baseGlass[i + 1]; out[i + 2] = baseGlass[i + 2];
+          }
           continue;
         }
       } else {
