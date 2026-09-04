@@ -298,6 +298,53 @@ function buildBaseGlass(base, green, liquid) {
   return out;
 }
 
+// Making the glass read as glass. The base photographs are lit, so the clear body sits at a bright
+// mid-grey; composited onto the dark marble that reads as frosted silver rather than as something
+// you can see through. Real glass against a dark ground is mostly DARK with narrow bright
+// speculars, so the midtones are pulled down and the highlights left alone.
+const GLASS_GAMMA = 1.75, GLASS_CHROMA = 34;
+const GLASS_LUT = (() => {
+  const t = new Uint8ClampedArray(256);
+  for (let v = 0; v < 256; v++) t[v] = Math.round(255 * Math.pow(v / 255, GLASS_GAMMA));
+  return t;
+})();
+
+/**
+ * Pull the vial's clear glass down so it transmits instead of glowing. Only LOW-CHROMA pixels are
+ * touched, so the powder stays white, the liquid stays red and a coloured cap is untouched; and
+ * only below the neck, so the crimp keeps its weight. The curve leaves highlights nearly intact —
+ * losing those would flatten the glass rather than clear it.
+ */
+function transmitGlass(out, base) {
+  const { W, H, data } = base;
+  const wid = new Int32Array(H);
+  let minY = H, maxY = 0;
+  for (let y = 0; y < H; y++) {
+    let xl = -1, xr = -1;
+    for (let x = 0; x < W; x++) if (data[(y * W + x) * 4 + 3] > 60) { if (xl < 0) xl = x; xr = x; }
+    wid[y] = xl < 0 ? 0 : xr - xl + 1;
+    if (xl >= 0) { if (y < minY) minY = y; maxY = y; }
+  }
+  if (maxY <= minY) return;
+  const vh = maxY - minY + 1;
+  // The neck is the narrowest row in the upper third; everything above it is cap and crimp.
+  let neck = minY, nw = 1 << 30;
+  for (let y = minY + Math.round(vh * 0.06); y < minY + Math.round(vh * 0.34); y++) {
+    if (wid[y] > 0 && wid[y] < nw) { nw = wid[y]; neck = y; }
+  }
+  for (let y = neck + Math.round(vh * 0.01); y <= maxY; y++) {
+    for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4;
+      if (data[i + 3] < 60) continue;
+      const r = out[i], g = out[i + 1], b = out[i + 2];
+      const mx = r > g ? (r > b ? r : b) : (g > b ? g : b);
+      const mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
+      if (mx - mn > GLASS_CHROMA) continue; // coloured contents or cap — leave alone
+      out[i] = GLASS_LUT[r]; out[i + 1] = GLASS_LUT[g]; out[i + 2] = GLASS_LUT[b];
+    }
+  }
+}
+
 // Clean cool paper white shown as the label's reverse through the glass (stock colour later).
 const PAPER_BACK = [246, 249, 253];
 
@@ -339,7 +386,7 @@ function buildLabelBack(base, green, liquid, paper, ml) {
   const bandH = (top0 - 1) - yTop;
   if (bandH < 4) return out;
   const [pr, pg, pb] = paper;
-  const STR = 0.64, mFrac = 0.12; // centre strength, side-wall fade fraction
+  const STR = 0.3, mFrac = 0.12; // centre strength, side-wall fade fraction
   for (let y = yTop; y < top0; y++) {
     const xl = rowXL[y], xr = rowXR[y]; if (xl < 0) continue;
     const wpx = xr - xl; if (wpx <= 0) continue;
@@ -462,6 +509,7 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS
     const liquid = /_red\b|\bliquid\b/i.test(String(baseSrc));
     // Pre-bake the label's pale reverse into the clear glass above the label (screen-fixed; 3 mL).
     const baseBack = buildLabelBack(base, green, liquid, PAPER_BACK, ml);
+    transmitGlass(baseBack, base);
     // Optional cap recolour (landing showcase) — dome + crimp collar in two coordinated tints.
     if (capTint) tintCap(baseBack, base, capTint, crimpTint || capTint);
     return { base, ld, lw: dims.w, lh: dims.h, green, liquid, baseBack };
