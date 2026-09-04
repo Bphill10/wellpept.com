@@ -42,12 +42,11 @@ const UC = 0.34, HALF = 0.33, B = 1.05, SB = Math.sin(B);
 // label's own width, so the label covers 1/(1+GAP_UNITS) of the turn (~0.25 → ~20% bare).
 const GAP_UNITS = 0.25;
 
-// Seeing the far side of the label through the clear glass. The vial is genuinely transparent, so
-// the far surface reads as itself — paper, black rails, colour bars, mirrored by the geometry —
-// not as a blank panel. BACK_DIM darkens it for the glass it sits behind; BACK_MIX is high because
-// it is the dominant thing you see through the window, but short of 1 so the glass's own
-// reflections still ride over the top.
-const BACK_DIM = 0.6, BACK_MIX = 0.8;
+// Seeing the far side of the label through the clear glass. It reads as a SHADOW of the label in
+// its base tone — you register that something is there on the far wall, but no artwork and no
+// reversed text. BACK_SHADOW is the label's paper darkened to shadow; BACK_MIX keeps it well under
+// full so the glass's own shading and reflections still carry through it.
+const BACK_SHADOW = 104, BACK_MIX = 0.55;
 
 
 
@@ -588,23 +587,18 @@ function composeGreen(canvas, prepared, rot, wrap) {
           // frosted, never filled — so the contents read through at full strength.
           let gr = baseGlass[i], gg = baseGlass[i + 1], gb = baseGlass[i + 2];
           // And because it IS transparent, you are looking clean through the vial here: the far
-          // wall still carries the label, so you see it from the inside. Mirror this column's
-          // offset about the half-turn to find where the far surface sits on the label; where it
-          // lands ON the label its artwork reads through (reversed, since you are behind it), and
-          // where it falls in the gap you see straight out the other side. It slides the opposite
-          // way to the front label as the vial turns, and that parallax is what makes the vial
-          // read as genuinely transparent rather than as a printed cylinder.
+          // wall still carries the label, so it shadows the glass from behind. Mirror this
+          // column's offset about the half-turn to find where the far surface sits on the label;
+          // where it lands ON the label you get that shadow, and where it falls in the gap you see
+          // straight out the other side. Only its EDGE and the way it slides the opposite way to
+          // the front label as the vial turns carry the depth — no artwork, and no reversed text
+          // to read, which looked like a second label rather than like glass.
           let ub = UC + rr + T * 0.5 - dOff;
           ub -= Math.floor(ub / T) * T;
           if (ub < 1) {
-            const bi = (rb + ((ub * lwm) | 0)) * 4;
-            const ba = ld[bi + 3] / 255, bia = PAPER * (1 - ba);
-            const kr = (ld[bi] * ba + bia) * BACK_DIM;
-            const kg2 = (ld[bi + 1] * ba + bia) * BACK_DIM;
-            const kb = (ld[bi + 2] * ba + bia) * BACK_DIM;
-            gr += (kr - gr) * BACK_MIX;
-            gg += (kg2 - gg) * BACK_MIX;
-            gb += (kb - gb) * BACK_MIX;
+            gr += (BACK_SHADOW - gr) * BACK_MIX;
+            gg += (BACK_SHADOW - gg) * BACK_MIX;
+            gb += (BACK_SHADOW - gb) * BACK_MIX;
           }
           if (cov >= 1) { out[i] = gr; out[i + 1] = gg; out[i + 2] = gb; }
           else {
