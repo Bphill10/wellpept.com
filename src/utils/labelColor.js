@@ -20,21 +20,28 @@ export const darken = (rgb, t) => rgb.map((v) => Math.round(v * (1 - t)));
  * eight, so the catalog reads as a designed set instead of a rainbow.
  */
 export const CAP_COLORS = {
+  // Plain colours. These are the ones that go on a TOP — a flip-top is moulded plastic, so it
+  // is a flat colour, not a metal.
   black:  [32, 34, 39],
   white:  [240, 242, 246],
   green:  [26, 156, 84],
-  blue:   [40, 132, 246],
   red:    [212, 40, 46],
   pink:   [236, 84, 152],
+  // The blue family. All three blue-powder caps have to be blue to agree with what is in the
+  // vial, so they cannot be separated by colour family like everything else is — they are
+  // separated inside the blue instead: deep royal, pale sky, and the cerulean that goes to
+  // GHK-Cu, the copper peptide.
+  navy:   [26, 58, 198],
+  sky:    [96, 176, 250],
+  azure:  [18, 168, 212],
+  // Metals. These are CRIMP colours — the collar is a stamped aluminium seal, which really is
+  // metal. They are never used on a top.
   copper: [188, 104, 52],
   silver: [176, 185, 197],
-  // Two more blues, for the blue-powder trio only. All three of those caps have to be blue to
-  // agree with what is in the vial, so they cannot be separated by colour family the way
-  // everything else is — they get separated inside the blue family instead: deep royal, bright
-  // electric, and the cerulean that goes to GHK-Cu, the copper peptide.
-  navy:   [26, 58, 198],
-  azure:  [18, 168, 212],
 };
+
+/** Tops are moulded plastic, so a metal is only ever a collar. */
+const METALS = new Set(["copper", "silver"]);
 
 /** Dome finishes. `solid` is painted; `tint` is clear plastic with colour in it; `clear` is plain glass-clear. */
 export const CAP_FINISHES = ["solid", "tint", "clear"];
@@ -60,37 +67,51 @@ const rgbOf = (name) => CAP_COLORS[name] || CAP_COLORS.silver;
 /** Caps tied to the vial's contents — never handed out to an unlisted compound by the fallback. */
 const PINNED = new Set(["KLOW", "GLOW", "GHK-CU", "VITAMIN B12"]);
 
+/**
+ * Cap assignments. Read as: top colour · finish · crimp collar · product-name ink.
+ *
+ * Ordered to follow the storefront's own running order, and laid out so neighbours never share
+ * a colour. Inside a colour, no two products share a finish AND a collar.
+ *
+ * The split is weighted to black — it suits a dark storefront, and a black top stays legible
+ * against any collar. White is held to three: a white top over a silver collar is the default
+ * vial cap, so several of them start to look like one another no matter what else changes.
+ *
+ * `ink` is the second label look: `dark` is the classic near-black serif name, `accent` sets it
+ * in the product's own colour. Only dark accents get it — the label refuses a pale ink — so it
+ * lands on the deep colours and leaves the bright ones alone.
+ */
 const CAP_ROSTER = [
-  ["TIRZEPATIDE",           "copper", "solid", "silver"],
-  ["RETATRUTIDE",           "white",  "solid", "copper"],
-  ["SEMAGLUTIDE",           "green",  "solid", "silver"],
-  ["BPC-157",               "pink",   "solid", "silver"],
-  ["TB-500",                "black",  "solid", "copper"],
-  ["KLOW",                  "navy",   "solid", "silver"],
-  ["GLOW",                  "blue",   "solid", "black"],
-  ["GHK-CU",                "azure",  "solid", "copper"],
-  ["TESAMORELIN",           "red",    "solid", "black"],
-  ["IPAMORELIN",            "silver", "solid", "black"],
-  ["CJC-1295",              "green",  "tint",  "silver"],
-  ["CJC-1295 / IPAMORELIN", "copper", "tint",  "black"],
-  ["HGH",                   "white",  "solid", "black"],
-  ["NAD+",                  "green",  "solid", "copper"],
-  ["MOTS-C",                "pink",   "tint",  "copper"],
-  ["EPITHALON",             "black",  "solid", "silver"],
-  ["SEMAX",                 "red",    "tint",  "silver"],
-  ["SELANK",                "silver", "clear", "silver"],
-  ["GLUTATHIONE",           "green",  "solid", "black"],
-  ["SS-31",                 "silver", "solid", "copper"],
-  ["PT-141",                "pink",   "solid", "black"],
-  ["THYMOSIN ALPHA-1",      "copper", "clear", "copper"],
-  ["KPV",                   "green",  "clear", "green"],
-  ["CAGRILINTIDE",          "red",    "solid", "copper"],
-  ["ARA-290",               "black",  "tint",  "silver"],
-  ["FOX04-DRI",             "pink",   "clear", "pink"],
-  ["DSIP",                  "silver", "tint",  "black"],
-  ["VITAMIN B12",           "red",    "solid", "silver"],
+  //  name                    top       finish   collar    ink
+  ["TIRZEPATIDE",           "black",  "solid", "black",  "dark"],
+  ["RETATRUTIDE",           "white",  "solid", "copper", "accent"],
+  ["SEMAGLUTIDE",           "green",  "solid", "silver", "accent"],
+  ["BPC-157",               "pink",   "solid", "silver", "dark"],
+  ["TB-500",                "black",  "solid", "copper", "dark"],
+  ["KLOW",                  "navy",   "solid", "silver", "accent"],
+  ["GLOW",                  "sky",    "tint",  "black",  "dark"],
+  ["GHK-CU",                "azure",  "solid", "copper", "accent"],
+  ["TESAMORELIN",           "red",    "solid", "black",  "accent"],
+  ["IPAMORELIN",            "black",  "clear", "copper", "dark"],
+  ["CJC-1295",              "green",  "tint",  "silver", "dark"],
+  ["CJC-1295 / IPAMORELIN", "pink",   "tint",  "silver", "dark"],
+  ["HGH",                   "white",  "solid", "black",  "dark"],
+  ["NAD+",                  "green",  "solid", "copper", "dark"],
+  ["MOTS-C",                "pink",   "tint",  "copper", "dark"],
+  ["EPITHALON",             "white",  "solid", "silver", "dark"],
+  ["SEMAX",                 "red",    "tint",  "silver", "dark"],
+  ["SELANK",                "white",  "clear", "silver", "dark"],
+  ["GLUTATHIONE",           "green",  "solid", "black",  "accent"],
+  ["SS-31",                 "black",  "clear", "silver", "dark"],
+  ["PT-141",                "pink",   "solid", "black",  "dark"],
+  ["THYMOSIN ALPHA-1",      "red",    "clear", "copper", "dark"],
+  ["KPV",                   "green",  "clear", "green",  "dark"],
+  ["CAGRILINTIDE",          "red",    "solid", "copper", "accent"],
+  ["ARA-290",               "black",  "tint",  "silver", "dark"],
+  ["FOX04-DRI",             "pink",   "clear", "pink",   "dark"],
+  ["DSIP",                  "black",  "tint",  "copper", "dark"],
+  ["VITAMIN B12",           "red",    "solid", "silver", "accent"],
 ];
-
 /** Normalise a compound name to the key shape used in the roster. */
 function capKey(name) {
   return String(name || "")
@@ -144,8 +165,8 @@ export function catalogCapSpec(name) {
     const open = CAP_ROSTER.map((_, k) => k).filter((k) => !PINNED.has(CAP_ROSTER[k][0]));
     i = open[(h >>> 0) % open.length];
   }
-  const [, color, finish, crimp] = CAP_ROSTER[i];
-  return { color, finish, crimp };
+  const [, color, finish, crimp, ink] = CAP_ROSTER[i];
+  return { color, finish, crimp, ink };
 }
 
 /** Back-compat: the cap's identity colour as RGB. */
@@ -160,18 +181,36 @@ export function catalogCapColor(name) {
  */
 export function capScheme(spec) {
   // Tolerates the old call shape (a raw [r,g,b]) so nothing that still passes a colour breaks.
-  if (Array.isArray(spec)) return { dome: spec, domeFinish: "solid", crimp: spec, labelHex: rgbHex(darken(spec, 0.12)) };
-  const { color, finish, crimp } = spec;
+  if (Array.isArray(spec)) {
+    return { dome: spec, domeFinish: "solid", crimp: spec, labelHex: rgbHex(darken(spec, 0.12)), nameHex: "" };
+  }
+  const { color, finish, crimp, ink } = spec;
   const base = rgbOf(color);
+  const crimpRgb = rgbOf(finish === "clear" ? color : crimp);
+  // The label's accent follows the top's colour — except on a neutral top, where the bar would
+  // come out washed-out grey or flat black and every white-topped or black-topped product would
+  // get the same label. There it comes off the collar instead, so the metal that separates the
+  // caps separates the labels too.
+  const neutral = color === "white" || color === "black";
+  const accent = neutral ? darken(crimpRgb, 0.22) : darken(base, 0.12);
   return {
     dome: base,
     domeFinish: finish,
-    crimp: rgbOf(finish === "clear" ? color : crimp),
-    labelHex: rgbHex(color === "white" || color === "silver" ? darken(base, 0.55) : darken(base, 0.12)),
+    crimp: crimpRgb,
+    labelHex: rgbHex(accent),
+    // Setting the product name in the accent is the second label look. The label itself refuses
+    // an ink too pale to read on white stock, so asking for it is always safe.
+    nameHex: ink === "accent" ? rgbHex(darken(accent, 0.42)) : "",
   };
 }
 
 /** The full scheme straight from a compound name. */
 export function capSchemeFor(name) {
   return capScheme(catalogCapSpec(name));
+}
+
+// A metal on a moulded plastic top is the one mistake this table can make silently, so it is
+// checked once at module load rather than left to be spotted in a render.
+for (const [n, color] of CAP_ROSTER) {
+  if (METALS.has(color)) throw new Error(`cap roster: ${n} has the metal "${color}" on its top; metals are collars`);
 }

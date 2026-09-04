@@ -139,13 +139,14 @@ function qr(x, y, size, payload) {
  * @param {string} [o.doseUnits]     Calculator: syringe units below (e.g. "5 – 10 U")
  * @param {string} [o.brandName]     Custom brand name (default "UNDISCLOSED")
  * @param {string} [o.brandImage]    Custom logo data URI (default UD mark)
+ * @param {string} [o.nameColor]     Ink for the product name (default near-black)
  */
 export function buildSilverLabelSVG(o = {}) {
   const {
     name = "PEPTIDE", mg = "", type = "catalog", accent = "silver", w, h,
     line1 = "", line2 = "", diluent = "", concentration = "", doseValue = "", doseUnits = "",
     brandName = "UNDISCLOSED", brandImage = UD_MARK_DATA_URI, qrPayload = DEFAULT_QR_URL,
-    accentColor = "",
+    accentColor = "", nameColor = "",
   } = o;
   // A single custom accent colour (used by the landing showcase to colour-code the label to
   // match a coloured crimp cap): tints the dividers, brand mark, dose bar and small headers,
@@ -155,6 +156,10 @@ export function buildSilverLabelSVG(o = {}) {
     : LABEL_ACCENTS[accent] || LABEL_ACCENTS.silver;
   const BN = String(brandName || "UNDISCLOSED").toUpperCase();
   const NM = String(shortLabelName(name) || "PEPTIDE").toUpperCase();
+  // Ink for the product name. Defaults to the near-black serif; a caller can set it to the
+  // product's accent for a second label look, but only a genuinely dark ink is allowed through
+  // — anything pale would disappear into the white label stock.
+  const NAME_INK = nameColor && hexLum(nameColor) < 118 ? nameColor : "#141414";
   // Typefaces: Playfair Display (serif) for the product name + vertical brand — the luxury
   // hero — and Inter (sans) for every body / legal / dose line. Both are embedded in the SVG
   // (see the <style> in <defs>) so they render through <img>/canvas. Real font stacks kept as
@@ -212,7 +217,7 @@ export function buildSilverLabelSVG(o = {}) {
   <text x="${band * 0.50}" y="${h * 0.455}" fill="${A.mark}" font-family="${SERIF}" font-weight="700" font-size="${Math.min(h * 0.071, (h * 0.74) / (Math.max(6, BN.length) * 0.62))}" letter-spacing="${h * 0.009}" text-anchor="middle" dominant-baseline="central" transform="rotate(-90 ${band * 0.50} ${h * 0.455})">${esc(BN)}</text>
   <image href="${brandImage}" x="${band * 0.5 - band * 0.40}" y="${h * 0.90 - band * 0.40}" width="${band * 0.80}" height="${band * 0.80}" preserveAspectRatio="xMidYMid meet"/>
   <text x="${mainC}" y="${h * 0.135}" fill="${A.head}" font-family="${SANS}" font-weight="800" font-size="${Math.min(h * 0.056, (mainW * 0.82) / (Math.max(6, BN.length + 4) * 0.60))}" letter-spacing="${w * 0.006}" text-anchor="middle">— ${esc(BN)} —</text>
-  <text x="${mainC}" y="${h * 0.33}" fill="#141414" font-family="${SERIF}" font-weight="800" font-size="${nameSize}" letter-spacing="2" text-anchor="middle" dominant-baseline="middle">${esc(NM)}</text>
+  <text x="${mainC}" y="${h * 0.33}" fill="${NAME_INK}" font-family="${SERIF}" font-weight="800" font-size="${nameSize}" letter-spacing="2" text-anchor="middle" dominant-baseline="middle">${esc(NM)}</text>
   <rect x="${barX}" y="${barY}" width="${barW}" height="${barH}" rx="${h * 0.02}" fill="${A.bar}"/>
   <text x="${mainC}" y="${barY + barH / 2 + h * 0.005}" fill="${A.barText}" font-family="${SANS}" font-weight="800" font-size="${h * 0.082}" letter-spacing="2" text-anchor="middle" dominant-baseline="middle">${esc(mg)}</text>
   <rect x="${barX}" y="${h * 0.655}" width="${barW}" height="2" fill="${A.line}"/>
@@ -239,7 +244,7 @@ export function labelSVGFromFields(fields = {}) {
     formText = "LYOPHILIZED POWDER", storageTemp = "36–46°F",
     diluent = "", concentration = "", doseValue = "", doseUnits = "",
     brandName = "UNDISCLOSED", brandImage = "", vialMl = 3, blank = false,
-    qrPayload = DEFAULT_QR_URL, accent = "silver", accentColor = "",
+    qrPayload = DEFAULT_QR_URL, accent = "silver", accentColor = "", nameColor = "",
   } = fields;
   const dims = silverLabelDims(vialMl);
   const type = String(labelType || "CALCULATOR").toUpperCase() === "CATALOG" ? "catalog" : "calculator";
@@ -261,6 +266,7 @@ export function labelSVGFromFields(fields = {}) {
     brandImage: brandImage || undefined,
     qrPayload: qrPayload || DEFAULT_QR_URL,
     accentColor,
+    nameColor,
   });
   return { svg, dims, type };
 }

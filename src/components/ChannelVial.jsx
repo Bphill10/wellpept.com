@@ -220,12 +220,12 @@ export default function ChannelVial({ channels = [], className = "" }) {
   // Bands the tune slices the vial into — more bands tear more finely; fewer on phones.
   const stripsFor = () => (coarseRef.current ? 18 : 26);
 
-  const buildSVG = (c, accentColor) => {
+  const buildSVG = (c, accentColor, nameColor) => {
     const ml = Number(c.vialMl) >= 8 ? 10 : 3;
     const { svg } = labelSVGFromFields({
       name: c.name, mass: c.mass, unit: c.unit || "mg", labelType: "CATALOG",
       formText: (c.formText || "Lyophilized Powder").toUpperCase(),
-      storageTemp: "36–46°F", vialMl: ml, accentColor,
+      storageTemp: "36–46°F", vialMl: ml, accentColor, nameColor,
     });
     // The powder keeps its real colour — blue for the blue-powder compounds (KLOW / GLOW /
     // GHK-Cu), white otherwise; the cap and label carry the channel colour. Size follows the channel.
@@ -241,8 +241,8 @@ export default function ChannelVial({ channels = [], className = "" }) {
     if (hit) return hit.then ? hit : Promise.resolve(hit);
     // Each peptide keeps its own catalog cap: a palette colour, the dome finish (painted,
     // clear-tinted or clear), the crimp collar under it, and a matching label accent.
-    const { dome, domeFinish, crimp, labelHex } = capSchemeFor(list[idx].name);
-    const { svg, ml, baseSrc } = buildSVG(list[idx], labelHex);
+    const { dome, domeFinish, crimp, labelHex, nameHex } = capSchemeFor(list[idx].name);
+    const { svg, ml, baseSrc } = buildSVG(list[idx], labelHex, nameHex);
     const promise = prepareVialCompositor({ svg, vialMl: ml, baseSrc, ss: ssFor(), capTint: dome, capFinish: domeFinish, crimpTint: crimp })
       .then((prep) => { cache.set(idx, prep); return prep; })
       .catch(() => { cache.delete(idx); return null; });
