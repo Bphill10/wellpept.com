@@ -46,7 +46,13 @@ const GAP_UNITS = 0.25;
 // its base tone — you register that something is there on the far wall, but no artwork and no
 // reversed text. BACK_SHADOW is the label's paper darkened to shadow; BACK_MIX keeps it well under
 // full so the glass's own shading and reflections still carry through it.
-const BACK_SHADOW = 104, BACK_MIX = 0.55;
+const BACK_SHADOW = 104, BACK_MIX = 0.2;
+
+// How much light the window transmits on a POWDER vial. Behind the window is empty interior, so
+// you are looking through to the dark behind the vial — the window has to sit darker than the lit
+// front surface or it reads as a bright silver panel stuck on the glass rather than as something
+// you can see through. Liquid vials are exempt: there the window is full of red, not air.
+const WINDOW_TRANSMIT = 0.68;
 
 
 
@@ -239,9 +245,13 @@ function buildBaseGlass(base, green, liquid) {
   const out = new Uint8ClampedArray(data);
   const K = Math.max(4, Math.round(H * 0.05));
   const margin = Math.round(H * 0.006);
+  // Sample clear of the label's FULL extent, not its strict edge. top0/bot0 are the strict green
+  // bounds; the label's anti-aliased rim runs on for ~20px past them to top/bot. Starting at
+  // bot0 + margin put the first sampled rows inside that pale rim, so the bottom of the window
+  // came out washed out and grey instead of matching the liquid above it.
   const srcY0 = liquid
-    ? Math.min(H - K - 1, bot0 + margin)
-    : Math.max(0, top0 - margin - K);
+    ? Math.min(H - K - 1, bot + margin)
+    : Math.max(0, top - margin - K);
   // Vial x-extent for each source row (to clamp samples to the glass).
   const sxl = new Int32Array(K), sxr = new Int32Array(K);
   for (let k = 0; k < K; k++) {
@@ -586,6 +596,7 @@ function composeGreen(canvas, prepared, rot, wrap) {
           // The bare-glass window between the label's two ends. Plain transparent glass — never
           // frosted, never filled — so the contents read through at full strength.
           let gr = baseGlass[i], gg = baseGlass[i + 1], gb = baseGlass[i + 2];
+          if (!prepared.liquid) { gr *= WINDOW_TRANSMIT; gg *= WINDOW_TRANSMIT; gb *= WINDOW_TRANSMIT; }
           // And because it IS transparent, you are looking clean through the vial here: the far
           // wall still carries the label, so it shadows the glass from behind. Mirror this
           // column's offset about the half-turn to find where the far surface sits on the label;
