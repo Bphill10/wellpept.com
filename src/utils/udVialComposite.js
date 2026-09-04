@@ -243,23 +243,19 @@ function buildBaseGlass(base, green, liquid) {
     for (let x = 0; x < W; x++) if (data[(yy * W + x) * 4 + 3] > 60) { if (x < xl) xl = x; if (x > xr) xr = x; }
     sxl[k] = xl; sxr[k] = xr;
   }
-  const twoK = 2 * K;
   const span = Math.max(1, bot - top);
   for (let y = top; y <= bot; y++) {
     const lo = rowLo[y]; if (lo < 0) continue;
     const hi = rowHi[y];
-    let off;
-    if (liquid) {
-      // STRETCH the sampled rows across the band rather than tiling them. Reflect-tiling repeated
-      // the liquid every 2K rows, which read as horizontal banding through the bare-glass window,
-      // and left the band's last row on an arbitrary phase — a hard seam where it met the real
-      // liquid below the label. Anchoring the band's BOTTOM row to the row directly beneath the
-      // label makes that join continuous, and stretching removes the repeat.
-      off = Math.round(((bot - y) / span) * (K - 1));
-    } else {
-      const tt = (y - top) % twoK;
-      off = tt < K ? tt : twoK - 1 - tt; // reflect-tile
-    }
+    // STRETCH the sampled rows across the band rather than tiling them. Reflect-tiling repeated
+    // the sample every 2K rows, which showed through the bare-glass window as hard banding — a
+    // grey corrugated panel on powder vials, and horizontal stripes in the liquid on B12. It was
+    // only ever hidden by the frost that used to sit on top.
+    //
+    // The same mapping serves both: off runs K-1 → 0 down the band, so the END of the band that
+    // touches the sampled region joins it continuously — the TOP for powder (sampled from the
+    // clear glass above the label) and the BOTTOM for liquid (sampled from the liquid below it).
+    const off = Math.round(((bot - y) / span) * (K - 1));
     const sy = srcY0 + off, kxl = sxl[off], kxr = sxr[off];
     for (let x = lo; x <= hi; x++) {
       const sx = x < kxl ? kxl : x > kxr ? kxr : x;
