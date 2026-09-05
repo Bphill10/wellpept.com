@@ -886,9 +886,13 @@ function composeGreen(canvas, prepared, rot, wrap) {
           }
           if (cov >= 1) { out[i] = gr; out[i + 1] = gg; out[i + 2] = gb; }
           else {
-            out[i] = init[i] + (gr - init[i]) * cov;
-            out[i + 1] = init[i + 1] + (gg - init[i + 1]) * cov;
-            out[i + 2] = init[i + 2] + (gb - init[i + 2]) * cov;
+            // Partial coverage blends against whatever is underneath, and at the rim that is
+            // still the mask's green — so de-green the backdrop first (see the note below).
+            const br = init[i], bb = init[i + 2], ba2 = (br + bb) * 0.5;
+            const bg2 = init[i + 1] > ba2 ? ba2 : init[i + 1];
+            out[i] = br + (gr - br) * cov;
+            out[i + 1] = bg2 + (gg - bg2) * cov;
+            out[i + 2] = bb + (gb - bb) * cov;
           }
           continue;
         }
@@ -907,9 +911,15 @@ function composeGreen(canvas, prepared, rot, wrap) {
       if (cov >= 1) {
         out[i] = clamp(pr); out[i + 1] = clamp(pg); out[i + 2] = clamp(pb);
       } else {
-        out[i] = clamp(init[i] + (pr - init[i]) * cov);
-        out[i + 1] = clamp(init[i + 1] + (pg - init[i + 1]) * cov);
-        out[i + 2] = clamp(init[i + 2] + (pb - init[i + 2]) * cov);
+        // The rim pixel is the label fading into what is behind it, and what is behind it is
+        // still the mask's green. Blending straight into that is what left a green hairline along
+        // the label's top and bottom edges — a few hundred pixels, but a visible line. De-green
+        // the backdrop first and the label fades into the contents instead.
+        const br = init[i], bb = init[i + 2], ba2 = (br + bb) * 0.5;
+        const bg2 = init[i + 1] > ba2 ? ba2 : init[i + 1];
+        out[i] = clamp(br + (pr - br) * cov);
+        out[i + 1] = clamp(bg2 + (pg - bg2) * cov);
+        out[i + 2] = clamp(bb + (pb - bb) * cov);
       }
     }
   }
