@@ -34,6 +34,25 @@ const BASE = {
   "10-red": "/ud-labels/vials/UD_Green_10mL_Red.png",
 };
 
+/**
+ * The same four vials shot with NO LABEL ANYWHERE — identical camera, scale, lighting, cap,
+ * crimp, contents and fill level, with genuine continuous clear glass right across the body.
+ *
+ * Where the wrap does not reach, these supply the glass directly. Nothing is reconstructed: the
+ * uncovered stretch is the untouched pixels of the unlabelled vial. Reconstructing it from a
+ * labelled base can only ever approximate glass the camera never saw, which is what kept it
+ * reading as a panel.
+ *
+ * Optional. Any that are missing fall back to the reconstruction, so the catalog keeps working
+ * while they are being shot.
+ */
+const CLEAN = {
+  "3-white": "/ud-labels/vials/UD_Clean_3mL_White.png",
+  "3-blue": "/ud-labels/vials/UD_Clean_3mL_Blue.png",
+  "10-white": "/ud-labels/vials/UD_Clean_10mL_White.png",
+  "10-red": "/ud-labels/vials/UD_Clean_10mL_Red.png",
+};
+
 // Cylinder-wrap constants (shared by the composite and the LUT).
 const UC = 0.34, HALF = 0.33, B = 1.05, SB = Math.sin(B);
 
@@ -95,6 +114,18 @@ export function silverVialBaseSrc(name, vialMl, powderColor = "") {
   if (isRed) return BASE["10-red"];
   if (isBlue && ml === 3) return BASE["3-blue"];
   return ml === 10 ? BASE["10-white"] : BASE["3-white"];
+}
+
+/** The unlabelled twin of whatever silverVialBaseSrc would pick, or "" if none is installed. */
+export function cleanVialBaseSrc(name, vialMl, powderColor = "") {
+  const ml = Number(vialMl) >= 8 ? 10 : 3;
+  const n = String(name || "").toUpperCase();
+  const pc = String(powderColor || "").toLowerCase();
+  const isBlue = pc.includes("blue") || /(KLOW|GLOW|GHK)/.test(n);
+  const isRed = pc.includes("red") || pc.includes("liquid") || /\bB\s*12\b|VITAMIN\s*B12/.test(n);
+  if (isRed) return CLEAN["10-red"];
+  if (isBlue && ml === 3) return CLEAN["3-blue"];
+  return ml === 10 ? CLEAN["10-white"] : CLEAN["3-white"];
 }
 
 function loadImage(src) {
@@ -751,10 +782,23 @@ export const ROT_MAX = 0.62;
  * Precomputes a per-column wrap LUT (`fcol`) and per-row label-row map (`rowBase`) so the
  * compose hot loop is pure array lookups.
  */
-export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS, capTint = null, capFinish = "solid", crimpTint = null }) {
+export async function prepareVialCompositor({ svg, vialMl, baseSrc, cleanSrc = "", ss = BASE_SS, capTint = null, capFinish = "solid", crimpTint = null }) {
   const ml = Number(vialMl) >= 8 ? 10 : 3;
   const dims = silverLabelDims(ml);
   const base = await getBase(baseSrc, ss);
+  // The unlabelled twin, if one is installed. It is optional on purpose: until all four are shot
+  // the catalog keeps working off the reconstruction, and each one starts being used the moment
+  // it lands.
+  let clean = null;
+  if (cleanSrc) {
+    try {
+      const c = await getBase(cleanSrc, ss);
+      if (c.W === base.W && c.H === base.H) clean = c;
+      else if (typeof console !== "undefined") {
+        console.warn(`[vial] ${cleanSrc} is ${c.W}x${c.H} but its labelled twin is ${base.W}x${base.H} — they must match exactly, so it is being ignored.`);
+      }
+    } catch { clean = null; }
+  }
   const ld = await renderLabelPixels(svg, dims.w, dims.h);
 
   // Preferred path: a blank green label on the base → wrap the silver label onto exactly that
@@ -772,9 +816,17 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS
     const baseBack = new Uint8ClampedArray(base.data);
     transmitGlass(baseBack, base, green.top);
     liftContents(baseBack, base, green);
+    // The clean twin gets the same glass levelling so the two agree wherever they meet. It needs
+    // no lift: there is no label on it to have darkened anything.
+    let cleanBack = null;
+    if (clean) {
+      cleanBack = new Uint8ClampedArray(clean.data);
+      transmitGlass(cleanBack, clean, green.top);
+      if (capTint) tintCap(cleanBack, clean, capTint, crimpTint || capTint, capFinish);
+    }
     // Optional cap recolour (landing showcase) — dome + crimp collar in two coordinated tints.
     if (capTint) tintCap(baseBack, base, capTint, crimpTint || capTint, capFinish);
-    return { base, ld, lw: dims.w, lh: dims.h, green, liquid, baseBack };
+    return { base, ld, lw: dims.w, lh: dims.h, green, liquid, baseBack, cleanBack };
   }
 
   // Fallback (non-chroma base): guess a band on the vial silhouette.
@@ -894,8 +946,13 @@ function composeGreen(canvas, prepared, rot, wrap) {
   // the vial's own reconstructed glass (screen-fixed, so its highlights stay put).
   if (!prepared.edgeCov) prepared.edgeCov = buildEdgeCoverage(base, green);
   const { sTop, sBot } = prepared.edgeCov;
-  if (wrap && !prepared.baseGlass) prepared.baseGlass = buildBaseGlass(base, green, prepared.liquid, prepared.baseBack);
-  const baseGlass = prepared.baseGlass;
+  // With an unlabelled twin installed there is nothing to reconstruct: the uncovered stretch is
+  // the real vial's own pixels. The reconstruction only runs as a fallback for bases that have no
+  // twin yet.
+  if (wrap && !prepared.cleanBack && !prepared.baseGlass) {
+    prepared.baseGlass = buildBaseGlass(base, green, prepared.liquid, prepared.baseBack);
+  }
+  const bare = prepared.cleanBack || prepared.baseGlass;
   const T = 1 + GAP_UNITS;
   const rr = wrap ? rot * T : rot; // one component revolution (rot 0→1) spans the whole strip
   // Start from the base with the label's pale reverse already lit into the clear glass above.
@@ -942,13 +999,13 @@ function composeGreen(canvas, prepared, rot, wrap) {
           // Past the label's own edge the photo still carries the mask's soft green rim — about
           // 30 rows of it. That is the mask fading out, not paper; printing label onto it is what
           // made the bottom edge look torn. What the label was covering reads through instead.
-          if (y < te && baseGlass) {
+          if (y < te && bare) {
             // ABOVE the label that is clear glass, so show the glass — not a desaturated version
             // of the mask. Taking the green out of these rows left a flat grey band between the
             // vial's real glass and the opening, reading as a second panel above the first.
             // baseGlass covers these rows and continues from the stock just above them, so the
             // shoulder now runs straight into the opening.
-            out[i] = baseGlass[i]; out[i + 1] = baseGlass[i + 1]; out[i + 2] = baseGlass[i + 2];
+            out[i] = bare[i]; out[i + 1] = bare[i + 1]; out[i + 2] = bare[i + 2];
             continue;
           }
           // BELOW it the contents read through. Take the green out and keep the PREPARED base so
@@ -967,14 +1024,16 @@ function composeGreen(canvas, prepared, rot, wrap) {
       if (wrap) {
         u -= Math.floor(u / T) * T; // wrap around the full strip (label + gap)
         if (u >= 1) {
-          // No label here. The label is a self-adhesive wrap stuck to the outside of the glass,
-          // and across this stretch of the circumference there is simply none of it — nothing is
-          // applied, so what shows is the vial's own bare glass, continuous with the rest of the
-          // bottle. `baseGlass` is that glass reconstructed from the vial's own clear stock, and
-          // it is used as-is: no shading, no panel, no reverse of the label read through it, and
-          // no contents lifted into it. The powder sits where it physically sits, the same height
-          // right across the vial, and it is already there in the base underneath.
-          let gr = baseGlass[i], gg = baseGlass[i + 1], gb = baseGlass[i + 2];
+          // No label here. The wrap is stuck to the outside of the glass and across this stretch
+          // of the circumference there is simply none of it — nothing is applied, so what shows is
+          // the vial's own bare glass, continuous with the rest of the bottle.
+          //
+          // With an unlabelled twin installed `bare` IS that vial, untouched: the glass here is
+          // the pixels the camera saw, not an approximation of them. Without one it falls back to
+          // the reconstruction. Either way it is used as-is — no shading, no panel, no contents
+          // lifted into it. The powder sits where it physically sits, the same height right across
+          // the vial.
+          let gr = bare[i], gg = bare[i + 1], gb = bare[i + 2];
           // Glass is transparent, so the far side of the wrap is faintly there behind it — as it
           // is on a real vial, and as the reference shows. Mirroring this column's offset about
           // the half-turn finds where that side sits on the label, which is why the artwork comes
@@ -1139,9 +1198,9 @@ function alphaBBox(canvas) {
  * nothing. Pass a small `ss` (base res) + `maxOut` (output cap in px) for a smooth live spin,
  * or the defaults (BASE_SS, native scene size) for the crisp still. `paintVialScene` paints.
  */
-export async function prepareVialScene({ svg, vialMl, baseSrc, sceneSrc, ss = BASE_SS, maxOut = 0, capTint = null, capFinish = "solid", crimpTint = null }) {
+export async function prepareVialScene({ svg, vialMl, baseSrc, cleanSrc = "", sceneSrc, ss = BASE_SS, maxOut = 0, capTint = null, capFinish = "solid", crimpTint = null }) {
   const ml = Number(vialMl) >= 8 ? 10 : 3;
-  const prepared = await prepareVialCompositor({ svg, vialMl: ml, baseSrc, ss, capTint, capFinish, crimpTint });
+  const prepared = await prepareVialCompositor({ svg, vialMl: ml, baseSrc, cleanSrc, ss, capTint, capFinish, crimpTint });
   const scene = await loadImage(sceneSrc);
   const off = document.createElement("canvas");
   composeVial(off, prepared, 0, { wrap: true });
@@ -1247,7 +1306,7 @@ export function paintVialScene(canvas, state, rot = 0, opts = {}) {
  * vial base is planted on the floor line; 10 mL vials are drawn taller than 3 mL so the size
  * difference reads true. Output is an opaque scene canvas sized to `sceneSrc`.
  */
-export async function drawVialScene(canvas, { svg, vialMl, baseSrc, sceneSrc, rot = 0, ss, maxOut = 0, capTint = null, capFinish = "solid", crimpTint = null }) {
-  const state = await prepareVialScene({ svg, vialMl, baseSrc, sceneSrc, ...(ss ? { ss } : {}), maxOut, capTint, capFinish, crimpTint });
+export async function drawVialScene(canvas, { svg, vialMl, baseSrc, cleanSrc = "", sceneSrc, rot = 0, ss, maxOut = 0, capTint = null, capFinish = "solid", crimpTint = null }) {
+  const state = await prepareVialScene({ svg, vialMl, baseSrc, cleanSrc, sceneSrc, ...(ss ? { ss } : {}), maxOut, capTint, capFinish, crimpTint });
   return paintVialScene(canvas, state, rot, { wrap: rot !== 0 });
 }
