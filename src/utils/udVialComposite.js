@@ -46,6 +46,9 @@ const GAP_UNITS = 0.25;
 // fold — extremely subtle, just enough that the paper does not melt into the glass. How far in it
 // reaches, in label-u, and how much brighter the paper goes at the fold itself.
 const LABEL_EDGE_W = 0.02, LABEL_EDGE_LIFT = 0.07;
+// How strongly the far side of the wrap shows through the uncovered glass. Low on purpose — it
+// should read as something behind the glass, never as a second label.
+const FAR_LABEL = 0.3;
 
 // Screen-x → label-u foreshortening LUT (includes the HALF factor). Indexed by the visible
 // column fraction 0..1 across the label run; lets the green path wrap per-row without an
@@ -300,8 +303,12 @@ function buildBaseGlass(base, green, liquid, srcData) {
     }
   }
 
-  // Level the reconstruction to the same brightness the body glass was levelled to, so the window
-  // and the glass around it agree. The two are both bare glass and have to match, but what gets
+  // Level the reconstruction to the vial's OWN glass — measured on the prepared pixels just above
+  // the label, the same stock the reconstruction is borrowed from — rather than to a fixed
+  // constant. Aiming both at the same nominal number was not enough: the body is levelled by a
+  // gamma and this by a scale, so they landed 12 to 26 luminance apart and the uncovered stretch
+  // read darker than the glass above it. Matching it to the measurement makes them agree by
+  // construction. The two are both bare glass and have to match, but what gets
   // borrowed depends on how bright the rows beside the label happen to be in that photo — which
   // left the 3 mL gap reading as a dark panel while the 10 mL read brighter than its own vial.
   // Powder vials only: a liquid vial's window is full of red, not air.
@@ -323,8 +330,28 @@ function buildBaseGlass(base, green, liquid, srcData) {
         sum += 0.299 * r + 0.587 * g + 0.114 * b; n++;
       }
     }
+    // What the vial's own glass measures, just above the label.
+    let tSum = 0, tN = 0;
+    for (let k2 = 0; k2 < K; k2++) {
+      const yy = (A === below ? Math.min(H - K, bot + margin) : Math.max(0, top - margin - K)) + k2;
+      if (yy < 0 || yy >= H) continue;
+      let lo = W, hi = -1;
+      for (let x = 0; x < W; x++) if (data[(yy * W + x) * 4 + 3] > 60) { if (x < lo) lo = x; hi = x; }
+      if (hi < lo) continue;
+      const ins = Math.round((hi - lo) * 0.2);
+      for (let x = lo + ins; x <= hi - ins; x++) {
+        const i = (yy * W + x) * 4;
+        if (data[i + 3] < 200) continue;
+        const r = data[i], g = data[i + 1], b = data[i + 2];
+        const mx = r > g ? (r > b ? r : b) : (g > b ? g : b);
+        const mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
+        if (mx - mn > GLASS_CHROMA) continue;
+        tSum += 0.299 * r + 0.587 * g + 0.114 * b; tN++;
+      }
+    }
+    const target = tN ? tSum / tN : GLASS_TARGET;
     if (n) {
-      const k = Math.max(0.5, Math.min(2, GLASS_TARGET / Math.max(8, sum / n)));
+      const k = Math.max(0.5, Math.min(2, target / Math.max(8, sum / n)));
       for (let y = top; y <= bot; y++) {
         const lo = rowLo[y]; if (lo < 0) continue;
         const hi = rowHi[y];
@@ -877,7 +904,28 @@ function composeGreen(canvas, prepared, rot, wrap) {
           // it is used as-is: no shading, no panel, no reverse of the label read through it, and
           // no contents lifted into it. The powder sits where it physically sits, the same height
           // right across the vial, and it is already there in the base underneath.
-          const gr = baseGlass[i], gg = baseGlass[i + 1], gb = baseGlass[i + 2];
+          let gr = baseGlass[i], gg = baseGlass[i + 1], gb = baseGlass[i + 2];
+          // Glass is transparent, so the far side of the wrap is faintly there behind it — as it
+          // is on a real vial, and as the reference shows. Mirroring this column's offset about
+          // the half-turn finds where that side sits on the label, which is why the artwork comes
+          // back the wrong way round. Kept deliberately faint: enough to register something behind
+          // the glass, never enough to read as a second label or as a panel in front of it.
+          let ub = UC + rr + T * 0.5 - dOff;
+          ub -= Math.floor(ub / T) * T;
+          if (ub < 1) {
+            const bi = (rb + ((ub * lwm) | 0)) * 4;
+            const ba = ld[bi + 3] / 255, ip = PAPER * (1 - ba);
+            let pr = ld[bi] * ba + ip, pg = ld[bi + 1] * ba + ip, pb = ld[bi + 2] * ba + ip;
+            if (prepared.liquid) {
+              // Through a filled vial that light arrives carrying the liquid's colour, so the
+              // paper reads as brighter red and the artwork as deeper red — not as white paper
+              // hanging behind it.
+              const t2 = (0.299 * pr + 0.587 * pg + 0.114 * pb) / 255;
+              const q = 0.5 + 1.0 * t2;
+              pr = gr * q; pg = gg * q; pb = gb * q;
+            }
+            gr += (pr - gr) * FAR_LABEL; gg += (pg - gg) * FAR_LABEL; gb += (pb - gb) * FAR_LABEL;
+          }
           if (cov >= 1) { out[i] = gr; out[i + 1] = gg; out[i + 2] = gb; }
           else {
             const br = init[i], bb = init[i + 2], ba2 = (br + bb) * 0.5;
