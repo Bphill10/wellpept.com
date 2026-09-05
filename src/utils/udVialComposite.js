@@ -46,9 +46,17 @@ const GAP_UNITS = 0.25;
 // fold — extremely subtle, just enough that the paper does not melt into the glass. How far in it
 // reaches, in label-u, and how much brighter the paper goes at the fold itself.
 const LABEL_EDGE_W = 0.012, LABEL_EDGE_LIFT = 0.11;
-// How strongly the far side of the wrap shows through the uncovered glass. Low on purpose — it
-// should read as something behind the glass, never as a second label.
-const FAR_LABEL = 0.24;
+// How strongly the far side of the wrap shows through the uncovered glass.
+//
+// It is applied as a DARKENING keyed to the label's own artwork, never as a blend toward the
+// label. Blending meant the label's blank white paper — which is most of it — was mixed in
+// everywhere at a flat 24%, and a uniform light veil across the whole opening is precisely what
+// reads as a frosted grey rectangle with its own left and right edges. Keying it to the artwork
+// instead leaves bare paper doing nothing at all: the glass is untouched except where there is
+// actually something printed to see, so the opening has no boundary of its own and the vial's own
+// highlights carry through it at full strength. It multiplies, so it rides on whatever is behind
+// the glass — clear glass, powder or red liquid — rather than sitting on top of it.
+const FAR_INK = 0.3;
 // Curved glass refracts whatever is behind it, so the far side arrives smeared rather than sharp
 // — and more so toward the silhouette, where the glass turns away and the path through it
 // lengthens. Sampled as a short horizontal average across this much label-u instead of at a
@@ -263,14 +271,29 @@ function buildBaseGlass(base, green, liquid, srcData) {
   // Average a band of rows into one row of colour, and record how wide the glass is there so
   // columns beyond its edge can clamp instead of reading background.
   const sampleBand = (y0) => {
-    const row = new Float32Array(W * 3);
-    const hits = new Int32Array(W);
+    // Each row's own extent first. The vial narrows through the shoulder, so rows a few apart do
+    // not line up — averaging them column-for-column smears the glass's vertical highlights
+    // sideways and flattens the contrast right out of the result. Sampling each row at the same
+    // RELATIVE position across its own width lines the highlights up, so the average keeps them.
+    const ext = [];
     let lo = W, hi = -1;
     for (let k = 0; k < K; k++) {
       const yy = y0 + k;
-      if (yy < 0 || yy >= H) continue;
-      for (let x = 0; x < W; x++) {
-        const i = (yy * W + x) * 4;
+      if (yy < 0 || yy >= H) { ext.push(null); continue; }
+      let a = W, z = -1;
+      for (let x = 0; x < W; x++) if (data[(yy * W + x) * 4 + 3] > 60) { if (x < a) a = x; z = x; }
+      if (z >= a) { ext.push([a, z]); if (a < lo) lo = a; if (z > hi) hi = z; } else ext.push(null);
+    }
+    if (hi < lo) return null;
+    const row = new Float32Array(W * 3);
+    const hits = new Int32Array(W);
+    const wid = Math.max(1, hi - lo);
+    for (let k = 0; k < K; k++) {
+      const e = ext[k]; if (!e) continue;
+      const yy = y0 + k, ew = e[1] - e[0];
+      for (let x = lo; x <= hi; x++) {
+        const sx = e[0] + Math.round(((x - lo) / wid) * ew);
+        const i = (yy * W + sx) * 4;
         // Match the alpha cut the rest of the file uses. Requiring near-opaque here skipped the
         // middle of a vial whose clear glass is genuinely semi-transparent in the source PNG —
         // 175 columns straight down the centre of the 10 mL had no sample at all and came out
@@ -278,16 +301,20 @@ function buildBaseGlass(base, green, liquid, srcData) {
         if (data[i + 3] < 60) continue;
         row[x * 3] += data[i]; row[x * 3 + 1] += data[i + 1]; row[x * 3 + 2] += data[i + 2];
         hits[x]++;
-        if (x < lo) lo = x;
-        if (x > hi) hi = x;
       }
     }
     for (let x = 0; x < W; x++) if (hits[x]) { row[x * 3] /= hits[x]; row[x * 3 + 1] /= hits[x]; row[x * 3 + 2] /= hits[x]; }
-    return hi >= lo ? { row, lo, hi } : null;
+    return { row, lo, hi };
   };
 
   const above = sampleBand(Math.max(0, top - margin - K));
   const below = sampleBand(Math.min(H - K, bot + margin));
+  // A second band, further from the label, so the glass's own vertical trend can be measured and
+  // carried on down the opening. Extruding one row alone left the band dead flat — measured, 100
+  // luminance top to bottom with a spread of zero over its whole height — and a column with no
+  // variation at all is what reads as a frosted panel rather than as glass, however well its
+  // level matches. Real glass shades as the body falls away from the light.
+  const far = sampleBand(Math.max(0, top - margin - K * 3));
   // A powder vial reads the clear glass ABOVE the label at both ends, so the band is one even
   // column of glass. Below the label is the powder itself, not glass — reading it turned the
   // bottom of KLOW's window blue.
@@ -302,13 +329,27 @@ function buildBaseGlass(base, green, liquid, srcData) {
     const lo = rowLo[y]; if (lo < 0) continue;
     const hi = rowHi[y];
     const t = (y - top) / span;
+    // Ease the trend in so the top of the opening still meets the real glass exactly.
+    const g = liquid || !far ? 0 : t * t * (3 - 2 * t);
     for (let x = lo; x <= hi; x++) {
       const xa = (x < A.lo ? A.lo : x > A.hi ? A.hi : x) * 3;
       const xb = (x < B.lo ? B.lo : x > B.hi ? B.hi : x) * 3;
       const di = (y * W + x) * 4;
-      out[di]     = A.row[xa]     + (B.row[xb]     - A.row[xa])     * t;
-      out[di + 1] = A.row[xa + 1] + (B.row[xb + 1] - A.row[xa + 1]) * t;
-      out[di + 2] = A.row[xa + 2] + (B.row[xb + 2] - A.row[xa + 2]) * t;
+      let r0 = A.row[xa] + (B.row[xb] - A.row[xa]) * t;
+      let g0 = A.row[xa + 1] + (B.row[xb + 1] - A.row[xa + 1]) * t;
+      let b0 = A.row[xa + 2] + (B.row[xb + 2] - A.row[xa + 2]) * t;
+      if (g > 0) {
+        const xf = (x < far.lo ? far.lo : x > far.hi ? far.hi : x) * 3;
+        // Change per band-depth, carried on and capped so it can never run away over a tall band.
+        let dr = (A.row[xa] - far.row[xf]) * GLASS_DRIFT;
+        let dg = (A.row[xa + 1] - far.row[xf + 1]) * GLASS_DRIFT;
+        let db = (A.row[xa + 2] - far.row[xf + 2]) * GLASS_DRIFT;
+        if (dr > GLASS_DRIFT_MAX) dr = GLASS_DRIFT_MAX; else if (dr < -GLASS_DRIFT_MAX) dr = -GLASS_DRIFT_MAX;
+        if (dg > GLASS_DRIFT_MAX) dg = GLASS_DRIFT_MAX; else if (dg < -GLASS_DRIFT_MAX) dg = -GLASS_DRIFT_MAX;
+        if (db > GLASS_DRIFT_MAX) db = GLASS_DRIFT_MAX; else if (db < -GLASS_DRIFT_MAX) db = -GLASS_DRIFT_MAX;
+        r0 += dr * g; g0 += dg * g; b0 += db * g;
+      }
+      out[di] = r0; out[di + 1] = g0; out[di + 2] = b0;
     }
   }
 
@@ -383,6 +424,10 @@ function buildBaseGlass(base, green, liquid, srcData) {
 // applied to a bright photo and a dark one leaves them exactly as far apart as they started,
 // which is why the 3 mL read smoky next to a 10 mL shot brighter than it.
 const GLASS_TARGET = 138, GLASS_CHROMA = 34;
+// How much of the glass's own vertical trend, measured between two bands above the label, is
+// carried on down the uncovered opening — and the most it may shift by, so a steep trend near the
+// shoulder cannot run away over a tall band.
+const GLASS_DRIFT = 0.9, GLASS_DRIFT_MAX = 15;
 const GLASS_GAMMA_MIN = 0.55, GLASS_GAMMA_MAX = 2.4;
 
 /**
@@ -894,9 +939,18 @@ function composeGreen(canvas, prepared, rot, wrap) {
         if (cov <= 0) {
           // Past the label's own edge the photo still carries the mask's soft green rim — about
           // 30 rows of it. That is the mask fading out, not paper; printing label onto it is what
-          // made the bottom edge look torn. Take the green out and what the label was covering
-          // reads through: clear glass above, contents below. Read from the PREPARED base so the
-          // lift applied at prepare time survives instead of being overwritten with the raw photo.
+          // made the bottom edge look torn. What the label was covering reads through instead.
+          if (y < te && baseGlass) {
+            // ABOVE the label that is clear glass, so show the glass — not a desaturated version
+            // of the mask. Taking the green out of these rows left a flat grey band between the
+            // vial's real glass and the opening, reading as a second panel above the first.
+            // baseGlass covers these rows and continues from the stock just above them, so the
+            // shoulder now runs straight into the opening.
+            out[i] = baseGlass[i]; out[i + 1] = baseGlass[i + 1]; out[i + 2] = baseGlass[i + 2];
+            continue;
+          }
+          // BELOW it the contents read through. Take the green out and keep the PREPARED base so
+          // the lift applied at prepare time survives instead of reverting to the raw photo.
           const br = init[i], bb = init[i + 2], avg = (br + bb) * 0.5;
           out[i] = br;
           out[i + 1] = init[i + 1] > avg ? avg : init[i + 1];
@@ -944,18 +998,13 @@ function composeGreen(canvas, prepared, rot, wrap) {
               hit++;
             }
             if (hit) {
-              pr /= hit; pg /= hit; pb /= hit;
-              if (prepared.liquid) {
-                // Through a filled vial that light arrives carrying the liquid's colour, so the
-                // paper reads as brighter red and the artwork as deeper red — not as white paper
-                // hanging behind it.
-                const t2 = (0.299 * pr + 0.587 * pg + 0.114 * pb) / 255;
-                const q = 0.5 + 1.0 * t2;
-                pr = gr * q; pg = gg * q; pb = gb * q;
-              }
-              // Rays that missed the wrap keep the glass, so a partly-covered column blends in.
-              const m = FAR_LABEL * fFade * (hit / 3);
-              gr += (pr - gr) * m; gg += (pg - gg) * m; gb += (pb - gb) * m;
+              // How dark the far side is at this point RELATIVE TO ITS OWN PAPER. Blank paper
+              // gives 1 and changes nothing; only printed areas come through.
+              const t2 = (0.299 * pr + 0.587 * pg + 0.114 * pb) / (hit * PAPER);
+              // Rays that missed the wrap saw straight out and carry no ink, so a partly covered
+              // column eases off on its own.
+              const k = 1 - FAR_INK * fFade * (hit / 3) * (1 - (t2 > 1 ? 1 : t2));
+              gr *= k; gg *= k; gb *= k;
             }
           }
           if (cov >= 1) { out[i] = gr; out[i + 1] = gg; out[i + 2] = gb; }
