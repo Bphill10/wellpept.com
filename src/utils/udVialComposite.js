@@ -57,11 +57,13 @@ const LABEL_EDGE_W = 0.012, LABEL_EDGE_LIFT = 0.11;
 // highlights carry through it at full strength. It multiplies, so it rides on whatever is behind
 // the glass — clear glass, powder or red liquid — rather than sitting on top of it.
 const FAR_INK = 0.3;
-// Curved glass refracts whatever is behind it, so the far side arrives smeared rather than sharp
+// Curved glass refracts whatever is behind it, so the far side arrives softened rather than sharp
 // — and more so toward the silhouette, where the glass turns away and the path through it
 // lengthens. Sampled as a short horizontal average across this much label-u instead of at a
-// point. Reading it as a point is what made it look like text printed on a panel.
-const FAR_BLUR = 0.075;
+// point. Reading it as a point made it look like text printed on a panel; but this was three
+// times wider a moment ago, which stopped reading as refraction and just read as blur. Enough to
+// take the edge off, not enough to lose the word.
+const FAR_BLUR = 0.028;
 // Its top and bottom edges are refracted too. Sampled hard they put a horizontal line across the
 // opening — measured, a jump of 71 luminance in one row onto a dead-flat tone, which is exactly
 // what reads as a rectangular pane. Feathered over this fraction of the label's height.
