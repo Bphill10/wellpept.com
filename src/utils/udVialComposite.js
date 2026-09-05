@@ -775,6 +775,50 @@ const clamp = (v) => (v < 0 ? 0 : v > 255 ? 255 : v);
 export const ROT_MIN = -0.34;
 export const ROT_MAX = 0.62;
 
+/** The vial's own silhouette within a base, from its alpha. */
+function alphaBox(b) {
+  const { W, H, data } = b;
+  let x0 = W, x1 = -1, y0 = H, y1 = -1;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      if (data[(y * W + x) * 4 + 3] <= 60) continue;
+      if (x < x0) x0 = x;
+      if (x > x1) x1 = x;
+      if (y < y0) y0 = y;
+      if (y > y1) y1 = y;
+    }
+  }
+  return x1 < x0 ? null : { x0, x1, y0, y1 };
+}
+
+/**
+ * Why an unlabelled twin cannot be used with this base, or "" if it can.
+ *
+ * The two are composited pixel for pixel — the wrap comes from one and the bare glass from the
+ * other — so the vial has to be in the same place in both. A twin that is close but shifted or
+ * scaled would show up as the glass stepping sideways where the label ends, which is worse than
+ * not using it at all. Nothing is ever resized or nudged to make it fit: a mismatch is refused
+ * and named, and the base falls back to reconstruction.
+ */
+function twinMismatch(base, twin) {
+  if (twin.W !== base.W || twin.H !== base.H) {
+    return `it is ${twin.W}x${twin.H} but its labelled twin is ${base.W}x${base.H} — the canvases must match exactly`;
+  }
+  const a = alphaBox(base), b = alphaBox(twin);
+  if (!a) return "";
+  if (!b) return "it has no vial in it — the background may have been flattened instead of cut out";
+  // A pixel or two of difference is anti-aliasing on the silhouette, not a misalignment.
+  const tol = Math.max(2, Math.round(base.H * 0.004));
+  const dx = Math.max(Math.abs(a.x0 - b.x0), Math.abs(a.x1 - b.x1));
+  const dy = Math.max(Math.abs(a.y0 - b.y0), Math.abs(a.y1 - b.y1));
+  if (dx > tol || dy > tol) {
+    return `its vial sits at x ${b.x0}-${b.x1}, y ${b.y0}-${b.y1} but the labelled twin's is at ` +
+      `x ${a.x0}-${a.x1}, y ${a.y0}-${a.y1} (out by ${dx}px across, ${dy}px down; tolerance ${tol}px) — ` +
+      `same position and scale are required, and it will not be shifted to fit`;
+  }
+  return "";
+}
+
 /**
  * Load the base vial + render the label once, so rotation can re-wrap without re-rendering
  * the SVG (keeps dragging/spinning smooth). Returns a prepared compositor. `ss` sets the
@@ -793,10 +837,9 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, cleanSrc = "
   if (cleanSrc) {
     try {
       const c = await getBase(cleanSrc, ss);
-      if (c.W === base.W && c.H === base.H) clean = c;
-      else if (typeof console !== "undefined") {
-        console.warn(`[vial] ${cleanSrc} is ${c.W}x${c.H} but its labelled twin is ${base.W}x${base.H} — they must match exactly, so it is being ignored.`);
-      }
+      const why = twinMismatch(base, c);
+      if (!why) clean = c;
+      else if (typeof console !== "undefined") console.warn(`[vial] ${cleanSrc} rejected: ${why}`);
     } catch { clean = null; }
   }
   const ld = await renderLabelPixels(svg, dims.w, dims.h);
