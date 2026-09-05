@@ -52,11 +52,22 @@ const BACK_SHADOW = 104, BACK_MIX = 0.2;
 // you are looking through to the dark behind the vial — the window has to sit darker than the lit
 // front surface or it reads as a bright silver panel stuck on the glass rather than as something
 // you can see through. Liquid vials are exempt: there the window is full of red, not air.
-// How much darker the bare-glass window sits than the vial's own glass. It should be a shade
-// darker — you are looking through the whole vial rather than glancing off the side — and no
-// more. At 0.68, tuned back when the body was crushed dark by a fixed gamma, the window read as
-// a painted panel instead of a hole you can see through.
-const WINDOW_TRANSMIT = 0.88;
+// Looking through the bare-glass window, how much light survives depends on WHERE across the
+// vial you look. Straight through the middle the line of sight crosses two walls and the air
+// between them and lands on the dark marble behind, so that is where the glass goes dark. Toward
+// the silhouette it runs the long way through the wall and brightens back to full.
+//
+// The borrowed glass is flat across the middle — measured on a mid-label row it runs 98, 97, 98,
+// 101 — because it comes from a photo lit to show the vial, not from a photo of what is behind
+// it. Extruded down the band that flatness is what read as a grey card rather than a hole. A
+// single flat multiplier could only make the card darker; the shape is what was missing.
+const WINDOW_MID = 0.42;      // transmission dead centre
+const WINDOW_EDGE_START = 0.5; // where the line of sight starts lengthening toward the rim
+// Reflections on the NEAR wall keep their strength — that is light bouncing off the front of the
+// glass, not light coming through it — so the dimming is weighted away from the bright pixels.
+// Without this the two studio speculars dimmed with everything else and the window flattened out
+// again, just darker.
+const WINDOW_SPEC_LO = 138, WINDOW_SPEC_HI = 198;
 
 
 
@@ -774,7 +785,20 @@ function composeGreen(canvas, prepared, rot, wrap) {
           // The bare-glass window between the label's two ends. Plain transparent glass — never
           // frosted, never filled — so the contents read through at full strength.
           let gr = baseGlass[i], gg = baseGlass[i + 1], gb = baseGlass[i + 2];
-          if (!prepared.liquid) { gr *= WINDOW_TRANSMIT; gg *= WINDOW_TRANSMIT; gb *= WINDOW_TRANSMIT; }
+          if (!prepared.liquid) {
+            // Screen position across the vial, not label position: the silhouette stays put while
+            // the vial turns, so the thin path through the middle stays in the middle.
+            const nx = Math.abs(x - (lo + hi) * 0.5) / Math.max(1, (hi - lo) * 0.5);
+            const e = nx <= WINDOW_EDGE_START ? 0 : (nx - WINDOW_EDGE_START) / (1 - WINDOW_EDGE_START);
+            const edge = e * e * (3 - 2 * e); // smoothstep — no ring where the falloff begins
+            const L = 0.299 * gr + 0.587 * gg + 0.114 * gb;
+            const spec = L <= WINDOW_SPEC_LO ? 0
+              : L >= WINDOW_SPEC_HI ? 1
+              : (L - WINDOW_SPEC_LO) / (WINDOW_SPEC_HI - WINDOW_SPEC_LO);
+            const keep = edge > spec ? edge : spec;
+            const k = WINDOW_MID + (1 - WINDOW_MID) * keep;
+            gr *= k; gg *= k; gb *= k;
+          }
           // And because it IS transparent, you are looking clean through the vial here: the far
           // wall still carries the label, so it shadows the glass from behind. Mirror this
           // column's offset about the half-turn to find where the far surface sits on the label;
