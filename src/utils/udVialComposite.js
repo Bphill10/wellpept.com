@@ -45,10 +45,19 @@ const GAP_UNITS = 0.25;
 // The label's two cut ends stand a hair off the glass, so they catch a line of light along the
 // fold — extremely subtle, just enough that the paper does not melt into the glass. How far in it
 // reaches, in label-u, and how much brighter the paper goes at the fold itself.
-const LABEL_EDGE_W = 0.02, LABEL_EDGE_LIFT = 0.07;
+const LABEL_EDGE_W = 0.012, LABEL_EDGE_LIFT = 0.11;
 // How strongly the far side of the wrap shows through the uncovered glass. Low on purpose — it
 // should read as something behind the glass, never as a second label.
-const FAR_LABEL = 0.3;
+const FAR_LABEL = 0.24;
+// Curved glass refracts whatever is behind it, so the far side arrives smeared rather than sharp
+// — and more so toward the silhouette, where the glass turns away and the path through it
+// lengthens. Sampled as a short horizontal average across this much label-u instead of at a
+// point. Reading it as a point is what made it look like text printed on a panel.
+const FAR_BLUR = 0.075;
+// Its top and bottom edges are refracted too. Sampled hard they put a horizontal line across the
+// opening — measured, a jump of 71 luminance in one row onto a dead-flat tone, which is exactly
+// what reads as a rectangular pane. Feathered over this fraction of the label's height.
+const FAR_FEATHER = 0.07;
 
 // Screen-x → label-u foreshortening LUT (includes the HALF factor). Indexed by the visible
 // column fraction 0..1 across the label run; lets the green path wrap per-row without an
@@ -865,6 +874,11 @@ function composeGreen(canvas, prepared, rot, wrap) {
     let lyf = ((y - top0) / fh) * (lh - 1);
     lyf = lyf < 0 ? 0 : lyf > lh - 1 ? lh - 1 : lyf;
     const rb = (lyf | 0) * lw;
+    // How much of the far side of the wrap is visible on this row: nothing past its top and
+    // bottom edges, easing in over FAR_FEATHER so those edges do not draw a line across the
+    // opening.
+    const fEdge = Math.min(lyf, (lh - 1) - lyf) / Math.max(1, (lh - 1) * FAR_FEATHER);
+    const fFade = fEdge <= 0 ? 0 : fEdge >= 1 ? 1 : fEdge * fEdge * (3 - 2 * fEdge);
     for (let x = lo; x <= hi; x++) {
       const i = (y * W + x) * 4;
       const r = src[i], g = src[i + 1], b = src[i + 2];
@@ -910,21 +924,39 @@ function composeGreen(canvas, prepared, rot, wrap) {
           // the half-turn finds where that side sits on the label, which is why the artwork comes
           // back the wrong way round. Kept deliberately faint: enough to register something behind
           // the glass, never enough to read as a second label or as a panel in front of it.
-          let ub = UC + rr + T * 0.5 - dOff;
-          ub -= Math.floor(ub / T) * T;
-          if (ub < 1) {
-            const bi = (rb + ((ub * lwm) | 0)) * 4;
-            const ba = ld[bi + 3] / 255, ip = PAPER * (1 - ba);
-            let pr = ld[bi] * ba + ip, pg = ld[bi + 1] * ba + ip, pb = ld[bi + 2] * ba + ip;
-            if (prepared.liquid) {
-              // Through a filled vial that light arrives carrying the liquid's colour, so the
-              // paper reads as brighter red and the artwork as deeper red — not as white paper
-              // hanging behind it.
-              const t2 = (0.299 * pr + 0.587 * pg + 0.114 * pb) / 255;
-              const q = 0.5 + 1.0 * t2;
-              pr = gr * q; pg = gg * q; pb = gb * q;
+          const ub0 = UC + rr + T * 0.5 - dOff;
+          if (fFade > 0) {
+            // Smear the sample across the glass's curvature rather than reading one point, and
+            // widen it toward the silhouette where the path through the glass is longest.
+            const nx = Math.abs(x - (lo + hi) * 0.5) / Math.max(1, (hi - lo) * 0.5);
+            const spread = FAR_BLUR * (0.6 + 1.6 * nx * nx);
+            // Three taps, not five. Five put the worst frames at 16.6 ms against a 16.7 ms budget,
+            // and this runs per pixel across the opening; three at a wider spread smears the same
+            // amount for a third less work.
+            let pr = 0, pg = 0, pb = 0, hit = 0;
+            for (let k = 0; k < 3; k++) {
+              let uu = ub0 + (k * 0.5 - 0.5) * spread;
+              uu -= Math.floor(uu / T) * T;
+              if (uu >= 1) continue; // this ray misses the wrap entirely and sees straight out
+              const bi = (rb + ((uu * lwm) | 0)) * 4;
+              const ba = ld[bi + 3] / 255, ip = PAPER * (1 - ba);
+              pr += ld[bi] * ba + ip; pg += ld[bi + 1] * ba + ip; pb += ld[bi + 2] * ba + ip;
+              hit++;
             }
-            gr += (pr - gr) * FAR_LABEL; gg += (pg - gg) * FAR_LABEL; gb += (pb - gb) * FAR_LABEL;
+            if (hit) {
+              pr /= hit; pg /= hit; pb /= hit;
+              if (prepared.liquid) {
+                // Through a filled vial that light arrives carrying the liquid's colour, so the
+                // paper reads as brighter red and the artwork as deeper red — not as white paper
+                // hanging behind it.
+                const t2 = (0.299 * pr + 0.587 * pg + 0.114 * pb) / 255;
+                const q = 0.5 + 1.0 * t2;
+                pr = gr * q; pg = gg * q; pb = gb * q;
+              }
+              // Rays that missed the wrap keep the glass, so a partly-covered column blends in.
+              const m = FAR_LABEL * fFade * (hit / 3);
+              gr += (pr - gr) * m; gg += (pg - gg) * m; gb += (pb - gb) * m;
+            }
           }
           if (cov >= 1) { out[i] = gr; out[i + 1] = gg; out[i + 2] = gb; }
           else {
