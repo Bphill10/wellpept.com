@@ -42,49 +42,10 @@ const UC = 0.34, HALF = 0.33, B = 1.05, SB = Math.sin(B);
 // label's own width, so the label covers 1/(1+GAP_UNITS) of the turn (~0.25 → ~20% bare).
 const GAP_UNITS = 0.25;
 
-// Seeing the far side of the label through the clear glass. The label wraps most of the way
-// round, so what sits behind the bare-glass window is almost always the label's OWN REVERSE —
-// white paper lit from the front, with the artwork reading backwards. That is why the back of a
-// real vial is bright rather than dark: you are looking at paper, not out into the room.
-// BACK_DIM is how much the whole vial's width takes out of it; BACK_MIX how strongly it reads
-// against the near wall's own glass.
-const BACK_DIM = 0.72, BACK_MIX = 0.66;
-// Through the window you are looking INTO the vial, so the contents show at their real level —
-// and their real level is higher than the label's bottom edge, because the label covers the top
-// of the heap. Outside the window the powder can only start where the label stops; inside it, it
-// starts where it actually is. CONTENT_RISE is how far above the label's bottom that surface
-// sits, as a fraction of the label band's height. The powder is read from the real powder below
-// the label shifted straight up by the same amount, so it is the photograph's own grain — no
-// stretch, and the surface at the top of the window is the surface the camera actually saw.
-const CONTENT_RISE = 0.26;
-// The lift along the label's cut ends: how far in it reaches, in label-u, and how much brighter
-// the paper goes at the fold itself.
-const LABEL_EDGE_W = 0.02, LABEL_EDGE_LIFT = 0.1;
-// What a filled vial does to the far label's light. The printed areas come back as a deep version
-// of the liquid's colour rather than black, because the liquid is lit; the white paper comes back
-// BRIGHTER than the liquid around it, which is why the reverse of the label reads light against
-// the red instead of disappearing into it. Capping paper at the liquid's own brightness was what
-// made B12's back go flat.
-const LIQUID_FLOOR = 0.45, LIQUID_LIFT = 1.55;
-
-// Looking through the bare-glass window, how much light survives depends on WHERE across the
-// vial you look. Straight through the middle the line of sight crosses two walls and the air
-// between them and lands on the dark marble behind, so that is where the glass goes dark. Toward
-// the silhouette it runs the long way through the wall and brightens back to full.
-//
-// The borrowed glass is flat across the middle — measured on a mid-label row it runs 98, 97, 98,
-// 101 — because it comes from a photo lit to show the vial, not from a photo of what is behind
-// it. Extruded down the band that flatness is what read as a grey card rather than a hole. A
-// single flat multiplier could only make the card darker; the shape is what was missing.
-const WINDOW_MID = 0.42;      // transmission dead centre
-const WINDOW_EDGE_START = 0.5; // where the line of sight starts lengthening toward the rim
-// Reflections on the NEAR wall keep their strength — that is light bouncing off the front of the
-// glass, not light coming through it — so the dimming is weighted away from the bright pixels.
-// Without this the two studio speculars dimmed with everything else and the window flattened out
-// again, just darker.
-const WINDOW_SPEC_LO = 138, WINDOW_SPEC_HI = 198;
-
-
+// The label's two cut ends stand a hair off the glass, so they catch a line of light along the
+// fold — extremely subtle, just enough that the paper does not melt into the glass. How far in it
+// reaches, in label-u, and how much brighter the paper goes at the fold itself.
+const LABEL_EDGE_W = 0.02, LABEL_EDGE_LIFT = 0.07;
 
 // Screen-x → label-u foreshortening LUT (includes the HALF factor). Indexed by the visible
 // column fraction 0..1 across the label run; lets the green path wrap per-row without an
@@ -725,13 +686,12 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS
     // No pale reverse screened into the empty body any more. It fogged exactly the area that most
     // needs to look clear, and because it was skipped on 10 mL bases it also made the 3 mL vials
     // read milkier than the 10 mL ones — the glass now matches across every size.
-    const contentRise = Math.round(CONTENT_RISE * (green.bot - green.top));
     const baseBack = new Uint8ClampedArray(base.data);
     transmitGlass(baseBack, base, green.top);
     liftContents(baseBack, base, green);
     // Optional cap recolour (landing showcase) — dome + crimp collar in two coordinated tints.
     if (capTint) tintCap(baseBack, base, capTint, crimpTint || capTint, capFinish);
-    return { base, ld, lw: dims.w, lh: dims.h, green, liquid, baseBack, contentRise };
+    return { base, ld, lw: dims.w, lh: dims.h, green, liquid, baseBack };
   }
 
   // Fallback (non-chroma base): guess a band on the vial silhouette.
@@ -892,25 +852,14 @@ function composeGreen(canvas, prepared, rot, wrap) {
         cov = dTop < dBot ? dTop : dBot;
         if (cov <= 0) {
           // Past the label's own edge the photo still carries the mask's soft green rim — about
-          // 30 rows of it. That is fade-out, not paper; printing label onto it is what made the
-          // bottom edge look torn.
-          //
-          // BELOW the label what is actually behind that rim is the contents, so reflect them up
-          // into it. They meet the real powder exactly at the mask's outer edge, so the grain runs
-          // straight through and there is no pale band between the label and the contents.
-          if (sBot[x] >= 0 && y > sBot[x]) {
-            const ry = (bot + (bot - y)) | 0;
-            if (ry > y && ry < H) {
-              const ri = (ry * W + x) * 4;
-              if (src[ri + 3] > 60) {
-                out[i] = init[ri]; out[i + 1] = init[ri + 1]; out[i + 2] = init[ri + 2];
-                continue;
-              }
-            }
-          }
-          // ABOVE the label it is clear glass behind the rim, so just take the green out.
-          const avg = (r + b) * 0.5;
-          if (g > avg) { out[i] = r; out[i + 1] = avg; out[i + 2] = b; }
+          // 30 rows of it. That is the mask fading out, not paper; printing label onto it is what
+          // made the bottom edge look torn. Take the green out and what the label was covering
+          // reads through: clear glass above, contents below. Read from the PREPARED base so the
+          // lift applied at prepare time survives instead of being overwritten with the raw photo.
+          const br = init[i], bb = init[i + 2], avg = (br + bb) * 0.5;
+          out[i] = br;
+          out[i + 1] = init[i + 1] > avg ? avg : init[i + 1];
+          out[i + 2] = bb;
           continue;
         }
         if (cov > 1) cov = 1;
@@ -921,78 +870,16 @@ function composeGreen(canvas, prepared, rot, wrap) {
       if (wrap) {
         u -= Math.floor(u / T) * T; // wrap around the full strip (label + gap)
         if (u >= 1) {
-          // The bare-glass window between the label's two ends. Plain transparent glass — never
-          // frosted, never filled — so the contents read through at full strength.
-          let gr = baseGlass[i], gg = baseGlass[i + 1], gb = baseGlass[i + 2];
-          // You are looking clean through the vial here, so what you see is whatever is on the FAR
-          // wall. Mirror this column's offset about the half-turn to find where that wall sits on
-          // the label. Because the mirror reverses it, the artwork comes back the wrong way round
-          // — which is exactly how the back of a labelled vial reads.
-          let ub = UC + rr + T * 0.5 - dOff;
-          ub -= Math.floor(ub / T) * T;
-          const rise = prepared.contentRise;
-          const sb = sBot[x];
-          // Reflect the powder below the label upward rather than sliding it up. A straight shift
-          // left a seam across the middle of the window where the moved block met the real powder
-          // at the label's edge; reflected, the two meet exactly on that edge and the grain runs
-          // through it continuously.
-          const cy = (sb + (sb - y)) | 0;
-          if (!prepared.liquid && rise > 0 && sb >= 0 && y >= sb - rise && cy < H && cy >= 0) {
-            // Below the contents' own surface you are looking at the contents, not at the far
-            // wall — the label behind is under the powder from here down.
-            const ci = (cy * W + x) * 4;
-            if (src[ci + 3] > 60) {
-              // No dimming: below the label and inside the window you are looking through the same
-              // single wall of glass, so anything else puts a step in brightness right at the join
-              // — the line across the middle of the window.
-              gr = init[ci]; gg = init[ci + 1]; gb = init[ci + 2];
-            }
-          } else if (ub < 1) {
-            // The far wall carries the label — you are looking at its reverse through the vial.
-            const bi = (rb + ((ub * lwm) | 0)) * 4;
-            const ba = ld[bi + 3] / 255, ip = PAPER * (1 - ba);
-            let pr = (ld[bi] * ba + ip) * BACK_DIM;
-            let pg = (ld[bi + 1] * ba + ip) * BACK_DIM;
-            let pb = (ld[bi + 2] * ba + ip) * BACK_DIM;
-            if (prepared.liquid) {
-              // On a liquid vial that light comes back through the fill, so it arrives carrying
-              // the liquid's colour: the paper reads as bright red and the artwork as dark red,
-              // rather than as white paper floating behind it.
-              const t = (0.299 * pr + 0.587 * pg + 0.114 * pb) / 255;
-              const q = LIQUID_FLOOR + (LIQUID_LIFT - LIQUID_FLOOR) * t;
-              pr = gr * q; pg = gg * q; pb = gb * q;
-            }
-            // Reflections on the NEAR wall sit in front of all this, so they hold their strength.
-            const L = 0.299 * gr + 0.587 * gg + 0.114 * gb;
-            const spec = L <= WINDOW_SPEC_LO ? 0
-              : L >= WINDOW_SPEC_HI ? 1
-              : (L - WINDOW_SPEC_LO) / (WINDOW_SPEC_HI - WINDOW_SPEC_LO);
-            const m = BACK_MIX * (1 - spec);
-            gr += (pr - gr) * m; gg += (pg - gg) * m; gb += (pb - gb) * m;
-          } else if (prepared.liquid) {
-            // Both gaps line up, but the vial is still full — you look through the fill, not out
-            // of it, so it only deepens rather than going dark.
-            gr *= LIQUID_FLOOR; gg *= LIQUID_FLOOR; gb *= LIQUID_FLOOR;
-          } else {
-            // Both gaps line up: this is the one place you see straight out of the vial, so it
-            // goes dark against the marble. Shading follows SCREEN position, not label position —
-            // the silhouette stays put while the vial turns, so the thin path through the middle
-            // has to stay in the middle.
-            const nx = Math.abs(x - (lo + hi) * 0.5) / Math.max(1, (hi - lo) * 0.5);
-            const e = nx <= WINDOW_EDGE_START ? 0 : (nx - WINDOW_EDGE_START) / (1 - WINDOW_EDGE_START);
-            const edge = e * e * (3 - 2 * e); // smoothstep — no ring where the falloff begins
-            const L = 0.299 * gr + 0.587 * gg + 0.114 * gb;
-            const spec = L <= WINDOW_SPEC_LO ? 0
-              : L >= WINDOW_SPEC_HI ? 1
-              : (L - WINDOW_SPEC_LO) / (WINDOW_SPEC_HI - WINDOW_SPEC_LO);
-            const keep = edge > spec ? edge : spec;
-            const k = WINDOW_MID + (1 - WINDOW_MID) * keep;
-            gr *= k; gg *= k; gb *= k;
-          }
+          // No label here. The label is a self-adhesive wrap stuck to the outside of the glass,
+          // and across this stretch of the circumference there is simply none of it — nothing is
+          // applied, so what shows is the vial's own bare glass, continuous with the rest of the
+          // bottle. `baseGlass` is that glass reconstructed from the vial's own clear stock, and
+          // it is used as-is: no shading, no panel, no reverse of the label read through it, and
+          // no contents lifted into it. The powder sits where it physically sits, the same height
+          // right across the vial, and it is already there in the base underneath.
+          const gr = baseGlass[i], gg = baseGlass[i + 1], gb = baseGlass[i + 2];
           if (cov >= 1) { out[i] = gr; out[i + 1] = gg; out[i + 2] = gb; }
           else {
-            // Partial coverage blends against whatever is underneath, and at the rim that is
-            // still the mask's green — so de-green the backdrop first (see the note below).
             const br = init[i], bb = init[i + 2], ba2 = (br + bb) * 0.5;
             const bg2 = init[i + 1] > ba2 ? ba2 : init[i + 1];
             out[i] = br + (gr - br) * cov;
