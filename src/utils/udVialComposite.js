@@ -52,7 +52,11 @@ const BACK_SHADOW = 104, BACK_MIX = 0.2;
 // you are looking through to the dark behind the vial — the window has to sit darker than the lit
 // front surface or it reads as a bright silver panel stuck on the glass rather than as something
 // you can see through. Liquid vials are exempt: there the window is full of red, not air.
-const WINDOW_TRANSMIT = 0.68;
+// How much darker the bare-glass window sits than the vial's own glass. It should be a shade
+// darker — you are looking through the whole vial rather than glancing off the side — and no
+// more. At 0.68, tuned back when the body was crushed dark by a fixed gamma, the window read as
+// a painted panel instead of a hole you can see through.
+const WINDOW_TRANSMIT = 0.88;
 
 
 
@@ -239,8 +243,13 @@ function detectGreenLabel(d, W, H) {
  * band is empty glass — the powder sits at the bottom). A vertical blur erases the tiling
  * seams while keeping the vertical glass highlights aligned, so it reads as the real vial.
  */
-function buildBaseGlass(base, green, liquid) {
-  const { W, H, data } = base;
+function buildBaseGlass(base, green, liquid, srcData) {
+  const { W, H } = base;
+  // Read from the SAME pixels the rest of the vial renders from — the normalised copy, not the
+  // raw photo. Reading the raw photo here left the window on whatever brightness the base was
+  // shot at while its own glass had been levelled, so the gap came out 51 darker than the vial
+  // around it on the 3 mL and 15 brighter on the 10 mL.
+  const data = srcData || base.data;
   const { rowLo, rowHi, top, bot, top0, bot0 } = green;
   const out = new Uint8ClampedArray(data);
   const K = Math.max(4, Math.round(H * 0.05));
@@ -293,6 +302,39 @@ function buildBaseGlass(base, green, liquid) {
         const j = (yy * W + x) * 4; sr += tmp[j]; sg += tmp[j + 1]; sb += tmp[j + 2]; n++;
       }
       if (n) { const di = (y * W + x) * 4; out[di] = (sr / n) | 0; out[di + 1] = (sg / n) | 0; out[di + 2] = (sb / n) | 0; }
+    }
+  }
+
+  // Level the reconstruction to the same brightness the body glass was levelled to, so the window
+  // and the glass around it agree. The two are both bare glass and have to match, but the band is
+  // borrowed from whichever rows happened to sit above the label, and how bright those are varies
+  // per photo — which left the 3 mL gap reading as a dark panel while the 10 mL read brighter than
+  // its own vial. Powder vials only: a liquid vial's window is full of red, not air.
+  if (!liquid) {
+    let sum = 0, n = 0;
+    for (let y = top; y <= bot; y++) {
+      const lo = rowLo[y]; if (lo < 0) continue;
+      const hi = rowHi[y], inset = Math.round((hi - lo) * 0.2);
+      for (let x = lo + inset; x <= hi - inset; x++) {
+        const i = (y * W + x) * 4;
+        if (data[i + 3] < 200) continue;
+        const r = out[i], g = out[i + 1], b = out[i + 2];
+        const mx = r > g ? (r > b ? r : b) : (g > b ? g : b);
+        const mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
+        if (mx - mn > GLASS_CHROMA) continue;
+        sum += 0.299 * r + 0.587 * g + 0.114 * b; n++;
+      }
+    }
+    if (n) {
+      const k = Math.max(0.5, Math.min(2, GLASS_TARGET / Math.max(8, sum / n)));
+      for (let y = top; y <= bot; y++) {
+        const lo = rowLo[y]; if (lo < 0) continue;
+        const hi = rowHi[y];
+        for (let x = lo; x <= hi; x++) {
+          const i = (y * W + x) * 4;
+          out[i] *= k; out[i + 1] *= k; out[i + 2] *= k;
+        }
+      }
     }
   }
   return out;
@@ -639,7 +681,7 @@ function composeGreen(canvas, prepared, rot, wrap) {
   // the vial's own reconstructed glass (screen-fixed, so its highlights stay put).
   if (!prepared.edgeCov) prepared.edgeCov = buildEdgeCoverage(base, green);
   const { sTop, sBot } = prepared.edgeCov;
-  if (wrap && !prepared.baseGlass) prepared.baseGlass = buildBaseGlass(base, green, prepared.liquid);
+  if (wrap && !prepared.baseGlass) prepared.baseGlass = buildBaseGlass(base, green, prepared.liquid, prepared.baseBack);
   const baseGlass = prepared.baseGlass;
   const T = 1 + GAP_UNITS;
   const rr = wrap ? rot * T : rot; // one component revolution (rot 0→1) spans the whole strip
