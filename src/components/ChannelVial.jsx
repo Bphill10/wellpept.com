@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { labelSVGFromFields } from "../utils/udSilverLabel";
 import {
   silverVialBaseSrc,
+  cleanVialBaseSrc,
   prepareVialCompositor,
   composeVial,
 } from "../utils/udVialComposite";
@@ -229,7 +230,7 @@ export default function ChannelVial({ channels = [], className = "" }) {
     });
     // The powder keeps its real colour — blue for the blue-powder compounds (KLOW / GLOW /
     // GHK-Cu), white otherwise; the cap and label carry the channel colour. Size follows the channel.
-    return { svg, ml, baseSrc: silverVialBaseSrc(c.name, ml) };
+    return { svg, ml, baseSrc: silverVialBaseSrc(c.name, ml), cleanSrc: cleanVialBaseSrc(c.name, ml) };
   };
 
   const ensurePrep = (i) => {
@@ -242,8 +243,8 @@ export default function ChannelVial({ channels = [], className = "" }) {
     // Each peptide keeps its own catalog cap: a palette colour, the dome finish (painted,
     // clear-tinted or clear), the crimp collar under it, and a matching label accent.
     const { dome, domeFinish, crimp, labelHex, nameHex } = capSchemeFor(list[idx].name);
-    const { svg, ml, baseSrc } = buildSVG(list[idx], labelHex, nameHex);
-    const promise = prepareVialCompositor({ svg, vialMl: ml, baseSrc, ss: ssFor(), capTint: dome, capFinish: domeFinish, crimpTint: crimp })
+    const { svg, ml, baseSrc, cleanSrc } = buildSVG(list[idx], labelHex, nameHex);
+    const promise = prepareVialCompositor({ svg, vialMl: ml, baseSrc, cleanSrc, ss: ssFor(), capTint: dome, capFinish: domeFinish, crimpTint: crimp })
       .then((prep) => { cache.set(idx, prep); return prep; })
       .catch(() => { cache.delete(idx); return null; });
     cache.set(idx, promise);
