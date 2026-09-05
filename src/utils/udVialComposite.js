@@ -685,47 +685,86 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, ss = BASE_SS
  * is the untouched photo. Per-row wrap via the shared asin LUT; `wrap` tiles for a full spin.
  */
 /**
- * Sub-pixel coverage for the label's curved top and bottom rims.
+ * Where the label's curved top and bottom rims actually sit, as a smooth fractional curve.
  *
- * maskGreenPix is a binary test and the rims are very shallow curves — the bottom edge rises only
- * ~13px across the label's whole width — so a hard mask draws them as a staircase: ~28px of flat
- * run, then a 1px jump. That is plainly visible against the liquid. Here the boundary row is
- * measured per column and smoothed into a FRACTIONAL curve, so each pixel can take partial
- * coverage and the rim anti-aliases the way a drawn curve would.
+ * Two things make the raw mask a poor edge. It is a binary test on very shallow curves — the
+ * bottom rim rises only ~13px across the label's whole width — so it draws as a staircase. And
+ * the photographed rim is not clean: measured per column, the bottom boundary on the blue base
+ * wanders over 44 rows and steps by 0.44 rows per column on average, against 0.26 at the top.
+ * Averaging neighbours only blurs that wander; it stays in the result, which is what made the
+ * bottom edge look torn while the top looked fine.
  *
- * Only the top and bottom rims are softened. The left and right edges are the vial's own
+ * So the rims are FITTED instead of followed. A vial is a cylinder photographed square-on, so
+ * each rim is a shallow arc — a quadratic in x describes it exactly, and least squares over the
+ * whole width ignores the noise rather than smearing it. Columns that disagree with the fit are
+ * dropped and it is refitted, so a stray green speck cannot bend the curve.
+ *
+ * Only the top and bottom rims are fitted. The left and right edges are the vial's own
  * silhouette, already anti-aliased in the photograph.
  */
+// A pixel that is unmistakably label, not the mask's fade-out into whatever is behind it.
+function coreGreenPix(r, g, b) {
+  return g > 90 && g > r * 1.25 && g > b * 1.25;
+}
+
+/** Least-squares quadratic through (x, y) samples, with one robust refit. Returns [a,b,c] or null. */
+function fitArc(xs, ys, W) {
+  const solve = (idx) => {
+    let n = 0, sx = 0, sx2 = 0, sx3 = 0, sx4 = 0, sy = 0, sxy = 0, sx2y = 0;
+    for (const k of idx) {
+      const t = (xs[k] / W) * 2 - 1, y = ys[k]; // normalise x to [-1,1] so the normal equations stay conditioned
+      const t2 = t * t;
+      n++; sx += t; sx2 += t2; sx3 += t2 * t; sx4 += t2 * t2;
+      sy += y; sxy += t * y; sx2y += t2 * y;
+    }
+    if (n < 12) return null;
+    // 3x3 Cramer
+    const m = [[n, sx, sx2], [sx, sx2, sx3], [sx2, sx3, sx4]];
+    const d = m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
+            - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
+            + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+    if (!isFinite(d) || Math.abs(d) < 1e-9) return null;
+    const col = (j, v) => m.map((row, i) => row.map((val, k2) => (k2 === j ? v[i] : val)));
+    const det3 = (q) => q[0][0] * (q[1][1] * q[2][2] - q[1][2] * q[2][1])
+                      - q[0][1] * (q[1][0] * q[2][2] - q[1][2] * q[2][0])
+                      + q[0][2] * (q[1][0] * q[2][1] - q[1][1] * q[2][0]);
+    const v = [sy, sxy, sx2y];
+    return [det3(col(0, v)) / d, det3(col(1, v)) / d, det3(col(2, v)) / d];
+  };
+  const all = xs.map((_, k) => k);
+  let c = solve(all);
+  if (!c) return null;
+  const at = (k) => { const t = (xs[k] / W) * 2 - 1; return c[0] + c[1] * t + c[2] * t * t; };
+  const res = all.map((k) => Math.abs(ys[k] - at(k))).sort((a, b) => a - b);
+  const mad = Math.max(0.75, res[res.length >> 1]);
+  const keep = all.filter((k) => Math.abs(ys[k] - at(k)) <= mad * 2.5);
+  return solve(keep) || c;
+}
+
 function buildEdgeCoverage(base, green) {
   const { W, data } = base;
   const { rowLo, rowHi, top, bot } = green;
-  const rawTop = new Float32Array(W).fill(-1);
-  const rawBot = new Float32Array(W).fill(-1);
+  const xs = [], tops = [], bots = [];
   for (let x = 0; x < W; x++) {
     let first = -1, last = -1;
     for (let y = top; y <= bot; y++) {
       const lo = rowLo[y];
       if (lo < 0 || x < lo || x > rowHi[y]) continue;
       const i = (y * W + x) * 4;
-      if (!maskGreenPix(data[i], data[i + 1], data[i + 2])) continue;
+      if (!coreGreenPix(data[i], data[i + 1], data[i + 2])) continue;
       if (first < 0) first = y;
       last = y;
     }
-    rawTop[x] = first; rawBot[x] = last;
+    if (first >= 0) { xs.push(x); tops.push(first); bots.push(last); }
   }
-  // Average across neighbouring columns so the integer boundary becomes a smooth fractional one.
-  const R = 6;
   const sTop = new Float32Array(W).fill(-1);
   const sBot = new Float32Array(W).fill(-1);
-  for (let x = 0; x < W; x++) {
-    if (rawTop[x] < 0) continue;
-    let st = 0, sb = 0, n = 0;
-    for (let d = -R; d <= R; d++) {
-      const xx = x + d;
-      if (xx < 0 || xx >= W || rawTop[xx] < 0) continue;
-      st += rawTop[xx]; sb += rawBot[xx]; n++;
-    }
-    if (n) { sTop[x] = st / n; sBot[x] = sb / n; }
+  if (!xs.length) return { sTop, sBot };
+  const ct = fitArc(xs, tops, W), cb = fitArc(xs, bots, W);
+  for (let k = 0; k < xs.length; k++) {
+    const x = xs[k], t = (x / W) * 2 - 1;
+    sTop[x] = ct ? ct[0] + ct[1] * t + ct[2] * t * t : tops[k];
+    sBot[x] = cb ? cb[0] + cb[1] * t + cb[2] * t * t : bots[k];
   }
   return { sTop, sBot };
 }
@@ -777,7 +816,15 @@ function composeGreen(canvas, prepared, rot, wrap) {
       if (te >= 0) {
         const dTop = y - te + 0.5, dBot = sBot[x] - y + 0.5;
         cov = dTop < dBot ? dTop : dBot;
-        if (cov <= 0) continue;
+        if (cov <= 0) {
+          // Past the label's own edge the photo still carries the mask's soft green rim. That is
+          // fade-out, not paper — printing label onto it is exactly what made the bottom edge look
+          // torn. Take the green back out instead and the powder underneath reads through, so the
+          // label stops on the fitted line and the contents start immediately.
+          const avg = (r + b) * 0.5;
+          if (g > avg) { out[i] = r; out[i + 1] = avg; out[i + 2] = b; }
+          continue;
+        }
         if (cov > 1) cov = 1;
       }
       const uo = (x - lo) * invW;
