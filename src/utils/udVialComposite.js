@@ -42,16 +42,20 @@ const UC = 0.34, HALF = 0.33, B = 1.05, SB = Math.sin(B);
 // label's own width, so the label covers 1/(1+GAP_UNITS) of the turn (~0.25 → ~20% bare).
 const GAP_UNITS = 0.25;
 
-// Seeing the far side of the label through the clear glass. It reads as a SHADOW of the label in
-// its base tone — you register that something is there on the far wall, but no artwork and no
-// reversed text. BACK_SHADOW is the label's paper darkened to shadow; BACK_MIX keeps it well under
-// full so the glass's own shading and reflections still carry through it.
-const BACK_SHADOW = 104, BACK_MIX = 0.2;
+// Seeing the far side of the label through the clear glass. The label wraps most of the way
+// round, so what sits behind the bare-glass window is almost always the label's OWN REVERSE —
+// white paper lit from the front, with the artwork reading backwards. That is why the back of a
+// real vial is bright rather than dark: you are looking at paper, not out into the room.
+// BACK_DIM is how much the whole vial's width takes out of it; BACK_MIX how strongly it reads
+// against the near wall's own glass.
+const BACK_DIM = 0.72, BACK_MIX = 0.66;
+// What a filled vial does to the far label's light. The printed areas come back as a deep version
+// of the liquid's colour rather than black, because the liquid is lit; the white paper comes back
+// BRIGHTER than the liquid around it, which is why the reverse of the label reads light against
+// the red instead of disappearing into it. Capping paper at the liquid's own brightness was what
+// made B12's back go flat.
+const LIQUID_FLOOR = 0.45, LIQUID_LIFT = 1.55;
 
-// How much light the window transmits on a POWDER vial. Behind the window is empty interior, so
-// you are looking through to the dark behind the vial — the window has to sit darker than the lit
-// front surface or it reads as a bright silver panel stuck on the glass rather than as something
-// you can see through. Liquid vials are exempt: there the window is full of red, not air.
 // Looking through the bare-glass window, how much light survives depends on WHERE across the
 // vial you look. Straight through the middle the line of sight crosses two walls and the air
 // between them and lands on the dark marble behind, so that is where the glass goes dark. Toward
@@ -785,9 +789,43 @@ function composeGreen(canvas, prepared, rot, wrap) {
           // The bare-glass window between the label's two ends. Plain transparent glass — never
           // frosted, never filled — so the contents read through at full strength.
           let gr = baseGlass[i], gg = baseGlass[i + 1], gb = baseGlass[i + 2];
-          if (!prepared.liquid) {
-            // Screen position across the vial, not label position: the silhouette stays put while
-            // the vial turns, so the thin path through the middle stays in the middle.
+          // You are looking clean through the vial here, so what you see is whatever is on the FAR
+          // wall. Mirror this column's offset about the half-turn to find where that wall sits on
+          // the label. Because the mirror reverses it, the artwork comes back the wrong way round
+          // — which is exactly how the back of a labelled vial reads.
+          let ub = UC + rr + T * 0.5 - dOff;
+          ub -= Math.floor(ub / T) * T;
+          if (ub < 1) {
+            // The far wall carries the label — you are looking at its reverse through the vial.
+            const bi = (rb + ((ub * lwm) | 0)) * 4;
+            const ba = ld[bi + 3] / 255, ip = PAPER * (1 - ba);
+            let pr = (ld[bi] * ba + ip) * BACK_DIM;
+            let pg = (ld[bi + 1] * ba + ip) * BACK_DIM;
+            let pb = (ld[bi + 2] * ba + ip) * BACK_DIM;
+            if (prepared.liquid) {
+              // On a liquid vial that light comes back through the fill, so it arrives carrying
+              // the liquid's colour: the paper reads as bright red and the artwork as dark red,
+              // rather than as white paper floating behind it.
+              const t = (0.299 * pr + 0.587 * pg + 0.114 * pb) / 255;
+              const q = LIQUID_FLOOR + (LIQUID_LIFT - LIQUID_FLOOR) * t;
+              pr = gr * q; pg = gg * q; pb = gb * q;
+            }
+            // Reflections on the NEAR wall sit in front of all this, so they hold their strength.
+            const L = 0.299 * gr + 0.587 * gg + 0.114 * gb;
+            const spec = L <= WINDOW_SPEC_LO ? 0
+              : L >= WINDOW_SPEC_HI ? 1
+              : (L - WINDOW_SPEC_LO) / (WINDOW_SPEC_HI - WINDOW_SPEC_LO);
+            const m = BACK_MIX * (1 - spec);
+            gr += (pr - gr) * m; gg += (pg - gg) * m; gb += (pb - gb) * m;
+          } else if (prepared.liquid) {
+            // Both gaps line up, but the vial is still full — you look through the fill, not out
+            // of it, so it only deepens rather than going dark.
+            gr *= LIQUID_FLOOR; gg *= LIQUID_FLOOR; gb *= LIQUID_FLOOR;
+          } else {
+            // Both gaps line up: this is the one place you see straight out of the vial, so it
+            // goes dark against the marble. Shading follows SCREEN position, not label position —
+            // the silhouette stays put while the vial turns, so the thin path through the middle
+            // has to stay in the middle.
             const nx = Math.abs(x - (lo + hi) * 0.5) / Math.max(1, (hi - lo) * 0.5);
             const e = nx <= WINDOW_EDGE_START ? 0 : (nx - WINDOW_EDGE_START) / (1 - WINDOW_EDGE_START);
             const edge = e * e * (3 - 2 * e); // smoothstep — no ring where the falloff begins
@@ -798,20 +836,6 @@ function composeGreen(canvas, prepared, rot, wrap) {
             const keep = edge > spec ? edge : spec;
             const k = WINDOW_MID + (1 - WINDOW_MID) * keep;
             gr *= k; gg *= k; gb *= k;
-          }
-          // And because it IS transparent, you are looking clean through the vial here: the far
-          // wall still carries the label, so it shadows the glass from behind. Mirror this
-          // column's offset about the half-turn to find where the far surface sits on the label;
-          // where it lands ON the label you get that shadow, and where it falls in the gap you see
-          // straight out the other side. Only its EDGE and the way it slides the opposite way to
-          // the front label as the vial turns carry the depth — no artwork, and no reversed text
-          // to read, which looked like a second label rather than like glass.
-          let ub = UC + rr + T * 0.5 - dOff;
-          ub -= Math.floor(ub / T) * T;
-          if (ub < 1) {
-            gr += (BACK_SHADOW - gr) * BACK_MIX;
-            gg += (BACK_SHADOW - gg) * BACK_MIX;
-            gb += (BACK_SHADOW - gb) * BACK_MIX;
           }
           if (cov >= 1) { out[i] = gr; out[i + 1] = gg; out[i + 2] = gb; }
           else {
