@@ -237,11 +237,15 @@ function detectGreenLabel(d, W, H) {
 
 /**
  * Reconstruct what the vial looks like UNDER the label (the bare-glass gap shown as the vial
- * turns). The label band itself is hidden by green, so we borrow the vial's own glass from an
- * adjacent clear region and tile it across the band: the liquid just below the label for a
- * liquid vial (B12), or the clear neck glass just above the label for a powder vial (where the
- * band is empty glass — the powder sits at the bottom). A vertical blur erases the tiling
- * seams while keeping the vertical glass highlights aligned, so it reads as the real vial.
+ * turns). The label band hides that glass, so it has to be borrowed from the clear regions the
+ * label does not cover.
+ *
+ * A vial is a vertical extrusion, so one row of clear glass carried down the band is the right
+ * reconstruction. What it must NOT be is a stretch: the old code sampled a slice a twentieth of
+ * the image tall and scaled it over a band a third of it tall, a roughly sevenfold smear that
+ * read as frosted rather than clear, then blurred it further to hide the seams.
+ *
+ * Powder vials read the glass above the label; liquid vials (B12) read the liquid below it.
  */
 function buildBaseGlass(base, green, liquid, srcData) {
   const { W, H } = base;
@@ -250,66 +254,70 @@ function buildBaseGlass(base, green, liquid, srcData) {
   // shot at while its own glass had been levelled, so the gap came out 51 darker than the vial
   // around it on the 3 mL and 15 brighter on the 10 mL.
   const data = srcData || base.data;
-  const { rowLo, rowHi, top, bot, top0, bot0 } = green;
+  const { rowLo, rowHi, top, bot } = green;
   const out = new Uint8ClampedArray(data);
-  const K = Math.max(4, Math.round(H * 0.05));
   const margin = Math.round(H * 0.006);
-  // Sample clear of the label's FULL extent, not its strict edge. top0/bot0 are the strict green
-  // bounds; the label's anti-aliased rim runs on for ~20px past them to top/bot. Starting at
-  // bot0 + margin put the first sampled rows inside that pale rim, so the bottom of the window
-  // came out washed out and grey instead of matching the liquid above it.
-  const srcY0 = liquid
-    ? Math.min(H - K - 1, bot + margin)
-    : Math.max(0, top - margin - K);
-  // Vial x-extent for each source row (to clamp samples to the glass).
-  const sxl = new Int32Array(K), sxr = new Int32Array(K);
-  for (let k = 0; k < K; k++) {
-    const yy = srcY0 + k; let xl = W, xr = 0;
-    for (let x = 0; x < W; x++) if (data[(yy * W + x) * 4 + 3] > 60) { if (x < xl) xl = x; if (x > xr) xr = x; }
-    sxl[k] = xl; sxr[k] = xr;
-  }
+  // Depth of each sampled band. A few rows averaged together kills sensor noise without pulling
+  // in glass far enough away to have a different shape.
+  const K = Math.max(3, Math.round(H * 0.012));
+
+  // Average a band of rows into one row of colour, and record how wide the glass is there so
+  // columns beyond its edge can clamp instead of reading background.
+  const sampleBand = (y0) => {
+    const row = new Float32Array(W * 3);
+    const hits = new Int32Array(W);
+    let lo = W, hi = -1;
+    for (let k = 0; k < K; k++) {
+      const yy = y0 + k;
+      if (yy < 0 || yy >= H) continue;
+      for (let x = 0; x < W; x++) {
+        const i = (yy * W + x) * 4;
+        // Match the alpha cut the rest of the file uses. Requiring near-opaque here skipped the
+        // middle of a vial whose clear glass is genuinely semi-transparent in the source PNG —
+        // 175 columns straight down the centre of the 10 mL had no sample at all and came out
+        // black, which is the panel that showed through its window.
+        if (data[i + 3] < 60) continue;
+        row[x * 3] += data[i]; row[x * 3 + 1] += data[i + 1]; row[x * 3 + 2] += data[i + 2];
+        hits[x]++;
+        if (x < lo) lo = x;
+        if (x > hi) hi = x;
+      }
+    }
+    for (let x = 0; x < W; x++) if (hits[x]) { row[x * 3] /= hits[x]; row[x * 3 + 1] /= hits[x]; row[x * 3 + 2] /= hits[x]; }
+    return hi >= lo ? { row, lo, hi } : null;
+  };
+
+  const above = sampleBand(Math.max(0, top - margin - K));
+  const below = sampleBand(Math.min(H - K, bot + margin));
+  // A powder vial reads the clear glass ABOVE the label at both ends, so the band is one even
+  // column of glass. Below the label is the powder itself, not glass — reading it turned the
+  // bottom of KLOW's window blue.
+  // A liquid vial reads the liquid below the label instead: there the band is full of red and
+  // the headspace above the label is not.
+  const A = liquid ? below : above;
+  const B = liquid ? below : above;
+  if (!A || !B) return out;
+
   const span = Math.max(1, bot - top);
   for (let y = top; y <= bot; y++) {
     const lo = rowLo[y]; if (lo < 0) continue;
     const hi = rowHi[y];
-    // STRETCH the sampled rows across the band rather than tiling them. Reflect-tiling repeated
-    // the sample every 2K rows, which showed through the bare-glass window as hard banding — a
-    // grey corrugated panel on powder vials, and horizontal stripes in the liquid on B12. It was
-    // only ever hidden by the frost that used to sit on top.
-    //
-    // The same mapping serves both: off runs K-1 → 0 down the band, so the END of the band that
-    // touches the sampled region joins it continuously — the TOP for powder (sampled from the
-    // clear glass above the label) and the BOTTOM for liquid (sampled from the liquid below it).
-    const off = Math.round(((bot - y) / span) * (K - 1));
-    const sy = srcY0 + off, kxl = sxl[off], kxr = sxr[off];
+    const t = (y - top) / span;
     for (let x = lo; x <= hi; x++) {
-      const sx = x < kxl ? kxl : x > kxr ? kxr : x;
-      const si = (sy * W + sx) * 4, di = (y * W + x) * 4;
-      out[di] = data[si]; out[di + 1] = data[si + 1]; out[di + 2] = data[si + 2];
-    }
-  }
-  // Vertical blur to erase the tiling seams (vertical highlights are per-column, so kept).
-  const R = Math.max(2, Math.round(K * 0.8));
-  const tmp = new Uint8ClampedArray(out);
-  for (let y = top; y <= bot; y++) {
-    const lo = rowLo[y]; if (lo < 0) continue;
-    const hi = rowHi[y];
-    for (let x = lo; x <= hi; x++) {
-      let sr = 0, sg = 0, sb = 0, n = 0;
-      for (let dy = -R; dy <= R; dy++) {
-        const yy = y + dy; if (yy < top || yy > bot) continue;
-        const l2 = rowLo[yy]; if (l2 < 0 || x < l2 || x > rowHi[yy]) continue;
-        const j = (yy * W + x) * 4; sr += tmp[j]; sg += tmp[j + 1]; sb += tmp[j + 2]; n++;
-      }
-      if (n) { const di = (y * W + x) * 4; out[di] = (sr / n) | 0; out[di + 1] = (sg / n) | 0; out[di + 2] = (sb / n) | 0; }
+      const xa = (x < A.lo ? A.lo : x > A.hi ? A.hi : x) * 3;
+      const xb = (x < B.lo ? B.lo : x > B.hi ? B.hi : x) * 3;
+      const di = (y * W + x) * 4;
+      out[di]     = A.row[xa]     + (B.row[xb]     - A.row[xa])     * t;
+      out[di + 1] = A.row[xa + 1] + (B.row[xb + 1] - A.row[xa + 1]) * t;
+      out[di + 2] = A.row[xa + 2] + (B.row[xb + 2] - A.row[xa + 2]) * t;
     }
   }
 
   // Level the reconstruction to the same brightness the body glass was levelled to, so the window
-  // and the glass around it agree. The two are both bare glass and have to match, but the band is
-  // borrowed from whichever rows happened to sit above the label, and how bright those are varies
-  // per photo — which left the 3 mL gap reading as a dark panel while the 10 mL read brighter than
-  // its own vial. Powder vials only: a liquid vial's window is full of red, not air.
+  // and the glass around it agree. The two are both bare glass and have to match, but what gets
+  // borrowed depends on how bright the rows beside the label happen to be in that photo — which
+  // left the 3 mL gap reading as a dark panel while the 10 mL read brighter than its own vial.
+  // Powder vials only: a liquid vial's window is full of red, not air.
   if (!liquid) {
     let sum = 0, n = 0;
     for (let y = top; y <= bot; y++) {
@@ -317,6 +325,9 @@ function buildBaseGlass(base, green, liquid, srcData) {
       const hi = rowHi[y], inset = Math.round((hi - lo) * 0.2);
       for (let x = lo + inset; x <= hi - inset; x++) {
         const i = (y * W + x) * 4;
+        // Measure on solid pixels only. A part-transparent pixel's RGB is not the colour that
+        // ends up on screen, so letting those into an average skews the level it produces. They
+        // are still SCALED below — measured on the solid glass, applied to all of it.
         if (data[i + 3] < 200) continue;
         const r = out[i], g = out[i + 1], b = out[i + 2];
         const mx = r > g ? (r > b ? r : b) : (g > b ? g : b);
@@ -391,6 +402,8 @@ function transmitGlass(out, base, labelTop = -1) {
     const hi = rowR[y], inset = Math.round((hi - lo) * 0.25);
     for (let x = lo + inset; x <= hi - inset; x++) {
       const i = (y * W + x) * 4;
+      // Solid pixels only — see the note in buildBaseGlass. Letting part-transparent glass into
+      // this average read the 10 mL brighter than it looks and over-darkened the whole vial.
       if (data[i + 3] < 200) continue;
       const r = data[i], g = data[i + 1], b = data[i + 2];
       const mx = r > g ? (r > b ? r : b) : (g > b ? g : b);
@@ -481,11 +494,6 @@ function tintCap(out, base, domeTint, crimpTint, domeFinish = "solid") {
   for (let y = collarY; y <= neckBot; y++) if (wAt(y) < neckW) { neckW = wAt(y); neckY = y; }
   let capBot = neckY - Math.round(vh * 0.008);
   if (capBot < collarY + 2) capBot = collarY + 2;
-  // Dome above, crimp collar below. The split sits at the cap's plastic/metal seam — at 0.55 the
-  // dome colour ran a hair too low and painted the collar's bright top rim, so the dome looked
-  // like it bled into the crimp; 0.46 lands the rim on the crimp colour instead.
-  const domeBot = minY + Math.round((capBot - minY) * 0.46);
-
   // A pixel counts as recolourable metal/plastic: bright enough not to be a crevice, and
   // neutral enough not to be glass or already-coloured contents.
   const paintable = (i) => {
@@ -496,6 +504,40 @@ function tintCap(out, base, domeTint, crimpTint, domeFinish = "solid") {
     if (mx - mn > 46) return false;
     return 0.299 * r + 0.587 * g + 0.114 * b >= 42;
   };
+
+  // Dome above, crimp collar below. The dome is matte plastic and the collar is stamped metal, so
+  // the seam between them is a hard step UP in brightness — find that step rather than assuming a
+  // fixed fraction of the cap. The two sit at different heights in every photo, and a fixed 0.46
+  // split painted collar colour over the bottom of the dome on some bases, which is what made
+  // those collars look oversized next to others.
+  const capH = capBot - minY;
+  const rowMean = new Float32Array(capH + 1).fill(-1);
+  for (let y = minY; y <= capBot; y++) {
+    const lo = rowL[y]; if (lo < 0) continue;
+    let sum = 0, n = 0;
+    for (let x = lo, hi = rowR[y]; x <= hi; x++) {
+      const i = (y * W + x) * 4;
+      if (!paintable(i)) continue;
+      sum += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]; n++;
+    }
+    if (n) rowMean[y - minY] = sum / n;
+  }
+  const band = (a, b) => {
+    let sum = 0, n = 0;
+    for (let k = a; k <= b; k++) { const v = rowMean[k]; if (v >= 0) { sum += v; n++; } }
+    return n ? sum / n : -1;
+  };
+  const win = Math.max(2, Math.round(capH * 0.06));
+  let domeBot = minY + Math.round(capH * 0.46), bestStep = 0;
+  for (let k = Math.round(capH * 0.30); k <= Math.round(capH * 0.80); k++) {
+    const above = band(k - win, k - 1), below = band(k + 1, k + win);
+    if (above < 0 || below < 0) continue;
+    const step = below - above;
+    if (step > bestStep) { bestStep = step; domeBot = minY + k; }
+  }
+  // Only trust a real step. A cap photographed with no contrast between the two parts keeps the
+  // old proportional split rather than snapping the seam onto noise.
+  if (bestStep < 18) domeBot = minY + Math.round(capH * 0.46);
 
   // Where the barrel starts turning away from us — inside this the wall is effectively thin.
   const EDGE_START = 0.52;
