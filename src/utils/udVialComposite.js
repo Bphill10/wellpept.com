@@ -591,7 +591,13 @@ function liftContents(out, base, green) {
       // The mask fades out through here too, so take its green with it on the way up.
       const r = out[i], b = out[i + 2], avg = (r + b) * 0.5;
       const g = out[i + 1] > avg ? avg : out[i + 1];
-      out[i] = r * gain; out[i + 1] = g * gain; out[i + 2] = b * gain;
+      // Hold the gain to whatever the brightest channel can still take. out[] clamps at 255, so
+      // a flat multiply pins the dominant channel while the others keep climbing, which shifts
+      // the hue: blue powder at [1,60,239] scaled 3.4x pins blue at 255 and lifts green to 204,
+      // turning KLOW cyan. Matching the plateau exactly matters less than the colour being right.
+      const mx = r > g ? (r > b ? r : b) : (g > b ? g : b);
+      const gp = mx > 0 ? Math.min(gain, 255 / mx) : gain;
+      out[i] = r * gp; out[i + 1] = g * gp; out[i + 2] = b * gp;
     }
   }
 }
@@ -1260,7 +1266,7 @@ export async function prepareVialScene({ svg, vialMl, baseSrc, cleanSrc = "", sc
   // wider than the 3 mL's rendered box (a uniform ×1.13 of the 3 mL glass, whose measured aspect
   // is GLASS_ASPECT_3ML) — anchored to the 3 mL rather than to its own photo, because the 10 mL
   // base photo sits smaller and slimmer in its frame and would otherwise read shorter and fatter.
-  const H3 = 0.62, TEN_ML_SCALE = 1.13, GLASS_ASPECT_3ML = 0.4225; // 3 mL white base glass: 387×916
+  const H3 = 0.62, TEN_ML_SCALE = 1.13, GLASS_ASPECT_3ML = 0.4472; // 3 mL white base glass: 373×834
   let dw, dh;
   if (ml === 10) {
     dh = Math.round(H * H3 * TEN_ML_SCALE);
