@@ -754,8 +754,14 @@ function cakePivot(out, img, top, bot) {
   return Math.max(24, Math.min(244, lums[Math.floor((lums.length - 1) * 0.75)]));
 }
 
-function tintContents(out, img, tint, top, bot, pivot) {
+function tintContents(out, img, tint, top, bot, pivot, lumSrc) {
   if (!pivot) return;
+  // Read tone from one shared source, not from the buffer being painted. liftContents brightens
+  // the strip under the label in baseBack only, which moved those pixels along the ramp and gave
+  // the cake two colours with a step exactly at the label's bottom edge — measured [12,38,136]
+  // above it against [48,73,165] below. Taking tone from the levelled twin makes both buffers
+  // land the same colour on the same grain, and takes the lift out of the hue entirely.
+  const lum = lumSrc || out;
   const { W, data } = img;
   const SOLID = 230;
   const { inner } = cakeSpans(img);
@@ -774,7 +780,7 @@ function tintContents(out, img, tint, top, bot, pivot) {
     for (let x = iv[0]; x <= iv[1]; x++) {
       const i = (y * W + x) * 4;
       if (data[i + 3] < SOLID) continue;
-      const L = 0.299 * out[i] + 0.587 * out[i + 1] + 0.114 * out[i + 2];
+      const L = 0.299 * lum[i] + 0.587 * lum[i + 1] + 0.114 * lum[i + 2];
       let t = L <= pivot ? (L / pivot) * 0.5 : 0.5 + ((L - pivot) / (255 - pivot)) * 0.5;
       t = 0.5 + (t - 0.5) * RELIEF;
       if (t <= 0.5) {
@@ -960,56 +966,6 @@ async function renderLabelPixels(svg, LW, LH) {
   return ctx.getImageData(0, 0, LW, LH).data;
 }
 
-/**
- * Resample the label raster to the width the wrap is actually going to read it at.
- *
- * The compose loop samples the label through the cylinder mapping, and that mapping compresses:
- * on a catalog card 2.2 label columns land on each output pixel at the vial's centre, rising to
- * about 4 at the silhouette edge. Sampling one column and ignoring the rest drops most of the
- * artwork, so strokes narrower than the stride hit some output pixels and miss others at random —
- * type looks soft and crawls while spinning.
- *
- * A fixed blur cannot fix that. A symmetric box is 1, 3, 5 … columns wide, so the smallest one
- * that filters at all is 3 where 2.2 is wanted: it over-softens the middle of the label, which is
- * exactly where the words are, and still under-filters the edges. Resampling hits the rate
- * exactly. Area-averaging down to ~1.3 columns per output pixel band-limits the artwork properly
- * and leaves a little headroom for the compression toward the edges; bilinear sampling then
- * carries it the rest of the way with no stair-stepping.
- *
- * It also shrinks the cached raster — a 1800px label is far more than any of these vials can show.
- */
-function resampleLabel(ld, lw, lh, targetW) {
-  if (targetW >= lw) return { ld, lw };
-  const out = new Uint8ClampedArray(targetW * lh * 4);
-  const step = lw / targetW;
-  for (let y = 0; y < lh; y++) {
-    const srow = y * lw, drow = y * targetW;
-    for (let x = 0; x < targetW; x++) {
-      const x0 = x * step, x1 = x0 + step;
-      let a = 0, b = 0, c = 0, d = 0, wsum = 0;
-      for (let sx = x0 | 0; sx < x1 && sx < lw; sx++) {
-        // Partial weight for the two columns the window straddles, so the filter stays exact
-        // rather than snapping to whole columns.
-        const wgt = Math.min(sx + 1, x1) - Math.max(sx, x0);
-        if (wgt <= 0) continue;
-        const i = (srow + sx) * 4;
-        a += ld[i] * wgt; b += ld[i + 1] * wgt; c += ld[i + 2] * wgt; d += ld[i + 3] * wgt;
-        wsum += wgt;
-      }
-      const o = (drow + x) * 4;
-      if (wsum > 0) { out[o] = a / wsum; out[o + 1] = b / wsum; out[o + 2] = c / wsum; out[o + 3] = d / wsum; }
-    }
-  }
-  return { ld: out, lw: targetW };
-}
-
-/**
- * Label columns that land on one output pixel at the vial's centre, for a band `bandW` wide.
- * Comes straight out of the wrap: u advances by HALF·asin((2u₀−1)·sin B)/B across the face, whose
- * slope at the centre is 2·HALF·sin B / B.
- */
-const WRAP_CENTRE_SLOPE = (2 * HALF * SB) / B;
-
 const clamp = (v) => (v < 0 ? 0 : v > 255 ? 255 : v);
 
 // Rotation range (in label-u space) so a drag turns the vial from its left edge/band
@@ -1084,23 +1040,12 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, cleanSrc = "
       else if (typeof console !== "undefined") console.warn(`[vial] ${cleanSrc} rejected: ${why}`);
     } catch { clean = null; }
   }
-  let ld = await renderLabelPixels(svg, dims.w, dims.h);
-  let labelW = dims.w;
+  const ld = await renderLabelPixels(svg, dims.w, dims.h);
 
   // Preferred path: a blank green label on the base → wrap the silver label onto exactly that
   // paper, shaded by the real photo.
   const green = detectGreenLabel(base.data, base.W, base.H);
   if (green) {
-    // Widest row of the green band: the label's on-screen width, and where its detail matters
-    // most. detectGreenLabel reports the band per row, not as a single box.
-    let bandW = 0;
-    for (let y = green.top0; y <= green.bot0; y++) {
-      const wRow = green.rowHi[y] - green.rowLo[y] + 1;
-      if (wRow > bandW) bandW = wRow;
-    }
-    // Aim for one label column per output pixel at the vial's centre.
-    const targetW = Math.max(200, Math.min(dims.w, Math.round((bandW - 1) / WRAP_CENTRE_SLOPE)));
-    ({ ld, lw: labelW } = resampleLabel(ld, dims.w, dims.h, targetW));
     // Liquid vials (B12) fill the label band; powder vials are empty glass there. `baseGlass`
     // (the bare-glass gap shown while spinning) is built lazily on first wrap use.
     // Match the red-liquid base by its filename token (…_Red.png), not a loose "red" — a base64
@@ -1133,14 +1078,14 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, cleanSrc = "
         const src2 = cleanBack || baseBack;
         const img2 = clean || base;
         const pivot = cakePivot(src2, img2, cake.top, cake.bot);
-        tintContents(baseBack, base, powderTint, Math.max(cake.top, green.bot0 + 1), cake.bot, pivot);
-        if (cleanBack) tintContents(cleanBack, clean, powderTint, cake.top, cake.bot, pivot);
+        tintContents(baseBack, base, powderTint, Math.max(cake.top, green.bot0 + 1), cake.bot, pivot, src2);
+        if (cleanBack) tintContents(cleanBack, clean, powderTint, cake.top, cake.bot, pivot, src2);
       }
     }
     if (cleanBack && capTint) tintCap(cleanBack, clean, capTint, crimpTint || capTint, capFinish);
     // Optional cap recolour (landing showcase) — dome + crimp collar in two coordinated tints.
     if (capTint) tintCap(baseBack, base, capTint, crimpTint || capTint, capFinish);
-    return { base, ld, lw: labelW, lh: dims.h, green, liquid, baseBack, cleanBack };
+    return { base, ld, lw: dims.w, lh: dims.h, green, liquid, baseBack, cleanBack };
   }
 
   // Fallback (non-chroma base): guess a band on the vial silhouette.

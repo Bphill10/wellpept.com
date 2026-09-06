@@ -231,7 +231,10 @@ export function buildSilverLabelSVG(o = {}) {
   <text x="${rightC}" y="${h * 0.715}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${fit("RESEARCH ONLY.", h * 0.064, 0.52)}" letter-spacing="0.5" text-anchor="middle">RESEARCH ONLY.</text>
   <text x="${rightC}" y="${h * 0.822}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${fit("NOT FOR HUMAN", h * 0.054, 0.52)}" text-anchor="middle">NOT FOR HUMAN</text>
   <text x="${rightC}" y="${h * 0.898}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${fit("NOT FOR HUMAN", h * 0.054, 0.52)}" text-anchor="middle">CONSUMPTION.</text>
-  <rect x="${h * 0.004}" y="${h * 0.004}" width="${w - h * 0.008}" height="${h - h * 0.008}" fill="none" stroke="#23262b" stroke-width="${h * 0.008}"/>
+  <!-- Trim edge. The wrap squeezes the label's 900 raster rows into roughly 210 screen pixels on a
+       catalog card, so a hairline drawn at 0.008 of the height arrived 1.7px wide and disappeared
+       on every side except the top, where it had bright glass behind it to contrast against. -->
+  <rect x="${h * 0.007}" y="${h * 0.007}" width="${w - h * 0.014}" height="${h - h * 0.014}" fill="none" stroke="#23262b" stroke-width="${h * 0.014}"/>
 </svg>`;
 }
 
