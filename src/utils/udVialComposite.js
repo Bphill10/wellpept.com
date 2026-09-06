@@ -109,11 +109,29 @@ export function silverVialBaseSrc(name, vialMl, powderColor = "") {
   const ml = Number(vialMl) >= 8 ? 10 : 3;
   const n = String(name || "").toUpperCase();
   const pc = String(powderColor || "").toLowerCase();
-  const isBlue = pc.includes("blue") || /(KLOW|GLOW|GHK)/.test(n);
   const isRed = pc.includes("red") || pc.includes("liquid") || /\bB\s*12\b|VITAMIN\s*B12/.test(n);
   if (isRed) return BASE["10-red"];
-  if (isBlue && ml === 3) return BASE["3-blue"];
+  // Blue compounds render off the white base with a tint (see powderTintFor). The blue photo is
+  // still installed, but nothing routes to it: its cake was too dark to keep a highlight.
   return ml === 10 ? BASE["10-white"] : BASE["3-white"];
+}
+
+/**
+ * Contents colours. Every base is shot with white powder, so a compound's cake colour is a tint
+ * applied at composite time rather than a separate photo. Keep these bright: they are pivoted on
+ * the cake's own mid-tone, so a dark tint loses the crown highlight that makes it read as powder.
+ */
+export const POWDER_TINTS = {
+  blue: [12, 42, 150],
+};
+
+/** The tint for a compound's cake, or null to leave it the photographed white. */
+export function powderTintFor(name, powderColor = "") {
+  const n = String(name || "").toUpperCase();
+  const pc = String(powderColor || "").toLowerCase();
+  // The blue trio share one cake colour; they are told apart by their caps, not their contents.
+  if (/\bKLOW\b|\bGLOW\b|GHK/.test(n) || pc.includes("blue")) return POWDER_TINTS.blue;
+  return null;
 }
 
 /** The unlabelled twin of whatever silverVialBaseSrc would pick, or "" if none is installed. */
@@ -121,10 +139,10 @@ export function cleanVialBaseSrc(name, vialMl, powderColor = "") {
   const ml = Number(vialMl) >= 8 ? 10 : 3;
   const n = String(name || "").toUpperCase();
   const pc = String(powderColor || "").toLowerCase();
-  const isBlue = pc.includes("blue") || /(KLOW|GLOW|GHK)/.test(n);
   const isRed = pc.includes("red") || pc.includes("liquid") || /\bB\s*12\b|VITAMIN\s*B12/.test(n);
   if (isRed) return CLEAN["10-red"];
-  if (isBlue && ml === 3) return CLEAN["3-blue"];
+  // Blue compounds render off the white base with a tint (see powderTintFor). The blue photo is
+  // still installed, but nothing routes to it: its cake was too dark to keep a highlight.
   return ml === 10 ? CLEAN["10-white"] : CLEAN["3-white"];
 }
 
@@ -603,6 +621,119 @@ function liftContents(out, base, green) {
 }
 
 /**
+ * Recolour the contents cake in place.
+ *
+ * Every base is photographed with white powder, so the colour is applied here rather than shot
+ * separately: one base serves every compound, there is no second master to keep pixel-aligned,
+ * and a new colour costs nothing. The blue base photo it replaces sat at mean luminance 133
+ * against the white one's 200 — its highlights were already crushed, which is what made it read
+ * as painted on rather than as a cake.
+ *
+ * The cake is found by opacity, never by hue. It is the only solid thing inside the glass, which
+ * transmits at alpha ~85 everywhere else, so scanning down from `fromY` the first mostly-solid
+ * row is the fill line. It ends where row brightness falls off a cliff — that is the vial's own
+ * thick base showing through beneath the powder. Checked against the blue master (the one shot
+ * with real blue powder) this lands 76%-90% of the vial, which is exactly where that photo has
+ * blue in it and where it leaves the base clear.
+ *
+ * Colour lands as a pivot colorize on the cake's own mid-tone, so the grain survives: dark grains
+ * stay dark and the lit crown still blows out to white. Running after liftContents also means the
+ * lift works on neutral powder and can never pin a saturated channel the way it did on the old
+ * blue base.
+ */
+function tintContents(out, base, tint, fromY) {
+  const { W, H, data } = base;
+  const SOLID = 230;
+  // The cake is the vial's contents, not its walls. Looking at the blue master — the one shot with
+  // real blue powder — the colour starts 7% of the row's width in from each edge and stops 7%
+  // short of the other side, because those outer pixels are the thick glass wall in front of and
+  // behind the powder. Tinting edge to edge is what bled colour onto the glass.
+  const WALL = 0.07;
+  const rowSpan = (y) => {
+    let lo = -1, hi = -1;
+    for (let x = 0; x < W; x++) if (data[(y * W + x) * 4 + 3] > 60) { if (lo < 0) lo = x; hi = x; }
+    if (lo < 0) return null;
+    const inset = Math.round((hi - lo + 1) * WALL);
+    return hi - lo > 2 * inset + 2 ? [lo + inset, hi - inset] : [lo, hi];
+  };
+  // Row statistics still measure the full width — the fill line and the cake's bottom edge are
+  // found from how solid the whole row is, which the inset would otherwise skew.
+  const fullSpan = (y) => {
+    let lo = -1, hi = -1;
+    for (let x = 0; x < W; x++) if (data[(y * W + x) * 4 + 3] > 60) { if (lo < 0) lo = x; hi = x; }
+    return lo < 0 ? null : [lo, hi];
+  };
+  const rowStat = (y) => {
+    const s = fullSpan(y);
+    if (!s) return null;
+    let n = 0, solid = 0, lum = 0;
+    for (let x = s[0]; x <= s[1]; x++) {
+      const i = (y * W + x) * 4;
+      n++;
+      if (data[i + 3] >= SOLID) { solid++; lum += 0.299 * out[i] + 0.587 * out[i + 1] + 0.114 * out[i + 2]; }
+    }
+    return { frac: n ? solid / n : 0, lum: solid ? lum / solid : 0 };
+  };
+  let top = -1;
+  for (let y = Math.max(0, fromY); y < H; y++) {
+    const r = rowStat(y);
+    if (r && r.frac >= 0.6) { top = y; break; }
+  }
+  if (top < 0) return;
+  let plateau = 0;
+  for (let y = top, seen = 0; y < H && seen < 12; y++) {
+    const r = rowStat(y);
+    if (r && r.frac >= 0.6) { if (r.lum > plateau) plateau = r.lum; seen++; }
+  }
+  if (plateau <= 0) return;
+  let bot = top;
+  for (let y = top; y < H; y++) {
+    const r = rowStat(y);
+    if (!r || r.frac < 0.6 || r.lum < plateau * 0.70) break;
+    bot = y;
+  }
+  if (bot <= top + 2) return;
+  // Pivot high, not on the mean. A lyophilized cake is bright and top-heavy — its mean sits near
+  // the 25th percentile — so pivoting on the mean sends three quarters of it into the tint→white
+  // half and the colour washes out. Pivoting at the 75th percentile puts most of the cake in the
+  // black→tint half, where the colour is full strength, and leaves only the lit crown to climb
+  // toward white.
+  const lums = [];
+  for (let y = top; y <= bot; y++) {
+    const s = rowSpan(y);
+    if (!s) continue;
+    for (let x = s[0]; x <= s[1]; x++) {
+      const i = (y * W + x) * 4;
+      if (data[i + 3] < SOLID) continue;
+      lums.push(0.299 * out[i] + 0.587 * out[i + 1] + 0.114 * out[i + 2]);
+    }
+  }
+  if (!lums.length) return;
+  lums.sort((a, b) => a - b);
+  const pivot = Math.max(24, Math.min(244, lums[Math.floor((lums.length - 1) * 0.75)]));
+  // How far the crown is allowed to blow out. Full white reads as a bald spot on a coloured cake.
+  const CROWN = 0.72;
+  const [tr, tg, tb] = tint;
+  for (let y = top; y <= bot; y++) {
+    const s = rowSpan(y);
+    if (!s) continue;
+    for (let x = s[0]; x <= s[1]; x++) {
+      const i = (y * W + x) * 4;
+      if (data[i + 3] < SOLID) continue;
+      const L = 0.299 * out[i] + 0.587 * out[i + 1] + 0.114 * out[i + 2];
+      const t = L <= pivot ? (L / pivot) * 0.5 : 0.5 + ((L - pivot) / (255 - pivot)) * 0.5;
+      if (t <= 0.5) {
+        const k = t * 2;
+        out[i] = tr * k; out[i + 1] = tg * k; out[i + 2] = tb * k;
+      } else {
+        const k = (t - 0.5) * 2 * CROWN;
+        out[i] = tr + (255 - tr) * k; out[i + 1] = tg + (255 - tg) * k; out[i + 2] = tb + (255 - tb) * k;
+      }
+    }
+  }
+}
+
+/**
  * How each dome finish maps the base plastic's tones.
  *
  *  - `solid` paints the dome: the colour lands on its mid-tone, shadows fall to black and
@@ -774,6 +905,50 @@ async function renderLabelPixels(svg, LW, LH) {
   return ctx.getImageData(0, 0, LW, LH).data;
 }
 
+/**
+ * Pre-filter the label raster for the size it is about to be drawn at.
+ *
+ * The compose loop point-samples the label — `ld[(u * lwm) | 0]` — and the label is a 1800px
+ * raster squeezed onto a vial a couple of hundred pixels wide. That drops four of every five
+ * columns, so a letter stroke narrower than the sampling stride lands on some output pixels and
+ * misses others at random. It reads as soft, mushy type, and it crawls when the vial spins.
+ *
+ * Averaging each column with the neighbours that share its output pixel is the mip filter the
+ * sampler never did: strokes keep their weight instead of flickering in and out, so small type
+ * comes out legible. Done once per vial with a running sum, so it is O(1) per pixel and costs
+ * nothing in the frame loop.
+ */
+function prefilterLabel(ld, lw, lh, bandW) {
+  // The wrap shows roughly 60% of the label's width across the vial's face, so that many raster
+  // columns are being squeezed into `bandW` output pixels.
+  const k = Math.round((lw * 0.6) / Math.max(1, bandW));
+  if (k < 2) return ld;
+  const r = Math.min(10, k >> 1);
+  if (r < 1) return ld;
+  const win = 2 * r + 1;
+  const out = new Uint8ClampedArray(ld.length);
+  for (let y = 0; y < lh; y++) {
+    const row = y * lw;
+    let a = 0, b = 0, c = 0, d = 0;
+    // Seed the window at x = 0 with the left edge clamped.
+    for (let t = -r; t <= r; t++) {
+      const i = (row + (t < 0 ? 0 : t >= lw ? lw - 1 : t)) * 4;
+      a += ld[i]; b += ld[i + 1]; c += ld[i + 2]; d += ld[i + 3];
+    }
+    for (let x = 0; x < lw; x++) {
+      const o = (row + x) * 4;
+      out[o] = a / win; out[o + 1] = b / win; out[o + 2] = c / win; out[o + 3] = d / win;
+      const drop = (row + Math.max(0, x - r)) * 4;
+      const add = (row + Math.min(lw - 1, x + r + 1)) * 4;
+      a += ld[add] - ld[drop];
+      b += ld[add + 1] - ld[drop + 1];
+      c += ld[add + 2] - ld[drop + 2];
+      d += ld[add + 3] - ld[drop + 3];
+    }
+  }
+  return out;
+}
+
 const clamp = (v) => (v < 0 ? 0 : v > 255 ? 255 : v);
 
 // Rotation range (in label-u space) so a drag turns the vial from its left edge/band
@@ -832,7 +1007,7 @@ function twinMismatch(base, twin) {
  * Precomputes a per-column wrap LUT (`fcol`) and per-row label-row map (`rowBase`) so the
  * compose hot loop is pure array lookups.
  */
-export async function prepareVialCompositor({ svg, vialMl, baseSrc, cleanSrc = "", ss = BASE_SS, capTint = null, capFinish = "solid", crimpTint = null }) {
+export async function prepareVialCompositor({ svg, vialMl, baseSrc, cleanSrc = "", ss = BASE_SS, capTint = null, capFinish = "solid", crimpTint = null, powderTint = null }) {
   const ml = Number(vialMl) >= 8 ? 10 : 3;
   const dims = silverLabelDims(ml);
   const base = await getBase(baseSrc, ss);
@@ -848,12 +1023,13 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, cleanSrc = "
       else if (typeof console !== "undefined") console.warn(`[vial] ${cleanSrc} rejected: ${why}`);
     } catch { clean = null; }
   }
-  const ld = await renderLabelPixels(svg, dims.w, dims.h);
+  let ld = await renderLabelPixels(svg, dims.w, dims.h);
 
   // Preferred path: a blank green label on the base → wrap the silver label onto exactly that
   // paper, shaded by the real photo.
   const green = detectGreenLabel(base.data, base.W, base.H);
   if (green) {
+    ld = prefilterLabel(ld, dims.w, dims.h, green.w);
     // Liquid vials (B12) fill the label band; powder vials are empty glass there. `baseGlass`
     // (the bare-glass gap shown while spinning) is built lazily on first wrap use.
     // Match the red-liquid base by its filename token (…_Red.png), not a loose "red" — a base64
@@ -865,12 +1041,18 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, cleanSrc = "
     const baseBack = new Uint8ClampedArray(base.data);
     transmitGlass(baseBack, base, green.top);
     liftContents(baseBack, base, green);
+    // After the lift, never before: the lift scales the darkened strip back to full strength and
+    // does that on neutral powder, so it can no longer pin a saturated channel and skew the hue.
+    if (powderTint) tintContents(baseBack, base, powderTint, green.bot0 + 1);
     // The clean twin gets the same glass levelling so the two agree wherever they meet. It needs
     // no lift: there is no label on it to have darkened anything.
     let cleanBack = null;
     if (clean) {
       cleanBack = new Uint8ClampedArray(clean.data);
       transmitGlass(cleanBack, clean, green.top);
+      // The twin has no label hiding the top of the cake, so it scans from the label's top edge
+      // and finds the real fill line. Same tint, same pivot rule, so the two agree where they meet.
+      if (powderTint) tintContents(cleanBack, clean, powderTint, green.top);
       if (capTint) tintCap(cleanBack, clean, capTint, crimpTint || capTint, capFinish);
     }
     // Optional cap recolour (landing showcase) — dome + crimp collar in two coordinated tints.
@@ -1247,9 +1429,9 @@ function alphaBBox(canvas) {
  * nothing. Pass a small `ss` (base res) + `maxOut` (output cap in px) for a smooth live spin,
  * or the defaults (BASE_SS, native scene size) for the crisp still. `paintVialScene` paints.
  */
-export async function prepareVialScene({ svg, vialMl, baseSrc, cleanSrc = "", sceneSrc, ss = BASE_SS, maxOut = 0, capTint = null, capFinish = "solid", crimpTint = null }) {
+export async function prepareVialScene({ svg, vialMl, baseSrc, cleanSrc = "", sceneSrc, ss = BASE_SS, maxOut = 0, capTint = null, capFinish = "solid", crimpTint = null, powderTint = null }) {
   const ml = Number(vialMl) >= 8 ? 10 : 3;
-  const prepared = await prepareVialCompositor({ svg, vialMl: ml, baseSrc, cleanSrc, ss, capTint, capFinish, crimpTint });
+  const prepared = await prepareVialCompositor({ svg, vialMl: ml, baseSrc, cleanSrc, ss, capTint, capFinish, crimpTint, powderTint });
   const scene = await loadImage(sceneSrc);
   const off = document.createElement("canvas");
   composeVial(off, prepared, 0, { wrap: true });
@@ -1355,7 +1537,7 @@ export function paintVialScene(canvas, state, rot = 0, opts = {}) {
  * vial base is planted on the floor line; 10 mL vials are drawn taller than 3 mL so the size
  * difference reads true. Output is an opaque scene canvas sized to `sceneSrc`.
  */
-export async function drawVialScene(canvas, { svg, vialMl, baseSrc, cleanSrc = "", sceneSrc, rot = 0, ss, maxOut = 0, capTint = null, capFinish = "solid", crimpTint = null }) {
-  const state = await prepareVialScene({ svg, vialMl, baseSrc, cleanSrc, sceneSrc, ...(ss ? { ss } : {}), maxOut, capTint, capFinish, crimpTint });
+export async function drawVialScene(canvas, { svg, vialMl, baseSrc, cleanSrc = "", sceneSrc, rot = 0, ss, maxOut = 0, capTint = null, capFinish = "solid", crimpTint = null, powderTint = null }) {
+  const state = await prepareVialScene({ svg, vialMl, baseSrc, cleanSrc, sceneSrc, ...(ss ? { ss } : {}), maxOut, capTint, capFinish, crimpTint, powderTint });
   return paintVialScene(canvas, state, rot, { wrap: rot !== 0 });
 }

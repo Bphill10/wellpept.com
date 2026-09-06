@@ -31,7 +31,7 @@ export const CAP_COLORS = {
   // vial, so they cannot be separated by colour family like everything else is — they are
   // separated inside the blue instead: deep royal, pale sky, and the cerulean that goes to
   // GHK-Cu, the copper peptide.
-  navy:   [26, 58, 198],
+  navy:   [22, 52, 176],
   sky:    [96, 176, 250],
   azure:  [18, 168, 212],
   // Metals. These are CRIMP colours — the collar is a stamped aluminium seal, which really is
