@@ -231,6 +231,7 @@ export function buildSilverLabelSVG(o = {}) {
   <text x="${rightC}" y="${h * 0.715}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${fit("RESEARCH ONLY.", h * 0.064, 0.52)}" letter-spacing="0.5" text-anchor="middle">RESEARCH ONLY.</text>
   <text x="${rightC}" y="${h * 0.822}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${fit("NOT FOR HUMAN", h * 0.054, 0.52)}" text-anchor="middle">NOT FOR HUMAN</text>
   <text x="${rightC}" y="${h * 0.898}" fill="#0f0f0f" font-family="${SANS}" font-weight="800" font-size="${fit("NOT FOR HUMAN", h * 0.054, 0.52)}" text-anchor="middle">CONSUMPTION.</text>
+  <rect x="${h * 0.004}" y="${h * 0.004}" width="${w - h * 0.008}" height="${h - h * 0.008}" fill="none" stroke="#23262b" stroke-width="${h * 0.008}"/>
 </svg>`;
 }
 

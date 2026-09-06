@@ -4,6 +4,7 @@ import {
   drawVialScene,
   silverVialBaseSrc,
   cleanVialBaseSrc,
+  powderTintFor,
   prepareVialScene,
   paintVialScene,
 } from "../utils/udVialComposite";
@@ -112,9 +113,11 @@ export default function CatalogVial({
     // The unlabelled twin of the same vial, if one is installed. Where the wrap does not
     // reach, its untouched pixels are the glass; without it the compositor falls back.
     const cleanSrc = cleanVialBaseSrc(name, ml, powderColor);
-    fieldsRef.current = { svg, ml, baseSrc, cleanSrc, capTint: dome, capFinish: domeFinish, crimpTint: crimp };
+    // The cake is photographed white on every base; its colour is a tint applied at composite time.
+    const powderTint = powderTintFor(name, powderColor);
+    fieldsRef.current = { svg, ml, baseSrc, cleanSrc, capTint: dome, capFinish: domeFinish, crimpTint: crimp, powderTint };
 
-    drawVialScene(canvas, { svg, vialMl: ml, baseSrc, cleanSrc, sceneSrc: VIAL_SCENE_SRC, ss: 1.2, maxOut: 820, capTint: dome, capFinish: domeFinish, crimpTint: crimp })
+    drawVialScene(canvas, { svg, vialMl: ml, baseSrc, cleanSrc, sceneSrc: VIAL_SCENE_SRC, ss: 1.2, maxOut: 820, capTint: dome, capFinish: domeFinish, crimpTint: crimp, powderTint })
       .then(() => {
         if (cancelled) return;
         setReady(true);
@@ -141,8 +144,8 @@ export default function CatalogVial({
       canvas.height = snap.height;
       canvas.getContext("2d").drawImage(snap, 0, 0);
     } else if (fieldsRef.current) {
-      const { svg, ml, baseSrc, cleanSrc, capTint, capFinish, crimpTint } = fieldsRef.current;
-      drawVialScene(canvas, { svg, vialMl: ml, baseSrc, cleanSrc, sceneSrc: VIAL_SCENE_SRC, ss: 1.2, maxOut: 820, capTint, capFinish, crimpTint }).catch(() => {});
+      const { svg, ml, baseSrc, cleanSrc, capTint, capFinish, crimpTint, powderTint } = fieldsRef.current;
+      drawVialScene(canvas, { svg, vialMl: ml, baseSrc, cleanSrc, sceneSrc: VIAL_SCENE_SRC, ss: 1.2, maxOut: 820, capTint, capFinish, crimpTint, powderTint }).catch(() => {});
     }
   };
 
@@ -183,7 +186,7 @@ export default function CatalogVial({
     if (!f) return Promise.resolve(null);
     buildingRef.current = prepareVialScene({
       svg: f.svg, vialMl: f.ml, baseSrc: f.baseSrc, cleanSrc: f.cleanSrc, sceneSrc: VIAL_SCENE_SRC,
-      ss: 0.42, maxOut: 520, capTint: f.capTint, capFinish: f.capFinish, crimpTint: f.crimpTint,
+      ss: 0.42, maxOut: 520, capTint: f.capTint, capFinish: f.capFinish, crimpTint: f.crimpTint, powderTint: f.powderTint,
     }).then((st) => { sceneRef.current = st; return st; })
       .catch(() => null);
     return buildingRef.current;
