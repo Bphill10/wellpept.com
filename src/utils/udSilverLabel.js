@@ -81,6 +81,14 @@ export const LABEL_ACCENTS = {
 };
 
 /** 3 mL → 40×20 mm (2:1); 10 mL and up → 50×30 mm (5:3). Master renders at 1800 px wide. */
+/**
+ * Die-cut corner radius, in label-raster pixels. A real self-adhesive label is punched with
+ * rounded corners; square ones read as artwork printed straight onto the glass. The compositor
+ * cuts the same radius out of the wrap (TRIM_R / lw and TRIM_R / lh), so the paper's silhouette
+ * and the printed trim edge round together.
+ */
+export const TRIM_R = 80;
+
 export function silverLabelDims(vialMl = 3) {
   const ml = Number(vialMl) >= 8 ? 10 : 3;
   return ml === 10
@@ -210,7 +218,9 @@ export function buildSilverLabelSVG(o = {}) {
     <linearGradient id="goldbar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ecd390"/><stop offset="0.5" stop-color="#b7893a"/><stop offset="1" stop-color="#8f6a26"/></linearGradient>
     <linearGradient id="silver" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef1f3"/><stop offset="0.4" stop-color="#aab0b8"/><stop offset="0.6" stop-color="#7d838c"/><stop offset="1" stop-color="#c2c8ce"/></linearGradient>
     <linearGradient id="silverbar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dfe3e7"/><stop offset="0.5" stop-color="#aeb4bc"/><stop offset="1" stop-color="#878d95"/></linearGradient>
+    <clipPath id="trim"><rect x="0" y="0" width="${w}" height="${h}" rx="${TRIM_R}" ry="${TRIM_R}"/></clipPath>
   </defs>
+  <g clip-path="url(#trim)">
   <rect x="0" y="0" width="${w}" height="${h}" fill="#ffffff"/>
   <rect x="0" y="0" width="${band}" height="${h}" fill="#111"/>
   <rect x="${band}" y="0" width="4" height="${h}" fill="${A.line}"/>
@@ -234,7 +244,8 @@ export function buildSilverLabelSVG(o = {}) {
   <!-- Trim edge. The wrap squeezes the label's 900 raster rows into roughly 210 screen pixels on a
        catalog card, so a hairline drawn at 0.008 of the height arrived 1.7px wide and disappeared
        on every side except the top, where it had bright glass behind it to contrast against. -->
-  <rect x="${h * 0.007}" y="${h * 0.007}" width="${w - h * 0.014}" height="${h - h * 0.014}" fill="none" stroke="#23262b" stroke-width="${h * 0.014}"/>
+  <rect x="${h * 0.007}" y="${h * 0.007}" width="${w - h * 0.014}" height="${h - h * 0.014}" rx="${TRIM_R}" ry="${TRIM_R}" fill="none" stroke="#23262b" stroke-width="${h * 0.014}"/>
+  </g>
 </svg>`;
 }
 
