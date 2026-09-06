@@ -702,7 +702,7 @@ function findCakeBand(img, fromY) {
   // The cake's own grain measures ~23 here and spikes to the mid-40s on the odd row; the moulded
   // base below runs 65-93. Break on a run, not on one row — a single spike inside the cake was
   // enough to cut the colour short and leave a hard line of bare white powder under it.
-  const roughLimit = Math.max(46, grain * 2.2);
+  const roughLimit = Math.max(58, grain * 2.6);
   const RUN = 3;
   let bot = top, rough = 0;
   for (let y = top; y < H; y++) {
@@ -735,7 +735,7 @@ function findCakeBand(img, fromY) {
  * Runs after liftContents, so the lift scales the darkened strip on neutral powder and can never
  * pin a saturated channel — the failure that turned KLOW cyan.
  */
-function tintContents(out, img, tint, top, bot) {
+function cakePivot(out, img, top, bot) {
   const { W, data } = img;
   const SOLID = 230;
   const { inner } = cakeSpans(img);
@@ -749,11 +749,24 @@ function tintContents(out, img, tint, top, bot) {
       lums.push(0.299 * out[i] + 0.587 * out[i + 1] + 0.114 * out[i + 2]);
     }
   }
-  if (!lums.length) return;
+  if (!lums.length) return 0;
   lums.sort((a, b) => a - b);
-  const pivot = Math.max(24, Math.min(244, lums[Math.floor((lums.length - 1) * 0.75)]));
+  return Math.max(24, Math.min(244, lums[Math.floor((lums.length - 1) * 0.75)]));
+}
+
+function tintContents(out, img, tint, top, bot, pivot) {
+  if (!pivot) return;
+  const { W, data } = img;
+  const SOLID = 230;
+  const { inner } = cakeSpans(img);
   // How far the crown may blow out. Full white reads as a bald spot on a coloured cake.
   const CROWN = 0.72;
+  // How much of the cake's own tonal range to keep. A lyophilized cake is one material under even
+  // light — the shading across it is slight. Mapping its full range onto black→tint→white turned
+  // that slight shading into heavy dark mottling that read as textured paint rather than powder.
+  // Pulling the range in toward the tint keeps the grain legible and lets the colour stay the
+  // colour, which is how the vial photographed with real blue powder actually looks.
+  const RELIEF = 0.5;
   const [tr, tg, tb] = tint;
   for (let y = top; y <= bot; y++) {
     const iv = inner(y);
@@ -762,7 +775,8 @@ function tintContents(out, img, tint, top, bot) {
       const i = (y * W + x) * 4;
       if (data[i + 3] < SOLID) continue;
       const L = 0.299 * out[i] + 0.587 * out[i + 1] + 0.114 * out[i + 2];
-      const t = L <= pivot ? (L / pivot) * 0.5 : 0.5 + ((L - pivot) / (255 - pivot)) * 0.5;
+      let t = L <= pivot ? (L / pivot) * 0.5 : 0.5 + ((L - pivot) / (255 - pivot)) * 0.5;
+      t = 0.5 + (t - 0.5) * RELIEF;
       if (t <= 0.5) {
         const k = t * 2;
         out[i] = tr * k; out[i + 1] = tg * k; out[i + 2] = tb * k;
@@ -1098,21 +1112,32 @@ export async function prepareVialCompositor({ svg, vialMl, baseSrc, cleanSrc = "
     const baseBack = new Uint8ClampedArray(base.data);
     transmitGlass(baseBack, base, green.top);
     liftContents(baseBack, base, green);
-    // After the lift, never before: the lift scales the darkened strip back to full strength and
-    // does that on neutral powder, so it can no longer pin a saturated channel and skew the hue.
-    // The cake's extent is a property of the photograph, so it is measured once on the untouched
-    // twin — which has no label hiding the top of it — and both buffers paint that same band.
-    const cake = powderTint ? findCakeBand(clean || base, clean ? green.top : green.bot0 + 1) : null;
-    if (cake) tintContents(baseBack, base, powderTint, Math.max(cake.top, green.bot0 + 1), cake.bot);
     // The clean twin gets the same glass levelling so the two agree wherever they meet. It needs
     // no lift: there is no label on it to have darkened anything.
     let cleanBack = null;
     if (clean) {
       cleanBack = new Uint8ClampedArray(clean.data);
       transmitGlass(cleanBack, clean, green.top);
-      if (cake) tintContents(cleanBack, clean, powderTint, cake.top, cake.bot);
-      if (capTint) tintCap(cleanBack, clean, capTint, crimpTint || capTint, capFinish);
     }
+    // Colour the contents. The cake's extent is a property of the photograph, so it is measured
+    // once on the untouched twin — which has no label hiding the top of it — and both buffers
+    // paint that same band. Tinting runs after liftContents, never before: the lift scales the
+    // darkened strip back to full strength and does that on neutral powder, so it can no longer
+    // pin a saturated channel and skew the hue.
+    if (powderTint) {
+      const cake = findCakeBand(clean || base, clean ? green.top : green.bot0 + 1);
+      if (cake) {
+        // One pivot for both buffers, taken over the whole cake. Deriving it separately gave the
+        // strip below the label a different mid-tone from the stretch the opening reveals, so the
+        // colour stepped across the label's edge on a vial that holds one powder.
+        const src2 = cleanBack || baseBack;
+        const img2 = clean || base;
+        const pivot = cakePivot(src2, img2, cake.top, cake.bot);
+        tintContents(baseBack, base, powderTint, Math.max(cake.top, green.bot0 + 1), cake.bot, pivot);
+        if (cleanBack) tintContents(cleanBack, clean, powderTint, cake.top, cake.bot, pivot);
+      }
+    }
+    if (cleanBack && capTint) tintCap(cleanBack, clean, capTint, crimpTint || capTint, capFinish);
     // Optional cap recolour (landing showcase) — dome + crimp collar in two coordinated tints.
     if (capTint) tintCap(baseBack, base, capTint, crimpTint || capTint, capFinish);
     return { base, ld, lw: labelW, lh: dims.h, green, liquid, baseBack, cleanBack };
