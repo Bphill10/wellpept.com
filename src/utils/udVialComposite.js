@@ -13,7 +13,7 @@
  *    a couple of milliseconds — smooth at 60fps. A per-column asin LUT (precomputed in
  *    `prepareVialCompositor`) keeps the hot loop to array lookups.
  */
-import { silverLabelDims } from "./udSilverLabel";
+import { silverLabelDims, TRIM_R } from "./udSilverLabel";
 
 // Label footprint band on the (consistent) vial silhouette, as fractions of its height.
 // `top`/`bot` hold the aspect-correct label; `fill` extends the label's blank bottom paper
@@ -686,10 +686,14 @@ function cakeSpans(img) {
 function findCakeBand(img, fromY) {
   const { H } = img;
   const { stat } = cakeSpans(img);
+  // The cake's crown is domed, so its first rows are solid only across the middle. Requiring most
+  // of the row to be solid here started the colour below the crown and left bare white powder
+  // sitting on top of the colour. A low threshold catches the first row with any cake in it; the
+  // paint loop still tests every pixel's own opacity, so the glass either side is never touched.
   let top = -1;
   for (let y = Math.max(0, fromY); y < H; y++) {
     const r = stat(y);
-    if (r && r.frac >= 0.6) { top = y; break; }
+    if (r && r.frac >= 0.18) { top = y; break; }
   }
   if (top < 0) return null;
   let grain = 0, seen = 0;
@@ -707,7 +711,9 @@ function findCakeBand(img, fromY) {
   let bot = top, rough = 0;
   for (let y = top; y < H; y++) {
     const r = stat(y);
-    if (!r || r.frac < 0.6) break;
+    if (!r) break;
+    // Partial rows are the crown; only treat a thin row as the end of the cake once past it.
+    if (r.frac < 0.6) { if (y > top + 10) break; bot = y; continue; }
     if (r.sd > roughLimit) {
       if (++rough >= RUN) break;
     } else {
@@ -1227,6 +1233,9 @@ function composeGreen(canvas, prepared, rot, wrap) {
     prepared.outImg = null;
   }
   const lwm = lw - 1, fh = Math.max(1, bot0 - top0), LN = ASIN_LUT.length - 1;
+  // The die-cut radius in wrap coordinates: u runs 0-1 across the label's width, and the row map
+  // runs 0-1 down its height, so the same corner in raster pixels becomes two different fractions.
+  const cornerU = TRIM_R / lw, cornerV = TRIM_R / Math.max(1, lh - 1);
   const PAPER = 236; // neutral paper shown through the label's transparent margins/corners
   for (let y = top; y <= bot; y++) {
     const lo = rowLo[y];
@@ -1240,6 +1249,10 @@ function composeGreen(canvas, prepared, rot, wrap) {
     // How much of the far side of the wrap is visible on this row: nothing past its top and
     // bottom edges, easing in over FAR_FEATHER so those edges do not draw a line across the
     // opening.
+    // Distance to the nearest horizontal trim edge, as a fraction of the label's height. Used
+    // with the same distance to the nearest cut end to punch the die-cut's rounded corners.
+    const evRow = Math.min(lyf, (lh - 1) - lyf) / Math.max(1, lh - 1);
+    const cornerRow = evRow < cornerV;
     const fEdge = Math.min(lyf, (lh - 1) - lyf) / Math.max(1, (lh - 1) * FAR_FEATHER);
     const fFade = fEdge <= 0 ? 0 : fEdge >= 1 ? 1 : fEdge * fEdge * (3 - 2 * fEdge);
     for (let x = lo; x <= hi; x++) {
@@ -1282,7 +1295,15 @@ function composeGreen(canvas, prepared, rot, wrap) {
       let u = UC + rr + dOff;
       if (wrap) {
         u -= Math.floor(u / T) * T; // wrap around the full strip (label + gap)
-        if (u >= 1) {
+        let cut = false;
+        if (cornerRow && u < 1) {
+          const euc = u < 0.5 ? u : 1 - u;
+          if (euc < cornerU) {
+            const a = (cornerU - euc) / cornerU, bq = (cornerV - evRow) / cornerV;
+            cut = a * a + bq * bq > 1; // outside the corner's quarter-ellipse: no paper here
+          }
+        }
+        if (u >= 1 || cut) {
           // No label here. The wrap is stuck to the outside of the glass and across this stretch
           // of the circumference there is simply none of it — nothing is applied, so what shows is
           // the vial's own bare glass, continuous with the rest of the bottle.
