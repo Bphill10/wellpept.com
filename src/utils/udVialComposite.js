@@ -834,14 +834,29 @@ function tintContents(out, img, tint, top, bot, pivot, lumSrc) {
   const RELIEF = 0.42;
   // The grain rides on top at full strength; this is what the eye reads as powder.
   const GRAIN = 1.25;
+  // Round the colour's own corners. The cake is a cylinder seen edge-on, so its silhouette is a
+  // rectangle with the corners taken off — square ones are what make it read as a painted block
+  // rather than a puck sitting in the glass. The radius is a fraction of the band's height so it
+  // scales with the vial, and it is applied to the same band in both buffers, so the front and
+  // the stretch the opening reveals round identically.
+  const CORNER = 0.22;
+  const rad = Math.max(2, (bot - top + 1) * CORNER);
   const [tr, tg, tb] = tint;
   for (let y = top; y <= bot; y++) {
     const iv = inner(y);
     if (!iv) continue;
     const row = (y - top) * bw;
+    const dv = Math.min(y - top, bot - y);
     for (let x = iv[0]; x <= iv[1]; x++) {
       const i = (y * W + x) * 4;
       if (data[i + 3] < SOLID) continue;
+      if (dv < rad) {
+        const dh = Math.min(x - iv[0], iv[1] - x);
+        if (dh < rad) {
+          const a = (rad - dh) / rad, b2 = (rad - dv) / rad;
+          if (a * a + b2 * b2 > 1) continue; // outside the rounded corner: not cake
+        }
+      }
       const k = row + (x - bx0);
       const L = Lm[k];
       const S = Sm[k] >= 0 ? Sm[k] : L;
