@@ -771,31 +771,92 @@ function tintContents(out, img, tint, top, bot, pivot, lumSrc) {
   const { W, data } = img;
   const SOLID = 230;
   const { inner } = cakeSpans(img);
+
+  // Separate the cake's fine grain from its broad shading, because the two want opposite
+  // treatment. Broad shading is what turns into heavy blotches when it is stretched across the
+  // ramp; the grain is the powder itself. Compressing both together fixed the blotches and left
+  // the cake smooth and dull. So the ramp is driven by a blurred copy — flat colour, no blotches
+  // — and the grain is added back on top at full strength, which is what makes it read as
+  // crystals rather than paint.
+  let bx0 = W, bx1 = -1;
+  for (let y = top; y <= bot; y++) {
+    const iv = inner(y);
+    if (!iv) continue;
+    if (iv[0] < bx0) bx0 = iv[0];
+    if (iv[1] > bx1) bx1 = iv[1];
+  }
+  if (bx1 < bx0) return;
+  const bw = bx1 - bx0 + 1, bh = bot - top + 1;
+  const Lm = new Float32Array(bw * bh), Mk = new Uint8Array(bw * bh);
+  for (let y = top; y <= bot; y++) {
+    const iv = inner(y);
+    if (!iv) continue;
+    const row = (y - top) * bw;
+    for (let x = iv[0]; x <= iv[1]; x++) {
+      const i = (y * W + x) * 4;
+      if (data[i + 3] < SOLID) continue;
+      const k = row + (x - bx0);
+      Lm[k] = 0.299 * lum[i] + 0.587 * lum[i + 1] + 0.114 * lum[i + 2];
+      Mk[k] = 1;
+    }
+  }
+  // Separable box blur that skips the gaps, so the glass either side never bleeds into the mean.
+  const R = 3, win = 2 * R + 1;
+  const Hs = new Float32Array(bw * bh), Hc = new Float32Array(bw * bh);
+  for (let r = 0; r < bh; r++) {
+    const row = r * bw;
+    let sum = 0, cnt = 0;
+    for (let x = 0; x < Math.min(bw, R + 1); x++) { if (Mk[row + x]) { sum += Lm[row + x]; cnt++; } }
+    for (let x = 0; x < bw; x++) {
+      Hs[row + x] = sum; Hc[row + x] = cnt;
+      const add = x + R + 1, drop = x - R;
+      if (add < bw && Mk[row + add]) { sum += Lm[row + add]; cnt++; }
+      if (drop >= 0 && Mk[row + drop]) { sum -= Lm[row + drop]; cnt--; }
+    }
+  }
+  const Sm = new Float32Array(bw * bh);
+  for (let x = 0; x < bw; x++) {
+    let sum = 0, cnt = 0;
+    for (let r = 0; r < Math.min(bh, R + 1); r++) { sum += Hs[r * bw + x]; cnt += Hc[r * bw + x]; }
+    for (let r = 0; r < bh; r++) {
+      Sm[r * bw + x] = cnt > 0 ? sum / cnt : -1;
+      const add = r + R + 1, drop = r - R;
+      if (add < bh) { sum += Hs[add * bw + x]; cnt += Hc[add * bw + x]; }
+      if (drop >= 0) { sum -= Hs[drop * bw + x]; cnt -= Hc[drop * bw + x]; }
+    }
+  }
+  void win;
+
   // How far the crown may blow out. Full white reads as a bald spot on a coloured cake.
   const CROWN = 0.72;
-  // How much of the cake's own tonal range to keep. A lyophilized cake is one material under even
-  // light — the shading across it is slight. Mapping its full range onto black→tint→white turned
-  // that slight shading into heavy dark mottling that read as textured paint rather than powder.
-  // Pulling the range in toward the tint keeps the grain legible and lets the colour stay the
-  // colour, which is how the vial photographed with real blue powder actually looks.
-  const RELIEF = 0.5;
+  // How much of the cake's BROAD shading to keep. Slight, because a lyophilized cake is one
+  // material under even light — anything more and the shading reads as relief moulded into paint.
+  const RELIEF = 0.42;
+  // The grain rides on top at full strength; this is what the eye reads as powder.
+  const GRAIN = 1.25;
   const [tr, tg, tb] = tint;
   for (let y = top; y <= bot; y++) {
     const iv = inner(y);
     if (!iv) continue;
+    const row = (y - top) * bw;
     for (let x = iv[0]; x <= iv[1]; x++) {
       const i = (y * W + x) * 4;
       if (data[i + 3] < SOLID) continue;
-      const L = 0.299 * lum[i] + 0.587 * lum[i + 1] + 0.114 * lum[i + 2];
-      let t = L <= pivot ? (L / pivot) * 0.5 : 0.5 + ((L - pivot) / (255 - pivot)) * 0.5;
+      const k = row + (x - bx0);
+      const L = Lm[k];
+      const S = Sm[k] >= 0 ? Sm[k] : L;
+      let t = S <= pivot ? (S / pivot) * 0.5 : 0.5 + ((S - pivot) / (255 - pivot)) * 0.5;
       t = 0.5 + (t - 0.5) * RELIEF;
+      let cr, cg, cb;
       if (t <= 0.5) {
-        const k = t * 2;
-        out[i] = tr * k; out[i + 1] = tg * k; out[i + 2] = tb * k;
+        const q = t * 2;
+        cr = tr * q; cg = tg * q; cb = tb * q;
       } else {
-        const k = (t - 0.5) * 2 * CROWN;
-        out[i] = tr + (255 - tr) * k; out[i + 1] = tg + (255 - tg) * k; out[i + 2] = tb + (255 - tb) * k;
+        const q = (t - 0.5) * 2 * CROWN;
+        cr = tr + (255 - tr) * q; cg = tg + (255 - tg) * q; cb = tb + (255 - tb) * q;
       }
+      const d = (L - S) * GRAIN;
+      out[i] = cr + d; out[i + 1] = cg + d; out[i + 2] = cb + d;
     }
   }
 }
