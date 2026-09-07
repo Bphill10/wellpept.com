@@ -11875,27 +11875,66 @@ label.field select,
 .ud-showcase-stage {
   position: relative;
   display: grid;
-  place-items: center;
+  /* The vial stands on the niche floor, not in the middle of the box: the floor's front edge
+     measures 84% down the plate, so the vial is bottom-aligned and held clear of it by the
+     padding below. It then reads as an object inside a display case rather than a product shot
+     cropped to a frame. */
+  place-items: end center;
   min-height: 440px;
-  padding: 1.4rem 1rem 0.6rem;
+  padding: 1.4rem 1rem 9.8%;
   border-radius: 18px;
   overflow: hidden;
-  /* Black-marble + smoke studio backdrop behind the hero vial (same scene as the catalog). */
-  background:
-    linear-gradient(180deg, rgba(6, 7, 9, 0.12) 0%, rgba(6, 7, 9, 0.5) 100%),
-    url("/ud-labels/bg/vial_card_bg.webp") center 40% / cover no-repeat;
+  /* A marble display niche with its spotlights off. The lit copy of the same niche is layered
+     over it and cross-fades in, so the lights come up on the real geometry rather than on a
+     brightness filter — the pools they throw on the floor and the falloff down the back wall are
+     photographed, not simulated. */
+  background: #050506 url("/ud-labels/showcase/niche_off.webp") center bottom / cover no-repeat;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.55);
 }
+/* Lights on. */
+.ud-showcase-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("/ud-labels/showcase/niche_on.webp") center bottom / cover no-repeat;
+  opacity: 0;
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+  z-index: 0;
+}
+.ud-showcase-stage:hover::before,
+.ud-showcase-stage:focus-within::before,
+.ud-showcase-stage.is-live::before { opacity: 1; }
+/* The shadow the vial casts on the lit floor once it is off the ground — lifted out of the
+   reference frame rather than drawn, so it carries the two spotlights' real double falloff. */
 .ud-showcase-stage::after {
   content: "";
   position: absolute;
-  bottom: 9%;
-  width: 60%;
-  height: 26px;
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.65), transparent 72%);
-  filter: blur(7px);
+  inset: 0;
+  background: url("/ud-labels/showcase/floating_shadow.png") center bottom / cover no-repeat;
+  opacity: 0;
+  transition: opacity 0.55s ease 0.15s;
+  pointer-events: none;
   z-index: 0;
+}
+.ud-showcase-stage:hover::after,
+.ud-showcase-stage:focus-within::after,
+.ud-showcase-stage.is-live::after { opacity: 0.85; }
+/* The shadow answers the lift: as the vial rises it spreads and softens, which is what actually
+   sells height. It also drifts with the pointer, but only half as far as the vial — the lights are
+   overhead, so a shadow tracks its object at a fraction of the distance. */
+@media (prefers-reduced-motion: no-preference) {
+  .ud-showcase-stage::after {
+    transform: translate3d(calc(var(--ud-px, 0) * 4px), 0, 0);
+    transition: opacity 0.55s ease 0.15s, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), filter 0.55s ease;
+  }
+  .ud-showcase-stage:hover::after,
+  .ud-showcase-stage:focus-within::after,
+  .ud-showcase-stage.is-live::after {
+    transform: translate3d(calc(var(--ud-px, 0) * 4px), 1.1%, 0) scale(1.05);
+    filter: blur(1.5px);
+  }
 }
 .hero-vial-canvas {
   position: relative;
@@ -11904,7 +11943,7 @@ label.field select,
   width: auto;
   max-width: 100%;
   height: auto;
-  max-height: clamp(380px, 56vh, 660px);
+  max-height: clamp(240px, 34vh, 420px);
   opacity: 0;
   transition: opacity 0.5s ease, filter 0.45s ease;
   /* dark contact shadow + a soft warm ember outline (the vial's own alpha shapes the glow) */
@@ -11913,6 +11952,14 @@ label.field select,
     drop-shadow(0 0 13px rgba(255, 120, 45, 0.30));
 }
 .hero-vial-canvas.is-ready { opacity: 1; }
+/* Off the floor and hovering. The ease overshoots slightly so it rises like it is being lifted,
+   not slid. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-vial-canvas { transition: opacity 0.5s ease, filter 0.45s ease, transform 0.85s cubic-bezier(0.34, 1.32, 0.44, 1); }
+  .ud-showcase-stage:hover .hero-vial-canvas,
+  .ud-showcase-stage:focus-within .hero-vial-canvas,
+  .ud-showcase-stage.is-live .hero-vial-canvas { transform: translateY(-9%); }
+}
 /* Ember outline flares warmer when you hover the showcase. */
 .ud-showcase-stage:hover .hero-vial-canvas {
   filter:
@@ -11927,6 +11974,16 @@ label.field select,
   display: grid;
   justify-items: center;
   gap: 0.55rem;
+}
+/* Motion parallax. The vial travels a few pixels against a niche that does not move — that
+   relative slide is the depth cue the eye actually believes. Tilting, shearing or scaling the box
+   itself is the part that looks like an effect, so the box stays put. Kept under 11px: past that
+   the glass starts sliding out of its own lighting and reads as a sticker on a photo. */
+@media (prefers-reduced-motion: no-preference) {
+  .channel-vial {
+    transform: translate3d(calc(var(--ud-px, 0) * 10px), calc(var(--ud-py, 0) * 5px), 0);
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
 }
 /* Warm ember light behind the hero vial, screen-blended over the marble. */
 .channel-vial::before {
@@ -11952,6 +12009,18 @@ label.field select,
     0%, 100% { opacity: 0.6; }
     50% { opacity: 0.92; }
   }
+}
+/* Out of the stack inside the niche. In the grid flow it sat under the vial and pushed the glass
+   up off the floor, which killed the one thing that makes the case read as a case; here it lies on
+   the floor in front of the vial like a plaque. */
+.ud-showcase-stage .channel-vial-readout {
+  position: absolute;
+  /* Percentages here resolve against the vial canvas, which is what we want it pinned to: the
+     painted vial ends at 86% of that canvas, so 96% lands the plaque forward of the glass — clear
+     of the pool the floating vial casts behind it, and still short of the floor's front edge. */
+  top: 96%;
+  left: 50%;
+  transform: translateX(-50%);
 }
 .channel-vial-readout {
   font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
