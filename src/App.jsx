@@ -199,6 +199,25 @@ const VIEWS = {
   calculator: "calculator",
 };
 
+/* Pointer parallax for the Undisclosed niche. Writes the pointer's position as -1..1 into two
+   custom properties on the stage; CSS moves the vial against the fixed box from there. The rect is
+   read once per enter (not per move) so a moving pointer never forces a layout while the vial is
+   mid-spin. */
+function udStageEnter(e) { e.currentTarget._udRect = e.currentTarget.getBoundingClientRect(); }
+function udStageMove(e) {
+  const el = e.currentTarget;
+  const r = el._udRect || (el._udRect = el.getBoundingClientRect());
+  if (!r.width || !r.height) return;
+  el.style.setProperty("--ud-px", (((e.clientX - r.left) / r.width) * 2 - 1).toFixed(3));
+  el.style.setProperty("--ud-py", (((e.clientY - r.top) / r.height) * 2 - 1).toFixed(3));
+}
+function udStageLeave(e) {
+  const el = e.currentTarget;
+  el._udRect = null;
+  el.style.setProperty("--ud-px", "0");
+  el.style.setProperty("--ud-py", "0");
+}
+
 function VialPreview({
   product,
   size = "md",
@@ -2066,7 +2085,12 @@ export default function App() {
 
             <section className="section ud-showcase" aria-label="Undisclosed vial showcase">
               <div className="container ud-showcase-inner">
-                <div className="ud-showcase-stage">
+                <div
+                  className="ud-showcase-stage"
+                  onPointerEnter={udStageEnter}
+                  onPointerMove={udStageMove}
+                  onPointerLeave={udStageLeave}
+                >
                   <ChannelVial channels={UD_SHOWCASE_CHANNELS} />
                 </div>
                 <div className="ud-showcase-copy">
